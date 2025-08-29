@@ -1,4 +1,7 @@
+// backend/routes/characterRoutes.ts
 import { Router } from "express";
+import multer from "multer";
+
 import {
   createCharacter,
   getCharacters,
@@ -10,6 +13,7 @@ import {
 } from "../controllers/characterController";
 
 const router = Router();
+const upload = multer({ dest: "uploads/" }); // still here in case you need it later
 
 // ============================
 // Health check
