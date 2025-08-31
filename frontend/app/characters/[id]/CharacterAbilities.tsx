@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 interface CharacterAbilitiesProps {
   abilities: Record<string, number>;
 }
@@ -7,14 +9,14 @@ interface CharacterAbilitiesProps {
 const levelOrder = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1];
 
 export default function CharacterAbilities({ abilities }: CharacterAbilitiesProps) {
-  // Group abilities by level (value)
+  // Group abilities by level
   const grouped: Record<number, string[]> = {};
   for (const [name, value] of Object.entries(abilities)) {
     if (!grouped[value]) grouped[value] = [];
     grouped[value].push(name);
   }
 
-  // Sort alphabetically inside each level for stable display
+  // Sort alphabetically inside each level
   for (const lvl of Object.keys(grouped)) {
     grouped[Number(lvl)].sort();
   }
@@ -26,9 +28,7 @@ export default function CharacterAbilities({ abilities }: CharacterAbilitiesProp
         return (
           <div key={lvl}>
             {/* Level header */}
-            <h3 style={{ color: "#d4af37", marginBottom: "8px" }}>
-              {lvl}重
-            </h3>
+            <h3 style={{ color: "#d4af37", marginBottom: "8px" }}>{lvl}重</h3>
 
             {/* Abilities grid */}
             <div
@@ -48,14 +48,13 @@ export default function CharacterAbilities({ abilities }: CharacterAbilitiesProp
                     padding: "4px",
                   }}
                 >
-                  {/* Placeholder for icon */}
-                  <div
-                    style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: 4,
-                      background: "#333",
-                    }}
+                  {/* Ability icon */}
+                  <Image
+                    src={`/icons/${name}.png`}
+                    alt={name}
+                    width={24}
+                    height={24}
+                    style={{ borderRadius: 4 }}
                   />
                   <span>{name}</span>
                 </div>
