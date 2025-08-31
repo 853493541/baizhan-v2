@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 
 interface CharacterAbilitiesProps {
@@ -9,6 +10,8 @@ interface CharacterAbilitiesProps {
 const levelOrder = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1];
 
 export default function CharacterAbilities({ abilities }: CharacterAbilitiesProps) {
+  const [open, setOpen] = useState(false);
+
   // Group abilities by level
   const grouped: Record<number, string[]> = {};
   for (const [name, value] of Object.entries(abilities)) {
@@ -22,47 +25,75 @@ export default function CharacterAbilities({ abilities }: CharacterAbilitiesProp
   }
 
   return (
-    <div style={{ display: "grid", gap: "20px" }}>
-      {levelOrder.map((lvl) => {
-        if (!grouped[lvl] || grouped[lvl].length === 0) return null;
-        return (
-          <div key={lvl}>
-            {/* Level header */}
-            <h3 style={{ color: "#d4af37", marginBottom: "8px" }}>{lvl}重</h3>
+    <div
+      style={{
+        marginTop: "40px",
+        borderTop: "1px solid #ccc",
+        paddingTop: "16px",
+      }}
+    >
+      {/* Toggle button */}
+      <button
+        onClick={() => setOpen(!open)}
+        style={{
+          background: "#222",
+          color: "#fff",
+          padding: "8px 16px",
+          borderRadius: "6px",
+          cursor: "pointer",
+          fontWeight: "bold",
+          marginBottom: "12px",
+        }}
+      >
+        {open ? "Hide Abilities ▲" : "Show Abilities ▼"}
+      </button>
 
-            {/* Abilities grid */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
-                gap: "8px 16px",
-              }}
-            >
-              {grouped[lvl].map((name) => (
+      {/* Dropdown content */}
+      {open && (
+        <div style={{ display: "grid", gap: "20px" }}>
+          {levelOrder.map((lvl) => {
+            if (!grouped[lvl] || grouped[lvl].length === 0) return null;
+            return (
+              <div key={lvl}>
+                {/* Level header */}
+                <h3 style={{ color: "#d4af37", marginBottom: "8px" }}>
+                  {lvl}重
+                </h3>
+
+                {/* Abilities grid */}
                 <div
-                  key={name}
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    padding: "4px",
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
+                    gap: "8px 16px",
                   }}
                 >
-                  {/* Ability icon */}
-                  <Image
-                    src={`/icons/${name}.png`}
-                    alt={name}
-                    width={24}
-                    height={24}
-                    style={{ borderRadius: 4 }}
-                  />
-                  <span>{name}</span>
+                  {grouped[lvl].map((name) => (
+                    <div
+                      key={name}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        padding: "4px",
+                      }}
+                    >
+                      <Image
+                        src={`/icons/${name}.png`}
+                        alt={name}
+                        width={24}
+                        height={24}
+                        style={{ borderRadius: 4 }}
+                      />
+                      <span>{name}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
-        );
-      })}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

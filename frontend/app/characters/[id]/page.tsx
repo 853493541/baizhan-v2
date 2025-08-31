@@ -4,7 +4,62 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import ComparisonModal from "./ComparisonModal";
 import CharacterEditModal from "./CharacterEditModal";
-import CharacterAbilities from "./CharacterAbilities"; // 👈 new component
+import CharacterAbilities from "./CharacterAbilities";
+
+// ⬇️ Simple OCR processing modal
+function OCRProcessingModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.4)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 9999,
+      }}
+    >
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 8,
+          padding: "24px 32px",
+          textAlign: "center",
+          width: 360,
+        }}
+      >
+        <h3 style={{ marginBottom: 20 }}>更新角色技能</h3>
+        {/* Spinner */}
+        <div
+          style={{
+            width: 40,
+            height: 40,
+            border: "4px solid #ddd",
+            borderTop: "4px solid #333",
+            borderRadius: "50%",
+            margin: "0 auto 16px",
+            animation: "spin 1s linear infinite",
+          }}
+        />
+        <p>正在驯养上品的好鸽子~</p>
+        <p>图片读取成功~</p>
+        <p>OCR处理中~</p>
+        <div style={{ marginTop: 20 }}>
+          <button onClick={onClose} style={{ marginRight: 12 }}>
+            取消
+          </button>
+        </div>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    </div>
+  );
+}
 
 interface Character {
   _id: string;
@@ -31,6 +86,8 @@ export default function CharacterDetailPage() {
   const [compareResult, setCompareResult] = useState<any | null>(null);
 
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [showOcrUpload, setShowOcrUpload] = useState(false);
+  const [ocrProcessing, setOcrProcessing] = useState(false); // ⬅️ spinner state
 
   // ============================
   // Load character
@@ -95,18 +152,9 @@ export default function CharacterDetailPage() {
   // OCR Parser + Compare
   // ============================
   const parseOCRLines = (lines: string[]): Record<string, number> => {
-    if (!lines) return {};
     const chineseLevelMap: Record<string, number> = {
-      十重: 10,
-      九重: 9,
-      八重: 8,
-      七重: 7,
-      六重: 6,
-      五重: 5,
-      四重: 4,
-      三重: 3,
-      二重: 2,
-      一重: 1,
+      十重: 10, 九重: 9, 八重: 8, 七重: 7, 六重: 6,
+      五重: 5, 四重: 4, 三重: 3, 二重: 2, 一重: 1,
     };
     let currentLevel: number | null = null;
     const parsed: Record<string, number> = {};
@@ -123,6 +171,7 @@ export default function CharacterDetailPage() {
   };
 
   const handleOCRPreview = async (file: File) => {
+    setOcrProcessing(true); // show spinner
     const formData = new FormData();
     formData.append("file", file);
     try {
@@ -150,6 +199,8 @@ export default function CharacterDetailPage() {
     } catch (err) {
       console.error(err);
       alert("OCR request failed");
+    } finally {
+      setOcrProcessing(false); // hide spinner
     }
   };
 
@@ -250,32 +301,62 @@ export default function CharacterDetailPage() {
       <h3 style={{ marginTop: 24 }}>技能</h3>
       <CharacterAbilities abilities={character.abilities} />
 
-      <h3 style={{ marginTop: 24 }}>上传 OCR 截图</h3>
-      <input
-        type="file"
-        accept="image/*"
-        onChange={(e) => setOcrFile(e.target.files?.[0] || null)}
-      />
+      {/* OCR Upload Section */}
+      <div style={{ marginTop: 24 }}>
+        <button
+          onClick={() => setShowOcrUpload(!showOcrUpload)}
+          style={{
+            background: "#222",
+            color: "#fff",
+            padding: "8px 16px",
+            borderRadius: 6,
+            cursor: "pointer",
+            fontWeight: "bold",
+          }}
+        >
+          {showOcrUpload ? "关闭 OCR 上传 ▲" : "更新角色技能 ▼"}
+        </button>
 
-      {ocrLines && (
-        <div style={{ marginTop: 20 }}>
-          <h3>OCR 结果预览</h3>
-          <pre
+        {showOcrUpload && (
+          <div
             style={{
-              border: "1px solid #ddd",
+              marginTop: 16,
+              padding: 16,
+              border: "1px dashed #aaa",
               borderRadius: 8,
-              padding: 12,
-              maxHeight: 300,
-              overflow: "auto",
-              whiteSpace: "pre-wrap",
               background: "#fafafa",
+              textAlign: "center",
+            }}
+            onPaste={(e) => {
+              const items = e.clipboardData?.items;
+              if (items) {
+                for (const item of items) {
+                  if (item.type.startsWith("image/")) {
+                    const file = item.getAsFile();
+                    if (file) setOcrFile(file);
+                  }
+                }
+              }
             }}
           >
-            {ocrLines.join("\n")}
-          </pre>
-        </div>
+            <p style={{ marginBottom: 8, color: "#666" }}>
+              可以直接在这里粘贴图片哦 ~ 也可以 →
+            </p>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setOcrFile(e.target.files?.[0] || null)}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* OCR Processing Modal */}
+      {ocrProcessing && (
+        <OCRProcessingModal onClose={() => setOcrProcessing(false)} />
       )}
 
+      {/* Comparison result modal */}
       {compareResult && (
         <ComparisonModal
           toUpdate={compareResult.toUpdate || []}
