@@ -1,27 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import CreateCharacterModal from "./CreateCharacterModal";
 
 interface Character {
   _id: string;
-  characterId: string;
+  name: string;
   account: string;
   server: string;
   gender: string;
   class: string;
+  role: string;
+  active: boolean;
 }
 
 export default function CharacterStoragePage() {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Form state
-  const [characterId, setCharacterId] = useState("");
-  const [account, setAccount] = useState("");
-  const [server, setServer] = useState("");
-  const [gender, setGender] = useState("");
-  const [charClass, setCharClass] = useState("");
+  const [isModalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     fetch("http://localhost:5000/api/characters")
@@ -37,30 +34,16 @@ export default function CharacterStoragePage() {
       });
   }, []);
 
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreate = async (data: any) => {
     try {
       const res = await fetch("http://localhost:5000/api/characters", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          characterId,
-          account,
-          server,
-          gender,
-          class: charClass,
-        }),
+        body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error("Failed to create character");
       const newChar = await res.json();
       setCharacters([...characters, newChar]);
-
-      // Reset form
-      setCharacterId("");
-      setAccount("");
-      setServer("");
-      setGender("");
-      setCharClass("");
     } catch (err) {
       console.error(err);
       alert("Error creating character");
@@ -90,50 +73,32 @@ export default function CharacterStoragePage() {
               (window.location.href = `/characters/${char._id}`)
             }
           >
-            <h3>{char.characterId}</h3>
+            <h3>{char.name}</h3>
             <p>Account: {char.account}</p>
             <p>Server: {char.server}</p>
             <p>Gender: {char.gender}</p>
             <p>Class: {char.class}</p>
+            <p>Role: {char.role}</p>
+            <p>Active: {char.active ? "是" : "否"}</p>
           </div>
         ))}
       </div>
 
-      {/* Create form */}
-      <h2 style={{ marginTop: "32px" }}>Create Character</h2>
-      <form onSubmit={handleCreate} style={{ display: "grid", gap: "8px", maxWidth: "400px" }}>
-        <input
-          placeholder="角色ID"
-          value={characterId}
-          onChange={(e) => setCharacterId(e.target.value)}
-          required
-        />
-        <input
-          placeholder="所属账号"
-          value={account}
-          onChange={(e) => setAccount(e.target.value)}
-          required
-        />
-        <input
-          placeholder="区服"
-          value={server}
-          onChange={(e) => setServer(e.target.value)}
-          required
-        />
-        <input
-          placeholder="性别"
-          value={gender}
-          onChange={(e) => setGender(e.target.value)}
-          required
-        />
-        <input
-          placeholder="职业"
-          value={charClass}
-          onChange={(e) => setCharClass(e.target.value)}
-          required
-        />
-        <button type="submit">Create</button>
-      </form>
+      {/* Create button + modal */}
+      <div style={{ marginTop: "32px" }}>
+        <button
+          onClick={() => setModalOpen(true)}
+          className="px-4 py-2 bg-green-500 text-white rounded"
+        >
+          + 新建角色
+        </button>
+      </div>
+
+      <CreateCharacterModal
+        isOpen={isModalOpen}
+        onClose={() => setModalOpen(false)}
+        onCreate={handleCreate}
+      />
     </div>
   );
 }

@@ -2,35 +2,48 @@ import { Request, Response } from "express";
 import Character from "../models/Character";
 import Ability from "../models/Ability";
 
+// Small helpers for consistent logs
+const log = (...args: any[]) => console.log("[characters]", ...args);
+const errlog = (...args: any[]) => console.error("[characters][ERROR]", ...args);
+
 // ============================
 // Create a new character
 // ============================
 export const createCharacter = async (req: Request, res: Response) => {
   try {
-    const { characterId, account, server, gender, class: charClass } = req.body;
+    const { name, account, server, gender, class: charClass, role, active } = req.body;
 
-    const existing = await Character.findOne({ characterId });
-    if (existing) {
-      return res.status(400).json({ error: "Character ID already exists" });
+    if (!name) return res.status(400).json({ error: "Name is required" });
+    if (!account) return res.status(400).json({ error: "Account is required" });
+
+    const allowedServers = ["梦江南", "乾坤一掷", "唯我独尊"];
+    const allowedGenders = ["男", "女"];
+    const allowedRoles = ["DPS", "Tank", "Healer"];
+
+    if (!allowedServers.includes(server)) {
+      return res.status(400).json({ error: "Invalid server" });
     }
-
-    // ✅ Validate gender
-    const allowedGenders = ["male", "female"];
     if (!allowedGenders.includes(gender)) {
-      return res.status(400).json({ error: "Invalid gender. Must be 'male' or 'female'." });
+      return res.status(400).json({ error: "Invalid gender" });
+    }
+    if (!allowedRoles.includes(role)) {
+      return res.status(400).json({ error: "Invalid role" });
     }
 
-    // preload all abilities at 0
+    const isActive = active === undefined ? true : Boolean(active);
+
     const abilities = await Ability.find({});
-    const abilityLevels: { [key: string]: number } = {};
+    const abilityLevels: Record<string, number> = {};
     abilities.forEach((a) => (abilityLevels[a.name] = 0));
 
     const newCharacter = new Character({
-      characterId,
+      name,
       account,
       server,
       gender,
       class: charClass,
+      role,
+      active: isActive,
       abilities: abilityLevels,
     });
 
@@ -40,7 +53,6 @@ export const createCharacter = async (req: Request, res: Response) => {
     res.status(500).json({ error: err.message });
   }
 };
-
 // ============================
 // Get all characters
 // ============================
@@ -49,6 +61,7 @@ export const getCharacters = async (req: Request, res: Response) => {
     const characters = await Character.find({});
     res.json(characters);
   } catch (err: any) {
+    errlog("getCharacters exception:", err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -62,6 +75,7 @@ export const getCharacterById = async (req: Request, res: Response) => {
     if (!char) return res.status(404).json({ error: "Character not found" });
     res.json(char);
   } catch (err: any) {
+    errlog("getCharacterById exception:", err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -71,7 +85,7 @@ export const getCharacterById = async (req: Request, res: Response) => {
 // ============================
 export const updateCharacterAbilities = async (req: Request, res: Response) => {
   try {
-    const { abilities } = req.body; // expected: { "万花金创药": 9, "阴阳术退散": 10 }
+    const { abilities } = req.body;
     if (!abilities || typeof abilities !== "object") {
       return res.status(400).json({ error: "abilities object is required" });
     }
@@ -115,7 +129,61 @@ export const updateCharacterAbilities = async (req: Request, res: Response) => {
 
     return res.json({ character: newDoc, updated, skipped });
   } catch (err: any) {
-    console.error(err);
+    errlog("updateCharacterAbilities exception:", err);
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+// ============================
+// Update character (general info)
+// ============================
+export const updateCharacter = async (req: Request, res: Response) => {
+  try {
+    const { characterId, account, server, gender, class: charClass, role, active, name } = req.body;
+
+    const char = await Character.findById(req.params.id);
+    if (!char) return res.status(404).json({ error: "Character not found" });
+
+    const allowedGenders = ["男", "女"];
+    const allowedServers = ["梦江南", "乾坤一掷", "唯我独尊"];
+    const allowedRoles = ["DPS", "Tank", "Healer"];
+
+    if (gender !== undefined) {
+      const g = gender === "male" ? "男" : gender === "female" ? "女" : gender;
+      if (!allowedGenders.includes(g)) {
+        return res.status(400).json({ error: "Invalid gender. Must be 男 or 女." });
+      }
+      char.gender = g;
+    }
+
+    if (server !== undefined) {
+      if (!allowedServers.includes(server)) {
+        return res.status(400).json({ error: "Invalid server." });
+      }
+      char.server = server;
+    }
+
+    if (role !== undefined) {
+      const r = role === "治疗" ? "Healer" : role === "T" ? "Tank" : role;
+      if (!allowedRoles.includes(r)) {
+        return res.status(400).json({ error: "Invalid role. Must be DPS, Tank, or Healer." });
+      }
+      char.role = r;
+    }
+
+    if (name !== undefined) char.name = String(name).trim();
+
+    if (account !== undefined) char.account = String(account).trim();
+    if (charClass !== undefined) char.class = String(charClass).trim();
+    if (active !== undefined) char.active = Boolean(active);
+
+    await char.save();
+    return res.json(char);
+  } catch (err: any) {
+    errlog("updateCharacter exception:", err);
+    if (err?.name === "ValidationError") {
+      return res.status(400).json({ error: "ValidationError", details: err.errors });
+    }
     return res.status(500).json({ error: err.message });
   }
 };
@@ -131,6 +199,7 @@ export const deleteCharacter = async (req: Request, res: Response) => {
     }
     res.json({ message: "Character deleted successfully" });
   } catch (err: any) {
+    errlog("deleteCharacter exception:", err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -138,20 +207,21 @@ export const deleteCharacter = async (req: Request, res: Response) => {
 // ============================
 // Health check
 // ============================
-export const healthCheck = async (req: Request, res: Response) => {
+export const healthCheck = async (_req: Request, res: Response) => {
   try {
-    res.json({
-      status: "ok",
-      db: Character.db.name,
-    });
+    res.json({ status: "ok", db: Character.db.name });
   } catch (err: any) {
+    errlog("healthCheck exception:", err);
     res.status(500).json({ error: err.message });
   }
 };
 
+// ============================
+// Compare OCR abilities with stored data
+// ============================
 export const compareCharacterAbilities = async (req: Request, res: Response) => {
   try {
-    const { abilities } = req.body; // OCR result: { "万花金创药": 9, "阴阳术退散": 10 }
+    const { abilities } = req.body;
     if (!abilities || typeof abilities !== "object") {
       return res.status(400).json({ error: "abilities object is required" });
     }
@@ -159,7 +229,6 @@ export const compareCharacterAbilities = async (req: Request, res: Response) => 
     const char = await Character.findById(req.params.id);
     if (!char) return res.status(404).json({ error: "Character not found" });
 
-    // 🔹 Alias dictionary for common OCR mistakes
     const abilityAliases: Record<string, string> = {
       "电昆吾": "电挈昆吾",
       "蛇召唤": "蝮蛇召唤",
@@ -167,40 +236,21 @@ export const compareCharacterAbilities = async (req: Request, res: Response) => 
       "武倪召来": "武傀召来",
       "尸鬼封": "尸鬼封烬",
       "帝龙翔": "帝骖龙翔",
-      // extend with more as needed
     };
 
-    // 🔹 Gender-specific restrictions
     const femaleOnlyBan = new Set(["顽抗", "巨猿劈山", "蛮熊碎颅击"]);
     const maleOnlyBan = new Set(["剑心通明", "帝骖龙翔"]);
-
-    // 🔹 Always ignore these abilities from DB-only
     const ignoreAlways = new Set([
-      "退山凝",
-      "电挈昆吾",
-      "立剑势",
-      "震岳势",
-      "流霞点绛",
-      "霞袖回春",
-      "云海听弦",
-      "玉魄惊鸾",
-      "无我无剑式",
-      "月流斩",
-      "三环套月式",
-      "剑飞惊天",
+      "退山凝", "电挈昆吾", "立剑势", "震岳势", "流霞点绛", "霞袖回春",
+      "云海听弦", "玉魄惊鸾", "无我无剑式", "月流斩", "三环套月式", "剑飞惊天",
     ]);
 
     const toUpdate: Array<{ name: string; old: number; new: number }> = [];
     const unchanged: Array<{ name: string; value: number }> = [];
     const ocrOnly: string[] = [];
 
-    // ============================
-    // OCR → DB
-    // ============================
     for (const [rawName, level] of Object.entries(abilities)) {
-      // normalize with alias
       const name = abilityAliases[rawName] || rawName;
-
       const hasKey =
         (char.abilities as any)?.has?.(name) ||
         Object.prototype.hasOwnProperty.call(char.abilities || {}, name);
@@ -217,13 +267,10 @@ export const compareCharacterAbilities = async (req: Request, res: Response) => 
           unchanged.push({ name, value: Number(level) });
         }
       } else {
-        ocrOnly.push(rawName); // keep raw OCR name for visibility
+        ocrOnly.push(rawName);
       }
     }
 
-    // ============================
-    // DB → OCR
-    // ============================
     let abilityObj: Record<string, number> = {};
     if (char.abilities instanceof Map) {
       abilityObj = Object.fromEntries(char.abilities);
@@ -233,44 +280,29 @@ export const compareCharacterAbilities = async (req: Request, res: Response) => 
       abilityObj = char.abilities as Record<string, number>;
     }
 
-    // build normalized OCR names set
     const normalizedOCRNames = new Set(
       Object.keys(abilities).map((raw) => abilityAliases[raw] || raw)
     );
 
     const dbOnly: string[] = [];
     for (const name of Object.keys(abilityObj)) {
-      // 🚫 skip gender-exclusive abilities
-      if (char.gender === "female" && femaleOnlyBan.has(name)) continue;
-      if (char.gender === "male" && maleOnlyBan.has(name)) continue;
-
-      // 🚫 skip always-ignore list
+      if (char.gender === "女" && femaleOnlyBan.has(name)) continue;
+      if (char.gender === "男" && maleOnlyBan.has(name)) continue;
       if (ignoreAlways.has(name)) continue;
-
-      if (!normalizedOCRNames.has(name)) {
-        dbOnly.push(name);
-      }
+      if (!normalizedOCRNames.has(name)) dbOnly.push(name);
     }
 
-    // ============================
-    // Filter impossible/ignored OCR abilities too
-    // ============================
     const filteredOcrOnly = ocrOnly.filter((rawName) => {
       const normalized = abilityAliases[rawName] || rawName;
-      if (char.gender === "female" && femaleOnlyBan.has(normalized)) return false;
-      if (char.gender === "male" && maleOnlyBan.has(normalized)) return false;
+      if (char.gender === "女" && femaleOnlyBan.has(normalized)) return false;
+      if (char.gender === "男" && maleOnlyBan.has(normalized)) return false;
       if (ignoreAlways.has(normalized)) return false;
       return true;
     });
 
-    return res.json({
-      toUpdate,
-      unchanged,
-      ocrOnly: filteredOcrOnly,
-      dbOnly,
-    });
+    return res.json({ toUpdate, unchanged, ocrOnly: filteredOcrOnly, dbOnly });
   } catch (err: any) {
-    console.error(err);
+    errlog("compareCharacterAbilities exception:", err);
     return res.status(500).json({ error: err.message });
   }
 };
