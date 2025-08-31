@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import ComparisonModal from "./ComparisonModal"; // adjust import path if needed
 
 interface Character {
   _id: string;
   characterId: string;
   account: string;
   server: string;
-  gender: string;
+  gender: "male" | "female"; // enforce type
   class: string;
   abilities: Record<string, number>;
 }
@@ -24,7 +25,7 @@ export default function CharacterDetailPage() {
   const [compareResult, setCompareResult] = useState<any | null>(null);
 
   // ============================
-  // Load character from backend
+  // Load character
   // ============================
   useEffect(() => {
     if (!id) return;
@@ -48,16 +49,16 @@ export default function CharacterDetailPage() {
     if (!lines) return {};
 
     const chineseLevelMap: Record<string, number> = {
-      "十重": 10,
-      "九重": 9,
-      "八重": 8,
-      "七重": 7,
-      "六重": 6,
-      "五重": 5,
-      "四重": 4,
-      "三重": 3,
-      "二重": 2,
-      "一重": 1,
+      十重: 10,
+      九重: 9,
+      八重: 8,
+      七重: 7,
+      六重: 6,
+      五重: 5,
+      四重: 4,
+      三重: 3,
+      二重: 2,
+      一重: 1,
     };
 
     let currentLevel: number | null = null;
@@ -67,17 +68,14 @@ export default function CharacterDetailPage() {
       const text = line.trim();
       if (!text) continue;
 
-      // Level header?
       if (chineseLevelMap[text] !== undefined) {
         currentLevel = chineseLevelMap[text];
         continue;
       }
 
-      // Ability name? (must exist in character schema)
-      if (character && Object.keys(character.abilities).includes(text)) {
-        if (currentLevel) {
-          parsed[text] = currentLevel;
-        }
+      // keep all OCR results, even if not in DB
+      if (currentLevel) {
+        parsed[text] = currentLevel;
       }
     }
 
@@ -85,13 +83,11 @@ export default function CharacterDetailPage() {
   };
 
   // ============================
-  // Run OCR and preview raw lines
+  // OCR + Compare
   // ============================
-  const handleOCRPreview = async () => {
-    if (!ocrFile) return alert("Please upload an image first");
-
+  const handleOCRPreview = async (file: File) => {
     const formData = new FormData();
-    formData.append("file", ocrFile);
+    formData.append("file", file);
 
     try {
       const res = await fetch("http://localhost:8000/ocr", {
@@ -99,41 +95,38 @@ export default function CharacterDetailPage() {
         body: formData,
       });
       const ocrData = await res.json();
-      setOcrLines(ocrData?.lines ?? []);
-      setCompareResult(null);
+      const lines = ocrData?.lines ?? [];
+      setOcrLines(lines);
+
+      // 🔹 Immediately compare with DB
+      if (lines.length && id) {
+        const parsedAbilities = parseOCRLines(lines);
+        const compareRes = await fetch(
+          `http://localhost:5000/api/characters/${id}/compareAbilities`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ abilities: parsedAbilities }),
+          }
+        );
+        const result = await compareRes.json();
+        console.log("Compare API result:", result);
+        setCompareResult(result);
+      }
     } catch (err) {
       console.error(err);
       alert("OCR request failed");
     }
   };
 
-  // ============================
-  // Compare parsed abilities with DB
-  // ============================
-  const handleCompareWithDB = async () => {
-    if (!ocrLines || !id) return alert("Run OCR preview first.");
-    const parsedAbilities = parseOCRLines(ocrLines);
-    console.log("Parsed abilities:", parsedAbilities);
-
-    try {
-      const compareRes = await fetch(
-        `http://localhost:5000/api/characters/${id}/compareAbilities`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ abilities: parsedAbilities }),
-        }
-      );
-      const result = await compareRes.json();
-      setCompareResult(result);
-    } catch (err) {
-      console.error(err);
-      alert("Compare request failed");
+  useEffect(() => {
+    if (ocrFile) {
+      handleOCRPreview(ocrFile);
     }
-  };
+  }, [ocrFile]);
 
   // ============================
-  // Confirm update in DB
+  // Confirm update
   // ============================
   const handleConfirmUpdate = async () => {
     if (!compareResult?.toUpdate || !id) return;
@@ -166,13 +159,21 @@ export default function CharacterDetailPage() {
   if (error) return <p>{error}</p>;
   if (!character) return <p>No character found</p>;
 
+  // pretty print gender
+  const genderLabel =
+    character.gender === "male"
+      ? "Male ♂"
+      : character.gender === "female"
+      ? "Female ♀"
+      : `Invalid (${character.gender})`;
+
   return (
     <div style={{ padding: "20px", maxWidth: 1000, margin: "0 auto" }}>
       <h1>Character Detail</h1>
       <h2>{character.characterId}</h2>
       <p>Account: {character.account}</p>
       <p>Server: {character.server}</p>
-      <p>Gender: {character.gender}</p>
+      <p>Gender: {genderLabel}</p>
       <p>Class: {character.class}</p>
 
       <h3>Abilities</h3>
@@ -201,13 +202,6 @@ export default function CharacterDetailPage() {
         onChange={(e) => setOcrFile(e.target.files?.[0] || null)}
       />
 
-      <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
-        <button onClick={handleOCRPreview}>Run OCR (Preview)</button>
-        <button disabled={!ocrLines} onClick={handleCompareWithDB}>
-          Compare With DB (parsed)
-        </button>
-      </div>
-
       {ocrLines && (
         <div style={{ marginTop: 20 }}>
           <h3>OCR Result (Preview)</h3>
@@ -228,24 +222,13 @@ export default function CharacterDetailPage() {
       )}
 
       {compareResult && (
-        <div style={{ marginTop: 24 }}>
-          <h3>Comparison Result</h3>
-          <pre
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: 8,
-              padding: 12,
-              maxHeight: 320,
-              overflow: "auto",
-              background: "#fff",
-            }}
-          >
-            {JSON.stringify(compareResult, null, 2)}
-          </pre>
-          {compareResult.toUpdate?.length > 0 && (
-            <button onClick={handleConfirmUpdate}>Confirm Update</button>
-          )}
-        </div>
+        <ComparisonModal
+          toUpdate={compareResult.toUpdate || []}
+          ocrOnly={compareResult.ocrOnly || []}
+          dbOnly={compareResult.dbOnly || []}
+          onConfirm={handleConfirmUpdate}
+          onClose={() => setCompareResult(null)}
+        />
       )}
     </div>
   );
