@@ -248,7 +248,7 @@ export default function CharacterDetailPage() {
       )}
 
       <h3 style={{ marginTop: 24 }}>技能</h3>
-      <CharacterAbilities abilities={character.abilities} />
+      <CharacterAbilities abilities={character.aabilities} />
 
       <h3 style={{ marginTop: 24 }}>上传 OCR 截图</h3>
       <input
