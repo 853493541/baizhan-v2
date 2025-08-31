@@ -1,21 +1,27 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import ComparisonModal from "./ComparisonModal"; // adjust import path if needed
+import { useParams, useRouter } from "next/navigation";
+import ComparisonModal from "./ComparisonModal";
+import CharacterEditModal from "./CharacterEditModal";
+import CharacterAbilities from "./CharacterAbilities"; // 👈 new component
 
 interface Character {
   _id: string;
-  characterId: string;
+  name: string;
   account: string;
   server: string;
-  gender: "male" | "female"; // enforce type
+  gender: "男" | "女";
   class: string;
+  role: "DPS" | "Tank" | "Healer";
+  active: boolean;
   abilities: Record<string, number>;
 }
 
 export default function CharacterDetailPage() {
   const { id } = useParams();
+  const router = useRouter();
+
   const [character, setCharacter] = useState<Character | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,6 +29,8 @@ export default function CharacterDetailPage() {
   const [ocrFile, setOcrFile] = useState<File | null>(null);
   const [ocrLines, setOcrLines] = useState<string[] | null>(null);
   const [compareResult, setCompareResult] = useState<any | null>(null);
+
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   // ============================
   // Load character
@@ -43,11 +51,51 @@ export default function CharacterDetailPage() {
   }, [id]);
 
   // ============================
-  // Parser: OCR lines -> { abilityName: level }
+  // Save edits
+  // ============================
+  const handleSaveEdit = async (data: { name: string; server: string; role: string; active: boolean }) => {
+    if (!id) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/characters/${id}/info`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Update failed");
+      const updated = await res.json();
+      setCharacter(updated);
+      setIsEditOpen(false);
+      alert("角色信息已更新");
+    } catch (err) {
+      console.error(err);
+      alert("更新失败");
+    }
+  };
+
+  // ============================
+  // Delete character
+  // ============================
+  const handleDelete = async () => {
+    if (!id) return;
+    if (!confirm("确定要删除这个角色吗？")) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/characters/${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Delete failed");
+      alert("角色已删除");
+      router.push("/characters");
+    } catch (err) {
+      console.error(err);
+      alert("删除失败");
+    }
+  };
+
+  // ============================
+  // OCR Parser + Compare
   // ============================
   const parseOCRLines = (lines: string[]): Record<string, number> => {
     if (!lines) return {};
-
     const chineseLevelMap: Record<string, number> = {
       十重: 10,
       九重: 9,
@@ -60,35 +108,23 @@ export default function CharacterDetailPage() {
       二重: 2,
       一重: 1,
     };
-
     let currentLevel: number | null = null;
     const parsed: Record<string, number> = {};
-
     for (const line of lines) {
       const text = line.trim();
       if (!text) continue;
-
       if (chineseLevelMap[text] !== undefined) {
         currentLevel = chineseLevelMap[text];
         continue;
       }
-
-      // keep all OCR results, even if not in DB
-      if (currentLevel) {
-        parsed[text] = currentLevel;
-      }
+      if (currentLevel) parsed[text] = currentLevel;
     }
-
     return parsed;
   };
 
-  // ============================
-  // OCR + Compare
-  // ============================
   const handleOCRPreview = async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
-
     try {
       const res = await fetch("http://localhost:8000/ocr", {
         method: "POST",
@@ -98,7 +134,6 @@ export default function CharacterDetailPage() {
       const lines = ocrData?.lines ?? [];
       setOcrLines(lines);
 
-      // 🔹 Immediately compare with DB
       if (lines.length && id) {
         const parsedAbilities = parseOCRLines(lines);
         const compareRes = await fetch(
@@ -110,7 +145,6 @@ export default function CharacterDetailPage() {
           }
         );
         const result = await compareRes.json();
-        console.log("Compare API result:", result);
         setCompareResult(result);
       }
     } catch (err) {
@@ -120,28 +154,24 @@ export default function CharacterDetailPage() {
   };
 
   useEffect(() => {
-    if (ocrFile) {
-      handleOCRPreview(ocrFile);
-    }
+    if (ocrFile) handleOCRPreview(ocrFile);
   }, [ocrFile]);
 
-  // ============================
-  // Confirm update
-  // ============================
   const handleConfirmUpdate = async () => {
     if (!compareResult?.toUpdate || !id) return;
-
     const updates: Record<string, number> = {};
     compareResult.toUpdate.forEach((u: any) => {
       updates[u.name] = u.new;
     });
-
     try {
-      const res = await fetch(`http://localhost:5000/api/characters/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ abilities: updates }),
-      });
+      const res = await fetch(
+        `http://localhost:5000/api/characters/${id}/abilities`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ abilities: updates }),
+        }
+      );
       const updated = await res.json();
       setCharacter(updated.character || updated);
       setCompareResult(null);
@@ -159,43 +189,68 @@ export default function CharacterDetailPage() {
   if (error) return <p>{error}</p>;
   if (!character) return <p>No character found</p>;
 
-  // pretty print gender
-  const genderLabel =
-    character.gender === "male"
-      ? "Male ♂"
-      : character.gender === "female"
-      ? "Female ♀"
-      : `Invalid (${character.gender})`;
+  const genderLabel = character.gender === "男" ? "男 ♂" : "女 ♀";
 
   return (
     <div style={{ padding: "20px", maxWidth: 1000, margin: "0 auto" }}>
-      <h1>Character Detail</h1>
-      <h2>{character.characterId}</h2>
-      <p>Account: {character.account}</p>
-      <p>Server: {character.server}</p>
-      <p>Gender: {genderLabel}</p>
-      <p>Class: {character.class}</p>
+      <h1>角色详情</h1>
+      <h2>{character.name}</h2>
+      <p>账号: {character.account}</p>
+      <p>区服: {character.server}</p>
+      <p>性别: {genderLabel}</p>
+      <p>门派: {character.class}</p>
+      <p>定位: {character.role}</p>
+      <p>是否启用: {character.active ? "是" : "否"}</p>
 
-      <h3>Abilities</h3>
-      <div
+      <button
+        onClick={() => setIsEditOpen(true)}
         style={{
-          border: "1px solid #eee",
-          borderRadius: 8,
-          padding: 12,
-          maxHeight: 240,
-          overflow: "auto",
+          marginTop: 12,
+          marginRight: 12,
+          padding: "8px 16px",
+          background: "orange",
+          color: "white",
+          border: "none",
+          borderRadius: 6,
+          cursor: "pointer",
         }}
       >
-        <ul style={{ margin: 0 }}>
-          {Object.entries(character.abilities).map(([name, value]) => (
-            <li key={name}>
-              {name}: {value}
-            </li>
-          ))}
-        </ul>
-      </div>
+        编辑角色
+      </button>
 
-      <h3 style={{ marginTop: 24 }}>Upload OCR Screenshot</h3>
+      <button
+        onClick={handleDelete}
+        style={{
+          padding: "8px 16px",
+          background: "red",
+          color: "white",
+          border: "none",
+          borderRadius: 6,
+          cursor: "pointer",
+        }}
+      >
+        删除角色
+      </button>
+
+      {/* Edit Modal */}
+      {character && (
+        <CharacterEditModal
+          isOpen={isEditOpen}
+          onClose={() => setIsEditOpen(false)}
+          onSave={handleSaveEdit}
+          initialData={{
+            name: character.name,
+            server: character.server,
+            role: character.role,
+            active: character.active,
+          }}
+        />
+      )}
+
+      <h3 style={{ marginTop: 24 }}>技能</h3>
+      <CharacterAbilities abilities={character.abilities} />
+
+      <h3 style={{ marginTop: 24 }}>上传 OCR 截图</h3>
       <input
         type="file"
         accept="image/*"
@@ -204,7 +259,7 @@ export default function CharacterDetailPage() {
 
       {ocrLines && (
         <div style={{ marginTop: 20 }}>
-          <h3>OCR Result (Preview)</h3>
+          <h3>OCR 结果预览</h3>
           <pre
             style={{
               border: "1px solid #ddd",
