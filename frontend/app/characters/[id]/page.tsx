@@ -29,7 +29,7 @@ function OCRProcessingModal({ onClose }: { onClose: () => void }) {
           width: 360,
         }}
       >
-        <h3 style={{ marginBottom: 20 }}>更新角色技能</h3>
+        <h3 style={{ marginBottom: 20 }}>图片已上传</h3>
         {/* Spinner */}
         <div
           style={{
@@ -42,9 +42,7 @@ function OCRProcessingModal({ onClose }: { onClose: () => void }) {
             animation: "spin 1s linear infinite",
           }}
         />
-        <p>正在驯养上品的好鸽子~</p>
-        <p>图片读取成功~</p>
-        <p>OCR处理中~</p>
+        <p>OCR处理中</p>
         <div style={{ marginTop: 20 }}>
           <button onClick={onClose} style={{ marginRight: 12 }}>
             取消
@@ -340,7 +338,7 @@ export default function CharacterDetailPage() {
             }}
           >
             <p style={{ marginBottom: 8, color: "#666" }}>
-              可以直接在这里粘贴图片哦 ~ 也可以 →
+              粘贴或者上传
             </p>
             <input
               type="file"
