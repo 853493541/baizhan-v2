@@ -2,11 +2,18 @@
 
 import { useState, useEffect } from "react";
 
+// ✅ Exported type for reuse
+export interface CharacterEditData {
+  server: string;
+  role: string;
+  active: boolean;
+}
+
 interface CharacterEditModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: { server: string; role: string; active: boolean }) => void;
-  initialData: { server: string; role: string; active: boolean };
+  onSave: (data: CharacterEditData) => void;
+  initialData: CharacterEditData;
 }
 
 const servers = ["梦江南", "乾坤一掷", "唯我独尊"];
@@ -22,7 +29,7 @@ export default function CharacterEditModal({
   const [role, setRole] = useState(initialData.role);
   const [active, setActive] = useState(initialData.active);
 
-  // Reset values when opening
+  // Reset values when modal opens or initialData changes
   useEffect(() => {
     setServer(initialData.server);
     setRole(initialData.role);
@@ -102,7 +109,12 @@ export default function CharacterEditModal({
             <button
               type="button"
               onClick={onClose}
-              style={{ padding: "6px 12px", background: "#ccc", border: "none", borderRadius: 6 }}
+              style={{
+                padding: "6px 12px",
+                background: "#ccc",
+                border: "none",
+                borderRadius: 6,
+              }}
             >
               取消
             </button>

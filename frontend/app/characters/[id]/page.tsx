@@ -298,7 +298,6 @@ export default function CharacterDetailPage() {
           onClose={() => setIsEditOpen(false)}
           onSave={handleSaveEdit}
           initialData={{
-            name: character.name,
             server: character.server,
             role: character.role,
             active: character.active,
@@ -327,7 +326,7 @@ export default function CharacterDetailPage() {
 
         {showOcrUpload && (
           <div
-            style={{
+            style={{  
               marginTop: 16,
               padding: 16,
               border: "1px dashed #aaa",
