@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import ComparisonModal from "./ComparisonModal";
-import CharacterEditModal from "./CharacterEditModal";
+import CharacterEditModal, { CharacterEditData } from "./CharacterEditModal"; // ✅ import type
 import CharacterAbilities from "./CharacterAbilities";
 import CollectionStatus from "./CollectionStatus";
 
@@ -31,7 +31,6 @@ function OCRProcessingModal({ onClose }: { onClose: () => void }) {
         }}
       >
         <h3 style={{ marginBottom: 20 }}>图片已上传</h3>
-        {/* Spinner */}
         <div
           style={{
             width: 40,
@@ -86,7 +85,7 @@ export default function CharacterDetailPage() {
 
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [showOcrUpload, setShowOcrUpload] = useState(false);
-  const [ocrProcessing, setOcrProcessing] = useState(false); // ⬅️ spinner state
+  const [ocrProcessing, setOcrProcessing] = useState(false);
 
   // ============================
   // Load character
@@ -109,7 +108,7 @@ export default function CharacterDetailPage() {
   // ============================
   // Save edits
   // ============================
-  const handleSaveEdit = async (data: { name: string; server: string; role: string; active: boolean }) => {
+  const handleSaveEdit = async (data: CharacterEditData) => {
     if (!id) return;
     try {
       const res = await fetch(`http://localhost:5000/api/characters/${id}/info`, {
@@ -152,8 +151,16 @@ export default function CharacterDetailPage() {
   // ============================
   const parseOCRLines = (lines: string[]): Record<string, number> => {
     const chineseLevelMap: Record<string, number> = {
-      十重: 10, 九重: 9, 八重: 8, 七重: 7, 六重: 6,
-      五重: 5, 四重: 4, 三重: 3, 二重: 2, 一重: 1,
+      十重: 10,
+      九重: 9,
+      八重: 8,
+      七重: 7,
+      六重: 6,
+      五重: 5,
+      四重: 4,
+      三重: 3,
+      二重: 2,
+      一重: 1,
     };
     let currentLevel: number | null = null;
     const parsed: Record<string, number> = {};
@@ -170,7 +177,7 @@ export default function CharacterDetailPage() {
   };
 
   const handleOCRPreview = async (file: File) => {
-    setOcrProcessing(true); // show spinner
+    setOcrProcessing(true);
     const formData = new FormData();
     formData.append("file", file);
     try {
@@ -199,7 +206,7 @@ export default function CharacterDetailPage() {
       console.error(err);
       alert("OCR request failed");
     } finally {
-      setOcrProcessing(false); // hide spinner
+      setOcrProcessing(false);
     }
   };
 
@@ -251,7 +258,6 @@ export default function CharacterDetailPage() {
       <p>门派: {character.class}</p>
       <p>定位: {character.role}</p>
       <p>是否启用: {character.active ? "是" : "否"}</p>
-
 
       {character && <CollectionStatus character={character} />}
 
@@ -341,9 +347,7 @@ export default function CharacterDetailPage() {
               }
             }}
           >
-            <p style={{ marginBottom: 8, color: "#666" }}>
-              粘贴或者上传
-            </p>
+            <p style={{ marginBottom: 8, color: "#666" }}>粘贴或者上传</p>
             <input
               type="file"
               accept="image/*"
@@ -369,7 +373,5 @@ export default function CharacterDetailPage() {
         />
       )}
     </div>
-
   );
-  
 }
