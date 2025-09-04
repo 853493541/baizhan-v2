@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import Character from "../../models/Character";
+import stringSimilarity from "string-similarity";
 
 export const compareCharacterAbilities = async (req: Request, res: Response) => {
   try {
@@ -12,7 +13,12 @@ export const compareCharacterAbilities = async (req: Request, res: Response) => 
     if (!char) return res.status(404).json({ error: "Character not found" });
 
     const abilityAliases: Record<string, string> = {
+       "帝穆龙翔": "帝骖龙翔",
+      "骤身": "戮身",
+       
+      "武愧召来": "武傀召来",
       "电昆吾": "电挈昆吾",
+      "短歌一": "短歌一觞",
       "蛇召唤": "蝮蛇召唤",
       "枪法蛇": "枪法蝮蛇",
       "武倪召来": "武傀召来",
@@ -31,28 +37,7 @@ export const compareCharacterAbilities = async (req: Request, res: Response) => 
     const unchanged: Array<{ name: string; value: number }> = [];
     const ocrOnly: string[] = [];
 
-    for (const [rawName, level] of Object.entries(abilities)) {
-      const name = abilityAliases[rawName] || rawName;
-      const hasKey =
-        (char.abilities as any)?.has?.(name) ||
-        Object.prototype.hasOwnProperty.call(char.abilities || {}, name);
-
-      if (hasKey) {
-        const oldVal =
-          (char.abilities as any)?.get?.(name) ??
-          (char.abilities as any)?.[name] ??
-          0;
-
-        if (Number(oldVal) !== Number(level)) {
-          toUpdate.push({ name, old: Number(oldVal), new: Number(level) });
-        } else {
-          unchanged.push({ name, value: Number(level) });
-        }
-      } else {
-        ocrOnly.push(rawName);
-      }
-    }
-
+    // Normalize abilities from DB
     let abilityObj: Record<string, number> = {};
     if (char.abilities instanceof Map) {
       abilityObj = Object.fromEntries(char.abilities);
@@ -60,6 +45,46 @@ export const compareCharacterAbilities = async (req: Request, res: Response) => 
       abilityObj = (char.abilities as any).toObject();
     } else {
       abilityObj = char.abilities as Record<string, number>;
+    }
+    const dbNames = Object.keys(abilityObj);
+
+    for (const [rawName, level] of Object.entries(abilities)) {
+      const normalized = abilityAliases[rawName] || rawName;
+
+      // Skip banned/ignored
+      if (char.gender === "女" && femaleOnlyBan.has(normalized)) continue;
+      if (char.gender === "男" && maleOnlyBan.has(normalized)) continue;
+      if (ignoreAlways.has(normalized)) continue;
+
+      let targetName = normalized;
+
+      // Direct match?
+      const hasDirect = Object.prototype.hasOwnProperty.call(abilityObj, normalized);
+
+      if (!hasDirect) {
+        // Try fuzzy match
+        const { bestMatch } = stringSimilarity.findBestMatch(normalized, dbNames);
+        if (bestMatch.rating >= 0.8) {
+          console.log(
+            `🔍 Fuzzy matched "${normalized}" -> "${bestMatch.target}" (${bestMatch.rating.toFixed(
+              2
+            )})`
+          );
+          targetName = bestMatch.target;
+        }
+      }
+
+      if (Object.prototype.hasOwnProperty.call(abilityObj, targetName)) {
+        const oldVal = abilityObj[targetName] ?? 0;
+        if (Number(oldVal) !== Number(level)) {
+          toUpdate.push({ name: targetName, old: Number(oldVal), new: Number(level) });
+        } else {
+          unchanged.push({ name: targetName, value: Number(level) });
+        }
+      } else {
+        // Still unmatched
+        ocrOnly.push(normalized);
+      }
     }
 
     const normalizedOCRNames = new Set(
@@ -74,15 +99,7 @@ export const compareCharacterAbilities = async (req: Request, res: Response) => 
       if (!normalizedOCRNames.has(name)) dbOnly.push(name);
     }
 
-    const filteredOcrOnly = ocrOnly.filter((rawName) => {
-      const normalized = abilityAliases[rawName] || rawName;
-      if (char.gender === "女" && femaleOnlyBan.has(normalized)) return false;
-      if (char.gender === "男" && maleOnlyBan.has(normalized)) return false;
-      if (ignoreAlways.has(normalized)) return false;
-      return true;
-    });
-
-    return res.json({ toUpdate, unchanged, ocrOnly: filteredOcrOnly, dbOnly });
+    return res.json({ toUpdate, unchanged, ocrOnly, dbOnly });
   } catch (err: any) {
     return res.status(500).json({ error: err.message });
   }

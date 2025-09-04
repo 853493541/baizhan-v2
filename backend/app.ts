@@ -8,7 +8,7 @@ const app = express();
 // ✅ Enable CORS
 app.use(cors({
   origin: "http://localhost:3000", // allow frontend
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   allowedHeaders: ["Content-Type"],
 }));
 

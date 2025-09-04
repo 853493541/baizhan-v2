@@ -14,16 +14,17 @@ export async function runOCR(file: File, characterId: string) {
 
   const ocrData = await res.json();
 
-    console.log("🔍 Raw OCR result from backend:", ocrData);
+  // 🔍 Debug log
+  console.log("🔍 Raw OCR result from backend:", ocrData);
 
-    
   const lines: string[] = ocrData?.lines ?? [];
   if (!lines.length) return null;
 
   const parsedAbilities = parseOCRLines(lines);
 
+  // ✅ Use the correct backend route with dash
   const compareRes = await fetch(
-    `http://localhost:5000/api/characters/${characterId}/compareAbilities`,
+    `http://localhost:5000/api/characters/${characterId}/compare-abilities`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
