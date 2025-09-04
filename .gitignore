@@ -1,1 +1,9 @@
+# Ignore Python venv
 .venv/
+.venv*/
+backend/.venv/
+backend/.venv*/
+
+# Ignore Node
+node_modules/
+frontend/node_modules/
