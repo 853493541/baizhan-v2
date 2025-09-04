@@ -8,6 +8,7 @@ import CharacterAbilities from "./CharacterAbilities";
 import CollectionStatus from "./CollectionStatus";
 import CharacterBasics from "./CharacterBasics";
 import OCRSection from "./OCRSection";
+import AbilityHighlights from "./AbilityHighlights";
 
 import { runOCR } from "../../../lib/ocrService";
 import { updateCharacterAbilities } from "../../../lib/characterService";
@@ -148,6 +149,26 @@ export default function CharacterDetailPage() {
         onEdit={() => setIsEditOpen(true)}
         onDelete={handleDelete}
       />
+
+<AbilityHighlights
+  characterId={character._id}
+  abilities={character.abilities}
+  onAbilityUpdate={(ability, newLevel) => {
+    // Update local state after successful backend update
+    setCharacter((prev) =>
+      prev
+        ? {
+            ...prev,
+            abilities: {
+              ...prev.abilities,
+              [ability]: newLevel,
+            },
+          }
+        : prev
+    );
+  }}
+/>
+
 
       {character && (
         <CharacterEditModal
