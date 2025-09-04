@@ -28,51 +28,35 @@ export const createCharacter = async (req: Request, res: Response) => {
     name = name?.toString().trim();
 
     console.log("🔍 [DEBUG] Parsed fields:");
-    console.log("➡️ name:", name, "| type:", typeof name);
-    console.log("➡️ account:", account, "| type:", typeof account);
-    console.log("➡️ server:", server, "| type:", typeof server);
-    console.log("➡️ gender:", gender, "| type:", typeof gender);
-    console.log("➡️ class:", charClass, "| type:", typeof charClass);
-    console.log("➡️ role:", role, "| type:", typeof role);
-    console.log("➡️ active:", active, "| type:", typeof active);
+    console.log("➡️ name:", name);
+    console.log("➡️ account:", account);
+    console.log("➡️ server:", server);
+    console.log("➡️ gender:", gender);
+    console.log("➡️ class:", charClass);
+    console.log("➡️ role:", role);
+    console.log("➡️ active:", active);
 
-    if (!name) {
-      console.error("❌ Missing name");
-      return res.status(400).json({ error: "Name is required" });
-    }
-
-    if (!account || account === "") {
-      console.error("❌ Missing or empty account");
-      return res.status(400).json({ error: "Account is required" });
-    }
+    if (!name) return res.status(400).json({ error: "Name is required" });
+    if (!account) return res.status(400).json({ error: "Account is required" });
 
     const allowedServers = ["梦江南", "乾坤一掷", "唯我独尊"];
     const allowedGenders = ["男", "女"];
     const allowedRoles = ["DPS", "Tank", "Healer"];
-
     const allowedClasses = [
       "七秀", "五毒", "万花", "天策", "明教", "纯阳", "少林", "长歌", "药宗",
       "蓬莱", "刀宗", "凌雪", "唐门", "藏剑", "丐帮", "霸刀", "衍天", "万灵", "段氏", "苍云"
     ];
 
     if (!allowedServers.includes(server)) {
-      console.error("❌ Invalid server:", server);
       return res.status(400).json({ error: "Invalid server", server });
     }
-
     if (!allowedGenders.includes(gender)) {
-      console.error("❌ Invalid gender:", gender);
       return res.status(400).json({ error: "Invalid gender", gender });
     }
-
     if (!allowedRoles.includes(role)) {
-      console.error("❌ Invalid role:", role);
       return res.status(400).json({ error: "Invalid role", role });
     }
-
     if (!allowedClasses.includes(charClass)) {
-      console.error("❌ Invalid class:", charClass);
-      console.error("✅ Valid classes:", allowedClasses.join(", "));
       return res.status(400).json({ error: "Invalid class", charClass });
     }
 
@@ -96,7 +80,7 @@ export const createCharacter = async (req: Request, res: Response) => {
 
     await newCharacter.save();
 
-    console.log("✅ Character successfully created:", newCharacter);
+    console.log("✅ Character successfully created:", newCharacter.toObject());
 
     return res.status(201).json(newCharacter);
   } catch (err: any) {
@@ -104,7 +88,6 @@ export const createCharacter = async (req: Request, res: Response) => {
     return res.status(500).json({ error: err.message });
   }
 };
-
 // ============================
 // Get all characters
 // ============================
