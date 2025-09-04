@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import ComparisonModal from "./ComparisonModal";
-import { runOCR } from "../../../lib/ocrService";
-import { updateCharacterAbilities } from "../../../lib/characterService";
+import { runOCR, confirmOCRUpdate } from "../../../lib/ocrService";
 
 interface Props {
   characterId: string;
@@ -34,14 +33,9 @@ export default function CharacterOCRSection({
   }, [ocrFile, characterId]);
 
   const handleConfirmUpdate = async () => {
-    if (!compareResult?.toUpdate || !characterId) return;
-    const updates: Record<string, number> = {};
-    compareResult.toUpdate.forEach((u: any) => {
-      updates[u.name] = u.new;
-    });
     try {
-      const updated = await updateCharacterAbilities(characterId, updates);
-      onAbilitiesUpdated(updated.character?.abilities || updates);
+      const updates = await confirmOCRUpdate(characterId, compareResult);
+      onAbilitiesUpdated(updates);
       setCompareResult(null);
       alert("Character updated successfully!");
     } catch (err) {

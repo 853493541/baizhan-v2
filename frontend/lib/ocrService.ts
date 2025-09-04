@@ -1,5 +1,7 @@
 import { parseOCRLines } from "../utils/ocrUtils";
+import { updateCharacterAbilities } from "./characterService"; // ✅ reuse proven service
 
+// Run OCR and return comparison result
 export async function runOCR(file: File, characterId: string) {
   const formData = new FormData();
   formData.append("file", file);
@@ -27,4 +29,24 @@ export async function runOCR(file: File, characterId: string) {
   if (!compareRes.ok) throw new Error("Compare request failed");
 
   return compareRes.json();
+}
+
+// ✅ Confirm update by reusing characterService
+export async function confirmOCRUpdate(
+  characterId: string,
+  compareResult: any
+): Promise<Record<string, number>> {
+  if (!compareResult?.toUpdate || !characterId) {
+    throw new Error("No updates to confirm");
+  }
+
+  const updates: Record<string, number> = {};
+  compareResult.toUpdate.forEach((u: any) => {
+    updates[u.name] = u.new;
+  });
+
+  // ✅ use your existing backend logic
+  const updated = await updateCharacterAbilities(characterId, updates);
+
+  return updated.character?.abilities || updates;
 }
