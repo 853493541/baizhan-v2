@@ -3,61 +3,11 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import ComparisonModal from "./ComparisonModal";
-import CharacterEditModal, { CharacterEditData } from "./CharacterEditModal"; // ✅ import type
+import CharacterEditModal, { CharacterEditData } from "./CharacterEditModal";
 import CharacterAbilities from "./CharacterAbilities";
 import CollectionStatus from "./CollectionStatus";
-
-// ⬇️ Simple OCR processing modal
-function OCRProcessingModal({ onClose }: { onClose: () => void }) {
-  return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.4)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 9999,
-      }}
-    >
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 8,
-          padding: "24px 32px",
-          textAlign: "center",
-          width: 360,
-        }}
-      >
-        <h3 style={{ marginBottom: 20 }}>图片已上传</h3>
-        <div
-          style={{
-            width: 40,
-            height: 40,
-            border: "4px solid #ddd",
-            borderTop: "4px solid #333",
-            borderRadius: "50%",
-            margin: "0 auto 16px",
-            animation: "spin 1s linear infinite",
-          }}
-        />
-        <p>OCR处理中</p>
-        <div style={{ marginTop: 20 }}>
-          <button onClick={onClose} style={{ marginRight: 12 }}>
-            取消
-          </button>
-        </div>
-        <style>{`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}</style>
-      </div>
-    </div>
-  );
-}
+import CharacterBasics from "./CharacterBasics";
+import OCRSection from "./OCRSection";
 
 interface Character {
   _id: string;
@@ -80,7 +30,6 @@ export default function CharacterDetailPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [ocrFile, setOcrFile] = useState<File | null>(null);
-  const [ocrLines, setOcrLines] = useState<string[] | null>(null);
   const [compareResult, setCompareResult] = useState<any | null>(null);
 
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -187,7 +136,6 @@ export default function CharacterDetailPage() {
       });
       const ocrData = await res.json();
       const lines = ocrData?.lines ?? [];
-      setOcrLines(lines);
 
       if (lines.length && id) {
         const parsedAbilities = parseOCRLines(lines);
@@ -246,52 +194,16 @@ export default function CharacterDetailPage() {
   if (error) return <p>{error}</p>;
   if (!character) return <p>No character found</p>;
 
-  const genderLabel = character.gender === "男" ? "男 ♂" : "女 ♀";
-
   return (
     <div style={{ padding: "20px", maxWidth: 1000, margin: "0 auto" }}>
       <h1>角色详情</h1>
-      <h2>{character.name}</h2>
-      <p>账号: {character.account}</p>
-      <p>区服: {character.server}</p>
-      <p>性别: {genderLabel}</p>
-      <p>门派: {character.class}</p>
-      <p>定位: {character.role}</p>
-      <p>是否启用: {character.active ? "是" : "否"}</p>
 
-      {character && <CollectionStatus character={character} />}
+      <CharacterBasics
+        character={character}
+        onEdit={() => setIsEditOpen(true)}
+        onDelete={handleDelete}
+      />
 
-      <button
-        onClick={() => setIsEditOpen(true)}
-        style={{
-          marginTop: 12,
-          marginRight: 12,
-          padding: "8px 16px",
-          background: "orange",
-          color: "white",
-          border: "none",
-          borderRadius: 6,
-          cursor: "pointer",
-        }}
-      >
-        编辑角色
-      </button>
-
-      <button
-        onClick={handleDelete}
-        style={{
-          padding: "8px 16px",
-          background: "red",
-          color: "white",
-          border: "none",
-          borderRadius: 6,
-          cursor: "pointer",
-        }}
-      >
-        删除角色
-      </button>
-
-      {/* Edit Modal */}
       {character && (
         <CharacterEditModal
           isOpen={isEditOpen}
@@ -308,60 +220,16 @@ export default function CharacterDetailPage() {
       <h3 style={{ marginTop: 24 }}>技能</h3>
       <CharacterAbilities abilities={character.abilities} />
 
-      {/* OCR Upload Section */}
-      <div style={{ marginTop: 24 }}>
-        <button
-          onClick={() => setShowOcrUpload(!showOcrUpload)}
-          style={{
-            background: "#222",
-            color: "#fff",
-            padding: "8px 16px",
-            borderRadius: 6,
-            cursor: "pointer",
-            fontWeight: "bold",
-          }}
-        >
-          {showOcrUpload ? "关闭 OCR 上传 ▲" : "更新角色技能 ▼"}
-        </button>
+      <CollectionStatus character={character} />
 
-        {showOcrUpload && (
-          <div
-            style={{  
-              marginTop: 16,
-              padding: 16,
-              border: "1px dashed #aaa",
-              borderRadius: 8,
-              background: "#fafafa",
-              textAlign: "center",
-            }}
-            onPaste={(e) => {
-              const items = e.clipboardData?.items;
-              if (items) {
-                for (const item of items) {
-                  if (item.type.startsWith("image/")) {
-                    const file = item.getAsFile();
-                    if (file) setOcrFile(file);
-                  }
-                }
-              }
-            }}
-          >
-            <p style={{ marginBottom: 8, color: "#666" }}>粘贴或者上传</p>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setOcrFile(e.target.files?.[0] || null)}
-            />
-          </div>
-        )}
-      </div>
+      <OCRSection
+        show={showOcrUpload}
+        onToggle={() => setShowOcrUpload(!showOcrUpload)}
+        onFileSelected={(file) => setOcrFile(file)}
+        processing={ocrProcessing}
+        onCancelProcessing={() => setOcrProcessing(false)}
+      />
 
-      {/* OCR Processing Modal */}
-      {ocrProcessing && (
-        <OCRProcessingModal onClose={() => setOcrProcessing(false)} />
-      )}
-
-      {/* Comparison result modal */}
       {compareResult && (
         <ComparisonModal
           toUpdate={compareResult.toUpdate || []}
