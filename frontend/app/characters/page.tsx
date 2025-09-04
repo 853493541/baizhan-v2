@@ -2,19 +2,8 @@
 
 import { useEffect, useState } from "react";
 import CreateCharacterModal from "./CreateCharacterModal";
-import CharacterCard from "./CharacterCard"; // ✅ use card component
-
-interface Character {
-  _id: string;
-  name: string;
-  account: string;
-  server: string;
-  gender: "男" | "女";
-  class: string;
-  role: string;
-  active: boolean;
-  abilities: Record<string, number>; // ✅ include abilities for collection logic
-}
+import CharacterCard from "./CharacterCard";
+import { Character } from "@/types/Character"; // ✅ shared type
 
 export default function CharacterStoragePage() {
   const [characters, setCharacters] = useState<Character[]>([]);
@@ -22,12 +11,20 @@ export default function CharacterStoragePage() {
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setModalOpen] = useState(false);
 
-  useEffect(() => {
-    fetch("http://localhost:5000/api/characters")
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+  // ✅ normalize gender from backend to match strict type
+  const normalizeGender = (g: string): "男" | "女" => (g === "男" ? "男" : "女");
+
+  const refreshCharacters = () => {
+    fetch(`${API_URL}/api/characters`)
       .then((res) => res.json())
       .then((data) => {
-        console.log("Fetched characters:", data); // ✅ debug
-        setCharacters(data);
+        const normalized: Character[] = data.map((c: any) => ({
+          ...c,
+          gender: normalizeGender(c.gender),
+        }));
+        setCharacters(normalized);
         setLoading(false);
       })
       .catch((err) => {
@@ -35,6 +32,10 @@ export default function CharacterStoragePage() {
         setError("Failed to load characters");
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    refreshCharacters();
   }, []);
 
   const handleCreate = async (data: any) => {
@@ -43,14 +44,13 @@ export default function CharacterStoragePage() {
         name: data.name,
         account: String(data.account ?? "").trim(),
         server: data.server || "乾坤一掷",
-        gender: data.gender || "女",
+        gender: normalizeGender(data.gender || "女"), // ✅ enforce strict
         class: data.class || "少林",
         role: data.role,
         active: data.active ?? true,
-        abilities: {}, // ✅ new characters start with empty abilities
       };
 
-      const res = await fetch("http://localhost:5000/api/characters", {
+      const res = await fetch(`${API_URL}/api/characters`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(completeData),
@@ -58,8 +58,8 @@ export default function CharacterStoragePage() {
 
       if (!res.ok) throw new Error("Failed to create character");
 
-      const newChar = await res.json();
-      setCharacters([...characters, newChar]);
+      await res.json();
+      refreshCharacters(); // refresh list after creation
     } catch (err) {
       console.error(err);
       alert("Error creating character");
@@ -76,7 +76,11 @@ export default function CharacterStoragePage() {
       {/* Character cards */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
         {characters.map((char) => (
-          <CharacterCard key={char._id} character={char} />
+          <CharacterCard
+            key={char._id}
+            character={char}
+            onUpdated={refreshCharacters} // ✅ pass down
+          />
         ))}
       </div>
 
