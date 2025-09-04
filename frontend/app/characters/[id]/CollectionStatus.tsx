@@ -2,6 +2,7 @@
 
 import React from "react";
 import bossData from "@/app/data/boss_skills_collection_reward.json";
+import "./CollectionStatus.css";
 
 interface Character {
   _id: string;
@@ -22,13 +23,11 @@ export default function CollectionStatus({ character }: Props) {
 
   const ignoreList = genderRules[character.gender].ignore;
 
-  // helper: number → Chinese numeral
   const toChineseTier = (n: number) => {
     const numerals = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
     return `${numerals[n]}重`;
   };
 
-  // find the "next reward tier" for a boss
   const getNextTier = (abilities: string[]) => {
     const filtered = abilities.filter((a) => !ignoreList.includes(a));
     const levels = filtered.map((a) => character.abilities[a] || 0);
@@ -48,8 +47,7 @@ export default function CollectionStatus({ character }: Props) {
     return nextTier;
   };
 
-  // get display string like "2/4 九重"
-  const getBossProgress = (boss: string, abilities: string[]) => {
+  const getBossProgress = (abilities: string[]) => {
     const nextTier = getNextTier(abilities);
     const filtered = abilities.filter((a) => !ignoreList.includes(a));
     const levels = filtered.map((a) => character.abilities[a] || 0);
@@ -59,25 +57,24 @@ export default function CollectionStatus({ character }: Props) {
 
   return (
     <div className="collection-status">
-      <h2 className="text-lg font-bold mb-2">Collection Status</h2>
-      <ul className="space-y-1">
+      <h2 className="title">Collection Status</h2>
+      <div className="card-grid">
         {Object.entries(bossData)
-          // sort by tier descending, then by boss name
           .sort((a, b) => {
             const tierA = getNextTier(a[1]);
             const tierB = getNextTier(b[1]);
             if (tierA !== tierB) {
-              return tierB - tierA; // higher tier first
+              return tierB - tierA;
             }
-            return a[0].localeCompare(b[0], "zh"); // alphabetical inside tier
+            return a[0].localeCompare(b[0], "zh");
           })
           .map(([boss, abilities]) => (
-            <li key={boss} className="flex justify-between">
-              <span>{boss}</span>
-              <span>{getBossProgress(boss, abilities)}</span>
-            </li>
+            <div key={boss} className="boss-card">
+              <h3 className="boss-name">{boss}</h3>
+              <p className="boss-progress">{getBossProgress(abilities)}</p>
+            </div>
           ))}
-      </ul>
+      </div>
     </div>
   );
 }
