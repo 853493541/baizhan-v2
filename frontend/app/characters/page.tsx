@@ -36,12 +36,24 @@ export default function CharacterStoragePage() {
 
   const handleCreate = async (data: any) => {
     try {
+      const completeData = {
+        name: data.name,
+        account: String(data.account ?? "").trim(),
+        server: data.server || "乾坤一掷",
+        gender: data.gender || "女",
+        class: data.class || "少林",
+        role: data.role,
+        active: data.active ?? true,
+      };
+
       const res = await fetch("http://localhost:5000/api/characters", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(completeData),
       });
+
       if (!res.ok) throw new Error("Failed to create character");
+
       const newChar = await res.json();
       setCharacters([...characters, newChar]);
     } catch (err) {
@@ -69,9 +81,7 @@ export default function CharacterStoragePage() {
               width: "220px",
               cursor: "pointer",
             }}
-            onClick={() =>
-              (window.location.href = `/characters/${char._id}`)
-            }
+            onClick={() => (window.location.href = `/characters/${char._id}`)}
           >
             <h3>{char.name}</h3>
             <p>Account: {char.account}</p>
