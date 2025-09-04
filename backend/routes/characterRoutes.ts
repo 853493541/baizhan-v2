@@ -1,30 +1,17 @@
-import { Router } from "express";
-import multer from "multer";
-import {
-  createCharacter,
-  getCharacters,
-  getCharacterById,
-  updateCharacterAbilities,
-  updateCharacter,      // general info update
-  deleteCharacter,
-  healthCheck,
-  compareCharacterAbilities,
-} from "../controllers/characterController";
+import express from "express";
+import { createCharacter } from "../controllers/characters/createController";
+import { getCharacters, getCharacterById } from "../controllers/characters/getController";
+import { updateCharacter, updateCharacterAbilities, deleteCharacter } from "../controllers/characters/updateController";
+import { compareCharacterAbilities } from "../controllers/characters/compareController";
 
-const router = Router();
-const upload = multer({ dest: "uploads/" });
-
-router.get("/health/check", healthCheck);
-router.post("/:id/compareAbilities", compareCharacterAbilities);
+const router = express.Router();
 
 router.post("/", createCharacter);
 router.get("/", getCharacters);
 router.get("/:id", getCharacterById);
-
-// split updates for clarity
-router.put("/:id/abilities", updateCharacterAbilities);
-router.put("/:id/info", updateCharacter);
-
+router.patch("/:id/abilities", updateCharacterAbilities);
+router.put("/:id", updateCharacter);
 router.delete("/:id", deleteCharacter);
+router.post("/:id/compare-abilities", compareCharacterAbilities);
 
 export default router;
