@@ -9,6 +9,8 @@ import CollectionStatus from "./CollectionStatus";
 import CharacterBasics from "./CharacterBasics";
 import OCRSection from "./OCRSection";
 import AbilityHighlights from "./AbilityHighlights";
+import SingleAbilityUpdate from "./SingleAbilityUpdate";
+
 
 import { runOCR } from "../../../lib/ocrService";
 import { updateCharacterAbilities } from "../../../lib/characterService";
@@ -164,6 +166,18 @@ export default function CharacterDetailPage() {
               [ability]: newLevel,
             },
           }
+        : prev
+    );
+  }}
+/>
+
+<SingleAbilityUpdate
+  characterId={character._id}
+  abilities={character.abilities}
+  onAbilityUpdate={(ability, newLevel) => {
+    setCharacter((prev) =>
+      prev
+        ? { ...prev, abilities: { ...prev.abilities, [ability]: newLevel } }
         : prev
     );
   }}
