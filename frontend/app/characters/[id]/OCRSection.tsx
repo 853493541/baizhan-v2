@@ -1,25 +1,60 @@
 "use client";
 
-interface OCRSectionProps {
-  show: boolean;
-  onToggle: () => void;
-  onFileSelected: (file: File) => void;
-  processing: boolean;
-  onCancelProcessing: () => void;
+import { useState, useEffect } from "react";
+import ComparisonModal from "./ComparisonModal";
+import { runOCR } from "../../../lib/ocrService";
+import { updateCharacterAbilities } from "../../../lib/characterService";
+
+interface Props {
+  characterId: string;
+  onAbilitiesUpdated: (updates: Record<string, number>) => void;
 }
 
-export default function OCRSection({
-  show,
-  onToggle,
-  onFileSelected,
-  processing,
-  onCancelProcessing,
-}: OCRSectionProps) {
+export default function CharacterOCRSection({
+  characterId,
+  onAbilitiesUpdated,
+}: Props) {
+  const [show, setShow] = useState(false);
+  const [ocrFile, setOcrFile] = useState<File | null>(null);
+  const [compareResult, setCompareResult] = useState<any | null>(null);
+  const [processing, setProcessing] = useState(false);
+
+  // Run OCR when file selected
+  useEffect(() => {
+    if (ocrFile && characterId) {
+      setProcessing(true);
+      runOCR(ocrFile, characterId)
+        .then((result) => setCompareResult(result))
+        .catch((err) => {
+          console.error(err);
+          alert("OCR request failed");
+        })
+        .finally(() => setProcessing(false));
+    }
+  }, [ocrFile, characterId]);
+
+  const handleConfirmUpdate = async () => {
+    if (!compareResult?.toUpdate || !characterId) return;
+    const updates: Record<string, number> = {};
+    compareResult.toUpdate.forEach((u: any) => {
+      updates[u.name] = u.new;
+    });
+    try {
+      const updated = await updateCharacterAbilities(characterId, updates);
+      onAbilitiesUpdated(updated.character?.abilities || updates);
+      setCompareResult(null);
+      alert("Character updated successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Update failed");
+    }
+  };
+
   return (
     <div style={{ marginTop: 24 }}>
       {/* Toggle button */}
       <button
-        onClick={onToggle}
+        onClick={() => setShow(!show)}
         style={{
           background: "#222",
           color: "#fff",
@@ -49,7 +84,7 @@ export default function OCRSection({
               for (const item of items) {
                 if (item.type.startsWith("image/")) {
                   const file = item.getAsFile();
-                  if (file) onFileSelected(file);
+                  if (file) setOcrFile(file);
                 }
               }
             }
@@ -61,7 +96,7 @@ export default function OCRSection({
             accept="image/*"
             onChange={(e) => {
               const file = e.target.files?.[0];
-              if (file) onFileSelected(file);
+              if (file) setOcrFile(file);
             }}
           />
         </div>
@@ -103,7 +138,7 @@ export default function OCRSection({
             />
             <p>OCR处理中</p>
             <div style={{ marginTop: 20 }}>
-              <button onClick={onCancelProcessing} style={{ marginRight: 12 }}>
+              <button onClick={() => setProcessing(false)} style={{ marginRight: 12 }}>
                 取消
               </button>
             </div>
@@ -115,6 +150,17 @@ export default function OCRSection({
             `}</style>
           </div>
         </div>
+      )}
+
+      {/* Comparison results */}
+      {compareResult && (
+        <ComparisonModal
+          toUpdate={compareResult.toUpdate || []}
+          ocrOnly={compareResult.ocrOnly || []}
+          dbOnly={compareResult.dbOnly || []}
+          onConfirm={handleConfirmUpdate}
+          onClose={() => setCompareResult(null)}
+        />
       )}
     </div>
   );

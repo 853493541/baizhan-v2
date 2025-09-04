@@ -2,18 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import ComparisonModal from "./ComparisonModal";
 import CharacterEditModal, { CharacterEditData } from "./CharacterEditModal";
 import CharacterAbilities from "./CharacterAbilities";
 import CollectionStatus from "./CollectionStatus";
 import CharacterBasics from "./CharacterBasics";
-import OCRSection from "./OCRSection";
 import AbilityHighlights from "./AbilityHighlights";
 import SingleAbilityUpdate from "./SingleAbilityUpdate";
-
-
-import { runOCR } from "../../../lib/ocrService";
-import { updateCharacterAbilities } from "../../../lib/characterService";
+import CharacterOCRSection from "./OCRSection"; // ✅ only this
 
 interface Character {
   _id: string;
@@ -29,19 +24,13 @@ interface Character {
 
 export default function CharacterDetailPage() {
   const { id } = useParams();
-  const characterId = Array.isArray(id) ? id[0] : (id as string); // ✅ always a string
+  const characterId = Array.isArray(id) ? id[0] : (id as string);
   const router = useRouter();
 
   const [character, setCharacter] = useState<Character | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const [ocrFile, setOcrFile] = useState<File | null>(null);
-  const [compareResult, setCompareResult] = useState<any | null>(null);
-
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [showOcrUpload, setShowOcrUpload] = useState(false);
-  const [ocrProcessing, setOcrProcessing] = useState(false);
 
   // ============================
   // Load character
@@ -67,11 +56,14 @@ export default function CharacterDetailPage() {
   const handleSaveEdit = async (data: CharacterEditData) => {
     if (!characterId) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/characters/${characterId}/info`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+      const res = await fetch(
+        `http://localhost:5000/api/characters/${characterId}/info`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        }
+      );
       if (!res.ok) throw new Error("Update failed");
       const updated = await res.json();
       setCharacter(updated);
@@ -90,48 +82,18 @@ export default function CharacterDetailPage() {
     if (!characterId) return;
     if (!confirm("确定要删除这个角色吗？")) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/characters/${characterId}`, {
-        method: "DELETE",
-      });
+      const res = await fetch(
+        `http://localhost:5000/api/characters/${characterId}`,
+        {
+          method: "DELETE",
+        }
+      );
       if (!res.ok) throw new Error("Delete failed");
       alert("角色已删除");
       router.push("/characters");
     } catch (err) {
       console.error(err);
       alert("删除失败");
-    }
-  };
-
-  // ============================
-  // OCR Handler
-  // ============================
-  useEffect(() => {
-    if (ocrFile && characterId) {
-      setOcrProcessing(true);
-      runOCR(ocrFile, characterId)
-        .then((result) => setCompareResult(result))
-        .catch((err) => {
-          console.error(err);
-          alert("OCR request failed");
-        })
-        .finally(() => setOcrProcessing(false));
-    }
-  }, [ocrFile, characterId]);
-
-  const handleConfirmUpdate = async () => {
-    if (!compareResult?.toUpdate || !characterId) return;
-    const updates: Record<string, number> = {};
-    compareResult.toUpdate.forEach((u: any) => {
-      updates[u.name] = u.new;
-    });
-    try {
-      const updated = await updateCharacterAbilities(characterId, updates);
-      setCharacter(updated.character || updated);
-      setCompareResult(null);
-      alert("Character updated successfully!");
-    } catch (err) {
-      console.error(err);
-      alert("Update failed");
     }
   };
 
@@ -152,37 +114,35 @@ export default function CharacterDetailPage() {
         onDelete={handleDelete}
       />
 
-<AbilityHighlights
-  characterId={character._id}
-  abilities={character.abilities}
-  onAbilityUpdate={(ability, newLevel) => {
-    // Update local state after successful backend update
-    setCharacter((prev) =>
-      prev
-        ? {
-            ...prev,
-            abilities: {
-              ...prev.abilities,
-              [ability]: newLevel,
-            },
-          }
-        : prev
-    );
-  }}
-/>
+      <AbilityHighlights
+        characterId={character._id}
+        abilities={character.abilities}
+        onAbilityUpdate={(ability, newLevel) => {
+          setCharacter((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  abilities: {
+                    ...prev.abilities,
+                    [ability]: newLevel,
+                  },
+                }
+              : prev
+          );
+        }}
+      />
 
-<SingleAbilityUpdate
-  characterId={character._id}
-  abilities={character.abilities}
-  onAbilityUpdate={(ability, newLevel) => {
-    setCharacter((prev) =>
-      prev
-        ? { ...prev, abilities: { ...prev.abilities, [ability]: newLevel } }
-        : prev
-    );
-  }}
-/>
-
+      <SingleAbilityUpdate
+        characterId={character._id}
+        abilities={character.abilities}
+        onAbilityUpdate={(ability, newLevel) => {
+          setCharacter((prev) =>
+            prev
+              ? { ...prev, abilities: { ...prev.abilities, [ability]: newLevel } }
+              : prev
+          );
+        }}
+      />
 
       {character && (
         <CharacterEditModal
@@ -202,23 +162,17 @@ export default function CharacterDetailPage() {
 
       <CollectionStatus character={character} />
 
-      <OCRSection
-        show={showOcrUpload}
-        onToggle={() => setShowOcrUpload(!showOcrUpload)}
-        onFileSelected={(file) => setOcrFile(file)}
-        processing={ocrProcessing}
-        onCancelProcessing={() => setOcrProcessing(false)}
+      {/* ✅ OCR Section merged */}
+      <CharacterOCRSection
+        characterId={character._id}
+        onAbilitiesUpdated={(updatedAbilities) => {
+          setCharacter((prev) =>
+            prev
+              ? { ...prev, abilities: { ...prev.abilities, ...updatedAbilities } }
+              : prev
+          );
+        }}
       />
-
-      {compareResult && (
-        <ComparisonModal
-          toUpdate={compareResult.toUpdate || []}
-          ocrOnly={compareResult.ocrOnly || []}
-          dbOnly={compareResult.dbOnly || []}
-          onConfirm={handleConfirmUpdate}
-          onClose={() => setCompareResult(null)}
-        />
-      )}
     </div>
   );
 }
