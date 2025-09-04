@@ -2,16 +2,18 @@
 
 import { useEffect, useState } from "react";
 import CreateCharacterModal from "./CreateCharacterModal";
+import CharacterCard from "./CharacterCard"; // ✅ use card component
 
 interface Character {
   _id: string;
   name: string;
   account: string;
   server: string;
-  gender: string;
+  gender: "男" | "女";
   class: string;
   role: string;
   active: boolean;
+  abilities: Record<string, number>; // ✅ include abilities for collection logic
 }
 
 export default function CharacterStoragePage() {
@@ -24,6 +26,7 @@ export default function CharacterStoragePage() {
     fetch("http://localhost:5000/api/characters")
       .then((res) => res.json())
       .then((data) => {
+        console.log("Fetched characters:", data); // ✅ debug
         setCharacters(data);
         setLoading(false);
       })
@@ -44,6 +47,7 @@ export default function CharacterStoragePage() {
         class: data.class || "少林",
         role: data.role,
         active: data.active ?? true,
+        abilities: {}, // ✅ new characters start with empty abilities
       };
 
       const res = await fetch("http://localhost:5000/api/characters", {
@@ -72,25 +76,7 @@ export default function CharacterStoragePage() {
       {/* Character cards */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
         {characters.map((char) => (
-          <div
-            key={char._id}
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: "8px",
-              padding: "12px",
-              width: "220px",
-              cursor: "pointer",
-            }}
-            onClick={() => (window.location.href = `/characters/${char._id}`)}
-          >
-            <h3>{char.name}</h3>
-            <p>Account: {char.account}</p>
-            <p>Server: {char.server}</p>
-            <p>Gender: {char.gender}</p>
-            <p>Class: {char.class}</p>
-            <p>Role: {char.role}</p>
-            <p>Active: {char.active ? "是" : "否"}</p>
-          </div>
+          <CharacterCard key={char._id} character={char} />
         ))}
       </div>
 
