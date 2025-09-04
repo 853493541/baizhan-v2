@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import ComparisonModal from "./ComparisonModal";
 import CharacterEditModal from "./CharacterEditModal";
 import CharacterAbilities from "./CharacterAbilities";
+import CollectionStatus from "./CollectionStatus";
 
 // ⬇️ Simple OCR processing modal
 function OCRProcessingModal({ onClose }: { onClose: () => void }) {
@@ -251,6 +252,9 @@ export default function CharacterDetailPage() {
       <p>定位: {character.role}</p>
       <p>是否启用: {character.active ? "是" : "否"}</p>
 
+
+      {character && <CollectionStatus character={character} />}
+
       <button
         onClick={() => setIsEditOpen(true)}
         style={{
@@ -365,5 +369,7 @@ export default function CharacterDetailPage() {
         />
       )}
     </div>
+
   );
+  
 }
