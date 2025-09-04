@@ -13,6 +13,10 @@ export async function runOCR(file: File, characterId: string) {
   if (!res.ok) throw new Error("OCR request failed");
 
   const ocrData = await res.json();
+
+    console.log("🔍 Raw OCR result from backend:", ocrData);
+
+    
   const lines: string[] = ocrData?.lines ?? [];
   if (!lines.length) return null;
 
