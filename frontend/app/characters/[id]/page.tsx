@@ -55,7 +55,7 @@ export default function CharacterDetailPage() {
     if (!characterId) return;
     try {
       const res = await fetch(
-        `http://localhost:5000/api/characters/${characterId}/info`,
+        `http://localhost:5000/api/characters/${characterId}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
