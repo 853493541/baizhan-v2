@@ -106,9 +106,7 @@ export default function AbilityHighlights({
 }: AbilityHighlightsProps) {
   return (
     <div>
-      <h2 style={{ fontSize: "18px", fontWeight: "bold", marginBottom: "12px" }}>
-        Ability Highlights
-      </h2>
+
       <AbilitySection
         title="核心技能"
         abilityList={coreAbilities}

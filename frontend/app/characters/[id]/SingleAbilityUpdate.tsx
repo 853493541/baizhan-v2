@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import "./AbilityHighlights.css"; // reuse the same CSS
+import styles from "./SingleAbilityUpdate.module.css";
 
 interface SingleAbilityUpdateProps {
   characterId: string;
@@ -14,7 +14,6 @@ export default function SingleAbilityUpdate({
   abilities,
   onAbilityUpdate,
 }: SingleAbilityUpdateProps) {
-  const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [loadingAbility, setLoadingAbility] = useState<string | null>(null);
 
@@ -25,11 +24,14 @@ export default function SingleAbilityUpdate({
     setLoadingAbility(ability);
 
     try {
-      const res = await fetch(`${API_URL}/api/characters/${characterId}/abilities`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ abilities: { [ability]: newLevel } }),
-      });
+      const res = await fetch(
+        `${API_URL}/api/characters/${characterId}/abilities`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ abilities: { [ability]: newLevel } }),
+        }
+      );
 
       if (!res.ok) {
         console.error("❌ Failed to update ability", await res.text());
@@ -45,123 +47,64 @@ export default function SingleAbilityUpdate({
   };
 
   const allAbilities = Object.keys(abilities);
-  const results = allAbilities.filter((name) => name.includes(query.trim()));
+  const results = allAbilities.filter((name) =>
+    name.includes(query.trim())
+  );
 
   return (
-    <div style={{ marginTop: "20px" }}>
-      {/* Button to open */}
-      <button
-        onClick={() => setOpen(true)}
-        style={{
-          padding: "8px 12px",
-          background: "#2563eb",
-          color: "white",
-          borderRadius: "6px",
-          fontWeight: "bold",
-        }}
-      >
+    <div>
+      <h3 style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "6px" }}>
         单个技能更新
-      </button>
+      </h3>
 
-      {/* Modal */}
-      {open && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            background: "rgba(0,0,0,0.6)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-          }}
-        >
-          <div
-            style={{
-              width: "500px",
-              maxHeight: "80vh",
-              background: "white",
-              borderRadius: "8px",
-              padding: "20px",
-              overflowY: "auto",
-            }}
-          >
-            <h3 style={{ fontSize: "18px", fontWeight: "bold", marginBottom: "12px" }}>
-              搜索技能
-            </h3>
+      <input
+        type="text"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="输入技能名..."
+        className={styles.searchInput}
+      />
 
-            {/* Search input */}
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="输入技能名..."
-              style={{
-                width: "100%",
-                padding: "8px",
-                marginBottom: "16px",
-                border: "1px solid #ccc",
-                borderRadius: "6px",
-              }}
-            />
+      <div className={styles.wrapper}>
+        {results.map((name) => {
+          const level = abilities[name] || 0;
+          const iconPath = `/icons/${name}.png`;
 
-            {/* Results */}
-            <div className="ability-grid">
-              {results.map((name) => {
-                const level = abilities[name] || 0;
-                const iconPath = `/icons/${name}.png`;
-
-                return (
-                  <div key={name} className="ability-card">
-                    <img
-                      src={iconPath}
-                      alt={name}
-                      onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).src = "/icons/default.png";
-                      }}
-                    />
-                    <span className="ability-name">{name}</span>
-                    <div className="ability-controls">
-                      <button
-                        className="minus"
-                        disabled={loadingAbility === name}
-                        onClick={() => updateAbility(name, level - 1)}
-                      >
-                        -
-                      </button>
-                      <span className="ability-level">{level}</span>
-                      <button
-                        className="plus"
-                        disabled={loadingAbility === name}
-                        onClick={() => updateAbility(name, level + 1)}
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+          return (
+            <div key={name} className={styles.abilityRow}>
+              <img
+                src={iconPath}
+                alt={name}
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = "/icons/default.png";
+                }}
+              />
+              <span className={styles.name}>{name}</span>
+              <div className={styles.controls}>
+                <button
+                  className={styles.minus}
+                  disabled={loadingAbility === name}
+                  onClick={() => updateAbility(name, level - 1)}
+                >
+                  -
+                </button>
+                <span className={styles.level}>{level}</span>
+                <button
+                  className={styles.plus}
+                  disabled={loadingAbility === name}
+                  onClick={() => updateAbility(name, level + 1)}
+                >
+                  +
+                </button>
+              </div>
             </div>
+          );
+        })}
 
-            {/* Close button */}
-            <button
-              onClick={() => setOpen(false)}
-              style={{
-                marginTop: "16px",
-                padding: "6px 12px",
-                background: "#aaa",
-                color: "white",
-                borderRadius: "6px",
-              }}
-            >
-              关闭
-            </button>
-          </div>
-        </div>
-      )}
+        {results.length === 0 && (
+          <p style={{ color: "#666", fontSize: "13px" }}>未找到匹配技能</p>
+        )}
+      </div>
     </div>
   );
 }
