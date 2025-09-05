@@ -2,13 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import CharacterEditModal, { CharacterEditData } from "./CharacterEditModal";
 import CharacterAbilities from "./CharacterAbilities";
 import CollectionStatus from "./CollectionStatus";
-import CharacterBasics from "./CharacterBasics";
+import CharacterBasics, { CharacterEditData } from "./CharacterBasics";
 import AbilityHighlights from "./AbilityHighlights";
 import SingleAbilityUpdate from "./SingleAbilityUpdate";
-import CharacterOCRSection from "./OCRSection"; // ✅ OCR section
+import CharacterOCRSection from "./OCRSection"; // ✅ only this
 
 interface Character {
   _id: string;
@@ -30,7 +29,6 @@ export default function CharacterDetailPage() {
   const [character, setCharacter] = useState<Character | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isEditOpen, setIsEditOpen] = useState(false);
 
   // ============================
   // Load character
@@ -67,7 +65,6 @@ export default function CharacterDetailPage() {
       if (!res.ok) throw new Error("Update failed");
       const updated = await res.json();
       setCharacter(updated);
-      setIsEditOpen(false);
       alert("角色信息已更新");
     } catch (err) {
       console.error(err);
@@ -110,7 +107,7 @@ export default function CharacterDetailPage() {
 
       <CharacterBasics
         character={character}
-        onEdit={() => setIsEditOpen(true)}
+        onSave={handleSaveEdit}
         onDelete={handleDelete}
       />
 
@@ -144,36 +141,24 @@ export default function CharacterDetailPage() {
         }}
       />
 
-      {character && (
-        <CharacterEditModal
-          isOpen={isEditOpen}
-          onClose={() => setIsEditOpen(false)}
-          onSave={handleSaveEdit}
-          initialData={{
-            server: character.server,
-            role: character.role,
-            active: character.active,
-          }}
-        />
-      )}
-
       <h3 style={{ marginTop: 24 }}>技能</h3>
       <CharacterAbilities abilities={character.abilities} />
 
       <CollectionStatus character={character} />
 
-      {/* ✅ OCR Section with current abilities passed down */}
-      <CharacterOCRSection
-        characterId={character._id}
-        currentAbilities={character.abilities} // 👈 pass abilities
-        onAbilitiesUpdated={(updatedAbilities) => {
-          setCharacter((prev) =>
-            prev
-              ? { ...prev, abilities: { ...prev.abilities, ...updatedAbilities } }
-              : prev
-          );
-        }}
-      />
+      {/* ✅ OCR Section merged */}
+    <CharacterOCRSection
+  characterId={character._id}
+  currentAbilities={character.abilities}   // ✅ now aligned with props
+  onAbilitiesUpdated={(updatedAbilities) => {
+    setCharacter((prev) =>
+      prev
+        ? { ...prev, abilities: { ...prev.abilities, ...updatedAbilities } }
+        : prev
+    );
+  }}
+/>
+
     </div>
   );
 }
