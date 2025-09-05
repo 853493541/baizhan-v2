@@ -6,21 +6,26 @@ import { runOCR, confirmOCRUpdate } from "../../../lib/ocrService";
 
 interface Props {
   characterId: string;
+  currentAbilities: Record<string, number>; // ✅ new prop
   onAbilitiesUpdated: (updates: Record<string, number>) => void;
 }
 
 export default function CharacterOCRSection({
   characterId,
+  currentAbilities, // ✅ receive abilities from parent
   onAbilitiesUpdated,
 }: Props) {
   const [show, setShow] = useState(false);
   const [ocrFile, setOcrFile] = useState<File | null>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [compareResult, setCompareResult] = useState<any | null>(null);
   const [processing, setProcessing] = useState(false);
 
   // Run OCR when file selected
   useEffect(() => {
     if (ocrFile && characterId) {
+      setPreviewImage(URL.createObjectURL(ocrFile));
+
       setProcessing(true);
       runOCR(ocrFile, characterId)
         .then((result) => setCompareResult(result))
@@ -32,9 +37,12 @@ export default function CharacterOCRSection({
     }
   }, [ocrFile, characterId]);
 
-  const handleConfirmUpdate = async () => {
+  const handleConfirmUpdate = async (dbOnlyValues: Record<string, number>) => {
     try {
-      const updates = await confirmOCRUpdate(characterId, compareResult);
+      const updates = await confirmOCRUpdate(characterId, {
+        ...compareResult,
+        dbOnlyValues,
+      });
       onAbilitiesUpdated(updates);
       setCompareResult(null);
       alert("Character updated successfully!");
@@ -152,6 +160,8 @@ export default function CharacterOCRSection({
           toUpdate={compareResult.toUpdate || []}
           ocrOnly={compareResult.ocrOnly || []}
           dbOnly={compareResult.dbOnly || []}
+          previewImage={previewImage}
+          currentAbilities={currentAbilities}  // ✅ pass abilities here
           onConfirm={handleConfirmUpdate}
           onClose={() => setCompareResult(null)}
         />

@@ -8,7 +8,7 @@ import CollectionStatus from "./CollectionStatus";
 import CharacterBasics from "./CharacterBasics";
 import AbilityHighlights from "./AbilityHighlights";
 import SingleAbilityUpdate from "./SingleAbilityUpdate";
-import CharacterOCRSection from "./OCRSection"; // ✅ only this
+import CharacterOCRSection from "./OCRSection"; // ✅ OCR section
 
 interface Character {
   _id: string;
@@ -162,9 +162,10 @@ export default function CharacterDetailPage() {
 
       <CollectionStatus character={character} />
 
-      {/* ✅ OCR Section merged */}
+      {/* ✅ OCR Section with current abilities passed down */}
       <CharacterOCRSection
         characterId={character._id}
+        currentAbilities={character.abilities} // 👈 pass abilities
         onAbilitiesUpdated={(updatedAbilities) => {
           setCharacter((prev) =>
             prev
