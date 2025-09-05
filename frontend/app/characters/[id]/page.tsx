@@ -8,6 +8,7 @@ import CharacterBasics, { CharacterEditData } from "./CharacterBasics";
 import AbilityHighlights from "./AbilityHighlights";
 import SingleAbilityUpdate from "./SingleAbilityUpdate";
 import CharacterOCRSection from "./OCRSection";
+import styles from "./CharacterDetailPage.module.css";
 
 interface Character {
   _id: string;
@@ -102,20 +103,33 @@ export default function CharacterDetailPage() {
   if (!character) return <p>No character found</p>;
 
   return (
-    <div style={{ padding: "20px", maxWidth: 1200, margin: "0 auto" }}>
+    <div className={styles.page}>
       <h1>角色详情</h1>
 
       {/* === Top section: Basics left + SingleAbilityUpdate right === */}
-      <div style={{ display: "flex", gap: "20px", alignItems: "flex-start" }}>
-        <div style={{ flex: 1 }}>
+      <div className={styles.topSection}>
+        <div className={styles.leftColumn}>
           <CharacterBasics
             character={character}
             onSave={handleSaveEdit}
             onDelete={handleDelete}
           />
+
+          {/* ✅ OCR section moved up here */}
+          <CharacterOCRSection
+            characterId={character._id}
+            currentAbilities={character.abilities}
+            onAbilitiesUpdated={(updatedAbilities) => {
+              setCharacter((prev) =>
+                prev
+                  ? { ...prev, abilities: { ...prev.abilities, ...updatedAbilities } }
+                  : prev
+              );
+            }}
+          />
         </div>
 
-        <div style={{ flex: 1 }}>
+        <div className={styles.rightColumn}>
           <SingleAbilityUpdate
             characterId={character._id}
             abilities={character.abilities}
@@ -133,6 +147,7 @@ export default function CharacterDetailPage() {
         </div>
       </div>
 
+      {/* === Keep rest in original order === */}
       <AbilityHighlights
         characterId={character._id}
         abilities={character.abilities}
@@ -149,18 +164,6 @@ export default function CharacterDetailPage() {
       <CharacterAbilities abilities={character.abilities} />
 
       <CollectionStatus character={character} />
-
-      <CharacterOCRSection
-        characterId={character._id}
-        currentAbilities={character.abilities}
-        onAbilitiesUpdated={(updatedAbilities) => {
-          setCharacter((prev) =>
-            prev
-              ? { ...prev, abilities: { ...prev.abilities, ...updatedAbilities } }
-              : prev
-          );
-        }}
-      />
     </div>
   );
 }

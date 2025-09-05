@@ -1,0 +1,23 @@
+.page {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.topSection {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.leftColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.rightColumn {
+  flex: 1;
+}
