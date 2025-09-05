@@ -15,7 +15,6 @@ export const compareCharacterAbilities = async (req: Request, res: Response) => 
     const abilityAliases: Record<string, string> = {
        "帝穆龙翔": "帝骖龙翔",
       "骤身": "戮身",
-       
       "武愧召来": "武傀召来",
       "电昆吾": "电挈昆吾",
       "短歌一": "短歌一觞",

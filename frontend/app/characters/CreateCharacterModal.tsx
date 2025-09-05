@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface CreateCharacterModalProps {
   isOpen: boolean;
@@ -29,7 +29,16 @@ export default function CreateCharacterModal({
     class: classes[0],
     role: roles[0],
     active: true,
+    owner: "", // 🔹 NEW
   });
+
+  // ✅ Load lastOwner from localStorage on mount
+  useEffect(() => {
+    if (isOpen) {
+      const lastOwner = localStorage.getItem("lastOwner") || "";
+      setFormData((prev) => ({ ...prev, owner: lastOwner }));
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -51,17 +60,13 @@ export default function CreateCharacterModal({
     const payload = {
       ...formData,
       account: String(formData.account ?? "").trim(), // ✅ Force to string and trim
+      owner: String(formData.owner ?? "").trim() || "Unknown", // 🔹 ensure owner
     };
 
-    console.log("🟡 [DEBUG] Raw formData:", formData);
-    console.log("🟡 [DEBUG] Submitting character form:");
-    console.log("➡️ name:", payload.name);
-    console.log("➡️ account:", payload.account, "| typeof:", typeof payload.account);
-    console.log("➡️ server:", payload.server);
-    console.log("➡️ gender:", payload.gender);
-    console.log("➡️ class:", payload.class);
-    console.log("➡️ role:", payload.role);
-    console.log("➡️ active:", payload.active);
+    // ✅ Save owner to localStorage for next time
+    localStorage.setItem("lastOwner", payload.owner);
+
+    console.log("🟡 [DEBUG] Submitting character form:", payload);
 
     if (!payload.account || payload.account === "") {
       console.error("❌ Missing or empty 'account' field.");
@@ -100,6 +105,16 @@ export default function CreateCharacterModal({
             name="account"
             placeholder="账号"
             value={formData.account}
+            onChange={handleChange}
+            className="w-full border p-2 rounded"
+            required
+          />
+          {/* 🔹 Owner input */}
+          <input
+            type="text"
+            name="owner"
+            placeholder="拥有者"
+            value={formData.owner}
             onChange={handleChange}
             className="w-full border p-2 rounded"
             required

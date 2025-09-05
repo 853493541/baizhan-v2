@@ -4,7 +4,7 @@ import Ability from "../../models/Ability";
 
 export const createCharacter = async (req: Request, res: Response) => {
   try {
-    const { name, account, server, gender, class: charClass, role, active } = req.body;
+    const { name, account, server, gender, class: charClass, role, active, owner } = req.body;
 
     if (!name) return res.status(400).json({ error: "Name is required" });
     if (!account) return res.status(400).json({ error: "Account is required" });
@@ -38,6 +38,7 @@ export const createCharacter = async (req: Request, res: Response) => {
       role,
       active: isActive,
       abilities: abilityLevels,
+      owner: owner ? String(owner).trim() : "Unknown", // 🔹 NEW
     });
 
     await newCharacter.save();

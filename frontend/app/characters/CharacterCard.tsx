@@ -107,6 +107,7 @@ export default function CharacterCard({ character, onUpdated }: CharacterCardPro
       <p>职业: {character.class}</p>
       <p>定位: {character.role}</p>
       <p>参与排表: {character.active ? "是" : "否"}</p>
+      <p>拥有者: {character.owner || "Unknown"}</p> {/* 🔹 NEW */}
 
       {/* ⚡ Show button if at least one tradable ability exists */}
       {tradables.length > 0 && (

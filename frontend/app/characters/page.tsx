@@ -40,6 +40,9 @@ export default function CharacterStoragePage() {
 
   const handleCreate = async (data: any) => {
     try {
+      // ✅ Load last owner (default Unknown)
+      const lastOwner = localStorage.getItem("lastOwner") || "Unknown";
+
       const completeData = {
         name: data.name,
         account: String(data.account ?? "").trim(),
@@ -48,7 +51,11 @@ export default function CharacterStoragePage() {
         class: data.class || "少林",
         role: data.role,
         active: data.active ?? true,
+        owner: data.owner?.trim() || lastOwner, // 🔹 use new owner if typed, else last
       };
+
+      // ✅ Save this owner for future character creation
+      localStorage.setItem("lastOwner", completeData.owner);
 
       const res = await fetch(`${API_URL}/api/characters`, {
         method: "POST",

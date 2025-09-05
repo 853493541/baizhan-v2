@@ -1,9 +1,16 @@
 import { Request, Response } from "express";
 import Character from "../../models/Character";
 
-export const getCharacters = async (_req: Request, res: Response) => {
+export const getCharacters = async (req: Request, res: Response) => {
   try {
-    const characters = await Character.find({});
+    const { owner } = req.query; // 🔹 optional filter
+    const filter: any = {};
+
+    if (owner) {
+      filter.owner = String(owner).trim();
+    }
+
+    const characters = await Character.find(filter);
     res.json(characters);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
