@@ -69,7 +69,7 @@ export default function CollectionStatus({ character }: Props) {
 
   return (
     <div className="collection-status">
-      <h2 className="title">Collection Status</h2>
+      <h2 className="title">收集状态</h2>
       <div className="card-grid">
         {[...inProgress, ...completed].map(([boss, abilities]) => {
           const progress = getBossProgress(
