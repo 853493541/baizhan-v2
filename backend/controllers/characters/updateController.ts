@@ -13,28 +13,20 @@ export const updateCharacterAbilities = async (req: Request, res: Response) => {
 
     const setOps: Record<string, number> = {};
     const updated: Array<{ name: string; old: number; new: number }> = [];
-    const skipped: string[] = [];
 
     for (const [name, level] of Object.entries(abilities)) {
-      const hasKey =
-        (char.abilities as any)?.has?.(name) ||
-        Object.prototype.hasOwnProperty.call(char.abilities || {}, name);
+      // always update or create
+      const oldVal =
+        (char.abilities as any)?.get?.(name) ??
+        (char.abilities as any)?.[name] ??
+        0;
 
-      if (hasKey) {
-        const oldVal =
-          (char.abilities as any)?.get?.(name) ??
-          (char.abilities as any)?.[name] ??
-          0;
-
-        setOps[`abilities.${name}`] = Number(level);
-        updated.push({ name, old: Number(oldVal), new: Number(level) });
-      } else {
-        skipped.push(name);
-      }
+      setOps[`abilities.${name}`] = Number(level);
+      updated.push({ name, old: Number(oldVal), new: Number(level) });
     }
 
     if (Object.keys(setOps).length === 0) {
-      return res.status(400).json({ error: "No matching abilities", skipped });
+      return res.status(400).json({ error: "No abilities provided" });
     }
 
     const newDoc = await Character.findByIdAndUpdate(
@@ -43,7 +35,7 @@ export const updateCharacterAbilities = async (req: Request, res: Response) => {
       { new: true }
     );
 
-    return res.json({ character: newDoc, updated, skipped });
+    return res.json({ character: newDoc, updated });
   } catch (err: any) {
     return res.status(500).json({ error: err.message });
   }

@@ -46,7 +46,7 @@
   gap: 20px;
 }
 
-/* Abilities grid: 4 columns */
+/* Abilities grid: 4 columns (same as before) */
 .changeGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -57,18 +57,20 @@
   flex: 1;
 }
 
+/* Each ability as a card (original style preserved) */
 .changeItem {
   background: #f9f9f9;
   border: 1px solid #eee;
   border-radius: 6px;
   padding: 6px;
   display: flex;
-  flex-direction: column;
+  flex-direction: column; /* ✅ stack like before */
   align-items: center;
   text-align: center;
   font-size: 13px;
 }
 
+/* Icon stays centered */
 .abilityIcon {
   width: 36px;
   height: 36px;
@@ -87,8 +89,9 @@
   color: #d93025; /* red for downgrade */
 }
 
-/* Styled dropdown */
+/* Styled dropdown (Step 2) */
 .abilitySelect {
+  margin-top: 4px;
   width: 60px;
   padding: 4px 6px;
   border: 1px solid #ccc;
@@ -125,6 +128,24 @@
   border: 1px solid #ccc;
   border-radius: 6px;
   cursor: pointer;
+}
+
+/* Enlarged preview */
+.previewImageOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.previewImageLarge {
+  max-width: 80%;
+  max-height: 80%;
+  border: 2px solid #fff;
+  border-radius: 8px;
 }
 
 /* Buttons */

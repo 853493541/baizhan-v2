@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import styles from "./styles.module.css";
-import { updateCharacterAbilities } from "@/lib/characterService"; // ✅ central helper
+import { updateCharacterAbilities } from "@/lib/characterService"; // ✅ centralized wrapper
 
 interface SingleAbilityUpdateProps {
   characterId: string;
@@ -23,6 +23,7 @@ export default function SingleAbilityUpdate({
     setLoadingAbility(ability);
 
     try {
+      // ✅ Just send { ability: newLevel }
       await updateCharacterAbilities(characterId, { [ability]: newLevel });
       onAbilityUpdate?.(ability, newLevel);
     } catch (err) {

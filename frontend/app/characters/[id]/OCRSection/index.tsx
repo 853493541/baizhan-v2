@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import ComparisonModal from "../ComparisonModal";
-import { runOCR, confirmOCRUpdate } from "../../../../lib/ocrService";
+import { runOCR } from "../../../../lib/ocrService";
 import styles from "./styles.module.css";
+
 interface Props {
   characterId: string;
   currentAbilities: Record<string, number>;
@@ -35,21 +36,6 @@ export default function CharacterOCRSection({
         .finally(() => setProcessing(false));
     }
   }, [ocrFile, characterId]);
-
-  const handleConfirmUpdate = async (dbOnlyValues: Record<string, number>) => {
-    try {
-      const updates = await confirmOCRUpdate(characterId, {
-        ...compareResult,
-        dbOnlyValues,
-      });
-      onAbilitiesUpdated(updates);
-      setCompareResult(null);
-      alert("角色技能更新成功！");
-    } catch (err) {
-      console.error(err);
-      alert("更新失败");
-    }
-  };
 
   return (
     <div className={styles.wrapper}>
@@ -106,17 +92,18 @@ export default function CharacterOCRSection({
       )}
 
       {/* Comparison results */}
-      {compareResult && (
-        <ComparisonModal
-          toUpdate={compareResult.toUpdate || []}
-          ocrOnly={compareResult.ocrOnly || []}
-          dbOnly={compareResult.dbOnly || []}
-          previewImage={previewImage}
-          currentAbilities={currentAbilities}
-          onConfirm={handleConfirmUpdate}
-          onClose={() => setCompareResult(null)}
-        />
-      )}
+{compareResult && (
+  <ComparisonModal
+    characterId={characterId}   // ✅ always pass ID
+    toUpdate={compareResult.toUpdate || []}
+    ocrOnly={compareResult.ocrOnly || []}
+    dbOnly={compareResult.dbOnly || []}
+    previewImage={previewImage}
+    currentAbilities={currentAbilities}
+    onAbilitiesUpdated={onAbilitiesUpdated}   // ✅ match new prop
+    onClose={() => setCompareResult(null)}
+  />
+)}
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import styles from "./styles.module.css";
+import { updateCharacterAbilities } from "@/lib/characterService";
 
 interface UpdateItem {
   name: string;
@@ -10,47 +11,31 @@ interface UpdateItem {
 }
 
 interface ComparisonModalProps {
+  characterId: string;
   toUpdate: UpdateItem[];
   ocrOnly?: string[];
   dbOnly?: string[];
-  previewImage?: string | null; // reference image passed from parent
-  currentAbilities?: Record<string, number>; // ✅ added to prefill dropdowns
-  onConfirm: (dbOnlyUpdates: Record<string, number>) => void;
+  previewImage?: string | null;
+  currentAbilities?: Record<string, number>;
+  onAbilitiesUpdated: (updates: Record<string, number>) => void;
   onClose: () => void;
 }
 
 export default function ComparisonModal({
+  characterId,
   toUpdate,
   ocrOnly = [],
   dbOnly = [],
   previewImage,
-  currentAbilities = {}, // ✅ default empty
-  onConfirm,
+  currentAbilities = {},
+  onAbilitiesUpdated,
   onClose,
 }: ComparisonModalProps) {
-  const coreAbilities = [
-    "斗转金移",
-    "花钱消灾",
-    "黑煞落贪狼",
-    "兔死狐悲",
-    "引燃",
-    "一闪天诛",
-  ];
-
-  const supportingAbilities = [
-    "漾剑式",
-    "火焰之种",
-    "阴雷之种",
-    "阴阳术退散",
-    "剑心通明",
-    "尸鬼封烬",
-    "水遁水流闪",
-  ];
+  const coreAbilities = ["斗转金移", "花钱消灾", "黑煞落贪狼", "兔死狐悲", "引燃", "一闪天诛"];
+  const supportingAbilities = ["漾剑式", "火焰之种", "阴雷之种", "阴阳术退散", "剑心通明", "尸鬼封烬", "水遁水流闪"];
 
   const coreUpdates = toUpdate.filter((u) => coreAbilities.includes(u.name));
-  const supportingUpdates = toUpdate.filter((u) =>
-    supportingAbilities.includes(u.name)
-  );
+  const supportingUpdates = toUpdate.filter((u) => supportingAbilities.includes(u.name));
   const otherUpdates = toUpdate.filter(
     (u) => !coreAbilities.includes(u.name) && !supportingAbilities.includes(u.name)
   );
@@ -59,25 +44,72 @@ export default function ComparisonModal({
   const [dbOnlyValues, setDbOnlyValues] = useState<Record<string, number>>({});
   const [showImageModal, setShowImageModal] = useState(false);
 
-  // ✅ Prefill dbOnlyValues from currentAbilities (only when dbOnly changes)
+  // Prefill dbOnly values
   useEffect(() => {
     const prefill: Record<string, number> = {};
     dbOnly.forEach((name) => {
       prefill[name] = currentAbilities[name] ?? 0;
     });
     setDbOnlyValues(prefill);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dbOnly]);
+  }, [dbOnly, currentAbilities]);
 
-  if (ocrOnly.length > 0) {
-    console.log("🟢 OCR-only abilities (debug):", ocrOnly);
-  }
+  // 🔹 Step 1 submit (OCR matched updates)
+  const handleStep1Confirm = async () => {
+    const updates: Record<string, number> = {};
+    toUpdate.forEach((u) => {
+      updates[u.name] = u.new;
+    });
+
+    if (Object.keys(updates).length === 0) {
+      console.log("⚪ Step 1: no matched updates, moving to Step 2...");
+      if (dbOnly.length > 0) {
+        setStep(2);
+      } else {
+        onClose();
+      }
+      return;
+    }
+
+    console.log("🟢 Submitting Step 1 updates:", updates);
+    try {
+      await updateCharacterAbilities(characterId, updates); // ✅ send raw updates
+      console.log("✅ Step 1 updates submitted successfully");
+      onAbilitiesUpdated(updates);
+
+      if (dbOnly.length > 0) {
+        setStep(2);
+      } else {
+        onClose();
+      }
+    } catch (err) {
+      console.error("❌ Step 1 submission failed:", err);
+    }
+  };
+
+  // 🔹 Step 2 submit (manual DB-only updates)
+  const handleStep2Confirm = async () => {
+    if (Object.keys(dbOnlyValues).length === 0) {
+      console.log("⚪ Step 2: no manual updates to submit.");
+      onClose();
+      return;
+    }
+
+    console.log("🟦 Submitting Step 2 manual updates:", dbOnlyValues);
+    try {
+      await updateCharacterAbilities(characterId, dbOnlyValues); // ✅ send raw updates
+      console.log("✅ Step 2 manual updates submitted successfully");
+      onAbilitiesUpdated(dbOnlyValues);
+      onClose();
+    } catch (err) {
+      console.error("❌ Step 2 submission failed:", err);
+    }
+  };
 
   const renderAbilityList = (updates: UpdateItem[]) => (
     <ul className={styles.changeGrid}>
       {updates.map((u, idx) => {
         const iconPath = `/icons/${u.name}.png`;
-        const isDowngrade = u.new < u.old; // ✅ detect downgrade
+        const isDowngrade = u.new < u.old;
         return (
           <li key={idx} className={styles.changeItem}>
             <img
@@ -89,9 +121,7 @@ export default function ComparisonModal({
               }}
             />
             <span>{u.name}</span>
-            <span
-              className={isDowngrade ? styles.downgradeText : styles.normalText}
-            >
+            <span className={isDowngrade ? styles.downgradeText : styles.normalText}>
               {u.old} → {u.new}
             </span>
           </li>
@@ -119,15 +149,15 @@ export default function ComparisonModal({
             <select
               value={value}
               onChange={(e) =>
-                setDbOnlyValues({
-                  ...dbOnlyValues,
+                setDbOnlyValues((prev) => ({
+                  ...prev,
                   [name]: parseInt(e.target.value, 10),
-                })
+                }))
               }
               className={styles.abilitySelect}
             >
               {Array.from({ length: 11 })
-                .map((_, i) => 10 - i) // 10 → 0
+                .map((_, i) => 10 - i)
                 .map((val) => (
                   <option key={val} value={val}>
                     {val}
@@ -149,32 +179,22 @@ export default function ComparisonModal({
 
             <div className={styles.section}>
               <h3>核心技能</h3>
-              {coreUpdates.length > 0
-                ? renderAbilityList(coreUpdates)
-                : <p style={{ color: "#777" }}>无变化</p>}
+              {coreUpdates.length > 0 ? renderAbilityList(coreUpdates) : <p style={{ color: "#777" }}>无变化</p>}
             </div>
 
             <div className={styles.section}>
               <h3>辅助技能</h3>
-              {supportingUpdates.length > 0
-                ? renderAbilityList(supportingUpdates)
-                : <p style={{ color: "#777" }}>无变化</p>}
+              {supportingUpdates.length > 0 ? renderAbilityList(supportingUpdates) : <p style={{ color: "#777" }}>无变化</p>}
             </div>
 
             <div className={styles.section}>
               <h3>其他技能</h3>
-              {otherUpdates.length > 0
-                ? renderAbilityList(otherUpdates)
-                : <p style={{ color: "#777" }}>无变化</p>}
+              {otherUpdates.length > 0 ? renderAbilityList(otherUpdates) : <p style={{ color: "#777" }}>无变化</p>}
             </div>
 
             <div className={styles.buttons}>
-              <button onClick={onClose} className={styles.cancelBtn}>
-                取消
-              </button>
-              {dbOnly.length > 0
-                ? <button onClick={() => setStep(2)} className={styles.confirmBtn}>下一步</button>
-                : <button onClick={() => onConfirm({})} className={styles.confirmBtn}>✅ Confirm Update</button>}
+              <button onClick={onClose} className={styles.cancelBtn}>取消</button>
+              <button onClick={handleStep1Confirm} className={styles.confirmBtn}>下一步 / 确认</button>
             </div>
           </>
         ) : (
@@ -183,59 +203,27 @@ export default function ComparisonModal({
 
             <div className={styles.stepTwoLayout}>
               <div className={styles.section} style={{ flex: 1 }}>
-                {dbOnly.length > 0
-                  ? renderDbOnlyList()
-                  : <p style={{ color: "#777" }}>无变化</p>}
+                {dbOnly.length > 0 ? renderDbOnlyList() : <p style={{ color: "#777" }}>无变化</p>}
               </div>
 
               {previewImage && (
                 <div className={styles.previewImageBox}>
-                 
-                  <img
-                    src={previewImage}
-                    alt="参考图片"
-                    onClick={() => setShowImageModal(true)}
-                  />
+                  <img src={previewImage} alt="参考图片" onClick={() => setShowImageModal(true)} />
                 </div>
               )}
             </div>
 
             <div className={styles.buttons}>
-              <button onClick={() => setStep(1)} className={styles.cancelBtn}>
-                ⬅ 上一步
-              </button>
-              <button onClick={() => onConfirm(dbOnlyValues)} className={styles.confirmBtn}>
-                ✅ 确认
-              </button>
+              <button onClick={() => setStep(1)} className={styles.cancelBtn}>⬅ 上一步</button>
+              <button onClick={handleStep2Confirm} className={styles.confirmBtn}>✅ 确认</button>
             </div>
           </>
         )}
       </div>
 
-      {/* Enlarged image modal */}
       {showImageModal && previewImage && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.8)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 2000,
-          }}
-          onClick={() => setShowImageModal(false)}
-        >
-          <img
-            src={previewImage}
-            alt="参考图片放大"
-            style={{
-              maxWidth: "80%",
-              maxHeight: "80%",
-              border: "2px solid #fff",
-              borderRadius: 8,
-            }}
-          />
+        <div className={styles.previewImageOverlay} onClick={() => setShowImageModal(false)}>
+          <img src={previewImage} alt="参考图片放大" className={styles.previewImageLarge} />
         </div>
       )}
     </div>

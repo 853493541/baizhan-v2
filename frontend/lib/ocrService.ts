@@ -22,7 +22,7 @@ export async function runOCR(file: File, characterId: string) {
 
   const parsedAbilities = parseOCRLines(lines);
 
-  // ✅ Use the correct backend route with dash
+  // ✅ Use the correct backend route
   const compareRes = await fetch(
     `http://localhost:5000/api/characters/${characterId}/compare-abilities`,
     {
@@ -39,19 +39,19 @@ export async function runOCR(file: File, characterId: string) {
 // ✅ Confirm update by reusing characterService
 export async function confirmOCRUpdate(
   characterId: string,
-  compareResult: any
+  updates: Record<string, number>
 ): Promise<Record<string, number>> {
-  if (!compareResult?.toUpdate || !characterId) {
+  if (!updates || Object.keys(updates).length === 0) {
     throw new Error("No updates to confirm");
   }
 
-  const updates: Record<string, number> = {};
-  compareResult.toUpdate.forEach((u: any) => {
-    updates[u.name] = u.new;
-  });
+  // 🔍 Debug log
+  console.log("📦 Preparing payload for backend:", { abilities: updates });
 
-  // ✅ use your existing backend logic
-  const updated = await updateCharacterAbilities(characterId, updates);
+  // ✅ Always wrap in abilities
+  const updated = await updateCharacterAbilities(characterId, {
+    abilities: updates,
+  });
 
   return updated.character?.abilities || updates;
 }
