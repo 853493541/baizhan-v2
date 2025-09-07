@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import CreateCharacterModal from "./CreateCharacterModal";
 import CharacterCard from "./CharacterCard";
-import { Character } from "@/types/Character"; // ✅ shared type
+import { Character } from "@/types/Character";
+import styles from "./CharacterStoragePage.module.css"; // ✅ CSS module
+import { normalizeGender } from "@/utils/normalize"; // 🔹 optional util
 
 export default function CharacterStoragePage() {
   const [characters, setCharacters] = useState<Character[]>([]);
@@ -12,9 +14,6 @@ export default function CharacterStoragePage() {
   const [isModalOpen, setModalOpen] = useState(false);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
-  // ✅ normalize gender from backend to match strict type
-  const normalizeGender = (g: string): "男" | "女" => (g === "男" ? "男" : "女");
 
   const refreshCharacters = () => {
     fetch(`${API_URL}/api/characters`)
@@ -29,7 +28,7 @@ export default function CharacterStoragePage() {
       })
       .catch((err) => {
         console.error(err);
-        setError("Failed to load characters");
+        setError("角色加载失败");
         setLoading(false);
       });
   };
@@ -40,21 +39,19 @@ export default function CharacterStoragePage() {
 
   const handleCreate = async (data: any) => {
     try {
-      // ✅ Load last owner (default Unknown)
       const lastOwner = localStorage.getItem("lastOwner") || "Unknown";
 
       const completeData = {
         name: data.name,
         account: String(data.account ?? "").trim(),
         server: data.server || "乾坤一掷",
-        gender: normalizeGender(data.gender || "女"), // ✅ enforce strict
+        gender: normalizeGender(data.gender || "女"),
         class: data.class || "少林",
         role: data.role,
         active: data.active ?? true,
-        owner: data.owner?.trim() || lastOwner, // 🔹 use new owner if typed, else last
+        owner: data.owner?.trim() || lastOwner,
       };
 
-      // ✅ Save this owner for future character creation
       localStorage.setItem("lastOwner", completeData.owner);
 
       const res = await fetch(`${API_URL}/api/characters`, {
@@ -66,36 +63,34 @@ export default function CharacterStoragePage() {
       if (!res.ok) throw new Error("Failed to create character");
 
       await res.json();
-      refreshCharacters(); // refresh list after creation
+      refreshCharacters();
     } catch (err) {
       console.error(err);
-      alert("Error creating character");
+      alert("创建角色时出错");
     }
   };
 
-  if (loading) return <p>Loading characters...</p>;
-  if (error) return <p>{error}</p>;
+  if (loading) return <p className={styles.message}>角色加载中...</p>;
+  if (error) return <p className={styles.error}>{error}</p>;
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Character Storage</h1>
+    <div className={styles.container}>
+      <h1 className={styles.title}>角色仓库</h1>
 
-      {/* Character cards */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
+      <div className={styles.cardGrid}>
         {characters.map((char) => (
           <CharacterCard
             key={char._id}
             character={char}
-            onUpdated={refreshCharacters} // ✅ pass down
+            onUpdated={refreshCharacters}
           />
         ))}
       </div>
 
-      {/* Create button + modal */}
-      <div style={{ marginTop: "32px" }}>
+      <div className={styles.createButtonWrapper}>
         <button
           onClick={() => setModalOpen(true)}
-          className="px-4 py-2 bg-green-500 text-white rounded"
+          className={styles.createButton}
         >
           + 新建角色
         </button>
