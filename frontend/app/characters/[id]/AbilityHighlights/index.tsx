@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import "./AbilityHighlights.css";
-import { updateCharacterAbilities } from "@/lib/characterService"; // ✅ use helper
+import styles from "./styles.module.css";
+import { updateCharacterAbilities } from "@/lib/characterService";
 
 interface AbilityHighlightsProps {
   characterId: string;
@@ -40,7 +40,6 @@ function AbilitySection({
   const updateAbility = async (ability: string, newLevel: number) => {
     if (newLevel < 0) return;
     setLoadingAbility(ability);
-
     try {
       await updateCharacterAbilities(characterId, { [ability]: newLevel });
       onAbilityUpdate?.(ability, newLevel);
@@ -51,38 +50,42 @@ function AbilitySection({
     }
   };
 
-  const visibleAbilities = abilityList.filter((name) => (abilities[name] || 0) > 1);
-  if (visibleAbilities.length === 0) return null;
+  const visible = abilityList.filter((name) => (abilities[name] || 0) > 1);
+  if (visible.length === 0) return null;
 
   return (
-    <div className="ability-section">
-      <h3>{title}</h3>
-      <div className="ability-grid">
-        {visibleAbilities.map((name) => {
-          const level = abilities[name] || 0;
-          const iconPath = `/icons/${name}.png`;
+    <div className={styles.abilitySection}>
+      <h3 className={styles.sectionTitle}>{title}</h3>
 
+      <div className={styles.abilityGrid}>
+        {visible.map((name) => {
+          const level = abilities[name] || 0;
           return (
-            <div key={name} className="ability-card">
+            <div key={name} className={styles.abilityCard}>
               <img
-                src={iconPath}
+                src={`/icons/${name}.png`}
                 alt={name}
+                className={styles.abilityIcon}
                 onError={(e) => {
                   (e.currentTarget as HTMLImageElement).src = "/icons/default.png";
                 }}
               />
-              <span className="ability-name">{name}</span>
-              <div className="ability-controls">
+
+              <span className={styles.abilityName}>{name}</span>
+
+              <div className={styles.abilityControls}>
                 <button
-                  className="minus"
+                  className={`${styles.controlButton} ${styles.minus}`}
                   disabled={loadingAbility === name}
                   onClick={() => updateAbility(name, level - 1)}
                 >
                   -
                 </button>
-                <span className="ability-level">{level}</span>
+
+                <span className={styles.abilityLevel}>{level}</span>
+
                 <button
-                  className="plus"
+                  className={`${styles.controlButton} ${styles.plus}`}
                   disabled={loadingAbility === name}
                   onClick={() => updateAbility(name, level + 1)}
                 >

@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import ComparisonModal from "./ComparisonModal";
-import { runOCR, confirmOCRUpdate } from "../../../lib/ocrService";
-import styles from "./CharacterOCRSection.module.css";
-
+import ComparisonModal from "../ComparisonModal";
+import { runOCR, confirmOCRUpdate } from "../../../../lib/ocrService";
+import styles from "./styles.module.css";
 interface Props {
   characterId: string;
   currentAbilities: Record<string, number>;

@@ -7,7 +7,7 @@ import {
   getMissingForNextTier,
   getNextTier,
 } from "@/utils/collectionUtils";
-import "./CollectionStatus.css";
+import styles from "./styles.module.css";
 
 interface Character {
   _id: string;
@@ -24,26 +24,17 @@ interface Props {
 const getAbilityIcon = (ability: string) => `/icons/${ability}.png`;
 
 // Helper: format ability name (truncate if exactly 5 chars)
-const formatAbilityName = (name: string) => {
-  if (name.length === 5) {
-    return name.slice(0, 4);
-  }
-  return name;
-};
+const formatAbilityName = (name: string) =>
+  name.length === 5 ? name.slice(0, 4) : name;
 
-// Helper: format boss name (special rule for 萧沙)
+// Helper: format boss name (special rule for 萧沙, 钱宗龙)
 const formatBossName = (name: string) => {
-  if (name.includes("武逸青、胡鞑、萧沙")) {
-    return "萧沙"; // ✅ special-case rename
-  }
-    if (name.includes("钱宗龙、杜姬欣")) {
-    return "钱宗龙"; // ✅ special-case rename
-  }
+  if (name.includes("武逸青、胡鞑、萧沙")) return "萧沙";
+  if (name.includes("钱宗龙、杜姬欣")) return "钱宗龙";
   return name;
 };
 
 export default function CollectionStatus({ character }: Props) {
-  // check if a boss is fully collected at level 10
   const isFullyCollected = (abilities: string[]) => {
     const filtered = abilities.filter(
       (a) =>
@@ -57,20 +48,18 @@ export default function CollectionStatus({ character }: Props) {
   const inProgress = bosses.filter(([_, abilities]) => !isFullyCollected(abilities));
   const completed = bosses.filter(([_, abilities]) => isFullyCollected(abilities));
 
-  // sort in-progress bosses
   inProgress.sort((a, b) => {
     const tierA = getNextTier(a[1], character.abilities, character.gender);
     const tierB = getNextTier(b[1], character.abilities, character.gender);
     if (tierA !== tierB) return tierB - tierA;
     return a[0].localeCompare(b[0], "zh");
   });
-
   completed.sort((a, b) => a[0].localeCompare(b[0], "zh"));
 
   return (
-    <div className="collection-status">
-      <h2 className="title">收集状态</h2>
-      <div className="card-grid">
+    <div className={styles.collectionStatus}>
+      <h2 className={styles.title}>收集状态</h2>
+      <div className={styles.cardGrid}>
         {[...inProgress, ...completed].map(([boss, abilities]) => {
           const progress = getBossProgress(
             abilities,
@@ -87,23 +76,23 @@ export default function CollectionStatus({ character }: Props) {
           return (
             <div
               key={boss}
-              className={`boss-card ${full ? "boss-card-complete" : ""}`}
+              className={`${styles.bossCard} ${full ? styles.bossCardComplete : ""}`}
             >
-              <div className="boss-header">
-                <h3 className="boss-name">{formatBossName(boss)}</h3>
-                <span className="boss-progress">{progress}</span>
+              <div className={styles.bossHeader}>
+                <h3 className={styles.bossName}>{formatBossName(boss)}</h3>
+                <span className={styles.bossProgress}>{progress}</span>
               </div>
 
               {!full && missing.length > 0 && (
-                <div className="missing-grid">
+                <div className={styles.missingGrid}>
                   {missing.map((ability) => (
-                    <div key={ability} className="ability-item">
+                    <div key={ability} className={styles.abilityItem}>
                       <img
                         src={getAbilityIcon(ability)}
                         alt={ability}
-                        className="ability-icon"
+                        className={styles.abilityIcon}
                       />
-                      <span className="ability-name">
+                      <span className={styles.abilityName}>
                         {formatAbilityName(ability)}
                       </span>
                     </div>

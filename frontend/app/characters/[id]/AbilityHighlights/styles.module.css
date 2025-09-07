@@ -1,30 +1,30 @@
-.ability-section {
+.abilitySection {
   margin-bottom: 20px;
 }
 
-.ability-section h3 {
+.sectionTitle {
   font-size: 16px;
   font-weight: bold;
   margin-bottom: 10px;
 }
 
-.ability-grid {
+.abilityGrid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 8px;
 }
 
-.ability-card {
+.abilityCard {
   display: flex;
   align-items: center;
   padding: 6px 8px;
   border: 1px solid #ddd;
   border-radius: 6px;
   background: #fff;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.ability-card img {
+.abilityIcon {
   width: 28px;
   height: 28px;
   border-radius: 4px;
@@ -33,7 +33,7 @@
   object-fit: cover;
 }
 
-.ability-name {
+.abilityName {
   font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
@@ -42,14 +42,14 @@
   flex: 1;
 }
 
-.ability-controls {
+.abilityControls {
   display: flex;
   align-items: center;
   gap: 4px;
   margin-left: auto;
 }
 
-.ability-controls button {
+.controlButton {
   width: 22px;
   height: 22px;
   border: none;
@@ -61,22 +61,22 @@
   text-align: center;
 }
 
-.ability-controls button:disabled {
+.controlButton:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
 
-.ability-controls .minus {
+.minus {
   background: #f8d7da;
   color: #a00;
 }
 
-.ability-controls .plus {
+.plus {
   background: #d4edda;
   color: #060;
 }
 
-.ability-level {
+.abilityLevel {
   font-family: monospace;
   font-size: 13px;
   width: 24px;

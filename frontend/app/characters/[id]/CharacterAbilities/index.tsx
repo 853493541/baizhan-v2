@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import styles from "./CharacterAbilities.module.css";
+import styles from "./styles.module.css";
 
 interface CharacterAbilitiesProps {
   abilities: Record<string, number>;

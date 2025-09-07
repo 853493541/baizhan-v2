@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import styles from "./SingleAbilityUpdate.module.css";
+import styles from "./styles.module.css";
 import { updateCharacterAbilities } from "@/lib/characterService"; // ✅ central helper
 
 interface SingleAbilityUpdateProps {

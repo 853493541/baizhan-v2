@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { FaCog } from "react-icons/fa"; // ⚙️ gear icon
-import styles from "./CharacterBasics.module.css";
+import styles from "./styles.module.css";
 
 interface Character {
   _id: string;

@@ -8,7 +8,7 @@ import CharacterBasics, { CharacterEditData } from "./CharacterBasics";
 import AbilityHighlights from "./AbilityHighlights";
 import SingleAbilityUpdate from "./SingleAbilityUpdate";
 import CharacterOCRSection from "./OCRSection";
-import styles from "./CharacterDetailPage.module.css";
+import styles from "./styles.module.css";
 
 interface Character {
   _id: string;
