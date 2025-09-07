@@ -27,7 +27,7 @@ export default function SingleAbilityUpdate({
       const res = await fetch(
         `${API_URL}/api/characters/${characterId}/abilities`,
         {
-          method: "PUT",
+          method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ abilities: { [ability]: newLevel } }),
         }
