@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import CreateCharacterModal from "./CreateCharacterModal";
-import CharacterCard from "./CharacterCard";
+import CreateCharacterModal from "./CreateCharacterModal/CreateCharacterModal";
+import CharacterCard from "./CharacterCard/CharacterCard";
 import { Character } from "@/types/Character";
-import styles from "./CharacterStoragePage.module.css"; // ✅ CSS module
+import styles from "./page.module.css"; // ✅ CSS module
 import { normalizeGender } from "@/utils/normalize"; // 🔹 optional util
 
 export default function CharacterStoragePage() {

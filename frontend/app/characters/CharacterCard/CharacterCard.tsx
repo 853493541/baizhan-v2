@@ -5,7 +5,7 @@ import { Character } from "@/types/Character";
 import { getTradables } from "@/utils/tradables";
 import { updateCharacterAbilities } from "@/lib/characterService"; // ✅ central helper
 import styles from "./CharacterCard.module.css";
-import TradableModal from "./TradableModal";
+import TradableModal from "../TradableModal/TradableModal";
 
 interface CharacterCardProps {
   character: Character;
