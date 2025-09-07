@@ -4,8 +4,8 @@ import { useState } from "react";
 import { Character } from "@/types/Character";
 import { getTradables } from "@/utils/tradables";
 import { updateCharacterAbilities } from "@/lib/characterService"; // ✅ central helper
-import styles from "./CharacterCard.module.css";
-import TradableModal from "../TradableModal/TradableModal";
+import styles from "./styles.module.css";
+import TradableModal from "../TradableModal";
 
 interface CharacterCardProps {
   character: Character;
