@@ -1,0 +1,96 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  min-width: 360px;
+}
+
+.modalTitle {
+  margin-bottom: 12px;
+}
+
+.abilityRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 8px;
+  margin-top: 12px;
+}
+
+.abilityIcon {
+  width: 40px;
+  height: 40px;
+}
+
+.abilityLabel {
+  flex: 1;
+}
+
+.minus {
+  background: #f8d7da;
+  color: #721c24;
+  border: none;
+  border-radius: 4px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+}
+
+.minusDisabled {
+  background: #e9ecef;
+  color: #6c757d;
+  border: none;
+  border-radius: 4px;
+  width: 32px;
+  height: 32px;
+  cursor: not-allowed;
+}
+
+.plus {
+  background: #d4edda;
+  color: #155724;
+  border: none;
+  border-radius: 4px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+}
+
+.copyButton {
+  margin-left: 8px;
+  padding: 4px 8px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.modalFooter {
+  margin-top: 16px;
+  text-align: right;
+}
+
+.closeButton {
+  padding: 6px 12px;
+  background-color: #6c757d;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}

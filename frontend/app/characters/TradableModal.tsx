@@ -1,6 +1,6 @@
 "use client";
 
-import styles from "./CharacterCard.module.css";
+import styles from "./TradableModal.module.css";
 
 interface TradableModalProps {
   tradables: { ability: string; requiredLevel: number }[];
