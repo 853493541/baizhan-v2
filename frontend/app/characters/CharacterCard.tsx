@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Character } from "@/types/Character";
 import { getTradables } from "@/utils/tradables";
+import { updateCharacterAbilities } from "@/lib/characterService"; // ✅ central helper
 import styles from "./CharacterCard.module.css";
 import TradableModal from "./TradableModal";
 
@@ -17,30 +18,22 @@ export default function CharacterCard({ character, onUpdated }: CharacterCardPro
     character.abilities ? { ...character.abilities } : {}
   );
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
   const tradables = getTradables(character);
 
   const updateAbility = async (ability: string, newLevel: number) => {
     if (newLevel < 0) return;
 
+    // Optimistic update
     setLocalAbilities((prev) => ({
       ...prev,
       [ability]: newLevel,
     }));
 
     try {
-      const res = await fetch(`${API_URL}/api/characters/${character._id}/abilities`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ abilities: { [ability]: newLevel } }),
+      const updatedChar = await updateCharacterAbilities(character._id, {
+        [ability]: newLevel,
       });
 
-      if (!res.ok) {
-        console.error("❌ Failed to update ability", await res.text());
-        return;
-      }
-
-      const updatedChar = await res.json();
       if (updatedChar.abilities) {
         setLocalAbilities({ ...updatedChar.abilities });
       }

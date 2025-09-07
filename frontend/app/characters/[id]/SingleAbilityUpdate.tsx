@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import styles from "./SingleAbilityUpdate.module.css";
+import { updateCharacterAbilities } from "@/lib/characterService"; // ✅ central helper
 
 interface SingleAbilityUpdateProps {
   characterId: string;
@@ -17,27 +18,12 @@ export default function SingleAbilityUpdate({
   const [query, setQuery] = useState("");
   const [loadingAbility, setLoadingAbility] = useState<string | null>(null);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
   const updateAbility = async (ability: string, newLevel: number) => {
     if (newLevel < 0) return;
     setLoadingAbility(ability);
 
     try {
-      const res = await fetch(
-        `${API_URL}/api/characters/${characterId}/abilities`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ abilities: { [ability]: newLevel } }),
-        }
-      );
-
-      if (!res.ok) {
-        console.error("❌ Failed to update ability", await res.text());
-        return;
-      }
-
+      await updateCharacterAbilities(characterId, { [ability]: newLevel });
       onAbilityUpdate?.(ability, newLevel);
     } catch (err) {
       console.error("⚠️ Error updating ability", err);
