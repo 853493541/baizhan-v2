@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import Character from "../../models/Character";
 import stringSimilarity from "string-similarity";
+const levenshtein = require("fast-levenshtein"); // ✅ require avoids TS type issues
 
 export const compareCharacterAbilities = async (req: Request, res: Response) => {
   try {
@@ -13,7 +14,7 @@ export const compareCharacterAbilities = async (req: Request, res: Response) => 
     if (!char) return res.status(404).json({ error: "Character not found" });
 
     const abilityAliases: Record<string, string> = {
-       "帝穆龙翔": "帝骖龙翔",
+      "帝穆龙翔": "帝骖龙翔",
       "骤身": "戮身",
       "武愧召来": "武傀召来",
       "电昆吾": "电挈昆吾",
@@ -23,6 +24,7 @@ export const compareCharacterAbilities = async (req: Request, res: Response) => 
       "武倪召来": "武傀召来",
       "尸鬼封": "尸鬼封烬",
       "帝龙翔": "帝骖龙翔",
+      "身": "戮身", // ✅ handle truncation
     };
 
     const femaleOnlyBan = new Set(["顽抗", "巨猿劈山", "蛮熊碎颅击"]);
@@ -47,8 +49,18 @@ export const compareCharacterAbilities = async (req: Request, res: Response) => 
     }
     const dbNames = Object.keys(abilityObj);
 
+    const normalizedOCRNames = new Set<string>();
+
     for (const [rawName, level] of Object.entries(abilities)) {
-      const normalized = abilityAliases[rawName] || rawName;
+      // Step 1: alias map
+      let normalized = abilityAliases[rawName] || rawName;
+
+      // Step 2: clean OCR noise (digits, parentheses, slashes)
+      let cleaned = normalized.replace(/[0-9()\/]/g, "").trim();
+      if (cleaned !== normalized) {
+        console.log(`🧹 Cleaned OCR "${normalized}" -> "${cleaned}"`);
+        normalized = cleaned;
+      }
 
       // Skip banned/ignored
       if (char.gender === "女" && femaleOnlyBan.has(normalized)) continue;
@@ -56,22 +68,52 @@ export const compareCharacterAbilities = async (req: Request, res: Response) => 
       if (ignoreAlways.has(normalized)) continue;
 
       let targetName = normalized;
-
-      // Direct match?
       const hasDirect = Object.prototype.hasOwnProperty.call(abilityObj, normalized);
 
       if (!hasDirect) {
-        // Try fuzzy match
-        const { bestMatch } = stringSimilarity.findBestMatch(normalized, dbNames);
-        if (bestMatch.rating >= 0.8) {
-          console.log(
-            `🔍 Fuzzy matched "${normalized}" -> "${bestMatch.target}" (${bestMatch.rating.toFixed(
-              2
-            )})`
-          );
-          targetName = bestMatch.target;
+        // Step 3a: short-text fallback
+        if (normalized.length <= 2) {
+          const candidate = dbNames.find(n => n.includes(normalized));
+          if (candidate) {
+            console.log(`✅ Short-text match "${normalized}" -> "${candidate}"`);
+            targetName = candidate;
+          } else {
+            console.log(`❌ No short-text match for "${normalized}"`);
+          }
+        }
+
+        // Step 3b: prefix fallback (handles trailing junk)
+        if (targetName === normalized) {
+          const prefixCandidate = dbNames.find(n => normalized.startsWith(n));
+          if (prefixCandidate && prefixCandidate.length >= 3) {
+            console.log(`✅ Prefix match "${normalized}" -> "${prefixCandidate}"`);
+            targetName = prefixCandidate;
+          }
+        }
+
+        // Step 4: fuzzy + distance
+        if (targetName === normalized) {
+          const { bestMatch } = stringSimilarity.findBestMatch(normalized, dbNames);
+          const distance = levenshtein.get(normalized, bestMatch.target);
+
+          if (bestMatch.rating >= 0.8 || distance <= 1) {
+            console.log(
+              `✅ Matched "${normalized}" -> "${bestMatch.target}" (rating=${bestMatch.rating.toFixed(
+                2
+              )}, distance=${distance})`
+            );
+            targetName = bestMatch.target;
+          } else {
+            console.log(
+              `❌ Unmatched OCR "${normalized}" (best="${bestMatch.target}", rating=${bestMatch.rating.toFixed(
+                2
+              )}, distance=${distance})`
+            );
+          }
         }
       }
+
+      normalizedOCRNames.add(targetName);
 
       if (Object.prototype.hasOwnProperty.call(abilityObj, targetName)) {
         const oldVal = abilityObj[targetName] ?? 0;
@@ -81,14 +123,15 @@ export const compareCharacterAbilities = async (req: Request, res: Response) => 
           unchanged.push({ name: targetName, value: Number(level) });
         }
       } else {
-        // Still unmatched
-        ocrOnly.push(normalized);
+        if (
+          !(char.gender === "女" && femaleOnlyBan.has(normalized)) &&
+          !(char.gender === "男" && maleOnlyBan.has(normalized)) &&
+          !ignoreAlways.has(normalized)
+        ) {
+          ocrOnly.push(normalized);
+        }
       }
     }
-
-    const normalizedOCRNames = new Set(
-      Object.keys(abilities).map((raw) => abilityAliases[raw] || raw)
-    );
 
     const dbOnly: string[] = [];
     for (const name of Object.keys(abilityObj)) {
