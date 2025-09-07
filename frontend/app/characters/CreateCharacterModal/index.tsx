@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import styles from "./styles.module.css";
 
 interface CreateCharacterModalProps {
   isOpen: boolean;
@@ -29,10 +30,9 @@ export default function CreateCharacterModal({
     class: classes[0],
     role: roles[0],
     active: true,
-    owner: "", // 🔹 NEW
+    owner: "",
   });
 
-  // ✅ Load lastOwner from localStorage on mount
   useEffect(() => {
     if (isOpen) {
       const lastOwner = localStorage.getItem("lastOwner") || "";
@@ -48,7 +48,7 @@ export default function CreateCharacterModal({
       ? (e.target as HTMLInputElement).checked
       : value;
 
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: newValue,
     }));
@@ -59,17 +59,13 @@ export default function CreateCharacterModal({
 
     const payload = {
       ...formData,
-      account: String(formData.account ?? "").trim(), // ✅ Force to string and trim
-      owner: String(formData.owner ?? "").trim() || "Unknown", // 🔹 ensure owner
+      account: String(formData.account ?? "").trim(),
+      owner: String(formData.owner ?? "").trim() || "Unknown",
     };
 
-    // ✅ Save owner to localStorage for next time
     localStorage.setItem("lastOwner", payload.owner);
 
-    console.log("🟡 [DEBUG] Submitting character form:", payload);
-
-    if (!payload.account || payload.account === "") {
-      console.error("❌ Missing or empty 'account' field.");
+    if (!payload.account) {
       alert("账号不能为空！");
       return;
     }
@@ -79,25 +75,21 @@ export default function CreateCharacterModal({
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-      <div className="bg-white rounded-xl p-6 w-[400px] shadow-lg relative">
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute top-2 right-2 text-gray-500 hover:text-black"
-        >
+    <div className={styles.overlay} onClick={onClose}>
+      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+        <button type="button" onClick={onClose} className={styles.close}>
           ✕
         </button>
 
-        <h2 className="text-xl mb-4">创建新角色</h2>
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <h2 className={styles.title}>创建新角色</h2>
+        <form onSubmit={handleSubmit} className={styles.form}>
           <input
             type="text"
             name="name"
             placeholder="角色名"
             value={formData.name}
             onChange={handleChange}
-            className="w-full border p-2 rounded"
+            className={styles.input}
             required
           />
           <input
@@ -106,38 +98,44 @@ export default function CreateCharacterModal({
             placeholder="账号"
             value={formData.account}
             onChange={handleChange}
-            className="w-full border p-2 rounded"
+            className={styles.input}
             required
           />
-          {/* 🔹 Owner input */}
           <input
             type="text"
             name="owner"
             placeholder="拥有者"
             value={formData.owner}
             onChange={handleChange}
-            className="w-full border p-2 rounded"
+            className={styles.input}
             required
           />
-          <select name="server" value={formData.server} onChange={handleChange} className="w-full border p-2 rounded">
-            {servers.map(s => <option key={s} value={s}>{s}</option>)}
+
+          <select name="server" value={formData.server} onChange={handleChange} className={styles.select}>
+            {servers.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
-          <select name="gender" value={formData.gender} onChange={handleChange} className="w-full border p-2 rounded">
-            {genders.map(g => <option key={g} value={g}>{g}</option>)}
+          <select name="gender" value={formData.gender} onChange={handleChange} className={styles.select}>
+            {genders.map((g) => <option key={g} value={g}>{g}</option>)}
           </select>
-          <select name="class" value={formData.class} onChange={handleChange} className="w-full border p-2 rounded">
-            {classes.map(c => <option key={c} value={c}>{c}</option>)}
+          <select name="class" value={formData.class} onChange={handleChange} className={styles.select}>
+            {classes.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
-          <select name="role" value={formData.role} onChange={handleChange} className="w-full border p-2 rounded">
-            {roles.map(r => <option key={r} value={r}>{r}</option>)}
+          <select name="role" value={formData.role} onChange={handleChange} className={styles.select}>
+            {roles.map((r) => <option key={r} value={r}>{r}</option>)}
           </select>
-          <label className="flex items-center space-x-2">
+
+          <label className={styles.checkbox}>
             <input type="checkbox" name="active" checked={formData.active} onChange={handleChange} />
             <span>是否启用</span>
           </label>
-          <div className="flex justify-end space-x-2">
-            <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">取消</button>
-            <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">创建</button>
+
+          <div className={styles.actions}>
+            <button type="button" onClick={onClose} className={styles.cancel}>
+              取消
+            </button>
+            <button type="submit" className={styles.submit}>
+              创建
+            </button>
           </div>
         </form>
       </div>
