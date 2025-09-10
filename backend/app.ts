@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import { connectDB } from "./db";
 import characterRoutes from "./routes/characterRoutes";
+import mapRoutes from "./routes/mapRoutes";
 
 const app = express();
 
@@ -19,5 +20,6 @@ connectDB();
 
 // routes
 app.use("/api/characters", characterRoutes);
+app.use("/api/weekly-map", mapRoutes);
 
 export default app;
