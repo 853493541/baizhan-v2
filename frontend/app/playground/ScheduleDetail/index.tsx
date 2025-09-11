@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import styles from "./styles.module.css";
 import { runSolver, GroupResult, Character, AbilityCheck } from "@/utils/solver";
 import GroupDetailModal from "../GroupDetailModal";
+import { useRouter } from "next/navigation"; // ✅ import router
 
 interface Schedule {
   _id: string;
@@ -59,7 +60,7 @@ function checkGroupQA(
 
   for (const [ability, count] of Object.entries(abilityCount)) {
     if (count > 2) {
-      warnings.push(` ${ability} ${count}/2`);
+      warnings.push(`${ability} ${count}/2`);
     }
   }
 
@@ -71,6 +72,8 @@ export default function ScheduleDetail({ scheduleId }: Props) {
   const [loading, setLoading] = useState(true);
   const [groups, setGroups] = useState<GroupResult[]>([]);
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
+
+  const router = useRouter(); // ✅ router instance
 
   useEffect(() => {
     const fetchSchedule = async () => {
@@ -103,6 +106,11 @@ export default function ScheduleDetail({ scheduleId }: Props) {
     <div className={styles.container}>
       <h2 className={styles.title}>排表详情</h2>
 
+      {/* ✅ Back button */}
+      <button className={styles.backBtn} onClick={() => router.back()}>
+        ← 返回
+      </button>
+
       <div className={styles.info}>
         <p>
           <strong>模式:</strong> {schedule.mode}
@@ -126,9 +134,7 @@ export default function ScheduleDetail({ scheduleId }: Props) {
             {schedule.checkedAbilities.map((a, idx) => (
               <li
                 key={idx}
-                className={
-                  a.available ? styles.available : styles.unavailable
-                }
+                className={a.available ? styles.available : styles.unavailable}
               >
                 {a.name} (Lv{a.level}) {a.available ? "✅" : "❌ 未掉落"}
               </li>
@@ -197,3 +203,4 @@ export default function ScheduleDetail({ scheduleId }: Props) {
     </div>
   );
 }
+  

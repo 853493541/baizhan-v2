@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import CreateScheduleModal from "./CreateScheduleModal";
-import ScheduleDetail from "./ScheduleDetail";
+import Link from "next/link";
+import styles from "./styles.module.css";
 
 interface Ability {
   name: string;
@@ -30,9 +31,6 @@ interface Schedule {
 export default function PlaygroundPage() {
   const [showModal, setShowModal] = useState(false);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
-  const [selectedScheduleId, setSelectedScheduleId] = useState<string | null>(
-    null
-  );
 
   useEffect(() => {
     fetchSchedules();
@@ -91,15 +89,13 @@ export default function PlaygroundPage() {
     setShowModal(false);
   };
 
-  if (selectedScheduleId) {
-    return <ScheduleDetail scheduleId={selectedScheduleId} />;
-  }
-
   return (
-    <div>
-      <h2>排表 Playground</h2>
+    <div className={styles.container}>
+      <h2 className={styles.title}>排表 Playground</h2>
 
-      <button onClick={() => setShowModal(true)}>新建排表</button>
+      <button className={styles.createBtn} onClick={() => setShowModal(true)}>
+        新建排表
+      </button>
 
       {showModal && (
         <CreateScheduleModal
@@ -108,20 +104,23 @@ export default function PlaygroundPage() {
         />
       )}
 
-      <h3>已有排表</h3>
+      <h3 className={styles.subtitle}>已有排表</h3>
       {schedules.length === 0 ? (
-        <p>暂无排表</p>
+        <p className={styles.empty}>暂无排表</p>
       ) : (
-        <ul>
+        <div className={styles.cardGrid}>
           {schedules.map((s) => (
-            <li key={s._id}>
-              <button onClick={() => setSelectedScheduleId(s._id)}>
-                {new Date(s.createdAt).toLocaleString()} ｜ {s.server} ｜ 模式:
-                {s.mode} ｜ 冲突等级:{s.conflictLevel}
-              </button>
-            </li>
+            <Link key={s._id} href={`/playground/${s._id}`} className={styles.card}>
+              <h4 className={styles.cardTitle}>
+                {new Date(s.createdAt).toLocaleString()}
+              </h4>
+              <p>服务器: {s.server}</p>
+              <p>模式: {s.mode}</p>
+              <p>冲突等级: {s.conflictLevel}</p>
+              <p>角色数量: {s.characterCount}</p>
+            </Link>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );
