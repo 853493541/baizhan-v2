@@ -1,0 +1,27 @@
+.container {
+  padding: 20px;
+}
+
+.title {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+.info {
+  background: #f9f9f9;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.section {
+  margin-top: 20px;
+}
+
+.available {
+  color: black;
+}
+
+.unavailable {
+  color: gray;
+}

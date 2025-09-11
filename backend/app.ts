@@ -3,6 +3,7 @@ import cors from "cors";
 import { connectDB } from "./db";
 import characterRoutes from "./routes/characterRoutes";
 import mapRoutes from "./routes/mapRoutes";
+import scheduleRoutes from "./routes/scheduleRoutes";
 
 const app = express();
 
@@ -21,5 +22,6 @@ connectDB();
 // routes
 app.use("/api/characters", characterRoutes);
 app.use("/api/weekly-map", mapRoutes);
+app.use("/api/schedules", scheduleRoutes);
 
 export default app;
