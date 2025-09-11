@@ -1,8 +1,16 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./styles.module.css";
 import type { GroupResult, AbilityCheck } from "@/utils/solver";
+
+// ✅ Boss drop data
+import rawBossData from "../../data/boss_skills_collection_map.json";
+const bossData: Record<string, string[]> = rawBossData;
+
+// ✅ Tradable abilities list
+import tradableAbilities from "../../data/tradable_abilities.json";
+const tradableSet = new Set(tradableAbilities as string[]);
 
 interface Props {
   groupIndex: number;
@@ -12,6 +20,10 @@ interface Props {
   onClose: () => void;
 }
 
+interface WeeklyMapResponse {
+  floors: Record<number, { boss: string }>;
+}
+
 export default function GroupDetailModal({
   groupIndex,
   group,
@@ -19,6 +31,83 @@ export default function GroupDetailModal({
   conflictLevel,
   onClose,
 }: Props) {
+  const [weeklyMap, setWeeklyMap] = useState<Record<number, string>>({});
+
+  // 🔹 Load weekly map from backend
+  useEffect(() => {
+    const fetchMap = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map`);
+        if (res.ok) {
+          const data: WeeklyMapResponse = await res.json();
+          const floors: Record<number, string> = {};
+          for (const [floor, obj] of Object.entries(data.floors)) {
+            floors[Number(floor)] = obj.boss;
+          }
+          setWeeklyMap(floors);
+        }
+      } catch (err) {
+        console.error("❌ Failed to load weekly map:", err);
+      }
+    };
+
+    fetchMap();
+  }, []);
+
+  // 🔹 Boss needs calculation
+  const renderBossNeeds = () => {
+    if (!Object.keys(weeklyMap).length) return <p>未找到本周Boss信息</p>;
+
+    const withNeeds: JSX.Element[] = [];
+    const wasted: JSX.Element[] = [];
+
+    Object.entries(weeklyMap)
+      .sort(([a], [b]) => Number(a) - Number(b)) // ✅ sort by floor
+      .forEach(([floorStr, boss]) => {
+        const floor = Number(floorStr);
+        if (!boss) return;
+
+        const dropList: string[] = bossData[boss] || [];
+        const dropLevel = floor >= 81 && floor <= 90 ? 9 : 10; // ✅ floor → level
+
+        const needs = dropList
+          .filter((ability) => !tradableSet.has(ability)) // ✅ skip tradables
+          .map((ability) => {
+            const needCount = group.characters.filter(
+              (c) => (c.abilities?.[ability] ?? 0) < dropLevel // ✅ FIXED rule
+            ).length;
+            return needCount > 0 ? `${ability}（${needCount}）` : null;
+          })
+          .filter(Boolean);
+
+        if (needs.length > 0) {
+          withNeeds.push(
+            <div key={floor} className={styles.bossSection}>
+              {floor} {boss}（{dropLevel}）: {needs.join("，")}
+            </div>
+          );
+        } else {
+          wasted.push(
+            <div key={floor} className={`${styles.bossSection} ${styles.wasted}`}>
+              {floor} {boss}（{dropLevel}）: ❌ 无人需要
+            </div>
+          );
+        }
+      });
+
+    return (
+      <>
+        {withNeeds}
+        {wasted.length > 0 && (
+          <>
+            <h4 style={{ color: "red" }}>⚠️ 全部浪费的掉落</h4>
+            {wasted}
+          </>
+        )}
+      </>
+    );
+  };
+
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
@@ -76,6 +165,9 @@ export default function GroupDetailModal({
         ) : (
           <p>✅ 无</p>
         )}
+
+        <h3>📌 本周Boss掉落</h3>
+        {renderBossNeeds()}
       </div>
     </div>
   );
