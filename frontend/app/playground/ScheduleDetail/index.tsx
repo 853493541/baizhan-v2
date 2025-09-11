@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import styles from "./styles.module.css";
 import { runSolver, GroupResult, Character, AbilityCheck } from "@/utils/solver";
 import GroupDetailModal from "../GroupDetailModal";
-import { useRouter } from "next/navigation"; // ✅ import router
+import { useRouter } from "next/navigation";
 
 interface Schedule {
   _id: string;
@@ -21,7 +21,6 @@ interface Props {
   scheduleId: string;
 }
 
-// QA checker for solver results
 function checkGroupQA(
   group: GroupResult,
   conflictLevel: number,
@@ -29,12 +28,10 @@ function checkGroupQA(
 ): string[] {
   const warnings: string[] = [];
 
-  // ✅ 1. Healer present?
   if (!group.characters.some((c) => c.role === "Healer")) {
     warnings.push("缺少治疗");
   }
 
-  // ✅ 2. Duplicate accounts
   const seen = new Set<string>();
   const dups = new Set<string>();
   for (const c of group.characters) {
@@ -45,9 +42,7 @@ function checkGroupQA(
     warnings.push(`重复账号: ${Array.from(dups).join("、")}`);
   }
 
-  // ✅ 3. Only check abilities that are active (available = true)
   const activeAbilities = checkedAbilities.filter((a) => a.available);
-
   const abilityCount: Record<string, number> = {};
   for (const c of group.characters) {
     for (const a of activeAbilities) {
@@ -72,8 +67,9 @@ export default function ScheduleDetail({ scheduleId }: Props) {
   const [loading, setLoading] = useState(true);
   const [groups, setGroups] = useState<GroupResult[]>([]);
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  const router = useRouter(); // ✅ router instance
+  const router = useRouter();
 
   useEffect(() => {
     const fetchSchedule = async () => {
@@ -99,32 +95,48 @@ export default function ScheduleDetail({ scheduleId }: Props) {
     setGroups(results);
   };
 
-  if (loading) return <p>加载中...</p>;
-  if (!schedule) return <p>未找到排表</p>;
+  const handleDelete = async () => {
+    if (!confirm("确定要删除这个排表吗？")) return;
+    try {
+      setDeleting(true);
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/schedules/${scheduleId}`,
+        { method: "DELETE" }
+      );
+      if (!res.ok) throw new Error("Delete failed");
+      router.push("/playground"); // ✅ back to list
+    } catch (err) {
+      console.error("❌ Failed to delete schedule:", err);
+      setDeleting(false);
+    }
+  };
+
+  if (loading) return <p className={styles.loading}>加载中...</p>;
+  if (!schedule) return <p className={styles.error}>未找到排表</p>;
 
   return (
     <div className={styles.container}>
-      <h2 className={styles.title}>排表详情</h2>
-
-      {/* ✅ Back button */}
-      <button className={styles.backBtn} onClick={() => router.back()}>
-        ← 返回
-      </button>
+      <div className={styles.header}>
+        <h2 className={styles.title}>排表详情</h2>
+        <div className={styles.actions}>
+          <button className={styles.backBtn} onClick={() => router.push("/playground")}>
+            ← 返回
+          </button>
+          <button
+            className={styles.deleteBtn}
+            onClick={handleDelete}
+            disabled={deleting}
+          >
+            {deleting ? "删除中..." : "🗑 删除"}
+          </button>
+        </div>
+      </div>
 
       <div className={styles.info}>
-        <p>
-          <strong>模式:</strong> {schedule.mode}
-        </p>
-        <p>
-          <strong>冲突等级:</strong> {schedule.conflictLevel}
-        </p>
-        <p>
-          <strong>服务器:</strong> {schedule.server}
-        </p>
-        <p>
-          <strong>创建时间:</strong>{" "}
-          {new Date(schedule.createdAt).toLocaleString()}
-        </p>
+        <p><strong>模式:</strong> {schedule.mode}</p>
+        <p><strong>冲突等级:</strong> {schedule.conflictLevel}</p>
+        <p><strong>服务器:</strong> {schedule.server}</p>
+        <p><strong>创建时间:</strong> {new Date(schedule.createdAt).toLocaleString()}</p>
       </div>
 
       {schedule.mode === "default" && (
@@ -161,7 +173,6 @@ export default function ScheduleDetail({ scheduleId }: Props) {
                 schedule.conflictLevel,
                 schedule.checkedAbilities
               );
-
               return (
                 <div
                   key={idx}
@@ -176,11 +187,10 @@ export default function ScheduleDetail({ scheduleId }: Props) {
                       </li>
                     ))}
                   </ul>
-
                   {qaWarnings.length > 0 && (
                     <div className={styles.groupViolation}>
                       {qaWarnings.map((w, i) => (
-                        <p key={i}>⚠️ {w} </p>
+                        <p key={i}>⚠️ {w}</p>
                       ))}
                     </div>
                   )}
@@ -203,4 +213,3 @@ export default function ScheduleDetail({ scheduleId }: Props) {
     </div>
   );
 }
-  
