@@ -20,6 +20,52 @@ interface Props {
   scheduleId: string;
 }
 
+// QA checker for solver results
+function checkGroupQA(
+  group: GroupResult,
+  conflictLevel: number,
+  checkedAbilities: AbilityCheck[]
+): string[] {
+  const warnings: string[] = [];
+
+  // ✅ 1. Healer present?
+  if (!group.characters.some((c) => c.role === "Healer")) {
+    warnings.push("缺少治疗");
+  }
+
+  // ✅ 2. Duplicate accounts
+  const seen = new Set<string>();
+  const dups = new Set<string>();
+  for (const c of group.characters) {
+    if (seen.has(c.account)) dups.add(c.account);
+    seen.add(c.account);
+  }
+  if (dups.size > 0) {
+    warnings.push(`重复账号: ${Array.from(dups).join("、")}`);
+  }
+
+  // ✅ 3. Only check abilities that are active (available = true)
+  const activeAbilities = checkedAbilities.filter((a) => a.available);
+
+  const abilityCount: Record<string, number> = {};
+  for (const c of group.characters) {
+    for (const a of activeAbilities) {
+      const lvl = c.abilities?.[a.name] ?? 0;
+      if (lvl >= conflictLevel) {
+        abilityCount[a.name] = (abilityCount[a.name] ?? 0) + 1;
+      }
+    }
+  }
+
+  for (const [ability, count] of Object.entries(abilityCount)) {
+    if (count > 2) {
+      warnings.push(` ${ability} ${count}/2`);
+    }
+  }
+
+  return warnings;
+}
+
 export default function ScheduleDetail({ scheduleId }: Props) {
   const [schedule, setSchedule] = useState<Schedule | null>(null);
   const [loading, setLoading] = useState(true);
@@ -103,27 +149,38 @@ export default function ScheduleDetail({ scheduleId }: Props) {
 
         {groups.length > 0 && (
           <div className={styles.groupsGrid}>
-            {groups.map((g, idx) => (
-              <div
-                key={idx}
-                className={styles.groupCard}
-                onClick={() => setActiveIdx(idx)}
-              >
-                <h4 className={styles.groupTitle}>Group {idx + 1}</h4>
-                <ul className={styles.memberList}>
-                  {g.characters.map((c) => (
-                    <li key={c._id} className={styles.memberItem}>
-                      {c.name}
-                    </li>
-                  ))}
-                </ul>
-                {g.violations.length > 0 && (
-                  <p className={styles.groupViolation}>
-                    ⚠️ 违规: {g.violations.join("；")}
-                  </p>
-                )}
-              </div>
-            ))}
+            {groups.map((g, idx) => {
+              const qaWarnings = checkGroupQA(
+                g,
+                schedule.conflictLevel,
+                schedule.checkedAbilities
+              );
+
+              return (
+                <div
+                  key={idx}
+                  className={styles.groupCard}
+                  onClick={() => setActiveIdx(idx)}
+                >
+                  <h4 className={styles.groupTitle}>Group {idx + 1}</h4>
+                  <ul className={styles.memberList}>
+                    {g.characters.map((c) => (
+                      <li key={c._id} className={styles.memberItem}>
+                        {c.name}
+                      </li>
+                    ))}
+                  </ul>
+
+                  {qaWarnings.length > 0 && (
+                    <div className={styles.groupViolation}>
+                      {qaWarnings.map((w, i) => (
+                        <p key={i}>⚠️ {w} </p>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
