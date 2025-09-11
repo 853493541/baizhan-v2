@@ -1,0 +1,68 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: #fff;
+  width: 750px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 10px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  padding: 20px 22px 26px;
+  position: relative;
+}
+
+.closeBtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.section {
+  margin-top: 18px;
+}
+
+.memberList {
+  margin: 8px 0 16px;
+  padding-left: 18px;
+}
+
+.abilityTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.abilityTable th,
+.abilityTable td {
+  border: 1px solid #ddd;
+  padding: 6px 8px;
+  text-align: center;
+}
+
+.abilityTable th {
+  background: #f8f8f8;
+}
+
+.reached {
+  background: #e0f7e9; /* light green highlight */
+  font-weight: bold;
+}
+
+.warnList {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: #d9534f;
+  font-weight: 500;
+}

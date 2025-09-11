@@ -2,19 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import styles from "./styles.module.css";
-
-interface Ability {
-  name: string;
-  level: number;
-  available: boolean;
-}
-
-interface Character {
-  _id: string;
-  name: string;
-  account: string;
-  role: string;
-}
+import { runSolver, GroupResult, Character, AbilityCheck } from "@/utils/solver";
+import GroupDetailModal from "../GroupDetailModal";
 
 interface Schedule {
   _id: string;
@@ -22,7 +11,7 @@ interface Schedule {
   mode: "default" | "custom";
   conflictLevel: number;
   createdAt: string;
-  checkedAbilities: Ability[];
+  checkedAbilities: AbilityCheck[];
   characterCount: number;
   characters: Character[];
 }
@@ -34,6 +23,8 @@ interface Props {
 export default function ScheduleDetail({ scheduleId }: Props) {
   const [schedule, setSchedule] = useState<Schedule | null>(null);
   const [loading, setLoading] = useState(true);
+  const [groups, setGroups] = useState<GroupResult[]>([]);
+  const [activeIdx, setActiveIdx] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchSchedule = async () => {
@@ -50,9 +41,14 @@ export default function ScheduleDetail({ scheduleId }: Props) {
         setLoading(false);
       }
     };
-
     fetchSchedule();
   }, [scheduleId]);
+
+  const handleRunSolver = () => {
+    if (!schedule) return;
+    const results = runSolver(schedule.characters, schedule.checkedAbilities, 3);
+    setGroups(results);
+  };
 
   if (loading) return <p>加载中...</p>;
   if (!schedule) return <p>未找到排表</p>;
@@ -80,14 +76,15 @@ export default function ScheduleDetail({ scheduleId }: Props) {
       {schedule.mode === "default" && (
         <div className={styles.section}>
           <h3>检查技能</h3>
-          <ul>
+          <ul className={styles.skillList}>
             {schedule.checkedAbilities.map((a, idx) => (
               <li
                 key={idx}
-                className={a.available ? styles.available : styles.unavailable}
+                className={
+                  a.available ? styles.available : styles.unavailable
+                }
               >
-                {a.name} (Lv{a.level}){" "}
-                {!a.available && <span>❌ 未掉落</span>}
+                {a.name} (Lv{a.level}) {a.available ? "✅" : "❌ 未掉落"}
               </li>
             ))}
           </ul>
@@ -97,14 +94,49 @@ export default function ScheduleDetail({ scheduleId }: Props) {
       <div className={styles.section}>
         <h3>角色信息</h3>
         <p>角色数量: {schedule.characterCount}</p>
-        <ul>
-          {schedule.characters.map((c) => (
-            <li key={c._id}>
-              {c.name} ｜ {c.role} ｜ {c.account}
-            </li>
-          ))}
-        </ul>
       </div>
+
+      <div className={styles.section}>
+        <button className={styles.solverBtn} onClick={handleRunSolver}>
+          运行排表器
+        </button>
+
+        {groups.length > 0 && (
+          <div className={styles.groupsGrid}>
+            {groups.map((g, idx) => (
+              <div
+                key={idx}
+                className={styles.groupCard}
+                onClick={() => setActiveIdx(idx)}
+              >
+                <h4 className={styles.groupTitle}>Group {idx + 1}</h4>
+                <ul className={styles.memberList}>
+                  {g.characters.map((c) => (
+                    <li key={c._id} className={styles.memberItem}>
+                      {c.name}
+                    </li>
+                  ))}
+                </ul>
+                {g.violations.length > 0 && (
+                  <p className={styles.groupViolation}>
+                    ⚠️ 违规: {g.violations.join("；")}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {activeIdx !== null && (
+        <GroupDetailModal
+          groupIndex={activeIdx}
+          group={groups[activeIdx]}
+          checkedAbilities={schedule.checkedAbilities}
+          conflictLevel={schedule.conflictLevel}
+          onClose={() => setActiveIdx(null)}
+        />
+      )}
     </div>
   );
 }
