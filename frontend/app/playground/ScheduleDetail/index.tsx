@@ -68,6 +68,7 @@ export default function ScheduleDetail({ scheduleId }: Props) {
   const [groups, setGroups] = useState<GroupResult[]>([]);
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const router = useRouter();
 
@@ -93,6 +94,44 @@ export default function ScheduleDetail({ scheduleId }: Props) {
     if (!schedule) return;
     const results = runSolver(schedule.characters, schedule.checkedAbilities, 3);
     setGroups(results);
+  };
+
+  const handleSubmit = async () => {
+    if (!schedule || groups.length === 0) return;
+
+    const payload = {
+      server: schedule.server,
+      mode: schedule.mode,
+      conflictLevel: schedule.conflictLevel,
+      checkedAbilities: schedule.checkedAbilities,
+      characterCount: schedule.characters.length,
+      characters: schedule.characters.map((c) => c._id),
+      groups: groups.map((g, idx) => ({
+        index: idx + 1,
+        characters: g.characters.map((c) => c._id),
+      })),
+    };
+
+    console.log("📤 Submitting solver result:", payload);
+
+    try {
+      setSaving(true);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedules`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error("Failed to save schedule");
+      const saved = await res.json();
+      console.log("✅ Saved schedule:", saved);
+      alert("排表已保存");
+    } catch (err) {
+      console.error("❌ Error saving schedule:", err);
+      alert("保存失败");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDelete = async () => {
@@ -166,37 +205,47 @@ export default function ScheduleDetail({ scheduleId }: Props) {
         </button>
 
         {groups.length > 0 && (
-          <div className={styles.groupsGrid}>
-            {groups.map((g, idx) => {
-              const qaWarnings = checkGroupQA(
-                g,
-                schedule.conflictLevel,
-                schedule.checkedAbilities
-              );
-              return (
-                <div
-                  key={idx}
-                  className={styles.groupCard}
-                  onClick={() => setActiveIdx(idx)}
-                >
-                  <h4 className={styles.groupTitle}>Group {idx + 1}</h4>
-                  <ul className={styles.memberList}>
-                    {g.characters.map((c) => (
-                      <li key={c._id} className={styles.memberItem}>
-                        {c.name}
-                      </li>
-                    ))}
-                  </ul>
-                  {qaWarnings.length > 0 && (
-                    <div className={styles.groupViolation}>
-                      {qaWarnings.map((w, i) => (
-                        <p key={i}>⚠️ {w}</p>
+          <div>
+            <div className={styles.groupsGrid}>
+              {groups.map((g, idx) => {
+                const qaWarnings = checkGroupQA(
+                  g,
+                  schedule.conflictLevel,
+                  schedule.checkedAbilities
+                );
+                return (
+                  <div
+                    key={idx}
+                    className={styles.groupCard}
+                    onClick={() => setActiveIdx(idx)}
+                  >
+                    <h4 className={styles.groupTitle}>Group {idx + 1}</h4>
+                    <ul className={styles.memberList}>
+                      {g.characters.map((c) => (
+                        <li key={c._id} className={styles.memberItem}>
+                          {c.name}
+                        </li>
                       ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                    </ul>
+                    {qaWarnings.length > 0 && (
+                      <div className={styles.groupViolation}>
+                        {qaWarnings.map((w, i) => (
+                          <p key={i}>⚠️ {w}</p>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <button
+              className={styles.submitBtn}
+              onClick={handleSubmit}
+              disabled={saving}
+            >
+              {saving ? "保存中..." : "提交排表到数据库"}
+            </button>
           </div>
         )}
       </div>

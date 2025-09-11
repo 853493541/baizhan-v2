@@ -1,4 +1,4 @@
-import express from "express";
+import { Router } from "express";
 import {
   createSchedule,
   getSchedules,
@@ -6,18 +6,18 @@ import {
   deleteSchedule,
 } from "../controllers/playground/scheduleController";
 
-const router = express.Router();
+const router = Router();
 
-// POST /api/schedules → create new
+// POST new schedule
 router.post("/", createSchedule);
 
-// GET /api/schedules → list all
+// GET all schedules
 router.get("/", getSchedules);
 
-// GET /api/schedules/:id → get detail
+// GET one schedule by ID
 router.get("/:id", getScheduleById);
 
-// DELETE /api/schedules/:id → delete
+// DELETE schedule by ID
 router.delete("/:id", deleteSchedule);
 
 export default router;

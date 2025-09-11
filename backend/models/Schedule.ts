@@ -6,6 +6,11 @@ interface CheckedAbility {
   available: boolean;
 }
 
+interface Group {
+  index: number; // group number
+  characters: mongoose.Types.ObjectId[]; // refs to Character
+}
+
 export interface ISchedule extends Document {
   server: string;
   mode: "default" | "custom";
@@ -14,13 +19,25 @@ export interface ISchedule extends Document {
   checkedAbilities: CheckedAbility[];
   characterCount: number;
   characters: mongoose.Types.ObjectId[]; // reference to Character
+  groups: Group[];
 }
 
-const AbilitySchema = new Schema<CheckedAbility>({
-  name: { type: String, required: true },
-  level: { type: Number, required: true },
-  available: { type: Boolean, required: true },
-});
+const AbilitySchema = new Schema<CheckedAbility>(
+  {
+    name: { type: String, required: true },
+    level: { type: Number, required: true },
+    available: { type: Boolean, required: true },
+  },
+  { _id: false }
+);
+
+const GroupSchema = new Schema<Group>(
+  {
+    index: { type: Number, required: true },
+    characters: [{ type: Schema.Types.ObjectId, ref: "Character" }],
+  },
+  { _id: false }
+);
 
 const ScheduleSchema = new Schema<ISchedule>({
   server: { type: String, required: true },
@@ -30,6 +47,7 @@ const ScheduleSchema = new Schema<ISchedule>({
   checkedAbilities: [AbilitySchema],
   characterCount: { type: Number, default: 0 },
   characters: [{ type: Schema.Types.ObjectId, ref: "Character" }],
+  groups: [GroupSchema],
 });
 
 export default mongoose.model<ISchedule>("Schedule", ScheduleSchema);
