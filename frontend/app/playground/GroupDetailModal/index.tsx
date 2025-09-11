@@ -4,11 +4,9 @@ import React, { useState, useEffect } from "react";
 import styles from "./styles.module.css";
 import type { GroupResult, AbilityCheck } from "@/utils/solver";
 
-// ✅ Boss drop data
 import rawBossData from "../../data/boss_skills_collection_map.json";
 const bossData: Record<string, string[]> = rawBossData;
 
-// ✅ Tradable abilities list
 import tradableAbilities from "../../data/tradable_abilities.json";
 const tradableSet = new Set(tradableAbilities as string[]);
 
@@ -33,7 +31,9 @@ export default function GroupDetailModal({
 }: Props) {
   const [weeklyMap, setWeeklyMap] = useState<Record<number, string>>({});
 
-  // 🔹 Load weekly map from backend
+  const row1 = [81, 82, 83, 84, 85, 86, 87, 88, 89, 90];
+  const row2 = [100, 99, 98, 97, 96, 95, 94, 93, 92, 91];
+
   useEffect(() => {
     const fetchMap = async () => {
       try {
@@ -54,59 +54,56 @@ export default function GroupDetailModal({
     fetchMap();
   }, []);
 
-  // 🔹 Boss needs calculation
-  const renderBossNeeds = () => {
-    if (!Object.keys(weeklyMap).length) return <p>未找到本周Boss信息</p>;
+  const renderBossCard = (floor: number) => {
+    const boss = weeklyMap[floor];
+    if (!boss) {
+      return (
+        <div key={floor} className={styles.card}>
+          <div className={styles.floorLabel}>{floor}</div>
+          <div className={styles.noNeed}>未选择</div>
+        </div>
+      );
+    }
 
-    const withNeeds: JSX.Element[] = [];
-    const wasted: JSX.Element[] = [];
+    const dropList: string[] = bossData[boss] || [];
+    const dropLevel = floor >= 81 && floor <= 90 ? 9 : 10;
 
-    Object.entries(weeklyMap)
-      .sort(([a], [b]) => Number(a) - Number(b)) // ✅ sort by floor
-      .forEach(([floorStr, boss]) => {
-        const floor = Number(floorStr);
-        if (!boss) return;
+    const needs = dropList
+      .filter((ability) => !tradableSet.has(ability))
+      .map((ability) => {
+        const needCount = group.characters.filter(
+          (c) => (c.abilities?.[ability] ?? 0) < dropLevel
+        ).length;
+        return needCount > 0 ? `${ability}（${needCount}）` : null;
+      })
+      .filter(Boolean);
 
-        const dropList: string[] = bossData[boss] || [];
-        const dropLevel = floor >= 81 && floor <= 90 ? 9 : 10; // ✅ floor → level
-
-        const needs = dropList
-          .filter((ability) => !tradableSet.has(ability)) // ✅ skip tradables
-          .map((ability) => {
-            const needCount = group.characters.filter(
-              (c) => (c.abilities?.[ability] ?? 0) < dropLevel // ✅ FIXED rule
-            ).length;
-            return needCount > 0 ? `${ability}（${needCount}）` : null;
-          })
-          .filter(Boolean);
-
-        if (needs.length > 0) {
-          withNeeds.push(
-            <div key={floor} className={styles.bossSection}>
-              {floor} {boss}（{dropLevel}）: {needs.join("，")}
-            </div>
-          );
-        } else {
-          wasted.push(
-            <div key={floor} className={`${styles.bossSection} ${styles.wasted}`}>
-              {floor} {boss}（{dropLevel}）: ❌ 无人需要
-            </div>
-          );
-        }
-      });
+    const content =
+      needs.length > 0 ? (
+        <ul className={styles.needList}>
+          {needs.map((n, idx) => (
+            <li key={idx}>{n}</li>
+          ))}
+        </ul>
+      ) : (
+        <p className={styles.noNeed}>无需求</p>
+      );
 
     return (
-      <>
-        {withNeeds}
-        {wasted.length > 0 && (
-          <>
-            <h4 style={{ color: "red" }}>⚠️ 全部浪费的掉落</h4>
-            {wasted}
-          </>
-        )}
-      </>
+      <div key={floor} className={styles.card}>
+        <div className={styles.floorLabel}>
+          {floor} {boss}
+        </div>
+        {content}
+      </div>
     );
   };
+
+  const renderRow = (floors: number[]) => (
+    <div className={styles.row}>
+      {floors.map((f) => renderBossCard(f))}
+    </div>
+  );
 
   return (
     <div className={styles.overlay}>
@@ -115,16 +112,16 @@ export default function GroupDetailModal({
           ✖
         </button>
 
-        <h2>分组详情 - Group {groupIndex + 1}</h2>
+        <h2>分组{groupIndex + 1}</h2>
 
-        <h3>成员 ({group.characters.length})</h3>
+        <h3>成员</h3>
         <ul className={styles.memberList}>
           {group.characters.map((c) => (
             <li key={c._id}>{c.name}</li>
           ))}
         </ul>
 
-        <h3>核心技能详情 (Lv{conflictLevel}+)</h3>
+        <h3>核心技能详情</h3>
         <table className={styles.abilityTable}>
           <thead>
             <tr>
@@ -155,7 +152,7 @@ export default function GroupDetailModal({
           </tbody>
         </table>
 
-        <h3>违规/警告</h3>
+        <h3>警告</h3>
         {group.violations.length > 0 ? (
           <ul className={styles.warnList}>
             {group.violations.map((v, idx) => (
@@ -166,8 +163,9 @@ export default function GroupDetailModal({
           <p>✅ 无</p>
         )}
 
-        <h3>📌 本周Boss掉落</h3>
-        {renderBossNeeds()}
+        <h3>本周地图</h3>
+        {renderRow(row1)}
+        {renderRow(row2)}
       </div>
     </div>
   );
