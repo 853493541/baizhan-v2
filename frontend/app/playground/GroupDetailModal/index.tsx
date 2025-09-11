@@ -22,6 +22,51 @@ interface WeeklyMapResponse {
   floors: Record<number, { boss: string }>;
 }
 
+// ✅ Inline QA checker
+function checkGroupQA(
+  group: GroupResult,
+  conflictLevel: number,
+  checkedAbilities: AbilityCheck[]
+): string[] {
+  const warnings: string[] = [];
+
+  // 1. Healer present?
+  if (!group.characters.some((c) => c.role === "Healer")) {
+    warnings.push("缺少治疗");
+  }
+
+  // 2. Duplicate accounts
+  const seen = new Set<string>();
+  const dups = new Set<string>();
+  for (const c of group.characters) {
+    if (seen.has(c.account)) dups.add(c.account);
+    seen.add(c.account);
+  }
+  if (dups.size > 0) {
+    warnings.push(`重复账号: ${Array.from(dups).join("、")}`);
+  }
+
+  // 3. Ability conflicts
+  const activeAbilities = checkedAbilities.filter((a) => a.available);
+  const abilityCount: Record<string, number> = {};
+  for (const c of group.characters) {
+    for (const a of activeAbilities) {
+      const lvl = c.abilities?.[a.name] ?? 0;
+      if (lvl >= conflictLevel) {
+        abilityCount[a.name] = (abilityCount[a.name] ?? 0) + 1;
+      }
+    }
+  }
+
+  for (const [ability, count] of Object.entries(abilityCount)) {
+    if (count > 2) {
+      warnings.push(`${ability} ${count}/2`);
+    }
+  }
+
+  return warnings;
+}
+
 export default function GroupDetailModal({
   groupIndex,
   group,
@@ -105,6 +150,9 @@ export default function GroupDetailModal({
     </div>
   );
 
+  // ✅ Recompute warnings on the fly
+  const qaWarnings = checkGroupQA(group, conflictLevel, checkedAbilities);
+
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
@@ -153,9 +201,9 @@ export default function GroupDetailModal({
         </table>
 
         <h3>警告</h3>
-        {group.violations.length > 0 ? (
+        {qaWarnings.length > 0 ? (
           <ul className={styles.warnList}>
-            {group.violations.map((v, idx) => (
+            {qaWarnings.map((v, idx) => (
               <li key={idx}>⚠️ {v}</li>
             ))}
           </ul>

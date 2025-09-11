@@ -15,12 +15,14 @@ interface Schedule {
   checkedAbilities: AbilityCheck[];
   characterCount: number;
   characters: Character[];
+  groups?: { index: number; characters: Character[] }[];
 }
 
 interface Props {
   scheduleId: string;
 }
 
+// ✅ QA checker (frontend only)
 function checkGroupQA(
   group: GroupResult,
   conflictLevel: number,
@@ -72,6 +74,7 @@ export default function ScheduleDetail({ scheduleId }: Props) {
 
   const router = useRouter();
 
+  // ✅ Fetch schedule + groups on load
   useEffect(() => {
     const fetchSchedule = async () => {
       try {
@@ -81,6 +84,11 @@ export default function ScheduleDetail({ scheduleId }: Props) {
         if (!res.ok) throw new Error("Failed to fetch schedule");
         const data = await res.json();
         setSchedule(data);
+
+        if (data.groups) {
+          console.log("📥 Loaded groups from DB:", data.groups);
+          setGroups(data.groups);
+        }
       } catch (err) {
         console.error("❌ Error fetching schedule:", err);
       } finally {
@@ -90,45 +98,44 @@ export default function ScheduleDetail({ scheduleId }: Props) {
     fetchSchedule();
   }, [scheduleId]);
 
-  const handleRunSolver = () => {
+  // ✅ Run solver + auto-submit
+  const handleRunSolver = async () => {
     if (!schedule) return;
-    const results = runSolver(schedule.characters, schedule.checkedAbilities, 3);
-    setGroups(results);
-  };
+    const results = runSolver(
+      schedule.characters,
+      schedule.checkedAbilities,
+      3 // leave solver config unchanged
+    );
+    console.log("🧩 Solver results:", results);
+    setGroups(results); // ✅ show solver results in UI
 
-  const handleSubmit = async () => {
-    if (!schedule || groups.length === 0) return;
+    // prepare payload (IDs only)
+    const payload = results.map((g, idx) => ({
+      index: idx + 1,
+      characters: g.characters.map((c) => c._id),
+    }));
 
-    const payload = {
-      server: schedule.server,
-      mode: schedule.mode,
-      conflictLevel: schedule.conflictLevel,
-      checkedAbilities: schedule.checkedAbilities,
-      characterCount: schedule.characters.length,
-      characters: schedule.characters.map((c) => c._id),
-      groups: groups.map((g, idx) => ({
-        index: idx + 1,
-        characters: g.characters.map((c) => c._id),
-      })),
-    };
-
-    console.log("📤 Submitting solver result:", payload);
+    console.log("📤 Auto-submitting groups:", payload);
 
     try {
       setSaving(true);
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedules`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/schedules/${schedule._id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ groups: payload }),
+        }
+      );
 
-      if (!res.ok) throw new Error("Failed to save schedule");
-      const saved = await res.json();
-      console.log("✅ Saved schedule:", saved);
-      alert("排表已保存");
+      if (!res.ok) throw new Error("Failed to update groups");
+      const updated = await res.json();
+      console.log("✅ Saved to DB, schedule updated:", updated);
+
+      // 🚫 Do NOT overwrite groups with DB (IDs only)
+      // ✅ Keep solver results in UI
     } catch (err) {
-      console.error("❌ Error saving schedule:", err);
-      alert("保存失败");
+      console.error("❌ Error saving groups:", err);
     } finally {
       setSaving(false);
     }
@@ -143,7 +150,7 @@ export default function ScheduleDetail({ scheduleId }: Props) {
         { method: "DELETE" }
       );
       if (!res.ok) throw new Error("Delete failed");
-      router.push("/playground"); // ✅ back to list
+      router.push("/playground");
     } catch (err) {
       console.error("❌ Failed to delete schedule:", err);
       setDeleting(false);
@@ -201,51 +208,41 @@ export default function ScheduleDetail({ scheduleId }: Props) {
 
       <div className={styles.section}>
         <button className={styles.solverBtn} onClick={handleRunSolver}>
-          运行排表器
+          运行排表器并保存
         </button>
 
         {groups.length > 0 && (
-          <div>
-            <div className={styles.groupsGrid}>
-              {groups.map((g, idx) => {
-                const qaWarnings = checkGroupQA(
-                  g,
-                  schedule.conflictLevel,
-                  schedule.checkedAbilities
-                );
-                return (
-                  <div
-                    key={idx}
-                    className={styles.groupCard}
-                    onClick={() => setActiveIdx(idx)}
-                  >
-                    <h4 className={styles.groupTitle}>Group {idx + 1}</h4>
-                    <ul className={styles.memberList}>
-                      {g.characters.map((c) => (
-                        <li key={c._id} className={styles.memberItem}>
-                          {c.name}
-                        </li>
+          <div className={styles.groupsGrid}>
+            {groups.map((g, idx) => {
+              const qaWarnings = checkGroupQA(
+                g,
+                schedule.conflictLevel,
+                schedule.checkedAbilities
+              );
+              return (
+                <div
+                  key={idx}
+                  className={styles.groupCard}
+                  onClick={() => setActiveIdx(idx)}
+                >
+                  <h4 className={styles.groupTitle}>Group {idx + 1}</h4>
+                  <ul className={styles.memberList}>
+                    {g.characters.map((c) => (
+                      <li key={c._id} className={styles.memberItem}>
+                        {c.name}
+                      </li>
+                    ))}
+                  </ul>
+                  {qaWarnings.length > 0 && (
+                    <div className={styles.groupViolation}>
+                      {qaWarnings.map((w, i) => (
+                        <p key={i}>⚠️ {w}</p>
                       ))}
-                    </ul>
-                    {qaWarnings.length > 0 && (
-                      <div className={styles.groupViolation}>
-                        {qaWarnings.map((w, i) => (
-                          <p key={i}>⚠️ {w}</p>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            <button
-              className={styles.submitBtn}
-              onClick={handleSubmit}
-              disabled={saving}
-            >
-              {saving ? "保存中..." : "提交排表到数据库"}
-            </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

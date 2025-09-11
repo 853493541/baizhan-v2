@@ -3,6 +3,7 @@ import {
   createSchedule,
   getSchedules,
   getScheduleById,
+  updateSchedule,
   deleteSchedule,
 } from "../controllers/playground/scheduleController";
 
@@ -19,5 +20,8 @@ router.get("/:id", getScheduleById);
 
 // DELETE schedule by ID
 router.delete("/:id", deleteSchedule);
+
+
+router.put("/:id", updateSchedule); 
 
 export default router;

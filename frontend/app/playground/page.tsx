@@ -1,8 +1,22 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import CreateScheduleModal from "./CreateScheduleModal";
 import Link from "next/link";
 import styles from "./styles.module.css";
+
+interface Ability {
+  name: string;
+  level: number;
+  available: boolean;
+}
+
+interface Character {
+  _id: string;
+  name: string;
+  account: string;
+  role: string;
+}
 
 interface Schedule {
   _id: string;
@@ -10,11 +24,12 @@ interface Schedule {
   mode: "default" | "custom";
   conflictLevel: number;
   createdAt: string;
+  checkedAbilities: Ability[];
   characterCount: number;
-  groups: { index: number; characters: any[] }[];
 }
 
 export default function PlaygroundPage() {
+  const [showModal, setShowModal] = useState(false);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
 
   useEffect(() => {
@@ -34,9 +49,60 @@ export default function PlaygroundPage() {
     }
   };
 
+  const handleConfirm = async (
+    conflictLevel: number,
+    server: string,
+    mode: "default" | "custom",
+    checkedAbilities: Ability[]
+  ) => {
+    try {
+      // fetch characters
+      const charRes = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/characters`
+      );
+      const characters: Character[] = charRes.ok ? await charRes.json() : [];
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/schedules`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            conflictLevel,
+            server,
+            mode,
+            checkedAbilities,
+            characterCount: characters.length,
+            characters: characters.map((c) => c._id),
+          }),
+        }
+      );
+
+      if (!res.ok) throw new Error("Failed to create schedule");
+      await res.json();
+
+      fetchSchedules();
+    } catch (err) {
+      console.error("❌ Error creating schedule:", err);
+    }
+
+    setShowModal(false);
+  };
+
   return (
     <div className={styles.container}>
       <h2 className={styles.title}>排表 Playground</h2>
+
+      <button className={styles.createBtn} onClick={() => setShowModal(true)}>
+        新建排表
+      </button>
+
+      {showModal && (
+        <CreateScheduleModal
+          onClose={() => setShowModal(false)}
+          onConfirm={handleConfirm}
+        />
+      )}
 
       <h3 className={styles.subtitle}>已有排表</h3>
       {schedules.length === 0 ? (
@@ -44,11 +110,7 @@ export default function PlaygroundPage() {
       ) : (
         <div className={styles.cardGrid}>
           {schedules.map((s) => (
-            <Link
-              key={s._id}
-              href={`/playground/${s._id}`}
-              className={styles.card}
-            >
+            <Link key={s._id} href={`/playground/${s._id}`} className={styles.card}>
               <h4 className={styles.cardTitle}>
                 {new Date(s.createdAt).toLocaleString()}
               </h4>
@@ -56,7 +118,6 @@ export default function PlaygroundPage() {
               <p>模式: {s.mode}</p>
               <p>冲突等级: {s.conflictLevel}</p>
               <p>角色数量: {s.characterCount}</p>
-              <p>分组数量: {s.groups?.length || 0}</p>
             </Link>
           ))}
         </div>

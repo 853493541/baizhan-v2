@@ -92,3 +92,25 @@ export const deleteSchedule = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to delete schedule" });
   }
 };
+// ✅ Update schedule groups
+export const updateSchedule = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { groups } = req.body;
+
+    const updated = await Schedule.findByIdAndUpdate(
+      id,
+      { groups },
+      { new: true }
+    ).populate("characters");
+
+    if (!updated) {
+      return res.status(404).json({ error: "Schedule not found" });
+    }
+
+    res.json(updated);
+  } catch (err) {
+    console.error("❌ Error updating schedule:", err);
+    res.status(500).json({ error: "Failed to update schedule" });
+  }
+};
