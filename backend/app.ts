@@ -4,6 +4,8 @@ import { connectDB } from "./db";
 import characterRoutes from "./routes/characterRoutes";
 import mapRoutes from "./routes/mapRoutes";
 import scheduleRoutes from "./routes/scheduleRoutes";
+import bossPlanRoutes from "./routes/bossPlanRoutes";
+
 
 const app = express();
 
@@ -23,5 +25,5 @@ connectDB();
 app.use("/api/characters", characterRoutes);
 app.use("/api/weekly-map", mapRoutes);
 app.use("/api/schedules", scheduleRoutes);
-
+app.use("/api/boss-plans", bossPlanRoutes);
 export default app;

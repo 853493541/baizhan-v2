@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import CreateScheduleModal from "./CreateScheduleModal";
+import CreateBossPlanModal from "./CreateBossPlanModal";
 import Link from "next/link";
 import styles from "./styles.module.css";
 
@@ -28,82 +29,102 @@ interface Schedule {
   characterCount: number;
 }
 
+interface BossPlan {
+  _id: string;
+  server: string;
+  groupSize?: number;
+  boss?: string;
+  createdAt: string;
+}
+
 export default function PlaygroundPage() {
-  const [showModal, setShowModal] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [showBossPlanModal, setShowBossPlanModal] = useState(false);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [bossPlans, setBossPlans] = useState<BossPlan[]>([]);
 
   useEffect(() => {
     fetchSchedules();
+    fetchBossPlans();
   }, []);
 
+  // Inline fetch for schedules
   const fetchSchedules = async () => {
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/schedules`
       );
       if (!res.ok) throw new Error("Failed to fetch schedules");
-      const data = await res.json();
-      setSchedules(data);
+      setSchedules(await res.json());
     } catch (err) {
       console.error("❌ Error fetching schedules:", err);
     }
   };
 
-  const handleConfirm = async (
-    conflictLevel: number,
-    server: string,
-    mode: "default" | "custom",
-    checkedAbilities: Ability[]
-  ) => {
+  // Inline fetch for boss plans
+  const fetchBossPlans = async () => {
     try {
-      // fetch characters
-      const charRes = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/characters`
-      );
-      const characters: Character[] = charRes.ok ? await charRes.json() : [];
-
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/schedules`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            conflictLevel,
-            server,
-            mode,
-            checkedAbilities,
-            characterCount: characters.length,
-            characters: characters.map((c) => c._id),
-          }),
-        }
+        `${process.env.NEXT_PUBLIC_API_URL}/api/boss-plans`
       );
+      if (!res.ok) throw new Error("Failed to fetch boss plans");
+      const data = await res.json();
 
-      if (!res.ok) throw new Error("Failed to create schedule");
-      await res.json();
+      // ✅ Patch: ensure groupSize & boss exist
+      const patched = data.map((bp: BossPlan) => ({
+        ...bp,
+        groupSize: bp.groupSize ?? 3,
+        boss: bp.boss ?? "未选择",
+      }));
 
-      fetchSchedules();
+      setBossPlans(patched);
     } catch (err) {
-      console.error("❌ Error creating schedule:", err);
+      console.error("❌ Error fetching boss plans:", err);
     }
-
-    setShowModal(false);
   };
 
   return (
     <div className={styles.container}>
       <h2 className={styles.title}>排表 Playground</h2>
 
-      <button className={styles.createBtn} onClick={() => setShowModal(true)}>
-        新建排表
-      </button>
+      <div className={styles.buttonRow}>
+        <button
+          className={styles.createBtn}
+          onClick={() => setShowScheduleModal(true)}
+        >
+          新建排表
+        </button>
+        <button
+          className={styles.createBtn}
+          onClick={() => setShowBossPlanModal(true)}
+        >
+          新建 Boss Plan
+        </button>
+      </div>
 
-      {showModal && (
+      {/* Schedule modal */}
+      {showScheduleModal && (
         <CreateScheduleModal
-          onClose={() => setShowModal(false)}
-          onConfirm={handleConfirm}
+          onClose={() => setShowScheduleModal(false)}
+          onConfirm={() => {
+            setShowScheduleModal(false);
+            fetchSchedules();
+          }}
         />
       )}
 
+      {/* Boss Plan modal */}
+      {showBossPlanModal && (
+        <CreateBossPlanModal
+          onClose={() => setShowBossPlanModal(false)}
+          onCreated={() => {
+            setShowBossPlanModal(false);
+            fetchBossPlans();
+          }}
+        />
+      )}
+
+      {/* Existing schedules */}
       <h3 className={styles.subtitle}>已有排表</h3>
       {schedules.length === 0 ? (
         <p className={styles.empty}>暂无排表</p>
@@ -118,6 +139,29 @@ export default function PlaygroundPage() {
               <p>模式: {s.mode}</p>
               <p>冲突等级: {s.conflictLevel}</p>
               <p>角色数量: {s.characterCount}</p>
+            </Link>
+          ))}
+        </div>
+      )}
+
+      {/* Boss Plans */}
+      <h3 className={styles.subtitle}>已有 Boss Plans</h3>
+      {bossPlans.length === 0 ? (
+        <p className={styles.empty}>暂无 Boss Plan</p>
+      ) : (
+        <div className={styles.cardGrid}>
+          {bossPlans.map((bp) => (
+            <Link
+              key={bp._id}
+              href={`/playground/boss-plans/${bp._id}`}
+              className={styles.card}
+            >
+              <h4 className={styles.cardTitle}>
+                {new Date(bp.createdAt).toLocaleString()}
+              </h4>
+              <p>服务器: {bp.server}</p>
+              <p>分组人数: {bp.groupSize}</p>
+              <p>Boss: {bp.boss}</p>
             </Link>
           ))}
         </div>
