@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import styles from "./styles.module.css";
-import { bossSolver, Character as SolverCharacter } from "@/utils/bossSolver";
+import { bossSolver, Character as SolverCharacter, Ability } from "@/utils/bossSolver";
 
 type Role = "DPS" | "Tank" | "Healer";
 
@@ -117,15 +117,30 @@ export default function BossPlanDetail() {
       charactersCount: characters.length,
     });
 
-    const mapped: SolverCharacter[] = characters.map((c) => ({
-      _id: c._id,
-      name: c.name,
-      role: c.role as Role,
-      abilities: Array.isArray(c.abilities)
-        ? c.abilities
-        : Object.keys(c.abilities || {}),
-      account: c.account,
-    }));
+    // 🔄 Map to solver characters with ability objects
+    const mapped: SolverCharacter[] = characters.map((c) => {
+      let abilityArray: Ability[] = [];
+
+      if (Array.isArray(c.abilities)) {
+        abilityArray = c.abilities.map((a) => ({
+          name: a,
+          level: 9, // default if no level
+        }));
+      } else if (c.abilities && typeof c.abilities === "object") {
+        abilityArray = Object.entries(c.abilities).map(([name, level]) => ({
+          name,
+          level: Number(level),
+        }));
+      }
+
+      return {
+        _id: c._id,
+        name: c.name,
+        role: c.role as Role,
+        abilities: abilityArray,
+        account: c.account,
+      };
+    });
 
     const result = bossSolver({
       characters: mapped,
@@ -248,8 +263,11 @@ export default function BossPlanDetail() {
                     <span className={styles.charName}>
                       {c.name} （{c.role}）
                     </span>
-                    ：{c.usedAbilities.length > 0
-                      ? c.usedAbilities.join(" ")
+                    ：
+                    {c.usedAbilities.length > 0
+                      ? c.usedAbilities
+                          .map((a: Ability) => `${a.name}(${a.level})`)
+                          .join(" ")
                       : "无"}
                   </li>
                 ))}
