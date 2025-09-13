@@ -225,17 +225,7 @@ export default function BossPlanDetail() {
       </button>
 
       <h3>后端提供的角色</h3>
-      {characters.length === 0 ? (
-        <p>⚠️ 无角色数据 (使用本地输入代替)</p>
-      ) : (
-        <ul>
-          {characters.map((c) => (
-            <li key={c._id}>
-              {c.name} ({c.role})
-            </li>
-          ))}
-        </ul>
-      )}
+      <p>已获取角色数量: {characters.length}</p>
 
       <h3>Solver 结果</h3>
       {!solverResult ? (
@@ -247,11 +237,18 @@ export default function BossPlanDetail() {
           {solverResult.groups.map((g: any) => (
             <div key={g.index} className={styles.groupBox}>
               <h4>小组 {g.index}</h4>
-              <ul>
+              <ul className={styles.charList}>
                 {g.characters.map((c: any) => (
-                  <li key={c._id}>
-                    {c.name} （{c.role}）：{" "}
-                    {c.usedAbilities.length > 0
+                  <li
+                    key={c._id}
+                    className={`${styles.charItem} ${
+                      styles[c.role.toLowerCase()]
+                    }`}
+                  >
+                    <span className={styles.charName}>
+                      {c.name} （{c.role}）
+                    </span>
+                    ：{c.usedAbilities.length > 0
                       ? c.usedAbilities.join(" ")
                       : "无"}
                   </li>
