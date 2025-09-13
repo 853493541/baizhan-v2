@@ -10,7 +10,7 @@ type Role = "DPS" | "Tank" | "Healer";
 interface BossPlan {
   _id: string;
   server: string;
-  groupSize?: number; // ✅ optional now
+  groupSize?: number;
   boss: string;
   createdAt: string;
 }
@@ -31,9 +31,9 @@ export default function BossPlanDetail() {
   const [plan, setPlan] = useState<BossPlan | null>(null);
   const [characters, setCharacters] = useState<Character[]>([]);
   const [allAbilities, setAllAbilities] = useState<string[]>([]);
-  const [solverResult, setSolverResult] = useState<string>("无结果");
+  const [solverResult, setSolverResult] = useState<any>(null);
 
-  // ✅ Keep defaults
+  // ✅ Defaults
   const [roles, setRoles] = useState<Role[]>(["DPS", "DPS", "Healer"]);
   const [locked, setLocked] = useState<string[][]>([
     ["帝骖龙翔", "FLEX", "剑飞惊天"],
@@ -53,16 +53,14 @@ export default function BossPlanDetail() {
 
     (async () => {
       try {
-        // 1. Fetch boss plan
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/api/boss-plans/${id}`
         );
         if (!res.ok) throw new Error("❌ Failed to fetch boss plan");
         const data: BossPlan = await res.json();
-        console.log("📦 BossPlan fetched:", data); // ✅ debug
+        console.log("📦 BossPlan fetched:", data);
         setPlan(data);
 
-        // 2. Fetch all characters
         const allRes = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/api/characters`
         );
@@ -106,11 +104,11 @@ export default function BossPlanDetail() {
   // Solver
   const runBossSolver = () => {
     if (!plan || characters.length === 0) {
-      setSolverResult("❌ 没有可用角色");
+      setSolverResult({ error: "❌ 没有可用角色" });
       return;
     }
 
-    const safeGroupSize = plan.groupSize ?? 3; // ✅ fallback to 3
+    const safeGroupSize = plan.groupSize ?? 3;
     const safeGroupCount = Math.floor(characters.length / safeGroupSize);
 
     console.log("⚙️ Running solver with:", {
@@ -119,7 +117,6 @@ export default function BossPlanDetail() {
       charactersCount: characters.length,
     });
 
-    // Map characters to solver format
     const mapped: SolverCharacter[] = characters.map((c) => ({
       _id: c._id,
       name: c.name,
@@ -135,20 +132,12 @@ export default function BossPlanDetail() {
       groupSize: safeGroupSize,
       groupCount: safeGroupCount,
       flexRequired: flexible,
+      locked: locked,
+      roles: roles,
     });
 
-    if (!result.success) {
-      setSolverResult("❌ 错误:\n" + result.errors.join("\n"));
-    } else {
-      const text = result.groups
-        .map(
-          (g) =>
-            `小组 ${g.index}: ` +
-            g.characters.map((c) => `${c.name}(${c.role})`).join("，")
-        )
-        .join("\n");
-      setSolverResult(text);
-    }
+    console.log("🧩 Solver Result:", result);
+    setSolverResult(result);
   };
 
   // -------------------------------------------------------------------
@@ -242,14 +231,36 @@ export default function BossPlanDetail() {
         <ul>
           {characters.map((c) => (
             <li key={c._id}>
-              {c.name} ({c.role}) – 账号: {c.account}
+              {c.name} ({c.role})
             </li>
           ))}
         </ul>
       )}
 
       <h3>Solver 结果</h3>
-      <pre>{solverResult}</pre>
+      {!solverResult ? (
+        <p>⚠️ 尚未运行 Solver</p>
+      ) : !solverResult.success ? (
+        <pre>{JSON.stringify(solverResult.errors, null, 2)}</pre>
+      ) : (
+        <div>
+          {solverResult.groups.map((g: any) => (
+            <div key={g.index} className={styles.groupBox}>
+              <h4>小组 {g.index}</h4>
+              <ul>
+                {g.characters.map((c: any) => (
+                  <li key={c._id}>
+                    {c.name} （{c.role}）：{" "}
+                    {c.usedAbilities.length > 0
+                      ? c.usedAbilities.join(" ")
+                      : "无"}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
