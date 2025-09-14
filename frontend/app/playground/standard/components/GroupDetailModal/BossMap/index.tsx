@@ -10,6 +10,8 @@ const bossData: Record<string, string[]> = rawBossData;
 import tradableAbilities from "@/app/data/tradable_abilities.json";
 const tradableSet = new Set(tradableAbilities as string[]);
 
+import { canUseAbility } from "@/utils/genderCheck";
+
 interface Props {
   group: GroupResult;
   weeklyMap: Record<number, string>;
@@ -17,6 +19,8 @@ interface Props {
 
 // ✅ highlight abilities list
 const highlightAbilities = [
+  "水遁水流闪",
+  "蛮熊碎颅击",
   "花钱消灾",
   "斗转金移",
   "特制金创药",
@@ -32,8 +36,8 @@ const highlightAbilities = [
   "飞云回转刀",
   "阴阳术退散",
   "尸鬼封烬",
-  "血龙甩尾",
   "兔死狐悲",
+  "血龙甩尾",
   "七荒黑牙",
   "三个铜钱",
   "乾坤一掷",
@@ -67,9 +71,17 @@ export default function BossMap({ group, weeklyMap }: Props) {
     let needs = dropList
       .filter((ability) => !tradableSet.has(ability))
       .map((ability) => {
-        const needCount = group.characters.filter(
-          (c) => (c.abilities?.[ability] ?? 0) < dropLevel
-        ).length;
+        const needCount = group.characters.filter((c) => {
+          const lvl = c.abilities?.[ability] ?? 0;
+          const usable = canUseAbility(c as any, ability); // ✅ gender-aware
+          const needsThis = usable && lvl < dropLevel;
+
+          console.log(
+            `[BossMap] floor=${floor}, boss=${boss}, ability="${ability}" | char=${c.name}, gender=${(c as any).gender}, lvl=${lvl}, dropLevel=${dropLevel}, usable=${usable}, needsThis=${needsThis}`
+          );
+
+          return needsThis;
+        }).length;
 
         if (needCount > 0) {
           const isHighlight = highlightAbilities.includes(ability);
