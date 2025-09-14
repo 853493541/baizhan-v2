@@ -7,7 +7,6 @@ export const createStandardSchedule = async (req: Request, res: Response) => {
     const {
       name,
       server,
-      mode,
       conflictLevel,
       checkedAbilities,
       characterCount,
@@ -18,7 +17,6 @@ export const createStandardSchedule = async (req: Request, res: Response) => {
     console.log("📥 Creating standard schedule with data:", {
       name,
       server,
-      mode,
       conflictLevel,
       checkedAbilities,
       characterCount,
@@ -29,7 +27,6 @@ export const createStandardSchedule = async (req: Request, res: Response) => {
     const schedule = new StandardSchedule({
       name: name || "未命名排表", // ✅ fallback if no name
       server,
-      mode,
       conflictLevel,
       checkedAbilities,
       characterCount,

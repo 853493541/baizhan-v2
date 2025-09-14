@@ -1,0 +1,47 @@
+.previewBox {
+  margin: 16px 0;
+  padding: 12px;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  background-color: #fafafa;
+}
+
+.header {
+  font-weight: bold;
+  margin-bottom: 10px;
+  font-size: 15px;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.icon {
+  margin-right: 8px;
+}
+
+.text {
+  flex: 1;
+}
+
+.available {
+  color: black;
+}
+
+.unavailable {
+  color: gray;
+}
+
+.missing {
+  margin-left: 6px;
+  color: red;
+  font-size: 13px;
+}

@@ -14,9 +14,8 @@ interface Ability {
 
 interface StandardSchedule {
   _id: string;
-  name: string; // ✅ new
+  name: string;
   server: string;
-  mode: "default" | "custom";
   conflictLevel: number;
   createdAt: string;
   checkedAbilities: Ability[];
@@ -87,7 +86,8 @@ export default function PlaygroundPage() {
           onConfirm={async (data, mode) => {
             setShowModal(false);
 
-            if (mode === "default") {
+            if (!mode || mode === "standard") {
+              // ✅ Standard schedule
               try {
                 const res = await fetch(
                   `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules`,

@@ -13,7 +13,7 @@ interface Ability {
 
 interface Props {
   onClose: () => void;
-  onConfirm: (data: any, mode: "standard") => void;
+  onConfirm: (data: any) => void; // ✅ no need for mode argument
 }
 
 const SERVERS = ["乾坤一掷", "唯我独尊", "梦江南"];
@@ -61,19 +61,15 @@ export default function StandardScheduleForm({ onClose, onConfirm }: Props) {
       if (!charRes.ok) throw new Error("Failed to fetch characters");
       const characters = await charRes.json();
 
-      onConfirm(
-        {
-          name: name || "未命名排表",
-          server,
-          mode: "standard",
-          conflictLevel,
-          checkedAbilities: checklist,
-          characterCount: characters.length,
-          characters: characters.map((c: any) => c._id),
-          groups: [],
-        },
-        "standard"
-      );
+      onConfirm({
+        name: name || "未命名排表",
+        server,
+        conflictLevel,
+        checkedAbilities: checklist,
+        characterCount: characters.length,
+        characters: characters.map((c: any) => c._id),
+        groups: [],
+      });
       onClose();
     } catch (err) {
       console.error("❌ Error creating schedule:", err);
@@ -120,7 +116,11 @@ export default function StandardScheduleForm({ onClose, onConfirm }: Props) {
         </select>
       </label>
 
-      <WeeklyChecklist checklist={checklist} loading={loading} />
+      <WeeklyChecklist
+        checklist={checklist}
+        loading={loading}
+        conflictLevel={conflictLevel}
+      />
 
       <div className={styles.actions}>
         <button className={styles.btnSecondary} onClick={onClose}>

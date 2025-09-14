@@ -11,9 +11,8 @@ interface Ability {
 
 interface StandardSchedule {
   _id: string;
-  name: string; // ✅ new
+  name: string;
   server: string;
-  mode: "default" | "custom";
   conflictLevel: number;
   createdAt: string;
   checkedAbilities: Ability[];
@@ -27,7 +26,7 @@ interface Props {
 export default function StandardScheduleList({ schedules }: Props) {
   return (
     <div>
-      <h3 className={styles.subtitle}>已有排表</h3>
+      <h3 className={styles.subtitle}>已有标准排表</h3>
       {schedules.length === 0 ? (
         <p className={styles.empty}>暂无排表</p>
       ) : (
@@ -38,10 +37,11 @@ export default function StandardScheduleList({ schedules }: Props) {
               href={`/playground/standard/${s._id}`}
               className={styles.card}
             >
-              <h4 className={styles.cardTitle}>{s.name || "未命名排表"}</h4>
+              <h4 className={styles.cardTitle}>{s.name}</h4>
               <p>服务器: {s.server}</p>
               <p>冲突等级: {s.conflictLevel}</p>
               <p>角色数量: {s.characterCount}</p>
+              <p>创建时间: {new Date(s.createdAt).toLocaleString()}</p>
             </Link>
           ))}
         </div>

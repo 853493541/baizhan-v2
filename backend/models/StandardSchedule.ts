@@ -14,7 +14,6 @@ interface Group {
 export interface IStandardSchedule extends Document {
   name: string; // ✅ custom schedule name
   server: string;
-  mode: "default" | "custom";
   conflictLevel: number;
   createdAt: Date;
   checkedAbilities: CheckedAbility[];
@@ -41,9 +40,8 @@ const GroupSchema = new Schema<Group>(
 );
 
 const StandardScheduleSchema = new Schema<IStandardSchedule>({
-  name: { type: String, default: "未命名排表" }, // ✅ new field with default
+  name: { type: String, default: "未命名排表" },
   server: { type: String, required: true },
-  mode: { type: String, enum: ["default", "custom"], required: true },
   conflictLevel: { type: Number, enum: [9, 10], required: true },
   createdAt: { type: Date, default: Date.now },
   checkedAbilities: [AbilitySchema],
