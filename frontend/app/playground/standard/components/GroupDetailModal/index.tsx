@@ -4,7 +4,8 @@ import React, { useState, useEffect } from "react";
 import styles from "./styles.module.css";
 import type { GroupResult, AbilityCheck } from "@/utils/solver";
 
-import BasicInfo from "./BasicInfo";
+import GroupInfo from "./GroupInfo";
+import CoreAbilityChart from "./CoreAbilityChart";
 import BossMap from "./BossMap";
 
 interface Props {
@@ -57,7 +58,13 @@ export default function GroupDetailModal({
 
         <h2>分组{groupIndex + 1}</h2>
 
-        <BasicInfo
+        <GroupInfo
+          group={group}
+          checkedAbilities={checkedAbilities}
+          conflictLevel={conflictLevel}
+        />
+
+        <CoreAbilityChart
           group={group}
           checkedAbilities={checkedAbilities}
           conflictLevel={conflictLevel}

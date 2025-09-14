@@ -4,10 +4,10 @@ import React from "react";
 import styles from "./styles.module.css";
 import type { GroupResult, AbilityCheck } from "@/utils/solver";
 
-// ✅ Inline QA checker (with null-safety)
+// ✅ QA checker
 function checkGroupQA(
-  group?: GroupResult,
-  conflictLevel?: number,
+  group: GroupResult,
+  conflictLevel: number,
   checkedAbilities: AbilityCheck[] = []
 ): string[] {
   const warnings: string[] = [];
@@ -35,7 +35,7 @@ function checkGroupQA(
   for (const c of group.characters) {
     for (const a of activeAbilities) {
       const lvl = c.abilities?.[a.name] ?? 0;
-      if (conflictLevel && lvl >= conflictLevel) {
+      if (lvl >= conflictLevel) {
         abilityCount[a.name] = (abilityCount[a.name] ?? 0) + 1;
       }
     }
@@ -51,52 +51,32 @@ function checkGroupQA(
 }
 
 interface Props {
-  group?: GroupResult;
+  group: GroupResult;
   checkedAbilities: AbilityCheck[];
   conflictLevel: number;
 }
 
-export default function BasicInfo({ group, checkedAbilities, conflictLevel }: Props) {
-  if (!group) return null; // ✅ early return if group not loaded
-
+export default function GroupInfo({ group, checkedAbilities, conflictLevel }: Props) {
   const qaWarnings = checkGroupQA(group, conflictLevel, checkedAbilities);
 
   return (
     <>
-      <h3>成员</h3>
-      <ul className={styles.memberList}>
+      <div className={styles.memberList}>
         {group.characters.map((c) => (
-          <li key={c._id}>{c.name}</li>
+          <span
+            key={c._id}
+            className={`${styles.characterBox} ${
+              c.role === "Tank"
+                ? styles.tank
+                : c.role === "Healer"
+                ? styles.healer
+                : styles.dps
+            }`}
+          >
+            {c.name}
+          </span>
         ))}
-      </ul>
-
-      <h3>核心技能详情</h3>
-      <table className={styles.abilityTable}>
-        <thead>
-          <tr>
-            <th>技能</th>
-            {group.characters.map((c) => (
-              <th key={c._id}>{c.name}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {checkedAbilities.map((a, idx) => (
-            <tr key={idx}>
-              <td>{a.name}</td>
-              {group.characters.map((c) => {
-                const lvl = c.abilities?.[a.name] ?? 0;
-                const reached = lvl >= conflictLevel;
-                return (
-                  <td key={c._id} className={reached ? styles.reached : ""}>
-                    {lvl > 0 ? `Lv${lvl}` : "—"}
-                  </td>
-                );
-              })}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      </div>
 
       <h3>警告</h3>
       {qaWarnings.length > 0 ? (

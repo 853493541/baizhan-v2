@@ -1,0 +1,36 @@
+.memberList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+/* Character role boxes */
+.characterBox {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Role colors (pastel theme) */
+.tank {
+  background: #fff4c2; /* pastel yellow */
+  color: #6b4e00;
+}
+
+.dps {
+  background: #d5f5d5; /* pastel green */
+  color: #0f5132;
+}
+
+.healer {
+  background: #fddde6; /* pastel pink */
+  color: #842029;
+}
+
+/* Warnings */
+.warnList {
+  color: #b30000;
+  margin-bottom: 16px;
+}
