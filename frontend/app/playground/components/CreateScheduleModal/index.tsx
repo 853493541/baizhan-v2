@@ -28,13 +28,16 @@ const DEFAULT_ABILITIES = [
   "兔死狐悲",
 ];
 
+// ✅ Available servers
+const SERVERS = ["乾坤一掷", "唯我独尊", "梦江南"];
+
 export default function CreateScheduleModal({ onClose, onConfirm }: Props) {
   const [mode, setMode] = useState<Mode>("default");
 
   // --- Default (标准排表)
   const [name, setName] = useState<string>("");
   const [conflictLevel, setConflictLevel] = useState<number>(10);
-  const [server, setServer] = useState<string>("乾坤一掷");
+  const [server, setServer] = useState<string>(SERVERS[0]);
   const [defaultChecklist, setDefaultChecklist] = useState<Ability[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -160,12 +163,17 @@ export default function CreateScheduleModal({ onClose, onConfirm }: Props) {
 
             <label className={styles.label}>
               服务器
-              <input
-                type="text"
+              <select
                 value={server}
                 onChange={(e) => setServer(e.target.value)}
-                className={styles.input}
-              />
+                className={styles.select}
+              >
+                {SERVERS.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
             </label>
 
             <div className={styles.previewBox}>
@@ -193,12 +201,17 @@ export default function CreateScheduleModal({ onClose, onConfirm }: Props) {
           <>
             <label className={styles.label}>
               服务器
-              <input
-                type="text"
+              <select
                 value={server}
                 onChange={(e) => setServer(e.target.value)}
-                className={styles.input}
-              />
+                className={styles.select}
+              >
+                {SERVERS.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
             </label>
 
             <label className={styles.label}>
