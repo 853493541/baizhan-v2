@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import CreateScheduleModal from "./CreateScheduleModal";
-import Link from "next/link";
+import CreateScheduleModal from "./components/CreateScheduleModal";
 import styles from "./styles.module.css";
+import StandardScheduleList from "./components/StandardScheduleList";
+import BossScheduleList from "./components/BossScheduleList";
 
 interface Ability {
   name: string;
@@ -39,7 +40,6 @@ export default function PlaygroundPage() {
     fetchBossPlans();
   }, []);
 
-  // Fetch all schedules
   const fetchSchedules = async () => {
     try {
       const res = await fetch(
@@ -52,7 +52,6 @@ export default function PlaygroundPage() {
     }
   };
 
-  // Fetch all boss plans
   const fetchBossPlans = async () => {
     try {
       const res = await fetch(
@@ -60,14 +59,11 @@ export default function PlaygroundPage() {
       );
       if (!res.ok) throw new Error("Failed to fetch boss plans");
       const data = await res.json();
-
-      // Ensure groupSize & boss exist
       const patched = data.map((bp: BossPlan) => ({
         ...bp,
         groupSize: bp.groupSize ?? 3,
         boss: bp.boss ?? "未选择",
       }));
-
       setBossPlans(patched);
     } catch (err) {
       console.error("❌ Error fetching boss plans:", err);
@@ -84,7 +80,6 @@ export default function PlaygroundPage() {
         </button>
       </div>
 
-      {/* Unified modal */}
       {showModal && (
         <CreateScheduleModal
           onClose={() => setShowModal(false)}
@@ -110,55 +105,14 @@ export default function PlaygroundPage() {
             }
 
             if (mode === "boss") {
-              // Boss plan was created in modal → just refresh
               fetchBossPlans();
             }
           }}
         />
       )}
 
-      {/* Existing schedules */}
-      <h3 className={styles.subtitle}>已有排表</h3>
-      {schedules.length === 0 ? (
-        <p className={styles.empty}>暂无排表</p>
-      ) : (
-        <div className={styles.cardGrid}>
-          {schedules.map((s) => (
-            <Link key={s._id} href={`/playground/standard/${s._id}`} className={styles.card}>
-              <h4 className={styles.cardTitle}>
-                {new Date(s.createdAt).toLocaleString()}
-              </h4>
-              <p>服务器: {s.server}</p>
-              <p>模式: {s.mode}</p>
-              <p>冲突等级: {s.conflictLevel}</p>
-              <p>角色数量: {s.characterCount}</p>
-            </Link>
-          ))}
-        </div>
-      )}
-
-      {/* Boss Plans */}
-      <h3 className={styles.subtitle}>已有 Boss 排表</h3>
-      {bossPlans.length === 0 ? (
-        <p className={styles.empty}>暂无 Boss 排表</p>
-      ) : (
-        <div className={styles.cardGrid}>
-          {bossPlans.map((bp) => (
-            <Link
-              key={bp._id}
-              href={`/playground/boss/${bp._id}`}
-              className={styles.card}
-            >
-              <h4 className={styles.cardTitle}>
-                {new Date(bp.createdAt).toLocaleString()}
-              </h4>
-              <p>服务器: {bp.server}</p>
-              <p>分组人数: {bp.groupSize}</p>
-              <p>Boss: {bp.boss}</p>
-            </Link>
-          ))}
-        </div>
-      )}
+      <StandardScheduleList schedules={schedules} />
+      <BossScheduleList bossPlans={bossPlans} />
     </div>
   );
 }

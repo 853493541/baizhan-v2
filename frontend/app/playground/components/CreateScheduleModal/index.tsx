@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import styles from "./styles.module.css";
-import specialBosses from "../../data/special_boss.json";
+import specialBosses from "@/app/data/special_boss.json";
 import { getDefaultModeChecklist } from "@/utils/playgroundHelpers";
 
 type Mode = "default" | "boss";
