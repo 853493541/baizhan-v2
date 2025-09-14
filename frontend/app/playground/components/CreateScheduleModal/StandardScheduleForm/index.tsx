@@ -40,14 +40,20 @@ export default function StandardScheduleForm({ onClose, onConfirm }: Props) {
     setLoading(true);
     getDefaultModeChecklist()
       .then((list) => {
+        console.log("📝 Raw checklist from helper:", list);
+
         const resolved = CORE_ABILITIES.map((skill) => {
           const match = list.find(
             (a) => a.name === skill && a.level === conflictLevel
           );
+          console.log("🔍 Checking skill:", skill, "→ match:", match);
+
           return match
             ? { ...match, available: true }
             : { name: skill, level: conflictLevel, available: false };
         });
+
+        console.log("✅ Final resolved checklist:", resolved);
         setChecklist(resolved);
       })
       .finally(() => setLoading(false));
@@ -62,7 +68,7 @@ export default function StandardScheduleForm({ onClose, onConfirm }: Props) {
       if (!charRes.ok) throw new Error("Failed to fetch characters");
       const characters = await charRes.json();
 
-      onConfirm({
+      const payload = {
         name: name || "未命名排表",
         server,
         conflictLevel,
@@ -70,7 +76,11 @@ export default function StandardScheduleForm({ onClose, onConfirm }: Props) {
         characterCount: characters.length,
         characters: characters.map((c: any) => c._id),
         groups: [],
-      });
+      };
+
+      console.log("🚀 Submitting new schedule payload:", payload);
+
+      onConfirm(payload);
       onClose();
     } catch (err) {
       console.error("❌ Error creating schedule:", err);

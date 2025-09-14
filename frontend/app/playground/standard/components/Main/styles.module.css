@@ -2,6 +2,18 @@
   margin-bottom: 24px;
 }
 
+.sectionTitle {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+.empty {
+  color: #666;
+  font-size: 14px;
+  padding: 10px 0;
+}
+
 .solverBtn {
   padding: 8px 16px;
   border: none;
@@ -10,6 +22,7 @@
   color: white;
   font-size: 14px;
   cursor: pointer;
+  margin-bottom: 16px;
   transition: background 0.2s;
 }
 
@@ -39,21 +52,50 @@
 
 .groupTitle {
   font-weight: bold;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  font-size: 15px;
+  color: #2c3e50;
 }
 
 .memberList {
   list-style: none;
   padding: 0;
   margin: 0 0 8px 0;
+  display: flex;
+  flex-direction: column; /* ✅ stacked vertically */
+  align-items: center;    /* ✅ centered pills */
+  gap: 8px;
 }
 
 .memberItem {
   font-size: 14px;
-  margin-bottom: 4px;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 8px;
+  width: 70%;             /* ✅ each pill takes 70% of group card */
+  text-align: center;
+  border: 1px solid #ccc;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Role-based colors */
+.tank {
+  background: #fff4c2; /* pastel yellow */
+  color: #6b4e00;
+}
+
+.dps {
+  background: #d5f5d5; /* pastel green */
+  color: #0f5132;
+}
+
+.healer {
+  background: #fddde6; /* pastel pink */
+  color: #842029;
 }
 
 .groupViolation {
   color: #d9534f;
   font-size: 13px;
+  margin-top: 8px;
 }

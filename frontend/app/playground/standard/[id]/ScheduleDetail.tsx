@@ -8,12 +8,12 @@ import GroupDetailModal from "../GroupDetailModal";
 import BasicInfoSection from "../components/BasicInfo";
 import AbilityCheckingSection from "../components/AbilityChecking";
 import MainSection from "../components/Main";
+import { useRouter } from "next/navigation";
 
 interface StandardSchedule {
   _id: string;
   name: string;
   server: string;
-  mode: "default" | "custom";
   conflictLevel: number;
   createdAt: string;
   checkedAbilities: AbilityCheck[];
@@ -73,6 +73,9 @@ export default function ScheduleDetail({ scheduleId }: Props) {
   const [loading, setLoading] = useState(true);
   const [groups, setGroups] = useState<GroupResult[]>([]);
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const router = useRouter();
 
   // ✅ Fetch
   useEffect(() => {
@@ -83,6 +86,7 @@ export default function ScheduleDetail({ scheduleId }: Props) {
         );
         if (!res.ok) throw new Error("Failed to fetch schedule");
         const data = await res.json();
+        console.log("📥 Loaded schedule:", data);
         setSchedule(data);
         if (data.groups) setGroups(data.groups);
       } catch (err) {
@@ -94,22 +98,41 @@ export default function ScheduleDetail({ scheduleId }: Props) {
     fetchSchedule();
   }, [scheduleId]);
 
+  const handleDelete = async () => {
+    if (!confirm("确定要删除这个排表吗？")) return;
+    try {
+      setDeleting(true);
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}`,
+        { method: "DELETE" }
+      );
+      if (!res.ok) throw new Error("Delete failed");
+      router.push("/playground");
+    } catch (err) {
+      console.error("❌ Failed to delete schedule:", err);
+      setDeleting(false);
+    }
+  };
+
   if (loading) return <p className={styles.loading}>加载中...</p>;
   if (!schedule) return <p className={styles.error}>未找到排表</p>;
 
   return (
     <div className={styles.container}>
-      {/* Section 1: Basic Info */}
-      <BasicInfoSection schedule={schedule} />
+      {/* Section 1: Basic Info with actions */}
+      <BasicInfoSection
+        schedule={schedule}
+        onBack={() => router.push("/playground")}
+        onDelete={handleDelete}
+        deleting={deleting}
+      />
 
-      {/* Section 2: Abilities */}
-      {schedule.mode === "default" && (
-        <AbilityCheckingSection
-          checkedAbilities={schedule.checkedAbilities}
-          loading={loading}
-          conflictLevel={schedule.conflictLevel}
-        />
-      )}
+      {/* Section 2: Abilities (always render) */}
+      <AbilityCheckingSection
+        checkedAbilities={schedule.checkedAbilities}
+        loading={loading}
+        conflictLevel={schedule.conflictLevel}
+      />
 
       {/* Section 3: Main Area */}
       <MainSection

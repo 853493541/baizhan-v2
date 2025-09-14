@@ -95,17 +95,21 @@ export const deleteStandardSchedule = async (req: Request, res: Response) => {
   }
 };
 
-// ✅ Update standard schedule groups
+// ✅ Update standard schedule groups (only groups, without wiping abilities/etc)
 export const updateStandardSchedule = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { groups } = req.body;
 
+    console.log("📥 Updating groups for schedule:", id, "with groups:", groups);
+
     const updated = await StandardSchedule.findByIdAndUpdate(
       id,
-      { groups },
+      { $set: { groups } },   // ✅ only update groups field
       { new: true }
-    ).populate("characters");
+    )
+      .populate("characters")
+      .populate("groups.characters");
 
     if (!updated) {
       return res
@@ -113,6 +117,7 @@ export const updateStandardSchedule = async (req: Request, res: Response) => {
         .json({ error: "Standard schedule not found" });
     }
 
+    console.log("✅ Updated groups for schedule:", updated._id);
     res.json(updated);
   } catch (err) {
     console.error("❌ Error updating standard schedule:", err);

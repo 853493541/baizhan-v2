@@ -15,6 +15,9 @@ export default function AbilityCheckingSection({
   loading,
   conflictLevel,
 }: Props) {
+  console.log("🟢 AbilityCheckingSection mounted/rendered");
+  console.log("🧩 Props:", { conflictLevel, loading, checkedAbilities });
+
   // ✅ sort: available first, then unavailable
   const sortedAbilities = [...checkedAbilities].sort((a, b) => {
     if (a.available === b.available) return 0;
@@ -23,9 +26,11 @@ export default function AbilityCheckingSection({
 
   return (
     <div className={styles.previewBox}>
-      <h4 className={styles.header}>{conflictLevel}级技能</h4>
+      <h4 className={styles.header}>{conflictLevel} 级技能</h4>
       {loading ? (
         <p className={styles.loading}>加载中...</p>
+      ) : sortedAbilities.length === 0 ? (
+        <p className={styles.empty}>暂无技能数据</p>
       ) : (
         <ul className={styles.list}>
           {sortedAbilities.map((a, idx) => (
@@ -42,7 +47,9 @@ export default function AbilityCheckingSection({
                 height={24}
                 className={styles.icon}
               />
-              <span className={styles.text}>{a.name}</span>
+              <span className={styles.text}>
+                {a.name}
+              </span>
               {!a.available && (
                 <span className={styles.missing}>❌ 未掉落</span>
               )}
