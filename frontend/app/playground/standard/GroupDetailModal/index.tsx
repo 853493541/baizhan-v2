@@ -4,10 +4,10 @@ import React, { useState, useEffect } from "react";
 import styles from "./styles.module.css";
 import type { GroupResult, AbilityCheck } from "@/utils/solver";
 
-import rawBossData from "../../data/boss_skills_collection_map.json";
+import rawBossData from "../../../data/boss_skills_collection_map.json";
 const bossData: Record<string, string[]> = rawBossData;
 
-import tradableAbilities from "../../data/tradable_abilities.json";
+import tradableAbilities from "../../../data/tradable_abilities.json";
 const tradableSet = new Set(tradableAbilities as string[]);
 
 interface Props {

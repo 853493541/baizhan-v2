@@ -124,7 +124,7 @@ export default function PlaygroundPage() {
       ) : (
         <div className={styles.cardGrid}>
           {schedules.map((s) => (
-            <Link key={s._id} href={`/playground/${s._id}`} className={styles.card}>
+            <Link key={s._id} href={`/playground/standard/${s._id}`} className={styles.card}>
               <h4 className={styles.cardTitle}>
                 {new Date(s.createdAt).toLocaleString()}
               </h4>
