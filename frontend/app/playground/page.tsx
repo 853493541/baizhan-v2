@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import CreateScheduleModal from "./CreateScheduleModal";
-import CreateBossPlanModal from "./CreateBossPlanModal";
 import Link from "next/link";
 import styles from "./styles.module.css";
 
@@ -10,13 +9,6 @@ interface Ability {
   name: string;
   level: number;
   available: boolean;
-}
-
-interface Character {
-  _id: string;
-  name: string;
-  account: string;
-  role: string;
 }
 
 interface Schedule {
@@ -38,8 +30,7 @@ interface BossPlan {
 }
 
 export default function PlaygroundPage() {
-  const [showScheduleModal, setShowScheduleModal] = useState(false);
-  const [showBossPlanModal, setShowBossPlanModal] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [bossPlans, setBossPlans] = useState<BossPlan[]>([]);
 
@@ -48,7 +39,7 @@ export default function PlaygroundPage() {
     fetchBossPlans();
   }, []);
 
-  // Inline fetch for schedules
+  // Fetch all schedules
   const fetchSchedules = async () => {
     try {
       const res = await fetch(
@@ -61,7 +52,7 @@ export default function PlaygroundPage() {
     }
   };
 
-  // Inline fetch for boss plans
+  // Fetch all boss plans
   const fetchBossPlans = async () => {
     try {
       const res = await fetch(
@@ -70,7 +61,7 @@ export default function PlaygroundPage() {
       if (!res.ok) throw new Error("Failed to fetch boss plans");
       const data = await res.json();
 
-      // ✅ Patch: ensure groupSize & boss exist
+      // Ensure groupSize & boss exist
       const patched = data.map((bp: BossPlan) => ({
         ...bp,
         groupSize: bp.groupSize ?? 3,
@@ -88,38 +79,40 @@ export default function PlaygroundPage() {
       <h2 className={styles.title}>排表 Playground</h2>
 
       <div className={styles.buttonRow}>
-        <button
-          className={styles.createBtn}
-          onClick={() => setShowScheduleModal(true)}
-        >
-          新建排表
-        </button>
-        <button
-          className={styles.createBtn}
-          onClick={() => setShowBossPlanModal(true)}
-        >
-          新建 Boss Plan
+        <button className={styles.createBtn} onClick={() => setShowModal(true)}>
+          新建排表 / Boss 排表
         </button>
       </div>
 
-      {/* Schedule modal */}
-      {showScheduleModal && (
+      {/* Unified modal */}
+      {showModal && (
         <CreateScheduleModal
-          onClose={() => setShowScheduleModal(false)}
-          onConfirm={() => {
-            setShowScheduleModal(false);
-            fetchSchedules();
-          }}
-        />
-      )}
+          onClose={() => setShowModal(false)}
+          onConfirm={async (data, mode) => {
+            setShowModal(false);
 
-      {/* Boss Plan modal */}
-      {showBossPlanModal && (
-        <CreateBossPlanModal
-          onClose={() => setShowBossPlanModal(false)}
-          onCreated={() => {
-            setShowBossPlanModal(false);
-            fetchBossPlans();
+            if (mode === "default") {
+              try {
+                const res = await fetch(
+                  `${process.env.NEXT_PUBLIC_API_URL}/api/schedules`,
+                  {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data),
+                  }
+                );
+                if (!res.ok) throw new Error("❌ Failed to create schedule");
+                await res.json();
+                fetchSchedules();
+              } catch (err) {
+                console.error("❌ Error creating schedule:", err);
+              }
+            }
+
+            if (mode === "boss") {
+              // Boss plan was created in modal → just refresh
+              fetchBossPlans();
+            }
           }}
         />
       )}
@@ -145,15 +138,15 @@ export default function PlaygroundPage() {
       )}
 
       {/* Boss Plans */}
-      <h3 className={styles.subtitle}>已有 Boss Plans</h3>
+      <h3 className={styles.subtitle}>已有 Boss 排表</h3>
       {bossPlans.length === 0 ? (
-        <p className={styles.empty}>暂无 Boss Plan</p>
+        <p className={styles.empty}>暂无 Boss 排表</p>
       ) : (
         <div className={styles.cardGrid}>
           {bossPlans.map((bp) => (
             <Link
               key={bp._id}
-              href={`/playground/boss-plans/${bp._id}`}
+              href={`/playground/boss/${bp._id}`}
               className={styles.card}
             >
               <h4 className={styles.cardTitle}>
