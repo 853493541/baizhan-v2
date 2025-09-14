@@ -1,9 +1,10 @@
-import ScheduleDetail from "../ScheduleDetail";
+"use client";
 
-interface Props {
-  params: { id: string };
-}
+import { useParams } from "next/navigation";
+import ScheduleDetail from "./ScheduleDetail";
 
-export default function SchedulePage({ params }: Props) {
-  return <ScheduleDetail scheduleId={params.id} />;
+export default function SchedulePage() {
+  const params = useParams();
+  const id = params?.id as string;
+  return <ScheduleDetail scheduleId={id} />;
 }

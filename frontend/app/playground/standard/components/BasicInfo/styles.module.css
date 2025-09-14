@@ -1,0 +1,43 @@
+.section {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 6px;
+  border: 1px solid #eee;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+.info {
+  margin-top: 12px;
+}
+
+.backBtn {
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #f5f5f5;
+  cursor: pointer;
+}
+
+.backBtn:hover {
+  background: #e6e6e6;
+}
+
+.deleteBtn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  background: #d9534f;
+  color: white;
+  cursor: pointer;
+}
+
+.deleteBtn:disabled {
+  background: #aaa;
+  cursor: not-allowed;
+}
