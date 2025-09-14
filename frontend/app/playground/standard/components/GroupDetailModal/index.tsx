@@ -1,12 +1,15 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import styles from "./styles.module.css";
 import type { GroupResult, AbilityCheck } from "@/utils/solver";
 
 import GroupInfo from "./GroupInfo";
 import CoreAbilityChart from "./CoreAbilityChart";
 import BossMap from "./BossMap";
+
+import rawBossData from "../../../../data/boss_skills_collection_map.json";
+const bossData: Record<string, string[]> = rawBossData;
 
 interface Props {
   groupIndex: number;
@@ -49,6 +52,21 @@ export default function GroupDetailModal({
     fetchMap();
   }, []);
 
+  // ✅ Collect abilities from bosses in this week's map, with drop levels
+  const weeklyAbilities = useMemo(() => {
+    const result: { name: string; level: number }[] = [];
+    for (const [floorStr, boss] of Object.entries(weeklyMap)) {
+      const floor = Number(floorStr);
+      const dropLevel = floor >= 81 && floor <= 90 ? 9 : 10;
+      if (boss && bossData[boss]) {
+        bossData[boss].forEach((ability) => {
+          result.push({ name: ability, level: dropLevel });
+        });
+      }
+    }
+    return result;
+  }, [weeklyMap]);
+
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
@@ -68,6 +86,7 @@ export default function GroupDetailModal({
           group={group}
           checkedAbilities={checkedAbilities}
           conflictLevel={conflictLevel}
+          weeklyAbilities={weeklyAbilities} // ✅ now passes correct drop level
         />
 
         <BossMap group={group} weeklyMap={weeklyMap} />

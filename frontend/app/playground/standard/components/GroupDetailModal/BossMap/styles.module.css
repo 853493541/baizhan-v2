@@ -34,6 +34,11 @@
 
 /* red text for no-need case */
 .noNeed {
+  color: rgb(0, 103, 27);
+  font-weight: bold;
+}
+
+.coreHighlight {
   color: red;
   font-weight: bold;
 }

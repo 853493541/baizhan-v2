@@ -1,5 +1,11 @@
+.tableWrapper {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0;
+}
+
 .abilityTable {
-  width: 100%;
+  width: auto; /* shrink to fit */
   border-collapse: collapse;
   margin-bottom: 16px;
 }
@@ -7,10 +13,48 @@
 .abilityTable th,
 .abilityTable td {
   border: 1px solid #ddd;
-  padding: 6px;
+  padding: 6px 12px;
   text-align: center;
+  vertical-align: middle;
+  min-width: 60px;
 }
 
-.reached {
-  background-color: #e8fbe8;
+/* Ability name + logo */
+.abilityNameCell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.abilityLogo {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+/* highlight below/above requirement */
+.below {
+  background-color: #fff3cd; /* soft amber */
+}
+
+.above {
+  background-color: #e8fbe8; /* soft green */
+}
+
+/* Role-based header colors */
+.tank {
+  background: #fff4c2;
+  color: #6b4e00;
+}
+
+.dps {
+  background: #d5f5d5;
+  color: #0f5132;
+}
+
+.healer {
+  background: #fddde6;
+  color: #842029;
 }
