@@ -1,62 +1,98 @@
+/* styles.module.css */
+
+/* ---------- Layout ---------- */
 .container {
-  padding: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: #222;
 }
 
 .title {
-  font-size: 24px;
-  margin-bottom: 16px;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  color: #2c3e50;
 }
 
-.subtitle {
-  margin-top: 24px;
-  font-size: 18px;
-  margin-bottom: 12px;
+/* ---------- Button Row ---------- */
+.buttonRow {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
 }
 
 .createBtn {
-  padding: 8px 14px;
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.8rem 1.6rem;
   border: none;
-  background: #0070f3;
-  color: white;
-  font-size: 14px;
-  border-radius: 6px;
+  border-radius: 0.75rem;
   cursor: pointer;
-  margin-bottom: 20px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .createBtn:hover {
-  background: #0059c1;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
 }
 
-.empty {
-  font-style: italic;
-  color: #888;
+.createBtn:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.1);
 }
 
+/* ---------- Section Subtitles ---------- */
+.subtitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 2rem 0 1rem;
+  color: #34495e;
+}
+
+/* ---------- Card Grid (shared for lists) ---------- */
 .cardGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.2rem;
+  margin-bottom: 2rem;
 }
 
 .card {
-  display: block;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 12px;
-  background: #fafafa;
+  background: #fff;
+  border-radius: 1rem;
+  padding: 1.2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   text-decoration: none;
   color: inherit;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
 .cardTitle {
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.6rem;
+}
+
+.card p {
+  margin: 0.3rem 0;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+/* ---------- Empty State ---------- */
+.empty {
+  font-style: italic;
+  text-align: center;
+  color: #888;
+  margin: 1rem 0 2rem;
 }

@@ -35,13 +35,25 @@ export default function StandardScheduleList({ schedules }: Props) {
             <Link
               key={s._id}
               href={`/playground/standard/${s._id}`}
-              className={styles.card}
+              className={`${styles.card} ${styles.standard}`}
             >
               <h4 className={styles.cardTitle}>{s.name}</h4>
-              <p>服务器: {s.server}</p>
-              <p>冲突等级: {s.conflictLevel}</p>
-              <p>角色数量: {s.characterCount}</p>
-              <p>创建时间: {new Date(s.createdAt).toLocaleString()}</p>
+              <div className={styles.cardContent}>
+                <p>
+                  <span className={styles.label}>服务器:</span> {s.server}
+                </p>
+                <p>
+                  <span className={styles.label}>冲突等级:</span>{" "}
+                  {s.conflictLevel}
+                </p>
+                <p>
+                  <span className={styles.label}>角色数量:</span>{" "}
+                  {s.characterCount}
+                </p>
+              </div>
+              <p className={styles.date}>
+                创建时间: {new Date(s.createdAt).toLocaleDateString()}
+              </p>
             </Link>
           ))}
         </div>

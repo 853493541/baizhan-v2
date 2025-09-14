@@ -1,42 +1,119 @@
-.listContainer {
-  margin-top: 1.5rem;
+/* ---------- Layout ---------- */
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: #222;
 }
 
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  color: #2c3e50;
+}
+
+/* ---------- Button Row ---------- */
+.buttonRow {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.createBtn {
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.8rem 1.6rem;
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.createBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+}
+
+.createBtn:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.1);
+}
+
+/* ---------- Section Titles ---------- */
 .subtitle {
-  font-size: 1.2rem;
-  font-weight: bold;
-  margin-bottom: 0.75rem;
-  color: #333;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 2rem 0 1rem;
+  color: #34495e;
 }
 
-.empty {
-  color: #777;
-  font-style: italic;
-  padding: 0.5rem;
-}
-
+/* ---------- Card Grid ---------- */
 .cardGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  padding: 1rem;
-  transition: box-shadow 0.2s ease-in-out;
-  cursor: pointer;
+  border-radius: 1rem;
+  padding: 1.2rem 1.4rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
 .cardTitle {
-  font-size: 1rem;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-  color: #444;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 0.8rem;
+  color: #2c3e50;
+}
+
+/* ---------- Standard Schedule Accent ---------- */
+.standard {
+  border-top: 4px solid #4facfe;
+}
+
+/* ---------- Card Content ---------- */
+.cardContent p {
+  margin: 0.35rem 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.label {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+/* ---------- Date ---------- */
+.date {
+  margin-top: 0.8rem;
+  font-size: 0.8rem;
+  color: #888;
+  text-align: right;
+}
+
+/* ---------- Empty State ---------- */
+.empty {
+  font-style: italic;
+  text-align: center;
+  color: #888;
+  margin: 1rem 0 2rem;
 }

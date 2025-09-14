@@ -72,11 +72,11 @@ export default function PlaygroundPage() {
 
   return (
     <div className={styles.container}>
-      <h2 className={styles.title}>排表 Playground</h2>
+      <h2 className={styles.title}>排表</h2>
 
       <div className={styles.buttonRow}>
         <button className={styles.createBtn} onClick={() => setShowModal(true)}>
-          新建排表 / Boss 排表
+          新建排表
         </button>
       </div>
 
