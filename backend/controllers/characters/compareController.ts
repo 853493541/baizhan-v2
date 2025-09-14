@@ -51,6 +51,7 @@ export const compareCharacterAbilities = async (req: Request, res: Response) => 
 
     const normalizedOCRNames = new Set<string>();
 
+    // 🔹 Process abilities from OCR input
     for (const [rawName, level] of Object.entries(abilities)) {
       // Step 1: alias map
       let normalized = abilityAliases[rawName] || rawName;
@@ -62,10 +63,9 @@ export const compareCharacterAbilities = async (req: Request, res: Response) => 
         normalized = cleaned;
       }
 
-      // Skip banned/ignored
+      // Skip gender bans (but ❌ do NOT skip ignoreAlways here)
       if (char.gender === "女" && femaleOnlyBan.has(normalized)) continue;
       if (char.gender === "男" && maleOnlyBan.has(normalized)) continue;
-      if (ignoreAlways.has(normalized)) continue;
 
       let targetName = normalized;
       const hasDirect = Object.prototype.hasOwnProperty.call(abilityObj, normalized);
@@ -73,7 +73,7 @@ export const compareCharacterAbilities = async (req: Request, res: Response) => 
       if (!hasDirect) {
         // Step 3a: short-text fallback
         if (normalized.length <= 2) {
-          const candidate = dbNames.find(n => n.includes(normalized));
+          const candidate = dbNames.find((n) => n.includes(normalized));
           if (candidate) {
             console.log(`✅ Short-text match "${normalized}" -> "${candidate}"`);
             targetName = candidate;
@@ -84,7 +84,7 @@ export const compareCharacterAbilities = async (req: Request, res: Response) => 
 
         // Step 3b: prefix fallback (handles trailing junk)
         if (targetName === normalized) {
-          const prefixCandidate = dbNames.find(n => normalized.startsWith(n));
+          const prefixCandidate = dbNames.find((n) => normalized.startsWith(n));
           if (prefixCandidate && prefixCandidate.length >= 3) {
             console.log(`✅ Prefix match "${normalized}" -> "${prefixCandidate}"`);
             targetName = prefixCandidate;
@@ -125,19 +125,22 @@ export const compareCharacterAbilities = async (req: Request, res: Response) => 
       } else {
         if (
           !(char.gender === "女" && femaleOnlyBan.has(normalized)) &&
-          !(char.gender === "男" && maleOnlyBan.has(normalized)) &&
-          !ignoreAlways.has(normalized)
+          !(char.gender === "男" && maleOnlyBan.has(normalized))
         ) {
           ocrOnly.push(normalized);
         }
       }
     }
 
+    // 🔹 Check DB-only abilities
     const dbOnly: string[] = [];
     for (const name of Object.keys(abilityObj)) {
       if (char.gender === "女" && femaleOnlyBan.has(name)) continue;
       if (char.gender === "男" && maleOnlyBan.has(name)) continue;
+
+      // ✅ Only skip ignoreAlways here
       if (ignoreAlways.has(name)) continue;
+
       if (!normalizedOCRNames.has(name)) dbOnly.push(name);
     }
 
