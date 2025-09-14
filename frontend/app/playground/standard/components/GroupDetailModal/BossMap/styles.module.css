@@ -1,0 +1,39 @@
+/* Map layout */
+.row {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr); /* exactly 10 boxes per row */
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.card {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 8px;
+  background-color: #fafafa;
+  font-size: 12px;
+  line-height: 1.4;
+  min-height: 100px; /* uniform height */
+}
+
+.floorLabel {
+  font-weight: bold;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.needList {
+  margin: 0;
+  padding-left: 16px;
+}
+
+.needList li {
+  list-style: disc;
+  font-size: 12px;
+}
+
+/* red text for no-need case */
+.noNeed {
+  color: red;
+  font-weight: bold;
+}

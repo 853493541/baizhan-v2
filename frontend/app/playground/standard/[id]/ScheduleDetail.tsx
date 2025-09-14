@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import styles from "./styles.module.css";
 import { runSolver, GroupResult, Character, AbilityCheck } from "@/utils/solver";
-import GroupDetailModal from "../GroupDetailModal";
+import GroupDetailModal from "../components/GroupDetailModal";
 
 import BasicInfoSection from "../components/BasicInfo";
 import AbilityCheckingSection from "../components/AbilityChecking";

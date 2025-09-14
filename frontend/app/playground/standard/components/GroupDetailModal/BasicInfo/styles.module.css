@@ -1,0 +1,30 @@
+/* Member list */
+.memberList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px 0;
+}
+
+/* Ability table */
+.abilityTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+}
+
+.abilityTable th,
+.abilityTable td {
+  border: 1px solid #ddd;
+  padding: 6px;
+  text-align: center;
+}
+
+.reached {
+  background-color: #e8fbe8;
+}
+
+/* Warnings */
+.warnList {
+  color: #b30000;
+  margin-bottom: 16px;
+}
