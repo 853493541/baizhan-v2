@@ -3,9 +3,8 @@ import cors from "cors";
 import { connectDB } from "./db";
 import characterRoutes from "./routes/characterRoutes";
 import mapRoutes from "./routes/mapRoutes";
-import scheduleRoutes from "./routes/scheduleRoutes";
+import standardScheduleRoutes from "./routes/standardScheduleRoutes"; // ✅ renamed
 import bossPlanRoutes from "./routes/bossPlanRoutes";
-
 
 const app = express();
 
@@ -18,12 +17,13 @@ app.use(cors({
 
 app.use(express.json());
 
-// connect DB
+// ✅ Connect DB
 connectDB();
 
-// routes
+// ✅ Routes
 app.use("/api/characters", characterRoutes);
 app.use("/api/weekly-map", mapRoutes);
-app.use("/api/schedules", scheduleRoutes);
+app.use("/api/standard-schedules", standardScheduleRoutes); // ✅ updated
 app.use("/api/boss-plans", bossPlanRoutes);
+
 export default app;

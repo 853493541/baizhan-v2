@@ -17,7 +17,7 @@ interface Props {
   conflictLevel: number;
   onClose: () => void;
 }
-
+  
 interface WeeklyMapResponse {
   floors: Record<number, { boss: string }>;
 }

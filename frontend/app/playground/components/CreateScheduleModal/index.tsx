@@ -31,7 +31,8 @@ const DEFAULT_ABILITIES = [
 export default function CreateScheduleModal({ onClose, onConfirm }: Props) {
   const [mode, setMode] = useState<Mode>("default");
 
-  // --- Default (常规排表)
+  // --- Default (标准排表)
+  const [name, setName] = useState<string>("");
   const [conflictLevel, setConflictLevel] = useState<number>(10);
   const [server, setServer] = useState<string>("乾坤一掷");
   const [defaultChecklist, setDefaultChecklist] = useState<Ability[]>([]);
@@ -76,20 +77,32 @@ export default function CreateScheduleModal({ onClose, onConfirm }: Props) {
 
   const handleSubmit = async () => {
     if (mode === "default") {
-      // ✅ Send full payload for backend
-      onConfirm(
-        {
-          server,
-          mode: "default",
-          conflictLevel,
-          checkedAbilities: defaultChecklist,
-          characterCount: 0,
-          characters: [],
-          groups: [],
-        },
-        "default"
-      );
-      onClose();
+      try {
+        // ✅ fetch characters for the selected server
+        const charRes = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/characters?server=${server}`
+        );
+        if (!charRes.ok) throw new Error("Failed to fetch characters");
+        const characters = await charRes.json();
+
+        // ✅ include characters in schedule payload
+        onConfirm(
+          {
+            name: name || "未命名排表",
+            server,
+            mode: "default",
+            conflictLevel,
+            checkedAbilities: defaultChecklist,
+            characterCount: characters.length,
+            characters: characters.map((c: any) => c._id),
+            groups: [],
+          },
+          "default"
+        );
+        onClose();
+      } catch (err) {
+        console.error("❌ Error fetching characters:", err);
+      }
     } else {
       try {
         const created = await createBossPlan();
@@ -119,9 +132,20 @@ export default function CreateScheduleModal({ onClose, onConfirm }: Props) {
           </select>
         </label>
 
-        {/* --- Default (常规排表) --- */}
+        {/* --- Default (标准排表) --- */}
         {mode === "default" && (
           <>
+            <label className={styles.label}>
+              排表名称
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="输入排表名称"
+                className={styles.input}
+              />
+            </label>
+
             <label className={styles.label}>
               冲突等级
               <select

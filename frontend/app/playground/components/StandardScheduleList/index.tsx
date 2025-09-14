@@ -9,8 +9,9 @@ interface Ability {
   available: boolean;
 }
 
-interface Schedule {
+interface StandardSchedule {
   _id: string;
+  name: string; // ✅ new
   server: string;
   mode: "default" | "custom";
   conflictLevel: number;
@@ -20,7 +21,7 @@ interface Schedule {
 }
 
 interface Props {
-  schedules: Schedule[];
+  schedules: StandardSchedule[];
 }
 
 export default function StandardScheduleList({ schedules }: Props) {
@@ -37,11 +38,8 @@ export default function StandardScheduleList({ schedules }: Props) {
               href={`/playground/standard/${s._id}`}
               className={styles.card}
             >
-              <h4 className={styles.cardTitle}>
-                {new Date(s.createdAt).toLocaleString()}
-              </h4>
+              <h4 className={styles.cardTitle}>{s.name || "未命名排表"}</h4>
               <p>服务器: {s.server}</p>
-              <p>模式: {s.mode}</p>
               <p>冲突等级: {s.conflictLevel}</p>
               <p>角色数量: {s.characterCount}</p>
             </Link>

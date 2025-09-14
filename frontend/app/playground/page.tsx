@@ -12,8 +12,9 @@ interface Ability {
   available: boolean;
 }
 
-interface Schedule {
+interface StandardSchedule {
   _id: string;
+  name: string; // ✅ new
   server: string;
   mode: "default" | "custom";
   conflictLevel: number;
@@ -32,7 +33,7 @@ interface BossPlan {
 
 export default function PlaygroundPage() {
   const [showModal, setShowModal] = useState(false);
-  const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [schedules, setSchedules] = useState<StandardSchedule[]>([]);
   const [bossPlans, setBossPlans] = useState<BossPlan[]>([]);
 
   useEffect(() => {
@@ -43,7 +44,7 @@ export default function PlaygroundPage() {
   const fetchSchedules = async () => {
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/schedules`
+        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules`
       );
       if (!res.ok) throw new Error("Failed to fetch schedules");
       setSchedules(await res.json());
@@ -89,7 +90,7 @@ export default function PlaygroundPage() {
             if (mode === "default") {
               try {
                 const res = await fetch(
-                  `${process.env.NEXT_PUBLIC_API_URL}/api/schedules`,
+                  `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules`,
                   {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },

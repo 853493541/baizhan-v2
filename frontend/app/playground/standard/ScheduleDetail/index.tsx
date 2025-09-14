@@ -6,8 +6,9 @@ import { runSolver, GroupResult, Character, AbilityCheck } from "@/utils/solver"
 import GroupDetailModal from "../GroupDetailModal";
 import { useRouter } from "next/navigation";
 
-interface Schedule {
+interface StandardSchedule {
   _id: string;
+  name: string; // ✅ new
   server: string;
   mode: "default" | "custom";
   conflictLevel: number;
@@ -65,7 +66,7 @@ function checkGroupQA(
 }
 
 export default function ScheduleDetail({ scheduleId }: Props) {
-  const [schedule, setSchedule] = useState<Schedule | null>(null);
+  const [schedule, setSchedule] = useState<StandardSchedule | null>(null);
   const [loading, setLoading] = useState(true);
   const [groups, setGroups] = useState<GroupResult[]>([]);
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
@@ -79,7 +80,7 @@ export default function ScheduleDetail({ scheduleId }: Props) {
     const fetchSchedule = async () => {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/schedules/${scheduleId}`
+          `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}`
         );
         if (!res.ok) throw new Error("Failed to fetch schedule");
         const data = await res.json();
@@ -104,23 +105,20 @@ export default function ScheduleDetail({ scheduleId }: Props) {
     const results = runSolver(
       schedule.characters,
       schedule.checkedAbilities,
-      3 // leave solver config unchanged
+      3
     );
     console.log("🧩 Solver results:", results);
-    setGroups(results); // ✅ show solver results in UI
+    setGroups(results);
 
-    // prepare payload (IDs only)
     const payload = results.map((g, idx) => ({
       index: idx + 1,
       characters: g.characters.map((c) => c._id),
     }));
 
-    console.log("📤 Auto-submitting groups:", payload);
-
     try {
       setSaving(true);
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/schedules/${schedule._id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${schedule._id}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -129,11 +127,7 @@ export default function ScheduleDetail({ scheduleId }: Props) {
       );
 
       if (!res.ok) throw new Error("Failed to update groups");
-      const updated = await res.json();
-      console.log("✅ Saved to DB, schedule updated:", updated);
-
-      // 🚫 Do NOT overwrite groups with DB (IDs only)
-      // ✅ Keep solver results in UI
+      await res.json();
     } catch (err) {
       console.error("❌ Error saving groups:", err);
     } finally {
@@ -146,7 +140,7 @@ export default function ScheduleDetail({ scheduleId }: Props) {
     try {
       setDeleting(true);
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/schedules/${scheduleId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}`,
         { method: "DELETE" }
       );
       if (!res.ok) throw new Error("Delete failed");
@@ -163,7 +157,9 @@ export default function ScheduleDetail({ scheduleId }: Props) {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h2 className={styles.title}>排表详情</h2>
+        <h2 className={styles.title}>
+          {schedule.name || "未命名排表"} {/* ✅ show name */}
+        </h2>
         <div className={styles.actions}>
           <button className={styles.backBtn} onClick={() => router.push("/playground")}>
             ← 返回
