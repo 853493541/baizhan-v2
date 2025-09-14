@@ -48,6 +48,26 @@ export default function CharacterStoragePage() {
     refreshCharacters();
   }, []);
 
+  // ✅ handle creating new character (POST)
+  const handleCreate = async (data: any) => {
+    try {
+      const res = await fetch(`${API_URL}/api/characters`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) throw new Error("创建失败");
+      const newChar = await res.json();
+
+      // append to list
+      setCharacters((prev) => [...prev, newChar]);
+    } catch (err) {
+      console.error("❌ Error creating character:", err);
+      setError("角色创建失败");
+    }
+  };
+
   // Dynamic lists
   const uniqueOwners = Array.from(
     new Set(characters.map((c) => c.owner || "Unknown"))
@@ -169,7 +189,7 @@ export default function CharacterStoragePage() {
       <CreateCharacterModal
         isOpen={isModalOpen}
         onClose={() => setModalOpen(false)}
-        onCreate={() => refreshCharacters()}
+        onCreate={handleCreate} // ✅ now POSTs
       />
 
       {/* Ability Filter Modal */}
