@@ -21,6 +21,16 @@ interface Props {
   ) => string[];
 }
 
+// ✅ Hardcoded main characters
+const MAIN_CHARACTERS = new Set([
+  "剑心猫猫糕",
+  "东海甜妹",
+  "饲猫大桔",
+  "五溪",
+  "唐逍风",
+  "程老黑",
+]);
+
 export default function MainSection({
   schedule,
   groups,
@@ -29,7 +39,7 @@ export default function MainSection({
   checkGroupQA,
 }: Props) {
   // ✅ Run solver + save to backend
-  const handleRunSolver = async () => {
+  const handleRunSolver = async (retryCount = 0) => {
     console.log("🧩 Running solver with:", schedule.characters);
 
     const results = runSolver(
@@ -39,6 +49,33 @@ export default function MainSection({
     );
 
     console.log("✅ Solver results:", results);
+
+    // 🔎 Check for main-char conflict
+    let hasConflict = false;
+    results.forEach((g, idx) => {
+      const mainsInGroup = g.characters.filter((c) =>
+        MAIN_CHARACTERS.has(c.name)
+      );
+      if (mainsInGroup.length > 1) {
+        hasConflict = true;
+        console.warn(
+          `⚠️ Group ${idx + 1} contains multiple main characters:`,
+          mainsInGroup.map((c) => c.name)
+        );
+        console.debug(
+          `📝 Full member list for Group ${idx + 1}:`,
+          g.characters.map((c) => `${c.name} (${c.role})`)
+        );
+      }
+    });
+
+    // 🔁 Retry up to 20 times if conflict found
+    if (hasConflict && retryCount < 20) {
+      console.log(`🔄 Rerunning solver (attempt ${retryCount + 1}/20)...`);
+      return handleRunSolver(retryCount + 1);
+    }
+
+    // ✅ Accept results if no conflict or max retries reached
     setGroups(results);
 
     // Build payload for backend
@@ -69,7 +106,7 @@ export default function MainSection({
     <div className={styles.section}>
       <h3 className={styles.sectionTitle}>排表区域</h3>
 
-      <button className={styles.solverBtn} onClick={handleRunSolver}>
+      <button className={styles.solverBtn} onClick={() => handleRunSolver(0)}>
         一键排表
       </button>
 
@@ -83,6 +120,7 @@ export default function MainSection({
               schedule.conflictLevel,
               schedule.checkedAbilities
             );
+
             return (
               <div
                 key={idx}
