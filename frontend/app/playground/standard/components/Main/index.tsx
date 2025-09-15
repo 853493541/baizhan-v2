@@ -6,6 +6,7 @@ import { runSolver, GroupResult, Character, AbilityCheck } from "@/utils/solver"
 interface Props {
   schedule: {
     _id: string;
+    server: string;
     conflictLevel: number;
     checkedAbilities: AbilityCheck[];
     characters: Character[];
@@ -50,8 +51,10 @@ export default function MainSection({
 
     console.log("✅ Solver results:", results);
 
-    // 🔎 Check for main-char conflict
+    // 🔎 Conflict check flags
     let hasConflict = false;
+
+    // 1️⃣ Main-character rule
     results.forEach((g, idx) => {
       const mainsInGroup = g.characters.filter((c) =>
         MAIN_CHARACTERS.has(c.name)
@@ -68,6 +71,23 @@ export default function MainSection({
         );
       }
     });
+
+    // 2️⃣ 七秀 rule (only for server=乾坤一掷)
+    if (schedule.server === "乾坤一掷") {
+      results.forEach((g, idx) => {
+        const hasSevenShow = g.characters.some((c) => c.class === "七秀");
+        if (!hasSevenShow) {
+          hasConflict = true;
+          console.warn(
+            `⚠️ Group ${idx + 1} has no 七秀 (server=${schedule.server})`
+          );
+          console.debug(
+            `📝 Full member list for Group ${idx + 1}:`,
+            g.characters.map((c) => `${c.name} (${c.class})`)
+          );
+        }
+      });
+    }
 
     // 🔁 Retry up to 20 times if conflict found
     if (hasConflict && retryCount < 20) {
