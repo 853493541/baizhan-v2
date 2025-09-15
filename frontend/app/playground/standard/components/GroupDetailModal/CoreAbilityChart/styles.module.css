@@ -58,3 +58,16 @@
   background: #fddde6;
   color: #842029;
 }
+.upgrade {
+  background-color: #ffe0b2; /* orange */
+  color: #c63f17;
+}
+
+.ready {
+  background-color: #c8e6c9; /* green */
+  color: #256029;
+}
+.canUse {
+  background-color: #5fd463; /* green */
+  color: #256029;
+}

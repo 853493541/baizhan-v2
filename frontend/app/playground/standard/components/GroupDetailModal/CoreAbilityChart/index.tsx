@@ -12,19 +12,25 @@ interface WeeklyAbility {
 interface Props {
   group: GroupResult;
   checkedAbilities: AbilityCheck[];
-  conflictLevel: number;
   weeklyAbilities: WeeklyAbility[];
 }
 
 export default function CoreAbilityChart({
   group,
   checkedAbilities,
-  conflictLevel,
   weeklyAbilities,
 }: Props) {
-  // ✅ only include abilities available in weekly map
+  // ✅ expand weeklyAbilities: if a Lv10 drop exists, also consider Lv9
+  const expandedWeekly = [
+    ...weeklyAbilities,
+    ...weeklyAbilities
+      .filter((w) => w.level === 10)
+      .map((w) => ({ ...w, level: 9 })),
+  ];
+
+  // ✅ only include checked abilities that are in expanded weekly list
   const filteredAbilities = checkedAbilities.filter((a) =>
-    weeklyAbilities.some((wa) => wa.name === a.name)
+    expandedWeekly.some((wa) => wa.name === a.name)
   );
 
   return (
@@ -51,8 +57,13 @@ export default function CoreAbilityChart({
           </thead>
           <tbody>
             {filteredAbilities.map((a, idx) => {
-              const wa = weeklyAbilities.find((w) => w.name === a.name);
-              const requiredLevel = wa?.level ?? conflictLevel;
+              // all drop levels available for this ability (after expansion)
+              const waLevels = expandedWeekly
+                .filter((w) => w.name === a.name)
+                .map((w) => w.level);
+
+              // pick the highest drop level
+              const dropLevel = waLevels.length > 0 ? Math.max(...waLevels) : null;
 
               return (
                 <tr key={idx}>
@@ -67,20 +78,19 @@ export default function CoreAbilityChart({
                   </td>
                   {group.characters.map((c) => {
                     const lvl = c.abilities?.[a.name] ?? 0;
-                    const belowRequirement = lvl > 0 && lvl < requiredLevel;
-                    const aboveRequirement = lvl >= requiredLevel;
+
+                    let cellClass = "";
+                    if (dropLevel !== null) {
+                      if (lvl > 0 && lvl < dropLevel) {
+                        cellClass = styles.canUse; // highlight green
+                      } else if (lvl >= dropLevel) {
+                        // logic still here, but no highlight applied
+                        cellClass = "";
+                      }
+                    }
 
                     return (
-                      <td
-                        key={c._id}
-                        className={
-                          belowRequirement
-                            ? styles.below
-                            : aboveRequirement
-                            ? styles.above
-                            : ""
-                        }
-                      >
+                      <td key={c._id} className={cellClass}>
                         {lvl > 0 ? lvl : "—"}
                       </td>
                     );

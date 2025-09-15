@@ -132,7 +132,7 @@ export default function MapPage() {
     <div className={styles.row}>
       {floors.map((floor) => (
         <div key={floor} className={styles.card}>
-          <div className={styles.floorLabel}>Floor {floor}</div>
+          <div className={styles.floorLabel}>{floor}</div>
           <select
             className={
               floor === 90 || floor === 100
@@ -182,7 +182,7 @@ export default function MapPage() {
         <h2>当前选择</h2>
         {[...row1, ...row2].map((f) => (
           <p key={f}>
-            Floor {f}: {floorAssignments[f] || "未选择"}
+            {f}: {floorAssignments[f] || "未选择"}
           </p>
         ))}
       </div>
