@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { Character } from "@/types/Character";
 import { getTradables } from "@/utils/tradables";
-import { updateCharacterAbilities } from "@/lib/characterService"; // ✅ central helper
+import { updateCharacterAbilities } from "@/lib/characterService";
 import styles from "./styles.module.css";
 import TradableModal from "../TradableModal";
 
 interface CharacterCardProps {
   character: Character;
-  onUpdated?: () => void; // parent refresh callback
+  onUpdated?: () => void;
 }
 
 export default function CharacterCard({ character, onUpdated }: CharacterCardProps) {
@@ -22,53 +22,66 @@ export default function CharacterCard({ character, onUpdated }: CharacterCardPro
 
   const updateAbility = async (ability: string, newLevel: number) => {
     if (newLevel < 0) return;
-
-    // Optimistic update
-    setLocalAbilities((prev) => ({
-      ...prev,
-      [ability]: newLevel,
-    }));
+    setLocalAbilities((prev) => ({ ...prev, [ability]: newLevel }));
 
     try {
       const updatedChar = await updateCharacterAbilities(character._id, {
         [ability]: newLevel,
       });
-
-      if (updatedChar.abilities) {
-        setLocalAbilities({ ...updatedChar.abilities });
-      }
+      if (updatedChar.abilities) setLocalAbilities({ ...updatedChar.abilities });
     } catch (err) {
       console.error("⚠️ Error updating ability", err);
     }
   };
 
-  const handleCopy = (ability: string) => {
-    navigator.clipboard.writeText(ability);
-    alert(`已复制: ${ability}`);
-  };
-
   const handleCloseModal = () => {
     setShowModal(false);
-    onUpdated?.(); // refresh parent only once
+    onUpdated?.();
   };
+
+  let roleClass = "";
+  if (!character.active) {
+    roleClass = styles.inactive;
+  } else if (character.role === "Tank") {
+    roleClass = styles.tank;
+  } else if (character.role === "Healer") {
+    roleClass = styles.healer;
+  } else {
+    roleClass = styles.dps;
+  }
+
+  const classIcon = `/icons/class_icons/${character.class}.png`;
 
   return (
     <div
       key={character._id}
-      className={styles.card}
+      className={`${styles.card} ${roleClass}`}
       onClick={() => (window.location.href = `/characters/${character._id}`)}
     >
-      <h3>{character.name}</h3>
-      <p>账号昵称: {character.account}</p>
-      <p>服务器: {character.server}</p>
-      <p>性别: {character.gender}</p>
-      <p>职业: {character.class}</p>
-      <p>定位: {character.role}</p>
-      <p>参与排表: {character.active ? "是" : "否"}</p>
-      <p>拥有者: {character.owner || "Unknown"}</p>
+      {/* top content */}
+      <div className={styles.content}>
+        <div className={styles.headerRow}>
+          <img src={classIcon} alt={character.class} className={styles.classIcon} />
+          <div className={styles.nameBlock}>
+            <h3 className={styles.name}>
+              {character.name}
+              <span
+                className={`${styles.gender} ${
+                  character.gender === "男" ? styles.male : styles.female
+                }`}
+              >
+                {character.gender === "男" ? "♂" : "♀"}
+              </span>
+            </h3>
+            <p className={styles.server}>{character.server}</p>
+          </div>
+          <span className={styles.account}>{character.account}</span>
+        </div>
+      </div>
 
+      {/* bottom pinned tradable */}
       {tradables.length > 0 && (
-        <>
+        <div className={styles.tradeableWrapper}>
           <button
             className={styles.tradableButton}
             onClick={(e) => {
@@ -84,11 +97,11 @@ export default function CharacterCard({ character, onUpdated }: CharacterCardPro
               tradables={tradables}
               localAbilities={localAbilities}
               updateAbility={updateAbility}
-              onCopy={handleCopy}
+              onCopy={(ability) => navigator.clipboard.writeText(ability)}
               onClose={handleCloseModal}
             />
           )}
-        </>
+        </div>
       )}
     </div>
   );
