@@ -1,0 +1,20 @@
+.appGrid {
+  display: grid;
+  grid-template-rows: 56px 1fr;
+  grid-template-columns: 240px 1fr;
+  grid-template-areas:
+    "topbar topbar"
+    "sidebar main";
+  height: 100vh;
+}
+.topbar { grid-area: topbar; }
+.sidebar { grid-area: sidebar; }
+.main {
+  grid-area: main;
+  padding: 16px 20px 24px;
+  overflow: auto;
+}
+
+@media (max-width: 920px) {
+  .appGrid { grid-template-columns: 72px 1fr; }
+}
