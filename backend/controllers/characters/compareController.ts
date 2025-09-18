@@ -38,13 +38,13 @@ export const compareCharacterAbilities = async (req: Request, res: Response) => 
     const unchanged: Array<{ name: string; value: number }> = [];
     const ocrOnly: string[] = [];
 
-    // Normalize abilities from DB
+    // 🔹 Normalize abilities from DB safely
     let abilityObj: Record<string, number> = {};
     if (char.abilities instanceof Map) {
       abilityObj = Object.fromEntries(char.abilities);
-    } else if (typeof (char.abilities as any).toObject === "function") {
+    } else if (typeof (char.abilities as any)?.toObject === "function") {
       abilityObj = (char.abilities as any).toObject();
-    } else {
+    } else if (char.abilities) {
       abilityObj = char.abilities as Record<string, number>;
     }
     const dbNames = Object.keys(abilityObj);
@@ -53,17 +53,16 @@ export const compareCharacterAbilities = async (req: Request, res: Response) => 
 
     // 🔹 Process abilities from OCR input
     for (const [rawName, level] of Object.entries(abilities)) {
-      // Step 1: alias map
       let normalized = abilityAliases[rawName] || rawName;
 
-      // Step 2: clean OCR noise (digits, parentheses, slashes)
+      // Clean OCR junk
       let cleaned = normalized.replace(/[0-9()\/]/g, "").trim();
       if (cleaned !== normalized) {
         console.log(`🧹 Cleaned OCR "${normalized}" -> "${cleaned}"`);
         normalized = cleaned;
       }
 
-      // Skip gender bans (but ❌ do NOT skip ignoreAlways here)
+      // Skip gender bans
       if (char.gender === "女" && femaleOnlyBan.has(normalized)) continue;
       if (char.gender === "男" && maleOnlyBan.has(normalized)) continue;
 
@@ -71,7 +70,7 @@ export const compareCharacterAbilities = async (req: Request, res: Response) => 
       const hasDirect = Object.prototype.hasOwnProperty.call(abilityObj, normalized);
 
       if (!hasDirect) {
-        // Step 3a: short-text fallback
+        // Short-text fallback
         if (normalized.length <= 2) {
           const candidate = dbNames.find((n) => n.includes(normalized));
           if (candidate) {
@@ -82,7 +81,7 @@ export const compareCharacterAbilities = async (req: Request, res: Response) => 
           }
         }
 
-        // Step 3b: prefix fallback (handles trailing junk)
+        // Prefix fallback
         if (targetName === normalized) {
           const prefixCandidate = dbNames.find((n) => normalized.startsWith(n));
           if (prefixCandidate && prefixCandidate.length >= 3) {
@@ -91,7 +90,7 @@ export const compareCharacterAbilities = async (req: Request, res: Response) => 
           }
         }
 
-        // Step 4: fuzzy + distance
+        // Fuzzy + distance
         if (targetName === normalized) {
           const { bestMatch } = stringSimilarity.findBestMatch(normalized, dbNames);
           const distance = levenshtein.get(normalized, bestMatch.target);
@@ -123,6 +122,7 @@ export const compareCharacterAbilities = async (req: Request, res: Response) => 
           unchanged.push({ name: targetName, value: Number(level) });
         }
       } else {
+        // only push if not gender-banned
         if (
           !(char.gender === "女" && femaleOnlyBan.has(normalized)) &&
           !(char.gender === "男" && maleOnlyBan.has(normalized))
@@ -138,7 +138,6 @@ export const compareCharacterAbilities = async (req: Request, res: Response) => 
       if (char.gender === "女" && femaleOnlyBan.has(name)) continue;
       if (char.gender === "男" && maleOnlyBan.has(name)) continue;
 
-      // ✅ Only skip ignoreAlways here
       if (ignoreAlways.has(name)) continue;
 
       if (!normalizedOCRNames.has(name)) dbOnly.push(name);
@@ -146,6 +145,7 @@ export const compareCharacterAbilities = async (req: Request, res: Response) => 
 
     return res.json({ toUpdate, unchanged, ocrOnly, dbOnly });
   } catch (err: any) {
+    console.error("❌ compareCharacterAbilities error:", err);
     return res.status(500).json({ error: err.message });
   }
 };

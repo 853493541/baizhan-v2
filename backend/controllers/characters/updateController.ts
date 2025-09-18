@@ -15,7 +15,6 @@ export const updateCharacterAbilities = async (req: Request, res: Response) => {
     const updated: Array<{ name: string; old: number; new: number }> = [];
 
     for (const [name, level] of Object.entries(abilities)) {
-      // always update or create
       const oldVal =
         (char.abilities as any)?.get?.(name) ??
         (char.abilities as any)?.[name] ??
@@ -46,7 +45,18 @@ export const updateCharacter = async (req: Request, res: Response) => {
     const char = await Character.findById(req.params.id);
     if (!char) return res.status(404).json({ error: "Character not found" });
 
-    const { account, server, gender, class: charClass, role, active, name } = req.body;
+    const {
+      account,
+      server,
+      gender,
+      class: charClass,
+      role,
+      active,
+      name,
+      owner,
+      catalog,
+      mainCharacter,
+    } = req.body;
 
     if (name !== undefined) char.name = String(name).trim();
     if (account !== undefined) char.account = String(account).trim();
@@ -55,12 +65,34 @@ export const updateCharacter = async (req: Request, res: Response) => {
     if (role !== undefined) char.role = role;
     if (charClass !== undefined) char.class = String(charClass).trim();
     if (active !== undefined) char.active = Boolean(active);
+    if (owner !== undefined) char.owner = String(owner).trim();
+
+    // 🔹 Handle catalog (replace OR append)
+    if (catalog !== undefined) {
+      if (Array.isArray(catalog)) {
+        // full replace
+        char.catalog = catalog.map((c) => String(c).trim());
+      } else if (typeof catalog === "string") {
+        // append mode
+        const newCatalog = String(catalog).trim();
+        if (newCatalog && !char.catalog.includes(newCatalog)) {
+          char.catalog.push(newCatalog);
+        }
+      }
+    }
+
+    // 🔹 Handle mainCharacter
+    if (mainCharacter !== undefined) {
+      char.mainCharacter = Boolean(mainCharacter);
+    }
 
     await char.save();
     res.json(char);
   } catch (err: any) {
     if (err?.name === "ValidationError") {
-      return res.status(400).json({ error: "ValidationError", details: err.errors });
+      return res
+        .status(400)
+        .json({ error: "ValidationError", details: err.errors });
     }
     return res.status(500).json({ error: err.message });
   }
