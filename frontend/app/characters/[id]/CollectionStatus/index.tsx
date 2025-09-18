@@ -6,6 +6,7 @@ import {
   getBossProgress,
   getMissingForNextTier,
   getNextTier,
+  calculateStats,
 } from "@/utils/collectionUtils";
 import styles from "./styles.module.css";
 
@@ -39,11 +40,12 @@ export default function CollectionStatus({ character }: Props) {
     const filtered = abilities.filter(
       (a) =>
         !(character.gender === "男" && ["剑心通明", "帝骖龙翔"].includes(a)) &&
-        !(character.gender === "女" && ["巨猿劈山", "顽抗"].includes(a))
+        !(character.gender === "女" && ["巨猿劈山", "顽抗", "蛮熊碎颅击"].includes(a))
     );
     return filtered.every((a) => (character.abilities[a] || 0) >= 10);
   };
 
+  // Sort bosses into in-progress vs complete
   const bosses = Object.entries(bossData);
   const inProgress = bosses.filter(([_, abilities]) => !isFullyCollected(abilities));
   const completed = bosses.filter(([_, abilities]) => isFullyCollected(abilities));
@@ -56,9 +58,23 @@ export default function CollectionStatus({ character }: Props) {
   });
   completed.sort((a, b) => a[0].localeCompare(b[0], "zh"));
 
+  // New: calculate total stats
+  const { energy, durability } = calculateStats(
+    bossData,
+    character.abilities,
+    character.gender
+  );
+
   return (
     <div className={styles.collectionStatus}>
       <h2 className={styles.title}>收集状态</h2>
+
+      {/* New: overall stats */}
+      <div className={styles.totalStats}>
+        <span>精神: {energy}</span>
+        <span>耐力: {durability}</span>
+      </div>
+
       <div className={styles.cardGrid}>
         {[...inProgress, ...completed].map(([boss, abilities]) => {
           const progress = getBossProgress(
@@ -76,7 +92,9 @@ export default function CollectionStatus({ character }: Props) {
           return (
             <div
               key={boss}
-              className={`${styles.bossCard} ${full ? styles.bossCardComplete : ""}`}
+              className={`${styles.bossCard} ${
+                full ? styles.bossCardComplete : ""
+              }`}
             >
               <div className={styles.bossHeader}>
                 <h3 className={styles.bossName}>{formatBossName(boss)}</h3>
