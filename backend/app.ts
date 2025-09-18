@@ -5,9 +5,6 @@ import characterRoutes from "./routes/characterRoutes";
 import mapRoutes from "./routes/mapRoutes";
 import standardScheduleRoutes from "./routes/standardScheduleRoutes"; // ✅ renamed
 import bossPlanRoutes from "./routes/bossPlanRoutes";
-import catalogRoutes from "./routes/catalogRoutes";
-
-
 
 const app = express();
 
@@ -28,7 +25,5 @@ app.use("/api/characters", characterRoutes);
 app.use("/api/weekly-map", mapRoutes);
 app.use("/api/standard-schedules", standardScheduleRoutes); // ✅ updated
 app.use("/api/boss-plans", bossPlanRoutes);
-app.use("/api/catalogs", catalogRoutes);
-
 
 export default app;
