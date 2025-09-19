@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import ComparisonModal from "../ComparisonModal";
-import { runOCR } from "../../../../lib/ocrService";
+import { runOCR } from "@/lib/ocrService";
 import styles from "./styles.module.css";
 
 interface Props {

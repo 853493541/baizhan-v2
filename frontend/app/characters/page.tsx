@@ -1,22 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import CreateCharacterModal from "./CreateCharacterModal";
-import CharacterCard from "./CharacterCard";
-import AbilityFilterModal from "./AbilityFilterModal";
+import CreateCharacterModal from "@/app/components/characters/CreateCharacterModal";
 import { Character } from "@/types/Character";
-import styles from "./page.module.css";
 import { normalizeGender } from "@/utils/normalize";
+import styles from "./page.module.css";
 
-export default function CharacterStoragePage() {
+import CharacterFilters from "./sections/CharacterFilters";
+import CharacterGrid from "./sections/CharacterGrid";
+import CreateButton from "./sections/CreateButton";
+
+export default function CharactersPage() {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [isModalOpen, setModalOpen] = useState(false);
-  const [isAbilityModalOpen, setAbilityModalOpen] = useState(false);
 
-  // Filters
   const [ownerFilter, setOwnerFilter] = useState("");
   const [serverFilter, setServerFilter] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
@@ -48,7 +48,6 @@ export default function CharacterStoragePage() {
     refreshCharacters();
   }, []);
 
-  // ✅ handle creating new character (POST)
   const handleCreate = async (data: any) => {
     try {
       const res = await fetch(`${API_URL}/api/characters`, {
@@ -59,8 +58,6 @@ export default function CharacterStoragePage() {
 
       if (!res.ok) throw new Error("创建失败");
       const newChar = await res.json();
-
-      // append to list
       setCharacters((prev) => [...prev, newChar]);
     } catch (err) {
       console.error("❌ Error creating character:", err);
@@ -68,13 +65,13 @@ export default function CharacterStoragePage() {
     }
   };
 
-  // Dynamic lists
   const uniqueOwners = Array.from(
     new Set(characters.map((c) => c.owner || "Unknown"))
   ).sort();
-  const uniqueServers = Array.from(new Set(characters.map((c) => c.server))).sort();
+  const uniqueServers = Array.from(
+    new Set(characters.map((c) => c.server))
+  ).sort();
 
-  // Filtering
   const filteredCharacters = characters.filter((c) => {
     if (ownerFilter && c.owner !== ownerFilter) return false;
     if (serverFilter && c.server !== serverFilter) return false;
@@ -87,8 +84,22 @@ export default function CharacterStoragePage() {
     return true;
   });
 
+  // ✅ wipe-and-rebuild for ability filters
   const handleAddAbilityFilter = (ability: string, level: number) => {
-    setAbilityFilters([...abilityFilters, { ability, level }]);
+    // Get current abilities (without duplicates)
+    const currentAbilities = abilityFilters.map((f) => f.ability);
+    let newAbilities: string[];
+
+    if (currentAbilities.includes(ability)) {
+      // remove ability if already selected
+      newAbilities = currentAbilities.filter((a) => a !== ability);
+    } else {
+      // add new ability
+      newAbilities = [...currentAbilities, ability];
+    }
+
+    // rebuild state fresh
+    setAbilityFilters(newAbilities.map((a) => ({ ability: a, level })));
   };
 
   const handleRemoveAbilityFilter = (index: number) => {
@@ -104,101 +115,33 @@ export default function CharacterStoragePage() {
     <div className={styles.container}>
       <h1 className={styles.title}>角色仓库</h1>
 
-      {/* Filters */}
-      <div className={styles.filters}>
-        {/* Owner */}
-        <select
-          value={ownerFilter}
-          onChange={(e) => setOwnerFilter(e.target.value)}
-          className={styles.select}
-        >
-          <option value="">所有拥有者</option>
-          {uniqueOwners.map((o) => (
-            <option key={o} value={o}>
-              {o}
-            </option>
-          ))}
-        </select>
+      <CharacterFilters
+        ownerFilter={ownerFilter}
+        serverFilter={serverFilter}
+        roleFilter={roleFilter}
+        uniqueOwners={uniqueOwners}
+        uniqueServers={uniqueServers}
+        abilityFilters={abilityFilters}
+        setOwnerFilter={setOwnerFilter}
+        setServerFilter={setServerFilter}
+        setRoleFilter={setRoleFilter}
+        onAddAbility={handleAddAbilityFilter}
+        onRemoveAbility={handleRemoveAbilityFilter}
+        setAbilityFilters={setAbilityFilters} 
+      />
 
-        {/* Server */}
-        <select
-          value={serverFilter}
-          onChange={(e) => setServerFilter(e.target.value)}
-          className={styles.select}
-        >
-          <option value="">所有服务器</option>
-          {uniqueServers.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
+      <CharacterGrid
+        characters={filteredCharacters}
+        onUpdated={refreshCharacters}
+      />
 
-        {/* Role */}
-        <select
-          value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value)}
-          className={styles.select}
-        >
-          <option value="">所有定位</option>
-          <option value="Tank">Tank</option>
-          <option value="DPS">DPS</option>
-          <option value="Healer">Healer</option>
-        </select>
-
-        {/* Ability filter trigger */}
-        <button
-          onClick={() => setAbilityModalOpen(true)}
-          className={styles.addButton}
-        >
-          + 添加技能筛选
-        </button>
-
-        {/* Active ability filters */}
-        <div className={styles.activeFilters}>
-          {abilityFilters.map((f, i) => (
-            <span key={i} className={styles.filterChip}>
-              {f.ability} = {f.level}
-              <button onClick={() => handleRemoveAbilityFilter(i)}>❌</button>
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* Characters */}
-      <div className={styles.cardGrid}>
-        {filteredCharacters.map((char) => (
-          <CharacterCard
-            key={char._id}
-            character={char}
-            onUpdated={refreshCharacters}
-          />
-        ))}
-      </div>
-
-      {/* Create new character */}
-      <div className={styles.createButtonWrapper}>
-        <button
-          onClick={() => setModalOpen(true)}
-          className={styles.createButton}
-        >
-          + 新建角色
-        </button>
-      </div>
+      <CreateButton onClick={() => setModalOpen(true)} />
 
       <CreateCharacterModal
         isOpen={isModalOpen}
         onClose={() => setModalOpen(false)}
-        onCreate={handleCreate} // ✅ now POSTs
+        onCreate={handleCreate}
       />
-
-      {/* Ability Filter Modal */}
-      {isAbilityModalOpen && (
-        <AbilityFilterModal
-          onConfirm={handleAddAbilityFilter}
-          onClose={() => setAbilityModalOpen(false)}
-        />
-      )}
     </div>
   );
 }

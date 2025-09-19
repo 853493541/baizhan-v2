@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import CharacterAbilities from "./CharacterAbilities";
-import CollectionStatus from "./CollectionStatus";
-import CharacterBasics, { CharacterEditData } from "./CharacterBasics";
-import AbilityHighlights from "./AbilityHighlights";
-import SingleAbilityUpdate from "./SingleAbilityUpdate";
-import CharacterOCRSection from "./OCRSection";
+import CharacterAbilities from "./sections/CharacterAbilities";
+import CollectionStatus from "./sections/CollectionStatus";
+import CharacterBasics, { CharacterEditData } from "./sections/CharacterBasics";
+import AbilityHighlights from "./sections/AbilityHighlights";
+import SingleAbilityUpdate from "./sections/SingleAbilityUpdate";
+import CharacterOCRSection from "./sections/OCRSection";
 import styles from "./styles.module.css";
 
 interface Character {
@@ -31,12 +31,15 @@ export default function CharacterDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // ✅ use environment variable
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
   // ============================
   // Load character
   // ============================
   useEffect(() => {
     if (!characterId) return;
-    fetch(`http://localhost:5000/api/characters/${characterId}`)
+    fetch(`${API_URL}/api/characters/${characterId}`)
       .then((res) => res.json())
       .then((data) => {
         setCharacter(data);
@@ -47,7 +50,7 @@ export default function CharacterDetailPage() {
         setError("Failed to load character");
         setLoading(false);
       });
-  }, [characterId]);
+  }, [characterId, API_URL]);
 
   // ============================
   // Save edits
@@ -55,14 +58,11 @@ export default function CharacterDetailPage() {
   const handleSaveEdit = async (data: CharacterEditData) => {
     if (!characterId) return;
     try {
-      const res = await fetch(
-        `http://localhost:5000/api/characters/${characterId}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        }
-      );
+      const res = await fetch(`${API_URL}/api/characters/${characterId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
       if (!res.ok) throw new Error("Update failed");
       const updated = await res.json();
       setCharacter(updated);
@@ -80,12 +80,9 @@ export default function CharacterDetailPage() {
     if (!characterId) return;
     if (!confirm("确定要删除这个角色吗？")) return;
     try {
-      const res = await fetch(
-        `http://localhost:5000/api/characters/${characterId}`,
-        {
-          method: "DELETE",
-        }
-      );
+      const res = await fetch(`${API_URL}/api/characters/${characterId}`, {
+        method: "DELETE",
+      });
       if (!res.ok) throw new Error("Delete failed");
       alert("角色已删除");
       router.push("/characters");
@@ -115,14 +112,16 @@ export default function CharacterDetailPage() {
             onDelete={handleDelete}
           />
 
-          {/* ✅ OCR section moved up here */}
           <CharacterOCRSection
             characterId={character._id}
             currentAbilities={character.abilities}
             onAbilitiesUpdated={(updatedAbilities) => {
               setCharacter((prev) =>
                 prev
-                  ? { ...prev, abilities: { ...prev.abilities, ...updatedAbilities } }
+                  ? {
+                      ...prev,
+                      abilities: { ...prev.abilities, ...updatedAbilities },
+                    }
                   : prev
               );
             }}
@@ -147,7 +146,6 @@ export default function CharacterDetailPage() {
         </div>
       </div>
 
-      {/* === Keep rest in original order === */}
       <AbilityHighlights
         characterId={character._id}
         abilities={character.abilities}
