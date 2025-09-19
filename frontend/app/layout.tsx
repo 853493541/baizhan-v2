@@ -1,7 +1,7 @@
 // app/layout.tsx
 import "./globals.css";
 import { ReactNode } from "react";
-import LayoutShell from "./components/LayoutShell";
+import LayoutShell from "./components/Layout/LayoutShell";
 
 export const metadata = {
   title: "Baizhan App",
