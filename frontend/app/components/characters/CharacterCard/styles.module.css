@@ -1,18 +1,18 @@
 .card {
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* pushes button to bottom */
+  justify-content: space-between;
   border: 1px solid #ddd;
   border-radius: 10px;
-  padding: 10px 14px;
-  width: 320px;
-  min-height: 180px;   /* as you set */
+  padding: 15px 20px;
+
+  min-width: 280px;    /* ✅ keep a minimum */
+  min-height: 180px;
   cursor: pointer;
   background: #fff;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
-
 .card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
