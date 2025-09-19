@@ -97,9 +97,3 @@
   font-size: 12px;
   color: white;
 }
-.levelBtn.selected {
-  border-color: #4caf50;
-  background: #4caf50;
-  color: white;
-  font-weight: bold;
-}

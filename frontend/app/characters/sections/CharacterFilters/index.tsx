@@ -57,7 +57,7 @@ export default function CharacterFilters({
       onRemoveAbility(idx);
     } else {
       // if no global level selected yet, default to 9
-      onAddAbility(ability, globalLevel ?? 9);
+      onAddAbility(ability, globalLevel ??10);
     }
   };
 
