@@ -124,7 +124,7 @@ function CharacterEditModal({
         <h2 style={{ marginBottom: 16 }}>编辑角色</h2>
         <form onSubmit={handleSubmit} style={{ display: "grid", gap: "12px" }}>
           <label>
-            区服:
+            区服/分组:
             <select
               value={server}
               onChange={(e) => setServer(e.target.value)}
