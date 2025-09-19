@@ -24,7 +24,6 @@ interface Props {
   setAbilityFilters: React.Dispatch<React.SetStateAction<AbilityFilter[]>>;
 }
 
-// Core abilities (with corrected names)
 const CORE_ABILITIES = [
   { name: "斗转金移", icon: "/icons/斗转金移.png" },
   { name: "黑煞落贪狼", icon: "/icons/黑煞落贪狼.png" },
@@ -55,14 +54,12 @@ export default function CharacterFilters({
   const [globalLevel, setGlobalLevel] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
 
-  // session-only custom abilities that should appear as icons
   const [extraAbilities, setExtraAbilities] = useState<
     { name: string; icon: string }[]
   >([]);
 
   const DISPLAY_ABILITIES = [...CORE_ABILITIES, ...extraAbilities];
 
-  // toggle ability icon
   const handleAbilityToggle = (ability: string) => {
     if (selectedAbilities.includes(ability)) {
       setSelectedAbilities((prev) => prev.filter((a) => a !== ability));
@@ -70,21 +67,19 @@ export default function CharacterFilters({
       if (idx !== -1) onRemoveAbility(idx);
     } else {
       setSelectedAbilities((prev) => [...prev, ability]);
-      if (globalLevel !== null) {
-        onAddAbility(ability, globalLevel);
-      }
+      if (globalLevel !== null) onAddAbility(ability, globalLevel);
     }
   };
 
-  // level change applies to all currently selected abilities
-  const handleGlobalLevelChange = (level: number) => {
+  const handleGlobalLevelChange = (level: number | null) => {
     setGlobalLevel(level);
-    if (selectedAbilities.length > 0) {
+    if (level !== null && selectedAbilities.length > 0) {
       setAbilityFilters(selectedAbilities.map((a) => ({ ability: a, level })));
+    } else {
+      setAbilityFilters([]);
     }
   };
 
-  // confirm from modal: add to icons (if not core), select it, and apply level if present
   const handleConfirmCustom = (abilityName: string) => {
     const isCore = CORE_ABILITIES.some((a) => a.name === abilityName);
     const isAlreadyExtra = extraAbilities.some((a) => a.name === abilityName);
@@ -98,24 +93,31 @@ export default function CharacterFilters({
 
     if (!selectedAbilities.includes(abilityName)) {
       setSelectedAbilities((prev) => [...prev, abilityName]);
-      if (globalLevel !== null) {
-        onAddAbility(abilityName, globalLevel);
-      }
+      if (globalLevel !== null) onAddAbility(abilityName, globalLevel);
     }
 
     setShowModal(false);
   };
 
+  const handleReset = () => {
+    setOwnerFilter("");
+    setServerFilter("");
+    setRoleFilter("");
+    setSelectedAbilities([]);
+    setAbilityFilters([]);
+    setGlobalLevel(null);
+  };
+
   return (
-    <div className={styles.filters}>
-      {/* Row 1: dropdowns */}
+    <div className={styles.filterSection}>
+      {/* Row 1: dropdowns + role buttons + reset */}
       <div className={styles.filterRow}>
         <select
           value={ownerFilter}
           onChange={(e) => setOwnerFilter(e.target.value)}
           className={styles.select}
         >
-          <option value="">所有拥有者</option>
+          <option value="">拥有者</option>
           {uniqueOwners.map((o) => (
             <option key={o} value={o}>
               {o}
@@ -128,7 +130,7 @@ export default function CharacterFilters({
           onChange={(e) => setServerFilter(e.target.value)}
           className={styles.select}
         >
-          <option value="">所有服务器</option>
+          <option value="">服务器</option>
           {uniqueServers.map((s) => (
             <option key={s} value={s}>
               {s}
@@ -136,19 +138,31 @@ export default function CharacterFilters({
           ))}
         </select>
 
-        <select
-          value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value)}
-          className={styles.select}
-        >
-          <option value="">所有定位</option>
-          <option value="Tank">Tank</option>
-          <option value="DPS">DPS</option>
-          <option value="Healer">Healer</option>
-        </select>
+        {/* Role buttons inline */}
+        {[
+          { label: "T", value: "T" },
+          { label: "输出", value: "DPS" },
+          { label: "治疗", value: "Healer" },
+        ].map((opt) => (
+          <button
+            key={opt.value}
+            className={`${styles.filterBtn} ${
+              roleFilter === opt.value ? styles.selected : ""
+            }`}
+            onClick={() =>
+              setRoleFilter(roleFilter === opt.value ? "" : opt.value)
+            }
+          >
+            {opt.label}
+          </button>
+        ))}
+
+        <button className={styles.resetBtn} onClick={handleReset}>
+          重置
+        </button>
       </div>
 
-      {/* Row 2: ability icons (core + session custom) */}
+      {/* Row 2: ability icons */}
       <div className={styles.abilitiesRow}>
         {DISPLAY_ABILITIES.map((a) => {
           const active = selectedAbilities.includes(a.name);
@@ -164,27 +178,29 @@ export default function CharacterFilters({
           );
         })}
 
-        <button className={styles.customButton} onClick={() => setShowModal(true)}>
-          + 自定义技能
+        <button className={styles.addButton} onClick={() => setShowModal(true)}>
+          +
         </button>
       </div>
 
-      {/* Row 3: level selector */}
+      {/* Row 3: level buttons */}
       <div className={styles.levelRow}>
         {[8, 9, 10].map((lvl) => (
           <button
             key={lvl}
-            className={`${styles.levelBtn} ${
+            className={`${styles.filterBtn} ${
               globalLevel === lvl ? styles.selected : ""
             }`}
-            onClick={() => handleGlobalLevelChange(lvl)}
+            aria-pressed={globalLevel === lvl}
+            onClick={() =>
+              handleGlobalLevelChange(globalLevel === lvl ? null : lvl)
+            }
           >
             {lvl}
           </button>
         ))}
       </div>
 
-      {/* Modal */}
       {showModal && (
         <AbilityFilterModal
           onConfirm={handleConfirmCustom}

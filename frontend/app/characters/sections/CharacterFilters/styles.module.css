@@ -1,99 +1,151 @@
-.filters {
+/* Filter card */
+.filterSection {
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 14px 16px;
   margin-bottom: 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: flex-start;
 }
 
+/* Row 1 */
 .filterRow {
   display: flex;
+  align-items: center;
   gap: 10px;
-  margin-bottom: 15px;
+  width: 100%;
 }
 
+/* Dropdowns */
 .select {
-  padding: 6px 10px;
-  border-radius: 6px;
+  height: 30px;                  /* ✅ match button height */
+  padding: 0 10px;
   border: 1px solid #ccc;
+  border-radius: 6px;
   font-size: 14px;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.select:hover {
+  border-color: #28a745;
+  background: #f8fff9;
 }
 
+/* Reset button */
+.resetBtn {
+  margin-left: auto;
+  background: #fff0f0;
+  border: 1px solid #e0b4b4;
+  border-radius: 6px;
+  padding: 0 12px;                /* adjusted for consistent height */
+  height: 30px;                   /* ✅ match dropdowns/buttons */
+  font-size: 14px;
+  cursor: pointer;
+  color: #b94a48;
+  transition: all 0.2s;
+}
+.resetBtn:hover {
+  background: #f8d7da;
+  border-color: #c66;
+  color: #a94442;
+}
+
+/* Shared filter buttons (role + level) */
+.filterBtn {
+  min-width: 40px;
+  height: 30px;                   /* ✅ match dropdowns */
+  border: 1px solid #bbb;
+  border-radius: 6px;
+  background: #f0f2f5;
+  color: #333;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.filterBtn:hover {
+  border-color: #28a745;
+  background: #eef7ef;
+  color: #1e7a34;
+}
+.filterBtn.selected {
+  background: #28a745 !important;
+  color: #fff !important;
+  border-color: #28a745 !important;
+  font-weight: bold;
+  box-shadow: 0 0 4px rgba(40, 167, 69, 0.4);
+}
+
+/* Abilities row */
 .abilitiesRow {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
-  margin-bottom: 15px;
+  flex-wrap: wrap;
 }
 
 .abilityIcon {
-  position: relative;
-  width: 48px;
-  height: 48px;
-  border-radius: 6px;
+  width: 40px;
+  height: 40px;
   border: 2px solid transparent;
-  overflow: hidden;
+  border-radius: 5px;
   cursor: pointer;
-  transition: border 0.2s;
+  position: relative;
+  transition: all 0.2s;
 }
-
 .abilityIcon img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  border-radius: 5px;
 }
 
-.abilityIcon.active,
 .active {
-  border: 2px solid #4caf50;
+  border-color: #28a745;
+  box-shadow: 0 0 5px rgba(40, 167, 69, 0.6);
 }
 
 .checkmark {
   position: absolute;
-  bottom: 2px;
-  right: 2px;
-  background: #4caf50;
-  color: white;
+  bottom: -2px;
+  right: -2px;
+  background: #28a745;
+  color: #fff;
   font-size: 12px;
-  border-radius: 50%;
   padding: 1px 3px;
+  border-radius: 50%;
+}
+
+/* + button */
+.addButton {
+  width: 40px;
+  height: 40px;
+  border: 1px dashed #a8a8a8;
+  border-radius: 10px;
+  font-size: 20px;
   line-height: 1;
-}
-
-.customButton {
-  padding: 6px 10px;
-  border: 1px dashed #888;
-  border-radius: 6px;
-  background: transparent;
   cursor: pointer;
-  font-size: 14px;
+  background: #fff;
+  color: #666;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.addButton:hover {
+  background: #f0f0f0;
+  color: #333;
 }
 
-.customButton:hover {
-  background: #f2f2f2;
-}
-
+/* Level row */
 .levelRow {
   display: flex;
   gap: 8px;
-}
-
-.levelBtn {
-  position: relative;
-  padding: 6px 12px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background: #fff;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.levelBtn.selected {
-  border-color: #4caf50;
-  background: #4caf50;
-  color: white;
-}
-
-.checkmarkLevel {
-  position: absolute;
-  bottom: 2px;
-  right: 2px;
-  font-size: 12px;
-  color: white;
 }
