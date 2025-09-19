@@ -2,28 +2,50 @@
   padding: 1rem;
 }
 
-.title {
-  font-size: 1.25rem;
-  font-weight: bold;
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 1rem;
 }
 
+.title {
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.totalStats {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.energy {
+  color: #7b3fe4; /* purple */
+}
+
+.durability {
+  color: #e67e22; /* dark orange */
+}
+
+/* ==== GRID OPTIMIZATION ==== */
 .cardGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* was 220px */
+  gap: 0.75rem; /* tighter spacing */
 }
 
 .bossCard {
   background: #fff;
   border: 1px solid #ddd;
-  border-radius: 12px;
-  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  padding: 0.6rem 0.8rem;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
-  min-height: 180px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+  min-height: auto; /* ✅ adaptive height */
 }
 
 .bossCard:hover {
@@ -40,26 +62,26 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
 }
 
 .bossName {
-  font-size: 1rem;
-  font-weight: bold;
+  font-size: 0.95rem;
+  font-weight: 600;
   color: #333;
 }
 
 .bossProgress {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: #666;
 }
 
+/* ==== MISSING ABILITIES GRID ==== */
 .missingGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-auto-rows: auto;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
+  grid-template-columns: repeat(3, 1fr); /* ✅ 3 per row */
+  gap: 0.5rem;
+  margin-top: 0.4rem;
 }
 
 .abilityItem {
@@ -70,15 +92,16 @@
 }
 
 .abilityIcon {
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   object-fit: contain;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.15rem;
+  border-radius: 4px; /* ✅ small rounded corners */
 }
 
 .abilityName {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: #444;
-  line-height: 1.2;
+  line-height: 1.1;
   word-break: keep-all;
 }

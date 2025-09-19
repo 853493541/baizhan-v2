@@ -1,14 +1,11 @@
-.wrapper {
-  margin-top: 16px;
-}
-
 .uploadArea {
-  margin-top: 12px;
+
   padding: 16px;
   border: 1px dashed #aaa;
   border-radius: 8px;
   background: #fafafa;
   text-align: center;
+  
 }
 
 .uploadText {

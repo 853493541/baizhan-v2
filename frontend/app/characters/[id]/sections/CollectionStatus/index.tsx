@@ -28,7 +28,7 @@ const getAbilityIcon = (ability: string) => `/icons/${ability}.png`;
 const formatAbilityName = (name: string) =>
   name.length === 5 ? name.slice(0, 4) : name;
 
-// Helper: format boss name (special rule for 萧沙, 钱宗龙)
+// Helper: format boss name
 const formatBossName = (name: string) => {
   if (name.includes("武逸青、胡鞑、萧沙")) return "萧沙";
   if (name.includes("钱宗龙、杜姬欣")) return "钱宗龙";
@@ -58,7 +58,7 @@ export default function CollectionStatus({ character }: Props) {
   });
   completed.sort((a, b) => a[0].localeCompare(b[0], "zh"));
 
-  // New: calculate total stats
+  // Calculate total stats
   const { energy, durability } = calculateStats(
     bossData,
     character.abilities,
@@ -67,12 +67,12 @@ export default function CollectionStatus({ character }: Props) {
 
   return (
     <div className={styles.collectionStatus}>
-      <h2 className={styles.title}>收集状态</h2>
-
-      {/* New: overall stats */}
-      <div className={styles.totalStats}>
-        <span>精神: {energy}</span>
-        <span>耐力: {durability}</span>
+      <div className={styles.headerRow}>
+        <h2 className={styles.title}>收集状态</h2>
+        <div className={styles.totalStats}>
+          <span className={styles.energy}>精神: {energy}</span>
+          <span className={styles.durability}>耐力: {durability}</span>
+        </div>
       </div>
 
       <div className={styles.cardGrid}>

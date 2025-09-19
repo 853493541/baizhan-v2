@@ -18,14 +18,16 @@
   margin-bottom: 8px;
 }
 
+/* Better layout for narrow column */
 .abilityRow {
-  display: flex;
+  display: grid;
+  grid-template-columns: 32px 1fr auto; /* icon | name | controls */
   align-items: center;
   gap: 8px;
   background: #fff;
   border: 1px solid #eee;
   border-radius: 6px;
-  padding: 4px 8px;
+  padding: 6px 8px;
 }
 
 .abilityRow img {
@@ -34,15 +36,21 @@
   height: 28px;
 }
 
+/* ✅ Name can wrap or truncate */
 .name {
-  flex: 1;
   font-size: 14px;
+  color: #333;
+  white-space: nowrap; 
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+/* Controls shrink to fit */
 .controls {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-shrink: 0;
 }
 
 .minus {

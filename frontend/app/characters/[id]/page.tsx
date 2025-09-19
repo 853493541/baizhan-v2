@@ -31,7 +31,6 @@ export default function CharacterDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // ✅ use environment variable
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   // ============================
@@ -101,67 +100,92 @@ export default function CharacterDetailPage() {
 
   return (
     <div className={styles.page}>
-      <h1>角色详情</h1>
+      <h1 className={styles.pageTitle}>角色详情</h1>
 
-      {/* === Top section: Basics left + SingleAbilityUpdate right === */}
-      <div className={styles.topSection}>
-        <div className={styles.leftColumn}>
+      {/* === Top section: 65/35 split === */}
+      <div className={styles.topGrid}>
+        {/* LEFT → Basics (fills its grid box) */}
+        <div className={styles.topLeft}>
           <CharacterBasics
             character={character}
             onSave={handleSaveEdit}
             onDelete={handleDelete}
           />
-
-          <CharacterOCRSection
-            characterId={character._id}
-            currentAbilities={character.abilities}
-            onAbilitiesUpdated={(updatedAbilities) => {
-              setCharacter((prev) =>
-                prev
-                  ? {
-                      ...prev,
-                      abilities: { ...prev.abilities, ...updatedAbilities },
-                    }
-                  : prev
-              );
-            }}
-          />
         </div>
 
-        <div className={styles.rightColumn}>
-          <SingleAbilityUpdate
-            characterId={character._id}
-            abilities={character.abilities}
-            onAbilityUpdate={(ability, newLevel) => {
-              setCharacter((prev) =>
-                prev
-                  ? {
-                      ...prev,
-                      abilities: { ...prev.abilities, [ability]: newLevel },
-                    }
-                  : prev
-              );
-            }}
-          />
+        {/* RIGHT → Abilities overview (fills its grid box) */}
+        <div className={styles.topRight}>
+          <div className={styles.card}>
+            
+            <CharacterAbilities abilities={character.abilities} />
+          </div>
         </div>
       </div>
 
-      <AbilityHighlights
-        characterId={character._id}
-        abilities={character.abilities}
-        onAbilityUpdate={(ability, newLevel) => {
-          setCharacter((prev) =>
-            prev
-              ? { ...prev, abilities: { ...prev.abilities, [ability]: newLevel } }
-              : prev
-          );
-        }}
-      />
+      {/* === Middle section (65/35 flipped) === */}
+      <div className={styles.midGrid}>
+        {/* LEFT → Ability Highlights */}
+        <div className={styles.leftStack}>
+          <div className={styles.card}>
+            <AbilityHighlights
+              characterId={character._id}
+              abilities={character.abilities}
+              onAbilityUpdate={(ability, newLevel) => {
+                setCharacter((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        abilities: { ...prev.abilities, [ability]: newLevel },
+                      }
+                    : prev
+                );
+              }}
+            />
+          </div>
+        </div>
 
-      <h3 style={{ marginTop: 24 }}>技能</h3>
-      <CharacterAbilities abilities={character.abilities} />
+        {/* RIGHT → OCR + Single Ability Update */}
+        <div className={styles.rightStack}>
+          <div className={styles.card}>
+            <CharacterOCRSection
+              characterId={character._id}
+              currentAbilities={character.abilities}
+              onAbilitiesUpdated={(updatedAbilities) => {
+                setCharacter((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        abilities: { ...prev.abilities, ...updatedAbilities },
+                      }
+                    : prev
+                );
+              }}
+            />
+          </div>
 
-      <CollectionStatus character={character} />
+          <div className={styles.card}>
+            <SingleAbilityUpdate
+              characterId={character._id}
+              abilities={character.abilities}
+              onAbilityUpdate={(ability, newLevel) => {
+                setCharacter((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        abilities: { ...prev.abilities, [ability]: newLevel },
+                      }
+                    : prev
+                );
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* === Collection section === */}
+      <div className={styles.card}>
+        <CollectionStatus character={character} />
+      </div>
     </div>
   );
 }
