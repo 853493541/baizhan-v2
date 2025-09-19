@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import styles from "./styles.module.css";
+import AbilityFilterModal from "./AbilityFilterModal";
 
 interface AbilityFilter {
   ability: string;
@@ -31,9 +32,9 @@ const CORE_ABILITIES = [
   { name: "花钱消灾", icon: "/icons/花钱消灾.png" },
   { name: "阴阳术退散", icon: "/icons/阴阳术退散.png" },
   { name: "漾剑式", icon: "/icons/漾剑式.png" },
-  { name: "兔死狐悲", icon: "/icons/兔死狐悲.png" },
+  { name: "霞月长针", icon: "/icons/霞月长针.png" },
+  { name: "特制金创药", icon: "/icons/特制金创药.png" },
 ];
-
 export default function CharacterFilters({
   ownerFilter,
   serverFilter,
@@ -48,16 +49,20 @@ export default function CharacterFilters({
   onRemoveAbility,
   setAbilityFilters,
 }: Props) {
-  // track global level, but allow abilities to be added even if none chosen
-  const globalLevel = abilityFilters[0]?.level;
+  const [customAbilities, setCustomAbilities] = useState<
+    { name: string; icon: string }[]
+  >([]);
+  const [showModal, setShowModal] = useState(false);
+
+  // track global level, default to 10
+  const globalLevel = abilityFilters[0]?.level ?? 10;
 
   const handleAbilityToggle = (ability: string) => {
     const idx = abilityFilters.findIndex((f) => f.ability === ability);
     if (idx !== -1) {
       onRemoveAbility(idx);
     } else {
-      // if no global level selected yet, default to 9
-      onAddAbility(ability, globalLevel ??10);
+      onAddAbility(ability, globalLevel);
     }
   };
 
@@ -65,6 +70,8 @@ export default function CharacterFilters({
     const currentAbilities = abilityFilters.map((f) => f.ability);
     setAbilityFilters(currentAbilities.map((a) => ({ ability: a, level })));
   };
+
+  const allAbilities = [...CORE_ABILITIES, ...customAbilities];
 
   return (
     <div className={styles.filters}>
@@ -110,7 +117,7 @@ export default function CharacterFilters({
 
       {/* Row 2: ability icons */}
       <div className={styles.abilitiesRow}>
-        {CORE_ABILITIES.map((a) => {
+        {allAbilities.map((a) => {
           const active = abilityFilters.some((f) => f.ability === a.name);
           return (
             <div
@@ -126,12 +133,7 @@ export default function CharacterFilters({
 
         <button
           className={styles.customButton}
-          onClick={() => {
-            const abilityName = prompt("输入技能名:");
-            if (abilityName) {
-              onAddAbility(abilityName, globalLevel ?? 9);
-            }
-          }}
+          onClick={() => setShowModal(true)}
         >
           + 自定义技能
         </button>
@@ -151,6 +153,21 @@ export default function CharacterFilters({
           </button>
         ))}
       </div>
+
+      {/* Custom ability search modal */}
+      {showModal && (
+        <AbilityFilterModal
+          onConfirm={(abilityName: string) => {
+            setCustomAbilities((prev) => [
+              ...prev,
+              { name: abilityName, icon: `/icons/${abilityName}.png` },
+            ]);
+            onAddAbility(abilityName, globalLevel);
+            setShowModal(false);
+          }}
+          onClose={() => setShowModal(false)}
+        />
+      )}
     </div>
   );
 }

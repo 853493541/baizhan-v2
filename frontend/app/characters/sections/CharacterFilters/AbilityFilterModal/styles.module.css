@@ -48,9 +48,13 @@
 }
 
 .item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 6px 10px;
   cursor: pointer;
   border-radius: 4px;
+  transition: background 0.2s ease;
 }
 
 .item:hover {
@@ -63,6 +67,12 @@
   font-weight: bold;
 }
 
+.icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
 .noResult {
   padding: 10px;
   text-align: center;
@@ -70,29 +80,9 @@
   font-size: 14px;
 }
 
-.select {
-  padding: 6px;
-  margin-bottom: 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-}
-
 .actions {
   display: flex;
-  justify-content: space-between;
-}
-
-.confirm {
-  background: #28a745;
-  color: white;
-  padding: 8px 14px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.confirm:hover {
-  background: #218838;
+  justify-content: center;
 }
 
 .cancel {

@@ -1,34 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import abilities from "@/lib/seedAbilities";
 import styles from "./styles.module.css";
 
 interface Props {
-  onConfirm: (ability: string, level: number) => void;
+  onConfirm: (ability: string) => void;
   onClose: () => void;
 }
 
 export default function AbilityFilterModal({ onConfirm, onClose }: Props) {
   const [search, setSearch] = useState("");
-  const [selectedAbility, setSelectedAbility] = useState("");
-  const [selectedLevel, setSelectedLevel] = useState<number>(9);
 
   // Filter abilities by search
   const filtered = abilities.filter((a) =>
     a.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Auto-select first ability if none chosen yet
-  useEffect(() => {
-    if (filtered.length > 0 && !selectedAbility) {
-      setSelectedAbility(filtered[0]);
-    }
-  }, [search]);
-
-  const handleConfirm = () => {
-    if (!selectedAbility) return;
-    onConfirm(selectedAbility, selectedLevel);
+  const handleSelect = (ability: string) => {
+    onConfirm(ability);
     onClose();
   };
 
@@ -49,12 +39,15 @@ export default function AbilityFilterModal({ onConfirm, onClose }: Props) {
           {filtered.map((a) => (
             <div
               key={a}
-              className={`${styles.item} ${
-                selectedAbility === a ? styles.active : ""
-              }`}
-              onClick={() => setSelectedAbility(a)}
+              className={styles.item}
+              onClick={() => handleSelect(a)}
             >
-              {a}
+              <img
+                src={`/icons/${a}.png`}
+                alt={a}
+                className={styles.icon}
+              />
+              <span>{a}</span>
             </div>
           ))}
           {filtered.length === 0 && (
@@ -62,21 +55,9 @@ export default function AbilityFilterModal({ onConfirm, onClose }: Props) {
           )}
         </div>
 
-        <select
-          value={selectedLevel}
-          onChange={(e) => setSelectedLevel(Number(e.target.value))}
-          className={styles.select}
-        >
-          <option value={9}>9级</option>
-          <option value={10}>10级</option>
-        </select>
-
         <div className={styles.actions}>
-          <button onClick={handleConfirm} className={styles.confirm}>
-            确认
-          </button>
           <button onClick={onClose} className={styles.cancel}>
-            取消
+            关闭
           </button>
         </div>
       </div>
