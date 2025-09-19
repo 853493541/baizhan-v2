@@ -104,7 +104,7 @@ export default function CharacterDetailPage() {
 
       {/* === Top section: 65/35 split === */}
       <div className={styles.topGrid}>
-        {/* LEFT → Basics (fills its grid box) */}
+        {/* LEFT → Basics */}
         <div className={styles.topLeft}>
           <CharacterBasics
             character={character}
@@ -113,11 +113,32 @@ export default function CharacterDetailPage() {
           />
         </div>
 
-        {/* RIGHT → Abilities overview (fills its grid box) */}
+        {/* RIGHT → Abilities (top) + OCR (bottom) in same card */}
         <div className={styles.topRight}>
           <div className={styles.card}>
-            
+            {/* ✅ Abilities overview first */}
             <CharacterAbilities abilities={character.abilities} />
+
+            {/* ✅ OCR upload + scan status second */}
+            <div className={styles.ocrWrapper}>
+              <CharacterOCRSection
+                characterId={character._id}
+                currentAbilities={character.abilities}
+                onAbilitiesUpdated={(updatedAbilities) => {
+                  setCharacter((prev) =>
+                    prev
+                      ? {
+                          ...prev,
+                          abilities: {
+                            ...prev.abilities,
+                            ...updatedAbilities,
+                          },
+                        }
+                      : prev
+                  );
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -144,25 +165,8 @@ export default function CharacterDetailPage() {
           </div>
         </div>
 
-        {/* RIGHT → OCR + Single Ability Update */}
+        {/* RIGHT → Single Ability Update */}
         <div className={styles.rightStack}>
-          <div className={styles.card}>
-            <CharacterOCRSection
-              characterId={character._id}
-              currentAbilities={character.abilities}
-              onAbilitiesUpdated={(updatedAbilities) => {
-                setCharacter((prev) =>
-                  prev
-                    ? {
-                        ...prev,
-                        abilities: { ...prev.abilities, ...updatedAbilities },
-                      }
-                    : prev
-                );
-              }}
-            />
-          </div>
-
           <div className={styles.card}>
             <SingleAbilityUpdate
               characterId={character._id}

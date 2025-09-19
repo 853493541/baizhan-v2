@@ -27,13 +27,14 @@ export default function CharacterAbilities({ abilities }: CharacterAbilitiesProp
   return (
     <div className={styles.scanBox}>
       <div className={styles.scanHeader}>
-        <span className={styles.scanIcon}>🔍</span>
-        <h2 className={styles.scanTitle}>OCR扫描结果</h2>
+        <div className={styles.scanTitleRow}>
+          <span className={styles.scanIcon}>🔍</span>
+          <h2 className={styles.scanTitle}>OCR扫描结果</h2>
+        </div>
+        <button onClick={() => setOpen(true)} className={styles.showButton}>
+          查看
+        </button>
       </div>
-
-      <button onClick={() => setOpen(true)} className={styles.showButton}>
-        查看全部技能（重数排序）
-      </button>
 
       <p className={styles.lastScan}>上次扫描时间：8天前</p>
 
