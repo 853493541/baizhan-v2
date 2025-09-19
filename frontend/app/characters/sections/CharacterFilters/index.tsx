@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import styles from "./styles.module.css";
 import AbilityFilterModal from "./AbilityFilterModal";
+import Dropdown from "../../../components/layout/dropdown";
 
 interface AbilityFilter {
   ability: string;
@@ -112,35 +113,23 @@ export default function CharacterFilters({
     <div className={styles.filterSection}>
       {/* Row 1: dropdowns + role buttons + reset */}
       <div className={styles.filterRow}>
-        <select
+        <Dropdown
+          label="拥有者"
+          options={uniqueOwners}
           value={ownerFilter}
-          onChange={(e) => setOwnerFilter(e.target.value)}
-          className={styles.select}
-        >
-          <option value="">拥有者</option>
-          {uniqueOwners.map((o) => (
-            <option key={o} value={o}>
-              {o}
-            </option>
-          ))}
-        </select>
+          onChange={setOwnerFilter}
+        />
 
-        <select
+        <Dropdown
+          label="服务器"
+          options={uniqueServers}
           value={serverFilter}
-          onChange={(e) => setServerFilter(e.target.value)}
-          className={styles.select}
-        >
-          <option value="">服务器</option>
-          {uniqueServers.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
+          onChange={setServerFilter}
+        />
 
         {/* Role buttons inline */}
         {[
-          { label: "T", value: "T" },
+          { label: "防御", value: "T" },
           { label: "输出", value: "DPS" },
           { label: "治疗", value: "Healer" },
         ].map((opt) => (

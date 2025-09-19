@@ -6,6 +6,7 @@ import { Character } from "@/types/Character";
 import { normalizeGender } from "@/utils/normalize";
 import styles from "./page.module.css";
 
+import TitleBar from "@/app/components/layout/titleBar";  // ✅ new import
 import CharacterFilters from "./sections/CharacterFilters";
 import CharacterGrid from "./sections/CharacterGrid";
 import CreateButton from "./sections/CreateButton";
@@ -84,21 +85,16 @@ export default function CharactersPage() {
     return true;
   });
 
-  // ✅ wipe-and-rebuild for ability filters
   const handleAddAbilityFilter = (ability: string, level: number) => {
-    // Get current abilities (without duplicates)
     const currentAbilities = abilityFilters.map((f) => f.ability);
     let newAbilities: string[];
 
     if (currentAbilities.includes(ability)) {
-      // remove ability if already selected
       newAbilities = currentAbilities.filter((a) => a !== ability);
     } else {
-      // add new ability
       newAbilities = [...currentAbilities, ability];
     }
 
-    // rebuild state fresh
     setAbilityFilters(newAbilities.map((a) => ({ ability: a, level })));
   };
 
@@ -113,7 +109,11 @@ export default function CharactersPage() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>角色仓库</h1>
+      {/* ✅ Replaced plain <h1> with TitleBar */}
+      <TitleBar
+        title="角色仓库"
+        
+      />
 
       <CharacterFilters
         ownerFilter={ownerFilter}
@@ -127,7 +127,7 @@ export default function CharactersPage() {
         setRoleFilter={setRoleFilter}
         onAddAbility={handleAddAbilityFilter}
         onRemoveAbility={handleRemoveAbilityFilter}
-        setAbilityFilters={setAbilityFilters} 
+        setAbilityFilters={setAbilityFilters}
       />
 
       <CharacterGrid
