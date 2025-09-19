@@ -11,6 +11,7 @@ interface Props {
 
 export default function AbilityFilterModal({ onConfirm, onClose }: Props) {
   const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<string | null>(null);
 
   // Filter abilities by search
   const filtered = abilities.filter((a) =>
@@ -18,6 +19,7 @@ export default function AbilityFilterModal({ onConfirm, onClose }: Props) {
   );
 
   const handleSelect = (ability: string) => {
+    setSelected(ability);
     onConfirm(ability);
     onClose();
   };
@@ -25,7 +27,7 @@ export default function AbilityFilterModal({ onConfirm, onClose }: Props) {
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
-        <h3 className={styles.title}>选择技能筛选</h3>
+        <h3 className={styles.title}>选择技能</h3>
 
         <input
           type="text"
@@ -39,15 +41,23 @@ export default function AbilityFilterModal({ onConfirm, onClose }: Props) {
           {filtered.map((a) => (
             <div
               key={a}
-              className={styles.item}
+              className={`${styles.item} ${
+                selected === a ? styles.active : ""
+              }`}
               onClick={() => handleSelect(a)}
             >
               <img
                 src={`/icons/${a}.png`}
                 alt={a}
                 className={styles.icon}
+                onError={(e) =>
+                  ((e.target as HTMLImageElement).style.display = "none")
+                }
               />
               <span>{a}</span>
+              {selected === a && (
+                <span className={styles.checkmark}>✔</span>
+              )}
             </div>
           ))}
           {filtered.length === 0 && (

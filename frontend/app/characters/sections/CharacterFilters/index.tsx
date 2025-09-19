@@ -24,6 +24,7 @@ interface Props {
   setAbilityFilters: React.Dispatch<React.SetStateAction<AbilityFilter[]>>;
 }
 
+// Core abilities (with corrected names)
 const CORE_ABILITIES = [
   { name: "斗转金移", icon: "/icons/斗转金移.png" },
   { name: "黑煞落贪狼", icon: "/icons/黑煞落贪狼.png" },
@@ -35,6 +36,7 @@ const CORE_ABILITIES = [
   { name: "霞月长针", icon: "/icons/霞月长针.png" },
   { name: "特制金创药", icon: "/icons/特制金创药.png" },
 ];
+
 export default function CharacterFilters({
   ownerFilter,
   serverFilter,
@@ -49,33 +51,64 @@ export default function CharacterFilters({
   onRemoveAbility,
   setAbilityFilters,
 }: Props) {
-  const [customAbilities, setCustomAbilities] = useState<
-    { name: string; icon: string }[]
-  >([]);
+  const [selectedAbilities, setSelectedAbilities] = useState<string[]>([]);
+  const [globalLevel, setGlobalLevel] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
 
-  // track global level, default to 10
-  const globalLevel = abilityFilters[0]?.level ?? 10;
+  // session-only custom abilities that should appear as icons
+  const [extraAbilities, setExtraAbilities] = useState<
+    { name: string; icon: string }[]
+  >([]);
 
+  const DISPLAY_ABILITIES = [...CORE_ABILITIES, ...extraAbilities];
+
+  // toggle ability icon
   const handleAbilityToggle = (ability: string) => {
-    const idx = abilityFilters.findIndex((f) => f.ability === ability);
-    if (idx !== -1) {
-      onRemoveAbility(idx);
+    if (selectedAbilities.includes(ability)) {
+      setSelectedAbilities((prev) => prev.filter((a) => a !== ability));
+      const idx = abilityFilters.findIndex((f) => f.ability === ability);
+      if (idx !== -1) onRemoveAbility(idx);
     } else {
-      onAddAbility(ability, globalLevel);
+      setSelectedAbilities((prev) => [...prev, ability]);
+      if (globalLevel !== null) {
+        onAddAbility(ability, globalLevel);
+      }
     }
   };
 
+  // level change applies to all currently selected abilities
   const handleGlobalLevelChange = (level: number) => {
-    const currentAbilities = abilityFilters.map((f) => f.ability);
-    setAbilityFilters(currentAbilities.map((a) => ({ ability: a, level })));
+    setGlobalLevel(level);
+    if (selectedAbilities.length > 0) {
+      setAbilityFilters(selectedAbilities.map((a) => ({ ability: a, level })));
+    }
   };
 
-  const allAbilities = [...CORE_ABILITIES, ...customAbilities];
+  // confirm from modal: add to icons (if not core), select it, and apply level if present
+  const handleConfirmCustom = (abilityName: string) => {
+    const isCore = CORE_ABILITIES.some((a) => a.name === abilityName);
+    const isAlreadyExtra = extraAbilities.some((a) => a.name === abilityName);
+
+    if (!isCore && !isAlreadyExtra) {
+      setExtraAbilities((prev) => [
+        ...prev,
+        { name: abilityName, icon: `/icons/${abilityName}.png` },
+      ]);
+    }
+
+    if (!selectedAbilities.includes(abilityName)) {
+      setSelectedAbilities((prev) => [...prev, abilityName]);
+      if (globalLevel !== null) {
+        onAddAbility(abilityName, globalLevel);
+      }
+    }
+
+    setShowModal(false);
+  };
 
   return (
     <div className={styles.filters}>
-      {/* Row 1: dropdown filters */}
+      {/* Row 1: dropdowns */}
       <div className={styles.filterRow}>
         <select
           value={ownerFilter}
@@ -115,10 +148,10 @@ export default function CharacterFilters({
         </select>
       </div>
 
-      {/* Row 2: ability icons */}
+      {/* Row 2: ability icons (core + session custom) */}
       <div className={styles.abilitiesRow}>
-        {allAbilities.map((a) => {
-          const active = abilityFilters.some((f) => f.ability === a.name);
+        {DISPLAY_ABILITIES.map((a) => {
+          const active = selectedAbilities.includes(a.name);
           return (
             <div
               key={a.name}
@@ -131,15 +164,12 @@ export default function CharacterFilters({
           );
         })}
 
-        <button
-          className={styles.customButton}
-          onClick={() => setShowModal(true)}
-        >
+        <button className={styles.customButton} onClick={() => setShowModal(true)}>
           + 自定义技能
         </button>
       </div>
 
-      {/* Row 3: global level selector */}
+      {/* Row 3: level selector */}
       <div className={styles.levelRow}>
         {[8, 9, 10].map((lvl) => (
           <button
@@ -154,17 +184,10 @@ export default function CharacterFilters({
         ))}
       </div>
 
-      {/* Custom ability search modal */}
+      {/* Modal */}
       {showModal && (
         <AbilityFilterModal
-          onConfirm={(abilityName: string) => {
-            setCustomAbilities((prev) => [
-              ...prev,
-              { name: abilityName, icon: `/icons/${abilityName}.png` },
-            ]);
-            onAddAbility(abilityName, globalLevel);
-            setShowModal(false);
-          }}
+          onConfirm={handleConfirmCustom}
           onClose={() => setShowModal(false)}
         />
       )}

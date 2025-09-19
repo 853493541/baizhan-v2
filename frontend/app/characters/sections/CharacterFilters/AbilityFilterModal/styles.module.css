@@ -97,3 +97,35 @@
 .cancel:hover {
   background: #999;
 }
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  position: relative;
+}
+
+.item:hover {
+  background: #f0f0f0;
+}
+
+.active {
+  border-color: #28a745; /* green border */
+  background: #eaffea;   /* light green background */
+}
+
+.icon {
+  width: 24px;
+  height: 24px;
+}
+
+.checkmark {
+  position: absolute;
+  right: 8px;
+  color: #28a745;
+  font-weight: bold;
+}
