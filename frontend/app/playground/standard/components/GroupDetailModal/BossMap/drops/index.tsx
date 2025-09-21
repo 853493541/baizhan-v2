@@ -93,15 +93,13 @@ export default function Drops({
           {/* ✅ Left column: abilities */}
           <div className={styles.leftColumn}>
             <div className={styles.dropList}>
-              {/* Normal ability buttons (skip 全有 ones here) */}
-              {options.map((opt, i) => {
-                const isAllHave =
-                  opt.level === 9 && allHaveAbility(opt.ability, 9);
-                if (isAllHave) return null;
-
-                return (
+              {/* === 九重 options first === */}
+                <div className={styles.sectionDivider}>九重</div>
+              {options
+                .filter((opt) => opt.level === 9 && !allHaveAbility(opt.ability, 9))
+                .map((opt, i) => (
                   <button
-                    key={i}
+                    key={`9-${i}`}
                     className={`${styles.dropBtn} ${
                       chosenDrop !== "noDrop" &&
                       (chosenDrop as any)?.ability === opt.ability &&
@@ -116,14 +114,42 @@ export default function Drops({
                       alt={opt.ability}
                       className={styles.iconSmall}
                     />
-                    <span className={styles.dropText}>
-                      {opt.level === 9 ? "九重" : "十重"} · {opt.ability}
-                    </span>
+                    
+                    <span className={styles.dropText}>九重 · {opt.ability}</span>
                   </button>
-                );
-              })}
+                ))}
 
-              {/* === Special 全有 row above 无掉落 === */}
+              {/* === Divider === */}
+              <div className={styles.sectionDivider}>十重</div>
+
+              {/* === 十重 options next === */}
+              {options
+                .filter((opt) => opt.level === 10)
+                .map((opt, i) => (
+                  <button
+                    key={`10-${i}`}
+                    className={`${styles.dropBtn} ${
+                      chosenDrop !== "noDrop" &&
+                      (chosenDrop as any)?.ability === opt.ability &&
+                      (chosenDrop as any)?.level === opt.level
+                        ? styles.activeBtn
+                        : ""
+                    }`}
+                    onClick={() => setChosenDrop(opt)}
+                  >
+                    <img
+                      src={getAbilityIcon(opt.ability)}
+                      alt={opt.ability}
+                      className={styles.iconSmall}
+                    />
+                    <span className={styles.dropText}>十重 · {opt.ability}</span>
+                  </button>
+                ))}
+
+              {/* === Divider === */}
+              <div className={styles.sectionDivider}>已有</div>
+
+              {/* === 全有 row === */}
               {allHaveOptions.map((opt, i) => (
                 <button
                   key={`allhave-${i}`}
@@ -144,6 +170,9 @@ export default function Drops({
                 </button>
               ))}
 
+              {/* === Divider === */}
+              <div className={styles.sectionDivider}>无掉落</div>
+
               {/* === 无掉落 === */}
               <button
                 className={styles.noDropBtn}
@@ -152,13 +181,14 @@ export default function Drops({
                   onClose();
                 }}
               >
-                无掉落
+                无掉落/紫书
               </button>
             </div>
           </div>
 
           {/* ✅ Right column: characters */}
           <div className={styles.rightColumn}>
+               <div className={styles.sectionDivider}>角色</div>
             <div className={styles.memberGrid}>
               {group.characters.map((c: any) => {
                 let levelDisplay: string | null = null;

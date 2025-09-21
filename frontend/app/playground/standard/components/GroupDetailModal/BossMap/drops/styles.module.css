@@ -184,3 +184,13 @@
   background: #f1b0b7;
   border-color: #dc3545;
 }
+
+.sectionDivider {
+  margin: 8px 0;
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #666;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 2px;
+}
