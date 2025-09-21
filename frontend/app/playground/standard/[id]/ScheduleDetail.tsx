@@ -10,6 +10,13 @@ import AbilityCheckingSection from "../components/AbilityChecking";
 import MainSection from "../components/Main";
 import { useRouter } from "next/navigation";
 
+// ✅ Extended group type to match DB
+interface ExtendedGroup extends GroupResult {
+  index: number;
+  status?: "not_started" | "started" | "finished";
+  kills?: any[];
+}
+
 interface StandardSchedule {
   _id: string;
   name: string;
@@ -19,7 +26,7 @@ interface StandardSchedule {
   checkedAbilities: AbilityCheck[];
   characterCount: number;
   characters: Character[];
-  groups?: { index: number; characters: Character[] }[];
+  groups?: ExtendedGroup[];
 }
 
 interface Props {
@@ -71,30 +78,32 @@ function checkGroupQA(
 export default function ScheduleDetail({ scheduleId }: Props) {
   const [schedule, setSchedule] = useState<StandardSchedule | null>(null);
   const [loading, setLoading] = useState(true);
-  const [groups, setGroups] = useState<GroupResult[]>([]);
+  const [groups, setGroups] = useState<ExtendedGroup[]>([]);
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const router = useRouter();
 
-  // ✅ Fetch
+  // ✅ Extract fetch so it can be reused by onRefresh
+  const fetchSchedule = async () => {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}`
+      );
+      if (!res.ok) throw new Error("Failed to fetch schedule");
+      const data: StandardSchedule = await res.json();
+      console.log("📥 Loaded schedule:", data);
+      setSchedule(data);
+      if (data.groups) setGroups(data.groups);
+    } catch (err) {
+      console.error("❌ Error fetching schedule:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ Initial load
   useEffect(() => {
-    const fetchSchedule = async () => {
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}`
-        );
-        if (!res.ok) throw new Error("Failed to fetch schedule");
-        const data = await res.json();
-        console.log("📥 Loaded schedule:", data);
-        setSchedule(data);
-        if (data.groups) setGroups(data.groups);
-      } catch (err) {
-        console.error("❌ Error fetching schedule:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchSchedule();
   }, [scheduleId]);
 
@@ -146,11 +155,13 @@ export default function ScheduleDetail({ scheduleId }: Props) {
 
       {activeIdx !== null && (
         <GroupDetailModal
+          scheduleId={schedule._id}       // ✅ make sure this is passed
           groupIndex={activeIdx}
           group={groups[activeIdx]}
           checkedAbilities={schedule.checkedAbilities}
           conflictLevel={schedule.conflictLevel}
           onClose={() => setActiveIdx(null)}
+          onRefresh={fetchSchedule}       // ✅ refresh after PATCH
         />
       )}
     </div>

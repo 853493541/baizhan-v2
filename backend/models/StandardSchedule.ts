@@ -6,9 +6,24 @@ interface CheckedAbility {
   available: boolean;
 }
 
+interface Kill {
+  floor: number;
+  boss: string;
+  completed: boolean;
+  selection?: {
+    ability?: string;
+    level?: number;
+    characterId?: mongoose.Types.ObjectId;
+    noDrop?: boolean;
+  };
+  recordedAt: Date;
+}
+
 interface Group {
   index: number; // group number
   characters: mongoose.Types.ObjectId[]; // refs to Character
+  status: "not_started" | "started" | "finished";
+  kills: Kill[];
 }
 
 export interface IStandardSchedule extends Document {
@@ -31,10 +46,32 @@ const AbilitySchema = new Schema<CheckedAbility>(
   { _id: false }
 );
 
+const KillSchema = new Schema<Kill>(
+  {
+    floor: { type: Number, required: true },
+    boss: { type: String },
+    completed: { type: Boolean, default: false },
+    selection: {
+      ability: { type: String },
+      level: { type: Number },
+      characterId: { type: Schema.Types.ObjectId, ref: "Character" },
+      noDrop: { type: Boolean },
+    },
+    recordedAt: { type: Date, default: Date.now },
+  },
+  { _id: false }
+);
+
 const GroupSchema = new Schema<Group>(
   {
     index: { type: Number, required: true },
     characters: [{ type: Schema.Types.ObjectId, ref: "Character" }],
+    status: {
+      type: String,
+      enum: ["not_started", "started", "finished"],
+      default: "not_started",
+    },
+    kills: { type: [KillSchema], default: [] },
   },
   { _id: false }
 );

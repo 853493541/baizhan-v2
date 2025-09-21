@@ -5,6 +5,8 @@ import {
   getStandardScheduleById,
   updateStandardSchedule,
   deleteStandardSchedule,
+  updateGroupStatus,
+  updateGroupKill,
 } from "../controllers/playground/standardScheduleController";
 
 const router = Router();
@@ -23,5 +25,8 @@ router.put("/:id", updateStandardSchedule);
 
 // DELETE standard schedule by ID
 router.delete("/:id", deleteStandardSchedule);
+
+router.patch("/:id/groups/:index/status", updateGroupStatus);
+router.patch("/:id/groups/:index/kills/:floor", updateGroupKill);
 
 export default router;

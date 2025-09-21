@@ -12,11 +12,13 @@ import rawBossData from "../../../../data/boss_skills_collection_map.json";
 const bossData: Record<string, string[]> = rawBossData;
 
 interface Props {
+  scheduleId: string;   // ✅ added
   groupIndex: number;
   group: GroupResult;
   checkedAbilities: AbilityCheck[];
   conflictLevel: number;
   onClose: () => void;
+  onRefresh?: () => void; // ✅ pass through for refreshing after API calls
 }
 
 interface WeeklyMapResponse {
@@ -24,11 +26,13 @@ interface WeeklyMapResponse {
 }
 
 export default function GroupDetailModal({
+  scheduleId,
   groupIndex,
   group,
   checkedAbilities,
   conflictLevel,
   onClose,
+  onRefresh,
 }: Props) {
   const [weeklyMap, setWeeklyMap] = useState<Record<number, string>>({});
 
@@ -86,10 +90,15 @@ export default function GroupDetailModal({
           group={group}
           checkedAbilities={checkedAbilities}
           conflictLevel={conflictLevel}
-          weeklyAbilities={weeklyAbilities} // ✅ now passes correct drop level
+          weeklyAbilities={weeklyAbilities} // ✅ includes drop levels
         />
 
-        <BossMap group={group} weeklyMap={weeklyMap} />
+        <BossMap
+          scheduleId={scheduleId}   // ✅ now passed down
+          group={group as any}      // cast since BossMap expects ExtendedGroup
+          weeklyMap={weeklyMap}
+          onRefresh={onRefresh}
+        />
       </div>
     </div>
   );

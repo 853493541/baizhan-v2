@@ -42,3 +42,37 @@
   color: red;
   font-weight: bold;
 }
+/* make sure cards feel and ARE clickable */
+.card {
+  position: relative;            /* so the checkmark can anchor */
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
+
+.cardInteractive {
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  z-index: 1;                    /* avoid being covered by siblings */
+}
+.cardInteractive:hover,
+.cardInteractive:focus {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  border-color: #007bff;
+  outline: none;
+}
+
+/* existing helpers (keep if you already have them) */
+.row { display: flex; gap: 10px; margin-bottom: 14px; }
+.floorLabel { font-weight: 600; margin-bottom: 6px; }
+.noNeed { color: #999; font-size: 0.9rem; }
+.needList { list-style: none; padding: 0; margin: 0; font-size: 0.9rem; }
+.coreHighlight { color: #b22222; font-weight: 700; }
+.checkmark {
+  position: absolute; top: 6px; right: 6px;
+  background: #28a745; color: #fff; font-size: 0.8rem;
+  padding: 2px 6px; border-radius: 50%;
+}
