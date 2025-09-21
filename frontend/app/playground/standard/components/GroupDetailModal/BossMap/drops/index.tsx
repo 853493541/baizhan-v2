@@ -166,7 +166,7 @@ export default function Drops({
 
                 if (chosenDrop && chosenDrop !== "noDrop") {
                   const currentLevel = c.abilities?.[chosenDrop.ability] ?? 0;
-                  levelDisplay = `Lv${currentLevel}`;
+                  levelDisplay = `${currentLevel}重`;
                   if (currentLevel >= chosenDrop.level) {
                     disabled = true; // ✅ already has this level or higher
                   }
