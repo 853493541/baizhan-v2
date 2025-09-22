@@ -1,4 +1,6 @@
 .container {
+  max-width: 1024px;   /* ✅ constrain to 1024px */
+  margin: 0 auto;      /* ✅ center horizontally */
   padding: 20px;
 }
 
@@ -9,19 +11,18 @@
 }
 
 .row {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 8px;
+  display: grid;                                  /* ✅ use grid */
+  grid-template-columns: repeat(10, 1fr);         /* ✅ 10 per row */
+  gap: 8px;                                       /* space between cards */
   margin-bottom: 16px;
 }
 
 .card {
-  flex: 1;
-  min-width: 120px;
   border: 1px solid #ccc;
   border-radius: 6px;
   padding: 10px;
   background: #f9f9f9;
+  text-align: center;
 }
 
 .floorLabel {

@@ -77,8 +77,13 @@ export default function Drops({
     });
   };
 
-  const allHaveOptions = options.filter(
+  // Separate 全有 lists for 9重 and 10重
+  const allHave9Options = options.filter(
     (opt) => opt.level === 9 && allHaveAbility(opt.ability, 9)
+  );
+
+  const allHave10Options = options.filter(
+    (opt) => opt.level === 10 && allHaveAbility(opt.ability, 10)
   );
 
   return (
@@ -94,9 +99,11 @@ export default function Drops({
           <div className={styles.leftColumn}>
             <div className={styles.dropList}>
               {/* === 九重 options first === */}
-                <div className={styles.sectionDivider}>九重</div>
+              <div className={styles.sectionDivider}>九重</div>
               {options
-                .filter((opt) => opt.level === 9 && !allHaveAbility(opt.ability, 9))
+                .filter(
+                  (opt) => opt.level === 9 && !allHaveAbility(opt.ability, 9)
+                )
                 .map((opt, i) => (
                   <button
                     key={`9-${i}`}
@@ -114,7 +121,6 @@ export default function Drops({
                       alt={opt.ability}
                       className={styles.iconSmall}
                     />
-                    
                     <span className={styles.dropText}>九重 · {opt.ability}</span>
                   </button>
                 ))}
@@ -124,7 +130,9 @@ export default function Drops({
 
               {/* === 十重 options next === */}
               {options
-                .filter((opt) => opt.level === 10)
+                .filter(
+                  (opt) => opt.level === 10 && !allHaveAbility(opt.ability, 10)
+                )
                 .map((opt, i) => (
                   <button
                     key={`10-${i}`}
@@ -147,12 +155,14 @@ export default function Drops({
                 ))}
 
               {/* === Divider === */}
-              <div className={styles.sectionDivider}>已有</div>
+              {(allHave9Options.length > 0 || allHave10Options.length > 0) && (
+                <div className={styles.sectionDivider}>已有</div>
+              )}
 
-              {/* === 全有 row === */}
-              {allHaveOptions.map((opt, i) => (
+              {/* === 九重全有 === */}
+              {allHave9Options.map((opt, i) => (
                 <button
-                  key={`allhave-${i}`}
+                  key={`allhave9-${i}`}
                   className={`${styles.dropBtn} ${styles.allHaveBtn}`}
                   onClick={() => {
                     onSave(floor, { noDrop: true });
@@ -166,6 +176,27 @@ export default function Drops({
                   />
                   <span className={styles.dropText}>
                     九重 · {opt.ability} (全有)
+                  </span>
+                </button>
+              ))}
+
+              {/* === 十重全有 === */}
+              {allHave10Options.map((opt, i) => (
+                <button
+                  key={`allhave10-${i}`}
+                  className={`${styles.dropBtn} ${styles.allHaveBtn}`}
+                  onClick={() => {
+                    onSave(floor, { noDrop: true });
+                    onClose();
+                  }}
+                >
+                  <img
+                    src={getAbilityIcon(opt.ability)}
+                    alt={opt.ability}
+                    className={styles.iconSmall}
+                  />
+                  <span className={styles.dropText}>
+                    十重 · {opt.ability} (全有)
                   </span>
                 </button>
               ))}
@@ -188,7 +219,7 @@ export default function Drops({
 
           {/* ✅ Right column: characters */}
           <div className={styles.rightColumn}>
-               <div className={styles.sectionDivider}>角色</div>
+            <div className={styles.sectionDivider}>角色</div>
             <div className={styles.memberGrid}>
               {group.characters.map((c: any) => {
                 let levelDisplay: string | null = null;

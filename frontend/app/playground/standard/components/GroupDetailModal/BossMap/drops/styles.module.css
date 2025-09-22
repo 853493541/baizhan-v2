@@ -101,6 +101,7 @@
   border: 1px solid #28a745;
   background: #eafbea;
   color: #155724;
+  
 }
 .memberBtn:hover {
   background: #d4f5d4;
@@ -110,6 +111,7 @@
   color: #888;
   border: 1px solid #ddd;
   cursor: not-allowed;
+  
 }
 
 /* Footer */
@@ -186,11 +188,13 @@
 }
 
 .sectionDivider {
-  margin: 8px 0;
+  margin: 10px 0;
   font-size: 0.85rem;
   font-weight: bold;
   color: #666;
   text-align: center;
   border-bottom: 1px solid #ddd;
   padding-bottom: 2px;
+
+
 }
