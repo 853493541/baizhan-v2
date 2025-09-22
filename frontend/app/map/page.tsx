@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import bossData from "../data/boss_skills_collection_map.json";
 import styles from "./styles.module.css";
+import CurrentWeek from "./components/CurrentWeek";
+import HistorySection from "./components/HistorySection";
 
 const specialBosses = [
   "武雪散",
@@ -17,11 +19,6 @@ const specialBosses = [
   "迟驻",
 ];
 
-interface WeeklyMapDoc {
-  week: string;
-  floors: Record<number, { boss: string }>;
-}
-
 export default function MapPage() {
   const normalBosses = Object.keys(bossData).filter(
     (b) => !specialBosses.includes(b)
@@ -31,10 +28,10 @@ export default function MapPage() {
   const row2 = [100, 99, 98, 97, 96, 95, 94, 93, 92, 91];
 
   const [floorAssignments, setFloorAssignments] = useState<Record<number, string>>({});
-  const [pastWeeks, setPastWeeks] = useState<WeeklyMapDoc[]>([]);
   const [status, setStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
-  const [showHistory, setShowHistory] = useState(false); // ✅ collapsed by default
+  const [locked, setLocked] = useState(false); // ✅ track lock state
 
+  // 🔹 Save to DB
   const persistToDB = async (floors: Record<number, string>) => {
     setStatus("saving");
     try {
@@ -47,7 +44,6 @@ export default function MapPage() {
           ),
         }),
       });
-
       if (!res.ok) throw new Error("Request failed");
       setStatus("success");
       setTimeout(() => setStatus("idle"), 2000);
@@ -58,20 +54,21 @@ export default function MapPage() {
     }
   };
 
+  // 🔹 Delete current week
   const deleteCurrentWeek = async () => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Delete failed");
-
       setFloorAssignments({});
-      fetchPastWeeks(); // refresh history after delete
+      setLocked(false); // ✅ reset lock when deleting
     } catch (err) {
       console.error("❌ Failed to delete weekly map:", err);
     }
   };
 
+  // 🔹 Fetch current week
   const fetchMap = async () => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map`);
@@ -82,6 +79,7 @@ export default function MapPage() {
           floors[Number(floor)] = (obj as any).boss;
         }
         setFloorAssignments(floors);
+        setLocked(data.locked ?? false); // ✅ read locked state
         localStorage.setItem("weeklyFloors", JSON.stringify(floors));
       }
     } catch (err) {
@@ -89,23 +87,24 @@ export default function MapPage() {
     }
   };
 
-  const fetchPastWeeks = async () => {
+  // 🔹 Lock current week
+  const lockMap = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map/history`);
-      if (res.ok) {
-        const data = await res.json();
-        setPastWeeks(data);
-      }
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map/lock`, {
+        method: "POST",
+      });
+      if (!res.ok) throw new Error("Lock failed");
+      setLocked(true);
     } catch (err) {
-      console.error("❌ Failed to fetch past weeks:", err);
+      console.error("❌ Failed to lock weekly map:", err);
     }
   };
 
   useEffect(() => {
     fetchMap();
-    fetchPastWeeks();
   }, []);
 
+  // 🔹 Handle dropdown select
   const handleSelect = (floor: number, boss: string) => {
     setFloorAssignments((prev) => {
       const updated = { ...prev, [floor]: boss };
@@ -115,50 +114,27 @@ export default function MapPage() {
     });
   };
 
-  const renderRow = (floors: number[], readonly = false, data?: Record<number, { boss: string }>) => (
-    <div className={styles.row}>
-      {floors.map((floor) => (
-        <div key={floor} className={styles.card}>
-          <div className={styles.floorLabel}>{floor}</div>
-          {readonly ? (
-            <div>{data?.[floor]?.boss || "未选择"}</div>
-          ) : (
-            <select
-              className={
-                floor === 90 || floor === 100
-                  ? `${styles.dropdown} ${styles.dropdownElite}`
-                  : styles.dropdown
-              }
-              value={floorAssignments[floor] || ""}
-              onChange={(e) => handleSelect(floor, e.target.value)}
-            >
-              <option value="">-- 请选择 --</option>
-              {getAvailableBosses(floor).map((boss) => (
-                <option key={boss} value={boss}>
-                  {boss}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-
+  // 🔹 Boss options filtering
   const getAvailableBosses = (floor: number) => {
     if (floor === 90 || floor === 100) {
       return specialBosses.filter(
-        (b) => !new Set([90, 100].map((f) => floorAssignments[f])).has(b) || floorAssignments[floor] === b
+        (b) =>
+          !new Set([90, 100].map((f) => floorAssignments[f])).has(b) ||
+          floorAssignments[floor] === b
       );
     }
     if (floor >= 81 && floor <= 89) {
       return normalBosses.filter(
-        (b) => !new Set(row1.filter((f) => f !== floor).map((f) => floorAssignments[f])).has(b) || floorAssignments[floor] === b
+        (b) =>
+          !new Set(row1.filter((f) => f !== floor).map((f) => floorAssignments[f])).has(b) ||
+          floorAssignments[floor] === b
       );
     }
     if (floor >= 91 && floor <= 99) {
       return normalBosses.filter(
-        (b) => !new Set(row2.filter((f) => f !== floor).map((f) => floorAssignments[f])).has(b) || floorAssignments[floor] === b
+        (b) =>
+          !new Set(row2.filter((f) => f !== floor).map((f) => floorAssignments[f])).has(b) ||
+          floorAssignments[floor] === b
       );
     }
     return normalBosses;
@@ -166,53 +142,19 @@ export default function MapPage() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>选择本周地图 (81–100 层)</h1>
+      <CurrentWeek
+        row1={row1}
+        row2={row2}
+        floorAssignments={floorAssignments}
+        onSelect={handleSelect}
+        getAvailableBosses={getAvailableBosses}
+        onDelete={deleteCurrentWeek}
+        status={status}
+        locked={locked}       // ✅ pass lock state
+        onLock={lockMap}      // ✅ lock handler
+      />
 
-      {renderRow(row1)}
-      {renderRow(row2)}
-
-      <button onClick={deleteCurrentWeek} className={styles.deleteBtn}>
-        删除当前周地图
-      </button>
-
-      {status !== "idle" && (
-        <div
-          className={`${styles.status} ${
-            status === "success"
-              ? styles.success
-              : status === "error"
-              ? styles.error
-              : styles.saving
-          }`}
-        >
-          {status === "saving" && "💾 正在保存..."}
-          {status === "success" && "✅ 保存成功"}
-          {status === "error" && "❌ 保存失败"}
-        </div>
-      )}
-
-      {/* Collapsible history */}
-      <div className={styles.summary}>
-        <button
-          onClick={() => setShowHistory(!showHistory)}
-          className={styles.toggleBtn}
-        >
-          {showHistory ? "▲ 收起历史周" : "▼ 展开历史周"}
-        </button>
-
-        {showHistory && (
-          <>
-            <h2>历史周地图 (最近 5 周)</h2>
-            {pastWeeks.map((weekDoc) => (
-              <div key={weekDoc.week}>
-                <h3>{weekDoc.week}</h3>
-                {renderRow(row1, true, weekDoc.floors)}
-                {renderRow(row2, true, weekDoc.floors)}
-              </div>
-            ))}
-          </>
-        )}
-      </div>
+      <HistorySection row1={row1} row2={row2} />
     </div>
   );
 }

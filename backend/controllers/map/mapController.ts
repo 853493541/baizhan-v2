@@ -82,3 +82,19 @@ export const getWeeklyMapHistory = async (_req: Request, res: Response) => {
     res.status(500).json({ error: err.message });
   }
 };
+export const lockWeeklyMap = async (_req: Request, res: Response) => {
+  try {
+    const week = getCurrentWeek();
+    const updated = await WeeklyMap.findOneAndUpdate(
+      { week },
+      { locked: true },
+      { new: true }
+    );
+    if (!updated) {
+      return res.status(404).json({ error: "No map for this week" });
+    }
+    res.json(updated);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};

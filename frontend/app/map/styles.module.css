@@ -1,53 +1,5 @@
 .container {
-  max-width: 1024px;   /* ✅ constrain to 1024px */
-  margin: 0 auto;      /* ✅ center horizontally */
+  max-width: 1024px;
+  margin: 0 auto;
   padding: 20px;
-}
-
-.title {
-  font-size: 22px;
-  font-weight: bold;
-  margin-bottom: 20px;
-}
-
-.row {
-  display: grid;                                  /* ✅ use grid */
-  grid-template-columns: repeat(10, 1fr);         /* ✅ 10 per row */
-  gap: 8px;                                       /* space between cards */
-  margin-bottom: 16px;
-}
-
-.card {
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  padding: 10px;
-  background: #f9f9f9;
-  text-align: center;
-}
-
-.floorLabel {
-  font-weight: bold;
-  margin-bottom: 6px;
-}
-
-.dropdown {
-  width: 100%;
-  padding: 6px;
-  border: 1px solid #aaa;
-  border-radius: 4px;
-  background: #fff;
-}
-
-.dropdownElite {
-  border-color: #d32f2f;
-  box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.12);
-}
-
-.summary {
-  margin-top: 20px;
-}
-
-.summary h2 {
-  font-size: 16px;
-  margin-bottom: 8px;
 }
