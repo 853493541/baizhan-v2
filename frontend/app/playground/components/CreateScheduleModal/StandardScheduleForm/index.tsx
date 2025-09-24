@@ -40,20 +40,28 @@ export default function StandardScheduleForm({ onClose, onConfirm }: Props) {
     setLoading(true);
     getDefaultModeChecklist()
       .then((list) => {
-        console.log("📝 Raw checklist from helper:", list);
+        console.log("📝 [StandardScheduleForm] Raw checklist from helper:", list);
 
+        // Extra check: ability counts by level
+        const levelCounts = list.reduce<Record<number, number>>((acc, a) => {
+          acc[a.level] = (acc[a.level] || 0) + 1;
+          return acc;
+        }, {});
+        console.log("📊 [StandardScheduleForm] Ability counts by level:", levelCounts);
+
+        // Build resolved checklist
         const resolved = CORE_ABILITIES.map((skill) => {
           const match = list.find(
             (a) => a.name === skill && a.level === conflictLevel
           );
-          console.log("🔍 Checking skill:", skill, "→ match:", match);
+          console.log("🔍 [StandardScheduleForm] Checking skill:", skill, "→ match:", match);
 
           return match
             ? { ...match, available: true }
             : { name: skill, level: conflictLevel, available: false };
         });
 
-        console.log("✅ Final resolved checklist:", resolved);
+        console.log("✅ [StandardScheduleForm] Final resolved checklist:", resolved);
         setChecklist(resolved);
       })
       .finally(() => setLoading(false));
@@ -78,12 +86,12 @@ export default function StandardScheduleForm({ onClose, onConfirm }: Props) {
         groups: [],
       };
 
-      console.log("🚀 Submitting new schedule payload:", payload);
+      console.log("🚀 [StandardScheduleForm] Submitting new schedule payload:", payload);
 
       onConfirm(payload);
       onClose();
     } catch (err) {
-      console.error("❌ Error creating schedule:", err);
+      console.error("❌ [StandardScheduleForm] Error creating schedule:", err);
     }
   };
 

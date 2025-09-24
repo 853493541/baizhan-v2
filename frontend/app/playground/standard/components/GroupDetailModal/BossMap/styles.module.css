@@ -1,66 +1,20 @@
-/* Map layout */
 .row {
   display: grid;
-  grid-template-columns: repeat(10, 1fr); /* exactly 10 boxes per row */
+  grid-template-columns: repeat(10, 1fr);
   gap: 8px;
   margin-bottom: 14px;
 }
 
-.card {
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  padding: 8px;
-  background-color: #fafafa;
-  font-size: 12px;
-  line-height: 1.4;
-  min-height: 100px; /* uniform height */
-}
-
-.floorLabel {
-  font-weight: bold;
-  margin-bottom: 6px;
-  font-size: 13px;
-}
-
-.needList {
-  margin: 0;
-  padding-left: 16px;
-}
-
-.needList li {
-  list-style: disc;
-  font-size: 12px;
-}
-
-/* red text for no-need case */
-.noNeed {
-  color: rgb(0, 103, 27);
-  font-weight: bold;
-}
-
-.coreHighlight {
-  color: red;
-  font-weight: bold;
-}
-/* make sure cards feel and ARE clickable */
-.card {
-  position: relative;            /* so the checkmark can anchor */
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 10px;
-  background: #fff;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-}
-
-.cardInteractive {
+.actionBtn {
+  margin-bottom: 12px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  background: #007bff;
+  color: white;
+  border: none;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-  z-index: 1;                    /* avoid being covered by siblings */
 }
-.cardInteractive:hover,
-.cardInteractive:focus {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-  border-color: #007bff;
-  outline: none;
+
+.actionBtn:hover {
+  background: #0056b3;
 }

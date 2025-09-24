@@ -20,7 +20,7 @@ interface Ability {
   level: number;
 }
 
-// 🔹 Default conflict-check abilities (hardcoded)
+// 🔹 Default conflict-check abilities (hardcode)
 const DEFAULT_ABILITIES = [
   "斗转金移",
   "花钱消灾",
@@ -28,6 +28,7 @@ const DEFAULT_ABILITIES = [
   "一闪天诛",
   "引燃",
   "漾剑式",
+  "阴阳术退散",
   "兔死狐悲",
 ];
 
@@ -36,9 +37,13 @@ const DEFAULT_ABILITIES = [
  */
 export async function getCurrentMap(): Promise<{ name: string; level: number }[]> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map`);
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map`, {
+      cache: "no-store", // ✅ force fresh fetch
+    });
     if (!res.ok) throw new Error("Failed to fetch weekly map");
     const data: WeeklyMapResponse = await res.json();
+
+    console.log("🌍 [playgroundHelpers] Raw weekly map response:", data);
 
     const bosses: { name: string; level: number }[] = [];
     for (const [floor, obj] of Object.entries(data.floors)) {
@@ -51,9 +56,10 @@ export async function getCurrentMap(): Promise<{ name: string; level: number }[]
       bosses.push({ name: obj.boss, level });
     }
 
+    console.log("📅 [playgroundHelpers] Parsed bosses with levels:", bosses);
     return bosses;
   } catch (err) {
-    console.error("❌ Error fetching weekly map:", err);
+    console.error("❌ [playgroundHelpers] Error fetching weekly map:", err);
     return [];
   }
 }
@@ -63,6 +69,8 @@ export async function getCurrentMap(): Promise<{ name: string; level: number }[]
  */
 function getBossAbilities(boss: string, level: number): Ability[] {
   const abilities: string[] = bossData[boss] || [];
+  console.log(`🎯 [playgroundHelpers] Expanding boss "${boss}" (level ${level}) →`, abilities);
+
   if (level === 9) {
     return abilities.map((a) => ({ name: a, level: 9 }));
   }
@@ -88,12 +96,15 @@ export async function getDefaultAbilityPool(): Promise<Ability[]> {
 
   // Deduplicate
   const seen = new Set<string>();
-  return pool.filter((a) => {
+  const deduped = pool.filter((a) => {
     const key = `${a.name}-${a.level}`;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
   });
+
+  console.log("📦 [playgroundHelpers] Final deduped ability pool:", deduped);
+  return deduped;
 }
 
 /**
@@ -102,6 +113,8 @@ export async function getDefaultAbilityPool(): Promise<Ability[]> {
 export async function getDefaultModeChecklist(): Promise<Ability[]> {
   const pool = await getDefaultAbilityPool();
 
-  // Keep only abilities in DEFAULT_ABILITIES
-  return pool.filter((a) => DEFAULT_ABILITIES.includes(a.name));
+  const filtered = pool.filter((a) => DEFAULT_ABILITIES.includes(a.name));
+  console.log("✅ [playgroundHelpers] Default mode checklist (filtered):", filtered);
+
+  return filtered;
 }

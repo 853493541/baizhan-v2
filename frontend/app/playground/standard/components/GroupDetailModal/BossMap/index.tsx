@@ -11,7 +11,8 @@ const bossData: Record<string, string[]> = rawBossData;
 
 import tradableAbilities from "@/app/data/tradable_abilities.json";
 const tradableSet = new Set(tradableAbilities as string[]);
-import { canUseAbility } from "@/utils/genderCheck";
+
+import BossCard from "./BossCard";
 
 interface ExtendedGroup extends GroupResult {
   index: number;
@@ -47,7 +48,7 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
 
   const [showResult, setShowResult] = useState(false);
 
-  // ✅ API helpers (always use NEXT_PUBLIC_API_URL)
+  // ✅ API helpers
   const updateGroupStatus = async (status: "not_started" | "started" | "finished") => {
     await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${group.index}/status`,
@@ -72,97 +73,50 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
     onRefresh?.();
   };
 
-  const renderBossCard = (floor: number) => {
-    const boss = weeklyMap[floor];
-    const kill = group.kills?.find((k) => k.floor === floor);
-
-    if (!boss) {
-      return (
-        <div key={floor} className={styles.card}>
-          <div className={styles.floorLabel}>{floor}</div>
-          <div className={styles.noNeed}>未选择</div>
-        </div>
-      );
-    }
-
-    const dropList: string[] = bossData[boss] || [];
-    const dropLevel = floor >= 81 && floor <= 90 ? 9 : 10;
-
-    // ✅ Needs list
-    let needs = dropList
-      .filter((ability) => !tradableSet.has(ability))
-      .map((ability) => {
-        const needCount = group.characters.filter((c) => {
-          const lvl = c.abilities?.[ability] ?? 0;
-          const usable = canUseAbility(c as any, ability);
-          return usable && lvl < dropLevel;
-        }).length;
-
-        if (needCount > 0) {
-          const isHighlight = highlightAbilities.includes(ability);
-          return { ability, needCount, isHighlight };
-        }
-        return null;
-      })
-      .filter(Boolean) as { ability: string; needCount: number; isHighlight: boolean }[];
-
-    needs.sort((a, b) => {
-      if (a.isHighlight && !b.isHighlight) return -1;
-      if (!a.isHighlight && b.isHighlight) return 1;
-      return 0;
-    });
-
-    const content =
-      needs.length > 0 ? (
-        <ul className={styles.needList}>
-          {needs.map((n) => (
-            <li
-              key={n.ability}
-              className={n.isHighlight ? styles.coreHighlight : ""}
-            >
-              {n.ability}（{n.needCount}）
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className={styles.noNeed}>无需求</p>
-      );
-
-    return (
-      <div
-        key={floor}
-        className={`${styles.card} ${kill?.completed ? styles.cardDone : ""}`}
-        onClick={() => {
-          setSelected({ floor, boss, dropList, dropLevel: dropLevel as 9 | 10 });
-        }}
-      >
-        <div className={styles.floorLabel}>
-          {floor} {boss}
-        </div>
-        {kill?.completed && <div className={styles.checkmark}>✔</div>}
-        {content}
-      </div>
-    );
-  };
-
-  const renderRow = (floors: number[]) => (
-    <div className={styles.row}>{floors.map((f) => renderBossCard(f))}</div>
-  );
-
   return (
     <>
       <h3>本周地图</h3>
 
       {/* 🔘 Finish button always visible */}
-      <button
-        className={styles.actionBtn}
-        onClick={() => setShowResult(true)}
-      >
+      <button className={styles.actionBtn} onClick={() => setShowResult(true)}>
         结束
       </button>
 
-      {renderRow(row1)}
-      {renderRow(row2)}
+      <div className={styles.row}>
+        {row1.map((f) => (
+          <BossCard
+            key={f}
+            floor={f}
+            boss={weeklyMap[f]}
+            group={group}
+            bossData={bossData}
+            highlightAbilities={highlightAbilities}
+            tradableSet={tradableSet}
+            kill={group.kills?.find((k) => k.floor === f)}
+            onSelect={(floor, boss, dropList, dropLevel) =>
+              setSelected({ floor, boss, dropList, dropLevel })
+            }
+          />
+        ))}
+      </div>
+
+      <div className={styles.row}>
+        {row2.map((f) => (
+          <BossCard
+            key={f}
+            floor={f}
+            boss={weeklyMap[f]}
+            group={group}
+            bossData={bossData}
+            highlightAbilities={highlightAbilities}
+            tradableSet={tradableSet}
+            kill={group.kills?.find((k) => k.floor === f)}
+            onSelect={(floor, boss, dropList, dropLevel) =>
+              setSelected({ floor, boss, dropList, dropLevel })
+            }
+          />
+        ))}
+      </div>
 
       {selected && (
         <Drops
