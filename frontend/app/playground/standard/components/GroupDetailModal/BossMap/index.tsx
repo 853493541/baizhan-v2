@@ -6,7 +6,7 @@ import type { GroupResult } from "@/utils/solver";
 import Drops from "./drops";
 import ResultModal from "./ResultModal";
 
-import rawBossData from "@/app/data/boss_skills_collection_map.json";
+import rawBossData from "@/app/data/boss_drop.json";
 const bossData: Record<string, string[]> = rawBossData;
 
 import tradableAbilities from "@/app/data/tradable_abilities.json";
