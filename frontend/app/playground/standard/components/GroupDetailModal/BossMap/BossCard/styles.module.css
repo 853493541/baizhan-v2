@@ -10,12 +10,6 @@
   min-height: 100px;
 }
 
-.floorLabel {
-  font-weight: bold;
-  margin-bottom: 6px;
-  font-size: 13px;
-}
-
 .needList {
   margin: 0;
   padding-left: 16px;
@@ -61,17 +55,18 @@
   color: green;
   font-weight: bold;
 }
+
+/* ✅ Drop results */
 .dropResult {
   margin-top: 6px;
   font-size: 12px;
   font-weight: bold;
-  color: #007bff;
-}
-.dropResult {
-  margin-top: 6px;
-  font-size: 12px;
-  font-weight: bold;
-  color: #007bff;
+  display: flex;
+  flex-direction: column; /* stack icon, ability, level, name */
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 2px;
 }
 
 .assignedTo {
@@ -94,30 +89,39 @@
   color: #0b932b; /* green */
   font-weight: bold;
 }
-.stackCenter {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 2px;
-  line-height: 1.2;
-}
-/* ✅ Header row with floor left and boss centered */
-.headerRow {
-  display: flex;
-  justify-content: center;   /* center boss name */
-  align-items: center;
+
+/* ✅ Header row (floor left, boss centered) */
+.header {
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* boss name always in center of card */
   margin-bottom: 6px;
 }
 
-.floorNumber {
-  position: absolute;
+.floorLabel {
+
   left: 0;
   font-weight: bold;
+  font-size: 13px;
+  margin-right: 2px; /* ✅ small spacing */
 }
 
 .bossName {
+  font-size: 14px;
   font-weight: bold;
   text-align: center;
+}
+
+/* ✅ Icons */
+.iconLarge {
+  width: 36px;
+  height: 36px;
+  display: block;
+  margin: 0 auto 2px;
+  border-radius: 8px; /* rounded corners */
+}
+
+.iconWasted {
+  filter: grayscale(70%); /* wasted → black & white */
 }

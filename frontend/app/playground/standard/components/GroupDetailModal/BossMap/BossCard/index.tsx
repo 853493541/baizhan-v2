@@ -20,6 +20,8 @@ interface BossCardProps {
   ) => void;
 }
 
+const getAbilityIcon = (ability: string) => `/icons/${ability}.png`;
+
 export default function BossCard({
   floor,
   boss,
@@ -103,7 +105,7 @@ export default function BossCard({
     assignedName = char ? char.name : kill.selection.characterId;
   }
 
-  // ✅ Improved drop/noDrop/wasted logic with colors
+  // ✅ Drop display with icons + ability name
   let dropDisplay = null;
   if (kill?.selection) {
     if (kill.selection.noDrop || !kill.selection.ability) {
@@ -114,18 +116,30 @@ export default function BossCard({
         </div>
       );
     } else if (kill.selection.ability && !kill.selection.characterId) {
-      // wasted
+      // wasted (icon in grayscale)
       dropDisplay = (
         <div className={`${styles.dropResult} ${styles.wasted}`}>
-          {kill.selection.ability}（{kill.selection.level}）→ (无)
+          <img
+            src={getAbilityIcon(kill.selection.ability)}
+            alt={kill.selection.ability}
+            className={`${styles.iconLarge} ${styles.iconWasted}`}
+          />
+          <div>{kill.selection.ability}</div>
+          
         </div>
       );
     } else {
-      // normal (whole line green)
+      // normal
       dropDisplay = (
         <div className={`${styles.dropResult} ${styles.normal}`}>
-          {kill.selection.ability}（{kill.selection.level}）
-          {assignedName && <> → {assignedName}</>}
+          <img
+            src={getAbilityIcon(kill.selection.ability)}
+            alt={kill.selection.ability}
+            className={styles.iconLarge}
+          />
+          <div>{kill.selection.ability}</div>
+          <div>{kill.selection.level}重</div>
+          {assignedName && <div>{assignedName}</div>}
         </div>
       );
     }
@@ -137,8 +151,10 @@ export default function BossCard({
       className={`${styles.card} ${styles.cardInteractive}`}
       onClick={() => onSelect(floor, boss, dropList, dropLevel as 9 | 10)}
     >
-      <div className={styles.floorLabel}>
-        {floor} {boss}
+      {/* ✅ Header: floor left, boss centered */}
+      <div className={styles.header}>
+        <span className={styles.floorLabel}>{floor}</span>
+        <span className={styles.bossName}>{boss}</span>
       </div>
 
       {dropDisplay || content}
