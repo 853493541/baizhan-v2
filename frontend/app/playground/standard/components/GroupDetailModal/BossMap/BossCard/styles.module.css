@@ -61,3 +61,21 @@
   color: green;
   font-weight: bold;
 }
+.dropResult {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #007bff;
+}
+.dropResult {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #007bff;
+}
+
+.assignedTo {
+  margin-left: 4px;
+  font-weight: normal;
+  color: #555;
+}

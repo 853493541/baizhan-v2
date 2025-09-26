@@ -165,7 +165,7 @@ export default function Drops({
                   key={`allhave9-${i}`}
                   className={`${styles.dropBtn} ${styles.allHaveBtn}`}
                   onClick={() => {
-                    onSave(floor, { noDrop: true });
+                    onSave(floor, { ability: opt.ability, level: opt.level });
                     onClose();
                   }}
                 >
@@ -186,7 +186,7 @@ export default function Drops({
                   key={`allhave10-${i}`}
                   className={`${styles.dropBtn} ${styles.allHaveBtn}`}
                   onClick={() => {
-                    onSave(floor, { noDrop: true });
+                    onSave(floor, { ability: opt.ability, level: opt.level });
                     onClose();
                   }}
                 >

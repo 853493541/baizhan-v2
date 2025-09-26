@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import styles from "./styles.module.css";
 import { canUseAbility } from "@/utils/genderCheck";
 
@@ -25,6 +25,11 @@ export default function BossCard({
   kill,
   onSelect,
 }: BossCardProps) {
+  // 🔍 Debug logging
+  useEffect(() => {
+    console.log(`[BossCard] floor=${floor}`, { kill, selection: kill?.selection });
+  }, [floor, kill]);
+
   if (!boss) {
     return (
       <div key={floor} className={styles.card}>
@@ -74,19 +79,36 @@ export default function BossCard({
       <p className={styles.noNeed}>无需求</p>
     );
 
+  // ✅ Resolve assigned character name
+  let assignedName = "";
+  if (kill?.selection?.characterId) {
+    const char = group.characters.find((c: any) => c._id === kill.selection.characterId);
+    assignedName = char ? char.name : kill.selection.characterId;
+  }
+
+  // ✅ If there is a kill record, render drop/noDrop
+  const dropDisplay = kill?.selection ? (
+    kill.selection.noDrop ? (
+      <div className={styles.dropResult}>无掉落</div>
+    ) : (
+      <div className={styles.dropResult}>
+        掉落：{kill.selection.ability}（{kill.selection.level}阶）
+        {assignedName && <span className={styles.assignedTo}> → {assignedName}</span>}
+      </div>
+    )
+  ) : null;
+
   return (
     <div
       key={floor}
-      className={`${styles.card} ${styles.cardInteractive} ${
-        kill?.completed ? styles.cardDone : ""
-      }`}
+      className={`${styles.card} ${styles.cardInteractive}`}
       onClick={() => onSelect(floor, boss, dropList, dropLevel as 9 | 10)}
     >
       <div className={styles.floorLabel}>
         {floor} {boss}
       </div>
-      {kill?.completed && <div className={styles.checkmark}>✔</div>}
-      {content}
+
+      {dropDisplay || content}
     </div>
   );
 }
