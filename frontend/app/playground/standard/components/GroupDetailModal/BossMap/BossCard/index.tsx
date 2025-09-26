@@ -12,7 +12,12 @@ interface BossCardProps {
   highlightAbilities: string[];
   tradableSet: Set<string>;
   kill?: any;
-  onSelect: (floor: number, boss: string, dropList: string[], dropLevel: 9 | 10) => void;
+  onSelect: (
+    floor: number,
+    boss: string,
+    dropList: string[],
+    dropLevel: 9 | 10
+  ) => void;
 }
 
 export default function BossCard({
@@ -27,7 +32,10 @@ export default function BossCard({
 }: BossCardProps) {
   // 🔍 Debug logging
   useEffect(() => {
-    console.log(`[BossCard] floor=${floor}`, { kill, selection: kill?.selection });
+    console.log(`[BossCard] floor=${floor}`, {
+      kill,
+      selection: kill?.selection,
+    });
   }, [floor, kill]);
 
   if (!boss) {
@@ -58,7 +66,11 @@ export default function BossCard({
       }
       return null;
     })
-    .filter(Boolean) as { ability: string; needCount: number; isHighlight: boolean }[];
+    .filter(Boolean) as {
+    ability: string;
+    needCount: number;
+    isHighlight: boolean;
+  }[];
 
   needs.sort((a, b) => {
     if (a.isHighlight && !b.isHighlight) return -1;
@@ -70,7 +82,10 @@ export default function BossCard({
     needs.length > 0 ? (
       <ul className={styles.needList}>
         {needs.map((n) => (
-          <li key={n.ability} className={n.isHighlight ? styles.coreHighlight : ""}>
+          <li
+            key={n.ability}
+            className={n.isHighlight ? styles.coreHighlight : ""}
+          >
             {n.ability}（{n.needCount}）
           </li>
         ))}
@@ -82,21 +97,39 @@ export default function BossCard({
   // ✅ Resolve assigned character name
   let assignedName = "";
   if (kill?.selection?.characterId) {
-    const char = group.characters.find((c: any) => c._id === kill.selection.characterId);
+    const char = group.characters.find(
+      (c: any) => c._id === kill.selection.characterId
+    );
     assignedName = char ? char.name : kill.selection.characterId;
   }
 
-  // ✅ If there is a kill record, render drop/noDrop
-  const dropDisplay = kill?.selection ? (
-    kill.selection.noDrop ? (
-      <div className={styles.dropResult}>无掉落</div>
-    ) : (
-      <div className={styles.dropResult}>
-        掉落：{kill.selection.ability}（{kill.selection.level}阶）
-        {assignedName && <span className={styles.assignedTo}> → {assignedName}</span>}
-      </div>
-    )
-  ) : null;
+  // ✅ Improved drop/noDrop/wasted logic with colors
+  let dropDisplay = null;
+  if (kill?.selection) {
+    if (kill.selection.noDrop || !kill.selection.ability) {
+      // true no drop
+      dropDisplay = (
+        <div className={`${styles.dropResult} ${styles.noDrop}`}>
+          无掉落
+        </div>
+      );
+    } else if (kill.selection.ability && !kill.selection.characterId) {
+      // wasted
+      dropDisplay = (
+        <div className={`${styles.dropResult} ${styles.wasted}`}>
+          {kill.selection.ability}（{kill.selection.level}）→ (无)
+        </div>
+      );
+    } else {
+      // normal (whole line green)
+      dropDisplay = (
+        <div className={`${styles.dropResult} ${styles.normal}`}>
+          {kill.selection.ability}（{kill.selection.level}）
+          {assignedName && <> → {assignedName}</>}
+        </div>
+      );
+    }
+  }
 
   return (
     <div

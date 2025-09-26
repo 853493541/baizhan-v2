@@ -79,3 +79,45 @@
   font-weight: normal;
   color: #555;
 }
+
+/* ✅ Drop result colors */
+.noDrop {
+  color: #d9534f; /* red */
+  font-weight: bold;
+}
+
+.wasted {
+  color: #6c757d; /* gray */
+}
+
+.normal {
+  color: #0b932b; /* green */
+  font-weight: bold;
+}
+.stackCenter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 2px;
+  line-height: 1.2;
+}
+/* ✅ Header row with floor left and boss centered */
+.headerRow {
+  display: flex;
+  justify-content: center;   /* center boss name */
+  align-items: center;
+  position: relative;
+  margin-bottom: 6px;
+}
+
+.floorNumber {
+  position: absolute;
+  left: 0;
+  font-weight: bold;
+}
+
+.bossName {
+  font-weight: bold;
+  text-align: center;
+}
