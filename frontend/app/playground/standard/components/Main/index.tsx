@@ -122,6 +122,59 @@ export default function MainSection({
     }
   };
 
+  // 🔎 Split groups into 大号组 (main char) and 小号组 (alt char)
+  const mainGroups = groups.filter((g) =>
+    g.characters.some((c) => MAIN_CHARACTERS.has(c.name))
+  );
+  const altGroups = groups.filter(
+    (g) => !g.characters.some((c) => MAIN_CHARACTERS.has(c.name))
+  );
+
+  const renderGroup = (g: GroupResult, idx: number) => {
+    const qaWarnings = checkGroupQA(
+      g,
+      schedule.conflictLevel,
+      schedule.checkedAbilities
+    );
+
+    return (
+      <div
+        key={idx}
+        className={styles.groupCard}
+        onClick={() => setActiveIdx(idx)}
+      >
+        <h4 className={styles.groupTitle}>组 {idx + 1}</h4>
+        <ul className={styles.memberList}>
+          {g.characters.map((c) => {
+            const isMain = MAIN_CHARACTERS.has(c.name);
+            return (
+              <li
+                key={c._id}
+                className={`${styles.memberItem} ${
+                  c.role === "Tank"
+                    ? styles.tank
+                    : c.role === "Healer"
+                    ? styles.healer
+                    : styles.dps
+                }`}
+              >
+                {isMain ? "★ " : ""}
+                {c.name}
+              </li>
+            );
+          })}
+        </ul>
+        {qaWarnings.length > 0 && (
+          <div className={styles.groupViolation}>
+            {qaWarnings.map((w, i) => (
+              <p key={i}>⚠️ {w}</p>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className={styles.section}>
       <h3 className={styles.sectionTitle}>排表区域</h3>
@@ -133,48 +186,27 @@ export default function MainSection({
       {groups.length === 0 ? (
         <p className={styles.empty}>暂无排表结果</p>
       ) : (
-        <div className={styles.groupsGrid}>
-          {groups.map((g, idx) => {
-            const qaWarnings = checkGroupQA(
-              g,
-              schedule.conflictLevel,
-              schedule.checkedAbilities
-            );
-
-            return (
-              <div
-                key={idx}
-                className={styles.groupCard}
-                onClick={() => setActiveIdx(idx)}
-              >
-                <h4 className={styles.groupTitle}>组 {idx + 1}</h4>
-                <ul className={styles.memberList}>
-                  {g.characters.map((c) => (
-                    <li
-                      key={c._id}
-                      className={`${styles.memberItem} ${
-                        c.role === "Tank"
-                          ? styles.tank
-                          : c.role === "Healer"
-                          ? styles.healer
-                          : styles.dps
-                      }`}
-                    >
-                      {c.name}
-                    </li>
-                  ))}
-                </ul>
-                {qaWarnings.length > 0 && (
-                  <div className={styles.groupViolation}>
-                    {qaWarnings.map((w, i) => (
-                      <p key={i}>⚠️ {w}</p>
-                    ))}
-                  </div>
-                )}
+        <>
+          {/* 大号组 */}
+          {mainGroups.length > 0 && (
+            <>
+              <h3 className={styles.sectionSubtitle}>大号组</h3>
+              <div className={styles.groupsGrid}>
+                {mainGroups.map((g, idx) => renderGroup(g, idx))}
               </div>
-            );
-          })}
-        </div>
+            </>
+          )}
+
+          {/* 小号组 */}
+          {altGroups.length > 0 && (
+            <>
+              <h3 className={styles.sectionSubtitle}>小号组</h3>
+              <div className={styles.groupsGrid}>
+                {altGroups.map((g, idx) => renderGroup(g, idx))}
+              </div>
+            </>
+          )}
+        </>
       )}
     </div>
   );
