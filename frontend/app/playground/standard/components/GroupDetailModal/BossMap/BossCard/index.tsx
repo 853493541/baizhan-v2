@@ -88,7 +88,7 @@ export default function BossCard({
             key={n.ability}
             className={n.isHighlight ? styles.coreHighlight : ""}
           >
-            {n.ability} - {n.needCount}
+            {n.ability} ({n.needCount})
           </li>
         ))}
       </ul>
@@ -108,30 +108,32 @@ export default function BossCard({
   // ✅ Drop display with icons + ability name
   let dropDisplay = null;
   if (kill?.selection) {
-if (kill.selection.noDrop || !kill.selection.ability) {
-  // true no drop
-  dropDisplay = (
-    <div className={`${styles.dropResult} ${styles.noDrop}`}>
-      <img
-        src="/icons/no_drop.svg"
-        alt="无掉落"
-        className={`${styles.iconLarge} ${styles.iconNoDrop}`}
-      />
-      <div>无掉落</div>
-    </div>
-  );
-}
-else if (kill.selection.ability && !kill.selection.characterId) {
+    if (kill.selection.noDrop || !kill.selection.ability) {
+      // true no drop
+      dropDisplay = (
+        <div className={`${styles.dropResult} ${styles.noDrop}`}>
+          <img
+            src="/icons/no_drop.svg"
+            alt="无掉落"
+            className={`${styles.iconLarge} ${styles.iconNoDrop}`}
+          />
+          <div>无掉落</div>
+        </div>
+      );
+    } else if (kill.selection.ability && !kill.selection.characterId) {
       // wasted (icon in grayscale)
       dropDisplay = (
-        <div className={`${styles.dropResult} ${styles.wasted}`}>
+        <div
+          className={`${styles.dropResult} ${styles.wasted} ${styles.stackCenter}`}
+        >
           <img
             src={getAbilityIcon(kill.selection.ability)}
             alt={kill.selection.ability}
             className={`${styles.iconLarge} ${styles.iconWasted}`}
           />
-          <div>{kill.selection.ability}（浪费）</div>
-          
+          <div>{kill.selection.ability}</div>
+          <div>{kill.selection.level}重</div>
+          <div>(无)</div>
         </div>
       );
     } else {
@@ -154,13 +156,20 @@ else if (kill.selection.ability && !kill.selection.characterId) {
   return (
     <div
       key={floor}
-      className={`${styles.card} ${styles.cardInteractive}`}
+      className={`${styles.card} ${styles.cardInteractive} ${
+        kill?.selection?.ability && kill?.selection?.characterId
+          ? styles.cardNormal // normal = green
+          : (kill?.selection?.noDrop ||
+            (kill?.selection?.ability && !kill?.selection?.characterId))
+          ? styles.cardHealer // noDrop or wasted = pink/red
+          : ""
+      }`}
       onClick={() => onSelect(floor, boss, dropList, dropLevel as 9 | 10)}
     >
       {/* ✅ Header: floor left, boss centered */}
- <div className={styles.header}>
-  {floor} {boss}
-</div>
+      <div className={styles.header}>
+        {floor} {boss}
+      </div>
 
       {dropDisplay || content}
     </div>

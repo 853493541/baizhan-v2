@@ -79,18 +79,27 @@
 }
 
 /* ✅ Drop result colors */
-.noDrop {
-  color: #d9534f; /* red */
-  font-weight: bold;
-}
-
+.noDrop,
 .wasted {
-  color: #6c757d; /* gray */
+  color: #721c24; /* dark red text */
+  font-weight: bold;
 }
 
 .normal {
-  color: #0b932b; /* green */
+  color: #155724; /* dark green, high contrast */
   font-weight: bold;
+}
+
+/* ✅ Normal drop card background */
+.cardNormal {
+  background-color: #d4edda; /* light green */
+  border: 1px solid #c3e6cb;
+}
+
+/* ✅ Wasted + NoDrop card background (healer color) */
+.cardHealer {
+  background-color: #f8d7da; /* light pink */
+  border: 1px solid #f5c6cb;
 }
 
 /* ✅ Header (floor + boss centered together) */
@@ -126,8 +135,16 @@
   filter: grayscale(70%);
 }
 
-
 /* no drop icon slightly grayed */
 .iconNoDrop {
   filter: grayscale(20%);
+}
+
+.stackCenter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 2px;
+  line-height: 1.2;
 }
