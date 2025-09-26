@@ -12,17 +12,21 @@
 
 .needList {
   margin: 0;
-  padding-left: 16px;
+
 }
 
 .needList li {
-  list-style: disc;
+  list-style: none;
   font-size: 12px;
+    text-align: center;
+  width: 100%; 
 }
 
 .noNeed {
   color: rgb(0, 103, 27);
   font-weight: bold;
+    text-align: center;
+  width: 100%;  
 }
 
 .coreHighlight {
@@ -92,10 +96,9 @@
 
 /* ✅ Header row (floor left, boss centered) */
 .header {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center; /* boss name always in center of card */
+  text-align: center;   /* ✅ center floor+boss together */
+  font-size: 14px;
+  font-weight: bold;
   margin-bottom: 6px;
 }
 

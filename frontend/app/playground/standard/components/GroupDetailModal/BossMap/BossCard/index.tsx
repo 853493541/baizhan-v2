@@ -88,7 +88,7 @@ export default function BossCard({
             key={n.ability}
             className={n.isHighlight ? styles.coreHighlight : ""}
           >
-            {n.ability}（{n.needCount}）
+            {n.ability} - {n.needCount}
           </li>
         ))}
       </ul>
@@ -152,10 +152,9 @@ export default function BossCard({
       onClick={() => onSelect(floor, boss, dropList, dropLevel as 9 | 10)}
     >
       {/* ✅ Header: floor left, boss centered */}
-      <div className={styles.header}>
-        <span className={styles.floorLabel}>{floor}</span>
-        <span className={styles.bossName}>{boss}</span>
-      </div>
+ <div className={styles.header}>
+  {floor} {boss}
+</div>
 
       {dropDisplay || content}
     </div>
