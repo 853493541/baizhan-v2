@@ -108,14 +108,20 @@ export default function BossCard({
   // ✅ Drop display with icons + ability name
   let dropDisplay = null;
   if (kill?.selection) {
-    if (kill.selection.noDrop || !kill.selection.ability) {
-      // true no drop
-      dropDisplay = (
-        <div className={`${styles.dropResult} ${styles.noDrop}`}>
-          无掉落
-        </div>
-      );
-    } else if (kill.selection.ability && !kill.selection.characterId) {
+if (kill.selection.noDrop || !kill.selection.ability) {
+  // true no drop
+  dropDisplay = (
+    <div className={`${styles.dropResult} ${styles.noDrop}`}>
+      <img
+        src="/icons/no_drop.svg"
+        alt="无掉落"
+        className={`${styles.iconLarge} ${styles.iconNoDrop}`}
+      />
+      <div>无掉落</div>
+    </div>
+  );
+}
+else if (kill.selection.ability && !kill.selection.characterId) {
       // wasted (icon in grayscale)
       dropDisplay = (
         <div className={`${styles.dropResult} ${styles.wasted}`}>
@@ -124,7 +130,7 @@ export default function BossCard({
             alt={kill.selection.ability}
             className={`${styles.iconLarge} ${styles.iconWasted}`}
           />
-          <div>{kill.selection.ability}</div>
+          <div>{kill.selection.ability}（浪费）</div>
           
         </div>
       );

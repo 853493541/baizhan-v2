@@ -12,21 +12,20 @@
 
 .needList {
   margin: 0;
-
 }
 
 .needList li {
   list-style: none;
   font-size: 12px;
-    text-align: center;
-  width: 100%; 
+  text-align: center;
+  width: 100%;
 }
 
 .noNeed {
   color: rgb(0, 103, 27);
   font-weight: bold;
-    text-align: center;
-  width: 100%;  
+  text-align: center;
+  width: 100%;
 }
 
 .coreHighlight {
@@ -94,20 +93,18 @@
   font-weight: bold;
 }
 
-/* ✅ Header row (floor left, boss centered) */
+/* ✅ Header (floor + boss centered together) */
 .header {
-  text-align: center;   /* ✅ center floor+boss together */
+  text-align: center;
   font-size: 14px;
   font-weight: bold;
   margin-bottom: 6px;
 }
 
 .floorLabel {
-
-  left: 0;
   font-weight: bold;
   font-size: 13px;
-  margin-right: 2px; /* ✅ small spacing */
+  margin-right: 2px;
 }
 
 .bossName {
@@ -126,5 +123,11 @@
 }
 
 .iconWasted {
-  filter: grayscale(70%); /* wasted → black & white */
+  filter: grayscale(70%);
+}
+
+
+/* no drop icon slightly grayed */
+.iconNoDrop {
+  filter: grayscale(20%);
 }
