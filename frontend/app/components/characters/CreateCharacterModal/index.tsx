@@ -15,7 +15,7 @@ const classes = [
   "七秀", "五毒", "万花", "天策", "明教", "纯阳", "少林", "长歌", "药宗",
   "蓬莱", "刀宗", "凌雪", "唐门", "藏剑", "丐帮", "霸刀", "衍天", "万灵", "段氏", "苍云"
 ];
-const roles = ["DPS", "Tank", "Healer"];
+const roles = ["输出", "防御", "治疗"];
 
 export default function CreateCharacterModal({
   isOpen,
