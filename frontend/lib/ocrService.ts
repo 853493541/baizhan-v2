@@ -1,20 +1,30 @@
 import { parseOCRLines } from "../utils/ocrUtils";
-import { updateCharacterAbilities } from "./characterService"; // ✅ reuse proven service
+import { updateCharacterAbilities } from "./characterService";
 
-// Run OCR and return comparison result
+// ✅ Base URLs from env (fallback empty so fetch throws if missing)
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+const OCR_URL = process.env.NEXT_PUBLIC_OCR_URL || "";
+console.log("🌍 OCR_URL in frontend:", OCR_URL);
+
+
+/**
+ * Run OCR on uploaded image and compare abilities
+ */
 export async function runOCR(file: File, characterId: string) {
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await fetch("http://localhost:8000/ocr", {
+  // --- Step 1: OCR service (FastAPI)
+  console.log("🌍 OCR_URL in frontend:", OCR_URL);
+  const res = await fetch(`${OCR_URL}/ocr/`, {
     method: "POST",
     body: formData,
   });
-  if (!res.ok) throw new Error("OCR request failed");
+  if (!res.ok) {
+    throw new Error(`OCR request failed (${res.status})`);
+  }
 
   const ocrData = await res.json();
-
-  // 🔍 Debug log
   console.log("🔍 Raw OCR result from backend:", ocrData);
 
   const lines: string[] = ocrData?.lines ?? [];
@@ -22,21 +32,25 @@ export async function runOCR(file: File, characterId: string) {
 
   const parsedAbilities = parseOCRLines(lines);
 
-  // ✅ Use the correct backend route
+  // --- Step 2: Compare abilities (Express)
   const compareRes = await fetch(
-    `http://localhost:5000/api/characters/${characterId}/compare-abilities`,
+    `${API_URL}/api/characters/${characterId}/compare-abilities`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ abilities: parsedAbilities }),
     }
   );
-  if (!compareRes.ok) throw new Error("Compare request failed");
+  if (!compareRes.ok) {
+    throw new Error(`Compare request failed (${compareRes.status})`);
+  }
 
   return compareRes.json();
 }
 
-// ✅ Confirm update by reusing characterService
+/**
+ * Confirm OCR updates by persisting them to backend
+ */
 export async function confirmOCRUpdate(
   characterId: string,
   updates: Record<string, number>
@@ -45,10 +59,8 @@ export async function confirmOCRUpdate(
     throw new Error("No updates to confirm");
   }
 
-  // 🔍 Debug log
   console.log("📦 Preparing payload for backend:", { abilities: updates });
 
-  // ✅ Always wrap in abilities
   const updated = await updateCharacterAbilities(characterId, {
     abilities: updates,
   });

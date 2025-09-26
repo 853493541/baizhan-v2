@@ -74,3 +74,62 @@
     transform: rotate(360deg);
   }
 }
+.modalTitle {
+  margin-bottom: 12px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.previewImage {
+  max-width: 120px;
+  margin: 10px auto;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  display: block;
+}
+
+.stepList {
+  list-style: none;
+  padding: 0;
+  margin: 15px 0;
+  text-align: left;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.stepDone {
+  color: green;
+}
+
+.stepActive {
+  color: #007bff;
+  font-weight: bold;
+}
+
+.progressBarWrapper {
+  width: 100%;
+  background: #eee;
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 10px 0;
+  height: 8px;
+}
+
+.progressBar {
+  width: 40%; /* static for now */
+  height: 100%;
+  background: linear-gradient(90deg, #007bff, #66b2ff);
+  animation: progressAnim 2s infinite;
+}
+
+@keyframes progressAnim {
+  0% { width: 20%; }
+  50% { width: 60%; }
+  100% { width: 30%; }
+}
+
+.hint {
+  font-size: 13px;
+  color: #555;
+  margin-top: 8px;
+}

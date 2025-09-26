@@ -77,19 +77,41 @@ export default function CharacterOCRSection({
         </span>
       </div>
 
-      {/* Processing modal */}
-      {processing && (
-        <div className={styles.processingOverlay}>
-          <div className={styles.processingBox}>
-            <h3 style={{ marginBottom: 20 }}>图片已上传</h3>
-            <div className={styles.spinner} />
-            <p>正在进行 OCR 识别...</p>
-            <div style={{ marginTop: 20 }}>
-              <button onClick={() => setProcessing(false)}>取消</button>
-            </div>
-          </div>
-        </div>
+  {/* Processing modal */}
+{processing && (
+  <div className={styles.processingOverlay}>
+    <div className={styles.processingBox}>
+      <h3 className={styles.modalTitle}>图片处理</h3>
+
+      {/* Preview of uploaded image */}
+      {previewImage && (
+        <img
+          src={previewImage}
+          alt="预览"
+          className={styles.previewImage}
+        />
       )}
+
+      {/* Step list */}
+      <ul className={styles.stepList}>
+        <li className={styles.stepDone}>✅ 图片已上传</li>
+        <li className={styles.stepActive}>🔍 检查图片可读性...</li>
+        <li>⏳ 正在进行 OCR 识别...</li>
+      </ul>
+
+      {/* Progress bar (simulate) */}
+      <div className={styles.progressBarWrapper}>
+        <div className={styles.progressBar} />
+      </div>
+
+      <p className={styles.hint}>这可能需要几秒钟，请耐心等待...</p>
+
+      <div style={{ marginTop: 20 }}>
+        <button onClick={() => setProcessing(false)}>取消</button>
+      </div>
+    </div>
+  </div>
+)}
 
       {/* Comparison results */}
 {compareResult && (
