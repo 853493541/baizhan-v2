@@ -110,6 +110,14 @@ export default function MainSection({
     }
   };
 
+  // ✅ Derived state
+  const finishedCount = groups.filter((g) => g.status === "finished").length;
+
+  // Lock only if at least one group is started or finished
+  const hasLockedGroups = groups.some(
+    (g) => g.status === "started" || g.status === "finished"
+  );
+
   // ✅ Render group
   const renderGroup = (
     g: GroupResult & { status?: "not_started" | "started" | "finished" },
@@ -200,9 +208,18 @@ export default function MainSection({
   return (
     <div className={styles.section}>
       <h3 className={styles.sectionTitle}>排表区域</h3>
-
-      <button className={styles.solverBtn} onClick={() => handleRunSolver(0)}>
-        一键排表
+      {/* ✅ Finished count */}
+      <p className={styles.finishedCount}>
+        已完成小组: {finishedCount} / {groups.length}
+      </p>
+      <button
+        className={`${styles.solverBtn} ${
+          hasLockedGroups ? styles.lockedBtn : ""
+        }`}
+        onClick={() => !hasLockedGroups && handleRunSolver(0)}
+        disabled={hasLockedGroups}
+      >
+        {hasLockedGroups ? "🔒 无法变更" : "一键排表"}
       </button>
 
       {groups.length === 0 ? (

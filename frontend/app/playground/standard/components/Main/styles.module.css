@@ -130,3 +130,17 @@
   font-size: 13px;
   margin-top: 8px;
 }
+
+/* Lock state for solver button */
+.lockedBtn {
+  background: #ccc !important;
+  color: #444 !important;
+  cursor: not-allowed !important;
+}
+
+.finishedCount {
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #28a745; /* green emphasis */
+}
