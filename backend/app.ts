@@ -5,6 +5,8 @@ import characterRoutes from "./routes/characterRoutes";
 import mapRoutes from "./routes/mapRoutes";
 import standardScheduleRoutes from "./routes/standardScheduleRoutes"; // ✅ renamed
 import bossPlanRoutes from "./routes/bossPlanRoutes";
+import compression from "compression";
+
 
 const app = express();
 
@@ -33,7 +35,7 @@ app.use(express.json());
 
 // ✅ Connect DB
 connectDB();
-
+app.use(compression());
 // ✅ Routes
 app.use("/api/characters", characterRoutes);
 app.use("/api/weekly-map", mapRoutes);
