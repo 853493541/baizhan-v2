@@ -122,15 +122,16 @@ export default function MainSection({
     }
   };
 
-  // 🔎 Split groups into 大号组 (main char) and 小号组 (alt char)
-  const mainGroups = groups.filter((g) =>
-    g.characters.some((c) => MAIN_CHARACTERS.has(c.name))
-  );
-  const altGroups = groups.filter(
-    (g) => !g.characters.some((c) => MAIN_CHARACTERS.has(c.name))
-  );
+  // 🔎 Build paired arrays with original indices preserved
+  const mainPairs = groups
+    .map((g, i) => ({ g, i }))
+    .filter(({ g }) => g.characters.some((c) => MAIN_CHARACTERS.has(c.name)));
 
-  const renderGroup = (g: GroupResult, idx: number) => {
+  const altPairs = groups
+    .map((g, i) => ({ g, i }))
+    .filter(({ g }) => !g.characters.some((c) => MAIN_CHARACTERS.has(c.name)));
+
+  const renderGroup = (g: GroupResult, originalIdx: number) => {
     const qaWarnings = checkGroupQA(
       g,
       schedule.conflictLevel,
@@ -139,11 +140,11 @@ export default function MainSection({
 
     return (
       <div
-        key={idx}
+        key={originalIdx}
         className={styles.groupCard}
-        onClick={() => setActiveIdx(idx)}
+        onClick={() => setActiveIdx(originalIdx)}
       >
-        <h4 className={styles.groupTitle}>组 {idx + 1}</h4>
+        <h4 className={styles.groupTitle}>组 {originalIdx + 1}</h4>
         <ul className={styles.memberList}>
           {g.characters.map((c) => {
             const isMain = MAIN_CHARACTERS.has(c.name);
@@ -188,21 +189,21 @@ export default function MainSection({
       ) : (
         <>
           {/* 大号组 */}
-          {mainGroups.length > 0 && (
+          {mainPairs.length > 0 && (
             <>
               <h3 className={styles.sectionSubtitle}>大号组</h3>
               <div className={styles.groupsGrid}>
-                {mainGroups.map((g, idx) => renderGroup(g, idx))}
+                {mainPairs.map(({ g, i }) => renderGroup(g, i))}
               </div>
             </>
           )}
 
           {/* 小号组 */}
-          {altGroups.length > 0 && (
+          {altPairs.length > 0 && (
             <>
               <h3 className={styles.sectionSubtitle}>小号组</h3>
               <div className={styles.groupsGrid}>
-                {altGroups.map((g, idx) => renderGroup(g, idx))}
+                {altPairs.map(({ g, i }) => renderGroup(g, i))}
               </div>
             </>
           )}
