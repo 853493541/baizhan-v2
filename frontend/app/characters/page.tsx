@@ -114,6 +114,9 @@ export default function CharactersPage() {
         title="角色仓库"
         
       />
+     <div className={styles.createBtnWrapper}>
+        <CreateButton onClick={() => setModalOpen(true)} />
+      </div>
 
       <CharacterFilters
         ownerFilter={ownerFilter}
@@ -130,18 +133,14 @@ export default function CharactersPage() {
         setAbilityFilters={setAbilityFilters}
       />
 
+
+ 
       <CharacterGrid
         characters={filteredCharacters}
         onUpdated={refreshCharacters}
       />
 
-      <CreateButton onClick={() => setModalOpen(true)} />
 
-      <CreateCharacterModal
-        isOpen={isModalOpen}
-        onClose={() => setModalOpen(false)}
-        onCreate={handleCreate}
-      />
     </div>
   );
 }

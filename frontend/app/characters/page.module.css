@@ -61,3 +61,9 @@
 .createButton:hover {
   background-color: #16a34a; /* Tailwind green-600 */
 }
+
+.createBtnWrapper {
+  display: flex;
+  justify-content: flex-end; /* ✅ push button to the right */
+  padding: 10px 0;           /* vertical space instead of margin */
+}
