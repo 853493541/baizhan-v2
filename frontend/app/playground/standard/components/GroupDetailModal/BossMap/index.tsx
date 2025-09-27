@@ -152,6 +152,7 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
 
       {selected && (
         <Drops
+          scheduleId={scheduleId}
           floor={selected.floor}
           boss={selected.boss}
           dropList={selected.dropList}
@@ -169,6 +170,11 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
           // 👇 Let Drops flip to “进行中” immediately on any entry (no-drop / normal / 已有)
           groupStatus={status}
           onMarkStarted={() => updateGroupStatus("started")}
+          // ✅ After reset (delete), refresh parent like a normal save
+          onAfterReset={() => {
+            onRefresh?.();
+            setSelected(null);
+          }}
         />
       )}
     </>

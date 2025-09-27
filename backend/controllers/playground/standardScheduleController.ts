@@ -206,3 +206,37 @@ export const updateGroupKill = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to update group kill" });
   }
 };
+// ✅ Delete (reset) a single kill record inside a group by floor
+export const deleteGroupKill = async (req: Request, res: Response) => {
+  try {
+    const { id, index, floor } = req.params;
+
+    console.log(`🗑️ Deleting kill floor ${floor} of group ${index} in schedule ${id}`);
+
+    const schedule: any = await StandardSchedule.findById(id);
+    if (!schedule) return res.status(404).json({ error: "Schedule not found" });
+
+    const group = schedule.groups.find((g: any) => g.index === parseInt(index));
+    if (!group) return res.status(404).json({ error: "Group not found" });
+
+    const before = group.kills.length;
+    group.kills = group.kills.filter((k: any) => k.floor !== parseInt(floor));
+    const after = group.kills.length;
+
+    if (before === after) {
+      return res.status(404).json({ error: "Kill record not found for this floor" });
+    }
+
+    await schedule.save();
+    console.log("✅ Deleted group kill:", { groupIndex: index, floor });
+
+    const populated = await StandardSchedule.findById(id)
+      .populate("characters")
+      .populate("groups.characters");
+
+    res.json(populated);
+  } catch (err) {
+    console.error("❌ Error deleting group kill:", err);
+    res.status(500).json({ error: "Failed to delete group kill" });
+  }
+};

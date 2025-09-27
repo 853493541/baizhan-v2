@@ -15,22 +15,23 @@ interface Selection {
 }
 
 interface Props {
+  scheduleId: string;
   floor: number;
   boss: string;
   dropList: string[];
   dropLevel: 9 | 10;
-  group: GroupResult;
+  group: GroupResult & { kills?: any[] };
   onClose: () => void;
   onSave: (floor: number, selection: Selection) => void;
-
-  // ✅ NEW: allow parent to expose current status and a way to mark started
   groupStatus?: "not_started" | "started" | "finished";
   onMarkStarted?: () => void;
+  onAfterReset?: (updated: any) => void;
 }
 
 const getAbilityIcon = (ability: string) => `/icons/${ability}.png`;
 
 export default function Drops({
+  scheduleId,
   floor,
   boss,
   dropList,
@@ -40,19 +41,24 @@ export default function Drops({
   onSave,
   groupStatus,
   onMarkStarted,
+  onAfterReset,
 }: Props) {
   const [chosenDrop, setChosenDrop] = useState<
     { ability: string; level: 9 | 10 } | "noDrop" | null
   >(null);
+  const [resetting, setResetting] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [errMsg, setErrMsg] = useState<string | null>(null);
 
-  // ✅ Helper: mark started only if currently "not_started"
+  // ✅ check if this floor has a kill record
+  const hasKillRecord = group.kills?.some((k: any) => k.floor === floor);
+
   const markStartedIfNeeded = () => {
     if (groupStatus === "not_started" && onMarkStarted) {
       onMarkStarted();
     }
   };
 
-  // ✅ Build options (skip tradables)
   const buildOptions = () => {
     const untradables = dropList.filter((d) => !tradableSet.has(d));
     if (floor >= 81 && floor <= 90) {
@@ -70,12 +76,10 @@ export default function Drops({
 
   const handleAssign = (charId: string) => {
     if (chosenDrop === "noDrop") {
-      // ✅ No drop counts as “progress”
       markStartedIfNeeded();
       onSave(floor, { noDrop: true });
       onClose();
     } else if (chosenDrop) {
-      // ✅ Normal drop counts as “progress”
       markStartedIfNeeded();
       onSave(floor, {
         ability: chosenDrop.ability,
@@ -86,36 +90,56 @@ export default function Drops({
     }
   };
 
-  // ✅ Check if all characters already have this ability at the required level
   const allHaveAbility = (ability: string, level: 9 | 10) => {
-    return group.characters.every((c: any) => {
+    return (group as any).characters.every((c: any) => {
       const current = c.abilities?.[ability] ?? 0;
       return current >= level;
     });
   };
 
-  // Separate 全有 lists for 9重 and 10重
   const allHave9Options = options.filter(
     (opt) => opt.level === 9 && allHaveAbility(opt.ability, 9)
   );
-
   const allHave10Options = options.filter(
     (opt) => opt.level === 10 && allHaveAbility(opt.ability, 10)
   );
 
+  const doReset = async () => {
+    try {
+      setErrMsg(null);
+      setResetting(true);
+      const base = process.env.NEXT_PUBLIC_API_URL || "";
+      const idx = (group as any).index;
+
+      const delUrl = `${base}/api/standard-schedules/${scheduleId}/groups/${idx}/kills/${floor}`;
+      const delRes = await fetch(delUrl, { method: "DELETE" });
+      if (!delRes.ok) {
+        const errTxt = await delRes.text().catch(() => "");
+        throw new Error(errTxt || `Delete failed with ${delRes.status}`);
+      }
+
+      onAfterReset?.(null);
+      onClose();
+    } catch (e: any) {
+      console.error("[Drops] reset error:", e);
+      setErrMsg(e?.message || "重置失败，请稍后再试。");
+    } finally {
+      setResetting(false);
+      setShowConfirm(false);
+    }
+  };
+
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
-        {/* ✅ Title */}
         <h3>
           {floor}层 - {boss}
         </h3>
 
-        <div style={{ display: "flex", gap: "20px" }}>
-          {/* ✅ Left column: abilities */}
+        <div className={styles.columns}>
+          {/* Left column: abilities */}
           <div className={styles.leftColumn}>
             <div className={styles.dropList}>
-              {/* === 九重 options first === */}
               <div className={styles.sectionDivider}>九重</div>
               {options
                 .filter(
@@ -142,10 +166,7 @@ export default function Drops({
                   </button>
                 ))}
 
-              {/* === Divider === */}
               <div className={styles.sectionDivider}>十重</div>
-
-              {/* === 十重 options next === */}
               {options
                 .filter(
                   (opt) => opt.level === 10 && !allHaveAbility(opt.ability, 10)
@@ -171,18 +192,15 @@ export default function Drops({
                   </button>
                 ))}
 
-              {/* === Divider === */}
               {(allHave9Options.length > 0 || allHave10Options.length > 0) && (
                 <div className={styles.sectionDivider}>已有</div>
               )}
 
-              {/* === 九重全有（视为浪费）=== */}
               {allHave9Options.map((opt, i) => (
                 <button
                   key={`allhave9-${i}`}
                   className={`${styles.dropBtn} ${styles.allHaveBtn}`}
                   onClick={() => {
-                    // ✅ “已有/浪费” 也应视作进度
                     markStartedIfNeeded();
                     onSave(floor, { ability: opt.ability, level: opt.level });
                     onClose();
@@ -199,13 +217,11 @@ export default function Drops({
                 </button>
               ))}
 
-              {/* === 十重全有（视为浪费）=== */}
               {allHave10Options.map((opt, i) => (
                 <button
                   key={`allhave10-${i}`}
                   className={`${styles.dropBtn} ${styles.allHaveBtn}`}
                   onClick={() => {
-                    // ✅ “已有/浪费” 也应视作进度
                     markStartedIfNeeded();
                     onSave(floor, { ability: opt.ability, level: opt.level });
                     onClose();
@@ -222,14 +238,10 @@ export default function Drops({
                 </button>
               ))}
 
-              {/* === Divider === */}
               <div className={styles.sectionDivider}>无掉落</div>
-
-              {/* === 无掉落 === */}
               <button
                 className={styles.noDropBtn}
                 onClick={() => {
-                  // ✅ “无掉落/紫书” 也应视作进度
                   markStartedIfNeeded();
                   onSave(floor, { noDrop: true });
                   onClose();
@@ -240,19 +252,19 @@ export default function Drops({
             </div>
           </div>
 
-          {/* ✅ Right column: characters */}
+          {/* Right column: characters */}
           <div className={styles.rightColumn}>
             <div className={styles.sectionDivider}>角色</div>
             <div className={styles.memberGrid}>
-              {group.characters.map((c: any) => {
+              {(group as any).characters.map((c: any) => {
                 let levelDisplay: string | null = null;
-                let disabled = !chosenDrop; // lock if nothing picked
+                let disabled = !chosenDrop;
 
                 if (chosenDrop && chosenDrop !== "noDrop") {
                   const currentLevel = c.abilities?.[chosenDrop.ability] ?? 0;
                   levelDisplay = `${currentLevel}重`;
-                  if (currentLevel >= chosenDrop.level) {
-                    disabled = true; // ✅ already has this level or higher
+                  if (currentLevel >= (chosenDrop as any).level) {
+                    disabled = true;
                   }
                 }
 
@@ -264,7 +276,6 @@ export default function Drops({
                     }`}
                     onClick={() => {
                       if (!disabled) {
-                        // ✅ 角色分配也算进度
                         markStartedIfNeeded();
                         handleAssign(c._id || c.id);
                       }
@@ -280,12 +291,57 @@ export default function Drops({
           </div>
         </div>
 
-        {/* ✅ Close at bottom-right */}
+        {errMsg && <div className={styles.errorBox}>{errMsg}</div>}
+
         <div className={styles.footer}>
+          {/* ✅ Only show if kill record exists */}
+          {hasKillRecord && (
+            <button
+              onClick={() => setShowConfirm(true)}
+              className={styles.deleteBtn}
+              disabled={resetting}
+            >
+              重置本层
+            </button>
+          )}
+
           <button onClick={onClose} className={styles.closeBtn}>
             关闭
           </button>
         </div>
+
+        {showConfirm && (
+          <div
+            className={styles.confirmOverlay}
+            onClick={() => !resetting && setShowConfirm(false)}
+          >
+            <div
+              className={styles.confirmModal}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className={styles.confirmTitle}>确认删除</div>
+              <div className={styles.confirmText}>
+                确定要删除 <b>{floor}层 - {boss}</b> 的掉落记录吗？
+              </div>
+              <div className={styles.confirmActions}>
+                <button
+                  onClick={() => setShowConfirm(false)}
+                  disabled={resetting}
+                  className={styles.closeBtn}
+                >
+                  取消
+                </button>
+                <button
+                  onClick={doReset}
+                  disabled={resetting}
+                  className={styles.deleteBtn}
+                >
+                  {resetting ? "删除中…" : "确认删除"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
