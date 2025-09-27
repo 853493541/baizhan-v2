@@ -5,16 +5,91 @@
   margin-bottom: 14px;
 }
 
+/* Header layout: title left, controls right */
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.title {
+  margin: 0;
+}
+
+/* Right-side controls (status + button) */
+.rightControls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Status circle + text */
+.statusWrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.statusText {
+  font-size: 16px;     /* bigger */
+  font-weight: 600;
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* The circle */
+.statusDot {
+  width: 12px;         /* slightly bigger */
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+/* Colors for each state (dot + text) */
+.statusIdleDot {
+  background: #e5e7eb;   /* gray-200 */
+  color: #6b7280;        /* gray-500 */
+}
+
+.statusBusyDot {
+  background: #fb923c;   /* orange-400 */
+  color: #f97316;        /* orange-500 */
+}
+
+.statusDoneDot {
+  background: #34d399;   /* emerald-400 */
+  color: #059669;        /* green-600 */
+}
+
+/* Make the text itself inherit matching color */
+.statusIdleDot + .statusText {
+  color: #6b7280;
+}
+.statusBusyDot + .statusText {
+  color: #f97316;
+}
+.statusDoneDot + .statusText {
+  color: #059669;
+}
+
+/* Finish button: orange, aligned with status */
 .actionBtn {
-  margin-bottom: 12px;
-  padding: 6px 12px;
-  border-radius: 4px;
-  background: #007bff;
-  color: white;
+  padding: 6px 14px;
+  border-radius: 6px;
   border: none;
+  background: #f97316; /* orange-500 */
+  color: white;
+  font-size: 16px;     /* match status text */
+  font-weight: 600;
+  line-height: 1.2;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  height: 36px;        /* aligns with status text height */
 }
 
 .actionBtn:hover {
-  background: #0056b3;
+  background: #ea580c; /* darker orange */
 }

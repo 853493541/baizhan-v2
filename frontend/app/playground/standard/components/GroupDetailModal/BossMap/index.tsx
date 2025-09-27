@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import styles from "./styles.module.css";
 import type { GroupResult } from "@/utils/solver";
 import Drops from "./drops";
-import ResultModal from "./ResultModal";
 
 import rawBossData from "@/app/data/boss_drop.json";
 const bossData: Record<string, string[]> = rawBossData;
@@ -46,16 +45,27 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
     dropLevel: 9 | 10;
   } | null>(null);
 
-  const [showResult, setShowResult] = useState(false);
+  // ---- Status helpers ----
+  const status = (group.status ?? "not_started") as "not_started" | "started" | "finished";
+  const statusLabel: Record<typeof status, string> = {
+    not_started: "未开始",
+    started: "进行中",
+    finished: "已完成",
+  };
+  const statusCircleClass: Record<typeof status, string> = {
+    not_started: styles.statusIdleDot,
+    started: styles.statusBusyDot,
+    finished: styles.statusDoneDot,
+  };
 
   // ✅ API helpers
-  const updateGroupStatus = async (status: "not_started" | "started" | "finished") => {
+  const updateGroupStatus = async (next: "not_started" | "started" | "finished") => {
     await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${group.index}/status`,
       {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status: next }),
       }
     );
     onRefresh?.();
@@ -73,14 +83,36 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
     onRefresh?.();
   };
 
+  // 🔘 Finish handler (no modal)
+  const handleFinish = async () => {
+    const ok = window.confirm("确认要结束吗？");
+    if (!ok) return;
+    await updateGroupStatus("finished");
+  };
+
   return (
     <>
-      <h3>本周地图</h3>
+      {/* Header: title (left) + status & finish button (right) */}
+      <div className={styles.headerRow}>
+        <h3 className={styles.title}>本周地图</h3>
 
-      {/* 🔘 Finish button always visible */}
-      <button className={styles.actionBtn} onClick={() => setShowResult(true)}>
-        结束
-      </button>
+        <div className={styles.rightControls}>
+          <div className={styles.statusWrap} title={`当前状态：${statusLabel[status]}`}>
+            <span className={`${styles.statusDot} ${statusCircleClass[status]}`} />
+            <span className={styles.statusText}>{statusLabel[status]}</span>
+          </div>
+
+          {status !== "finished" && (
+            <button
+              className={styles.actionBtn}
+              onClick={handleFinish}
+              aria-label="结束并提交"
+            >
+              结束
+            </button>
+          )}
+        </div>
+      </div>
 
       <div className={styles.row}>
         {row1.map((f) => (
@@ -129,17 +161,6 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
           onSave={async (floor, data) => {
             await updateGroupKill(floor, selected.boss, data);
             setSelected(null);
-          }}
-        />
-      )}
-
-      {showResult && (
-        <ResultModal
-          group={group}
-          onClose={() => setShowResult(false)}
-          onConfirm={async () => {
-            await updateGroupStatus("finished");
-            setShowResult(false);
           }}
         />
       )}
