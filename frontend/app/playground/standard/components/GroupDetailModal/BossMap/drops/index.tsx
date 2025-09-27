@@ -22,6 +22,10 @@ interface Props {
   group: GroupResult;
   onClose: () => void;
   onSave: (floor: number, selection: Selection) => void;
+
+  // ✅ NEW: allow parent to expose current status and a way to mark started
+  groupStatus?: "not_started" | "started" | "finished";
+  onMarkStarted?: () => void;
 }
 
 const getAbilityIcon = (ability: string) => `/icons/${ability}.png`;
@@ -34,10 +38,19 @@ export default function Drops({
   group,
   onClose,
   onSave,
+  groupStatus,
+  onMarkStarted,
 }: Props) {
   const [chosenDrop, setChosenDrop] = useState<
     { ability: string; level: 9 | 10 } | "noDrop" | null
   >(null);
+
+  // ✅ Helper: mark started only if currently "not_started"
+  const markStartedIfNeeded = () => {
+    if (groupStatus === "not_started" && onMarkStarted) {
+      onMarkStarted();
+    }
+  };
 
   // ✅ Build options (skip tradables)
   const buildOptions = () => {
@@ -57,9 +70,13 @@ export default function Drops({
 
   const handleAssign = (charId: string) => {
     if (chosenDrop === "noDrop") {
+      // ✅ No drop counts as “progress”
+      markStartedIfNeeded();
       onSave(floor, { noDrop: true });
       onClose();
     } else if (chosenDrop) {
+      // ✅ Normal drop counts as “progress”
+      markStartedIfNeeded();
       onSave(floor, {
         ability: chosenDrop.ability,
         level: chosenDrop.level,
@@ -159,12 +176,14 @@ export default function Drops({
                 <div className={styles.sectionDivider}>已有</div>
               )}
 
-              {/* === 九重全有 === */}
+              {/* === 九重全有（视为浪费）=== */}
               {allHave9Options.map((opt, i) => (
                 <button
                   key={`allhave9-${i}`}
                   className={`${styles.dropBtn} ${styles.allHaveBtn}`}
                   onClick={() => {
+                    // ✅ “已有/浪费” 也应视作进度
+                    markStartedIfNeeded();
                     onSave(floor, { ability: opt.ability, level: opt.level });
                     onClose();
                   }}
@@ -180,12 +199,14 @@ export default function Drops({
                 </button>
               ))}
 
-              {/* === 十重全有 === */}
+              {/* === 十重全有（视为浪费）=== */}
               {allHave10Options.map((opt, i) => (
                 <button
                   key={`allhave10-${i}`}
                   className={`${styles.dropBtn} ${styles.allHaveBtn}`}
                   onClick={() => {
+                    // ✅ “已有/浪费” 也应视作进度
+                    markStartedIfNeeded();
                     onSave(floor, { ability: opt.ability, level: opt.level });
                     onClose();
                   }}
@@ -208,6 +229,8 @@ export default function Drops({
               <button
                 className={styles.noDropBtn}
                 onClick={() => {
+                  // ✅ “无掉落/紫书” 也应视作进度
+                  markStartedIfNeeded();
                   onSave(floor, { noDrop: true });
                   onClose();
                 }}
@@ -239,7 +262,13 @@ export default function Drops({
                     className={`${styles.memberBtn} ${
                       disabled ? styles.memberDisabled : ""
                     }`}
-                    onClick={() => !disabled && handleAssign(c._id || c.id)}
+                    onClick={() => {
+                      if (!disabled) {
+                        // ✅ 角色分配也算进度
+                        markStartedIfNeeded();
+                        handleAssign(c._id || c.id);
+                      }
+                    }}
                     disabled={disabled}
                   >
                     {c.name || c._id}

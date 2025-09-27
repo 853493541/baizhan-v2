@@ -78,18 +78,19 @@
 .actionBtn {
   padding: 6px 14px;
   border-radius: 6px;
-  border: none;
-  background: #f97316; /* orange-500 */
-  color: white;
-  font-size: 16px;     /* match status text */
+  border: #166534 1.5px solid;     /* dark green */
+  background-color: #bbf7d0;       /* soft green background */
+  color: #166534;                  /* dark green text */
+  font-size: 16px;
   font-weight: 600;
   line-height: 1.2;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  height: 36px;        /* aligns with status text height */
+  height: 36px;
+  transition: background 0.2s ease;
 }
 
 .actionBtn:hover {
-  background: #ea580c; /* darker orange */
+    background-color: #86efac; 
 }

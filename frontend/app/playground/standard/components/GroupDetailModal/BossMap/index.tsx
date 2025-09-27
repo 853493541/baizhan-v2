@@ -161,7 +161,14 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
           onSave={async (floor, data) => {
             await updateGroupKill(floor, selected.boss, data);
             setSelected(null);
+            // 👇 Safety net: if for any reason Drops didn’t mark started, parent enforces it here.
+            if (status === "not_started") {
+              await updateGroupStatus("started");
+            }
           }}
+          // 👇 Let Drops flip to “进行中” immediately on any entry (no-drop / normal / 已有)
+          groupStatus={status}
+          onMarkStarted={() => updateGroupStatus("started")}
         />
       )}
     </>
