@@ -50,11 +50,42 @@
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
+.groupHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
 .groupTitle {
   font-weight: bold;
-  margin-bottom: 10px;
   font-size: 15px;
   color: #2c3e50;
+  margin: 0;
+}
+
+.statusDot {
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.statusText {
+  font-size: 14px;
+}
+
+.notStarted {
+  color: #6c757d; /* gray */
+}
+
+.started {
+  color: #fd7e14; /* orange */
+}
+
+.finished {
+  color: #28a745; /* green */
 }
 
 .memberList {

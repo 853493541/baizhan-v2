@@ -11,7 +11,7 @@ interface Props {
     checkedAbilities: AbilityCheck[];
     characters: Character[];
   };
-  groups: GroupResult[];
+  groups: (GroupResult & { status?: "not_started" | "started" | "finished" })[];
   setGroups: (groups: GroupResult[]) => void;
   activeIdx: number | null;
   setActiveIdx: (idx: number | null) => void;
@@ -51,7 +51,6 @@ export default function MainSection({
 
     console.log("✅ Solver results:", results);
 
-    // 🔎 Conflict check flags
     let hasConflict = false;
 
     // 1️⃣ Main-character rule
@@ -65,10 +64,6 @@ export default function MainSection({
           `⚠️ Group ${idx + 1} contains multiple main characters:`,
           mainsInGroup.map((c) => c.name)
         );
-        console.debug(
-          `📝 Full member list for Group ${idx + 1}:`,
-          g.characters.map((c) => `${c.name} (${c.role})`)
-        );
       }
     });
 
@@ -81,24 +76,17 @@ export default function MainSection({
           console.warn(
             `⚠️ Group ${idx + 1} has no 七秀 (server=${schedule.server})`
           );
-          console.debug(
-            `📝 Full member list for Group ${idx + 1}:`,
-            g.characters.map((c) => `${c.name} (${c.class})`)
-          );
         }
       });
     }
 
-    // 🔁 Retry up to 20 times if conflict found
     if (hasConflict && retryCount < 20) {
       console.log(`🔄 Rerunning solver (attempt ${retryCount + 1}/20)...`);
       return handleRunSolver(retryCount + 1);
     }
 
-    // ✅ Accept results if no conflict or max retries reached
     setGroups(results);
 
-    // Build payload for backend
     const payload = results.map((g, idx) => ({
       index: idx + 1,
       characters: g.characters.map((c) => c._id),
@@ -122,21 +110,41 @@ export default function MainSection({
     }
   };
 
-  // 🔎 Build paired arrays with original indices preserved
-  const mainPairs = groups
-    .map((g, i) => ({ g, i }))
-    .filter(({ g }) => g.characters.some((c) => MAIN_CHARACTERS.has(c.name)));
-
-  const altPairs = groups
-    .map((g, i) => ({ g, i }))
-    .filter(({ g }) => !g.characters.some((c) => MAIN_CHARACTERS.has(c.name)));
-
-  const renderGroup = (g: GroupResult, originalIdx: number) => {
+  // ✅ Render group
+  const renderGroup = (
+    g: GroupResult & { status?: "not_started" | "started" | "finished" },
+    originalIdx: number
+  ) => {
     const qaWarnings = checkGroupQA(
       g,
       schedule.conflictLevel,
       schedule.checkedAbilities
     );
+
+    const status = g.status || "not_started";
+
+    const renderStatus = () => {
+      switch (status) {
+        case "started":
+          return (
+            <span className={`${styles.statusDot} ${styles.started}`}>
+              ● <span className={styles.statusText}>进行中</span>
+            </span>
+          );
+        case "finished":
+          return (
+            <span className={`${styles.statusDot} ${styles.finished}`}>
+              ● <span className={styles.statusText}>完成</span>
+            </span>
+          );
+        default:
+          return (
+            <span className={`${styles.statusDot} ${styles.notStarted}`}>
+              ● <span className={styles.statusText}>未开始</span>
+            </span>
+          );
+      }
+    };
 
     return (
       <div
@@ -144,7 +152,11 @@ export default function MainSection({
         className={styles.groupCard}
         onClick={() => setActiveIdx(originalIdx)}
       >
-        <h4 className={styles.groupTitle}>组 {originalIdx + 1}</h4>
+        <div className={styles.groupHeader}>
+          <h4 className={styles.groupTitle}>组 {originalIdx + 1}</h4>
+          {renderStatus()}
+        </div>
+
         <ul className={styles.memberList}>
           {g.characters.map((c) => {
             const isMain = MAIN_CHARACTERS.has(c.name);
@@ -165,6 +177,7 @@ export default function MainSection({
             );
           })}
         </ul>
+
         {qaWarnings.length > 0 && (
           <div className={styles.groupViolation}>
             {qaWarnings.map((w, i) => (
@@ -175,6 +188,14 @@ export default function MainSection({
       </div>
     );
   };
+
+  const mainPairs = groups
+    .map((g, i) => ({ g, i }))
+    .filter(({ g }) => g.characters.some((c) => MAIN_CHARACTERS.has(c.name)));
+
+  const altPairs = groups
+    .map((g, i) => ({ g, i }))
+    .filter(({ g }) => !g.characters.some((c) => MAIN_CHARACTERS.has(c.name)));
 
   return (
     <div className={styles.section}>
@@ -188,7 +209,6 @@ export default function MainSection({
         <p className={styles.empty}>暂无排表结果</p>
       ) : (
         <>
-          {/* 大号组 */}
           {mainPairs.length > 0 && (
             <>
               <h3 className={styles.sectionSubtitle}>大号组</h3>
@@ -198,7 +218,6 @@ export default function MainSection({
             </>
           )}
 
-          {/* 小号组 */}
           {altPairs.length > 0 && (
             <>
               <h3 className={styles.sectionSubtitle}>小号组</h3>
