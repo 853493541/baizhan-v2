@@ -1,4 +1,4 @@
-/* Overlay + modal */
+/* === Overlay + modal === */
 .overlay {
   position: fixed;
   top: 0;
@@ -31,4 +31,116 @@
   background: transparent;
   font-size: 20px;
   cursor: pointer;
+}
+
+/* === Mid Section Layout === */
+.midSection {
+  display: flex;
+  justify-content: center;   /* ✅ center the whole row */
+  align-items: stretch;      /* ✅ children match tallest */
+  gap: 24px;
+  margin: 20px 0;
+  width: 100%;
+  min-height: 350px;         /* ✅ baseline height */
+}
+
+/* === Core Ability Table === */
+.tableWrapper {
+  display: flex;
+  justify-content: center;   /* ✅ center table inside box */
+  margin: 16px auto;
+  max-width: 100%;
+  height: auto;
+  overflow-x: auto;
+  flex: 1;                   /* ✅ fill chartBox height */
+}
+
+.abilityTable {
+  border-collapse: collapse;
+  margin-bottom: 16px;
+  width: auto;
+  max-width: 100%;
+}
+
+.abilityTable th,
+.abilityTable td {
+  border: 1px solid #ddd;
+  padding: 6px 12px;
+  text-align: center;
+  vertical-align: middle;
+  min-width: 60px;
+  white-space: nowrap;
+}
+
+/* Ability name + logo */
+.abilityNameCell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.abilityLogo {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+/* highlight below/above requirement */
+.below {
+  background-color: #fff3cd;
+}
+
+.above {
+  background-color: #e8fbe8;
+}
+
+/* Role-based header colors */
+.tank {
+  background: #fff4c2;
+  color: #6b4e00;
+}
+
+.dps {
+  background: #d5f5d5;
+  color: #0f5132;
+}
+
+.healer {
+  background: #fddde6;
+  color: #842029;
+}
+
+.upgrade {
+  background-color: #ffe0b2;
+  color: #c63f17;
+}
+
+.ready {
+  background-color: #c8e6c9;
+  color: #256029;
+}
+
+.canUse {
+  background-color: #5fd463;
+  color: #256029;
+}
+
+/* === Result Window internals (optional split) === */
+.resultContent {
+  display: flex;
+  gap: 16px;
+  flex: 1;                   /* ✅ fill resultBox height */
+}
+
+.resultSubBox {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 12px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
 }

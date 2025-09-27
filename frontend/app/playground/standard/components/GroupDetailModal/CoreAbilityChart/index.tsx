@@ -35,7 +35,6 @@ export default function CoreAbilityChart({
 
   return (
     <>
-      <h3>核心技能详情</h3>
       <div className={styles.tableWrapper}>
         <table className={styles.abilityTable}>
           <thead>

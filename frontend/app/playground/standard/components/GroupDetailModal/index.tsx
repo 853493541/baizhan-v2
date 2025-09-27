@@ -6,19 +6,20 @@ import type { GroupResult, AbilityCheck } from "@/utils/solver";
 
 import GroupInfo from "./GroupInfo";
 import CoreAbilityChart from "./CoreAbilityChart";
+import ResultWindow from "./ResultModal";
 import BossMap from "./BossMap";
 
 import rawBossData from "../../../../data/boss_skills_collection_map.json";
 const bossData: Record<string, string[]> = rawBossData;
 
 interface Props {
-  scheduleId: string;   // ✅ added
+  scheduleId: string;
   groupIndex: number;
   group: GroupResult;
   checkedAbilities: AbilityCheck[];
   conflictLevel: number;
   onClose: () => void;
-  onRefresh?: () => void; // ✅ pass through for refreshing after API calls
+  onRefresh?: () => void;
 }
 
 interface WeeklyMapResponse {
@@ -86,16 +87,23 @@ export default function GroupDetailModal({
           conflictLevel={conflictLevel}
         />
 
-        <CoreAbilityChart
-          group={group}
-          checkedAbilities={checkedAbilities}
-          conflictLevel={conflictLevel}
-          weeklyAbilities={weeklyAbilities} // ✅ includes drop levels
-        />
+   {/* === Mid Section: Chart + Results === */}
+<div className={styles.midSection}>
+  <CoreAbilityChart
+    group={group}
+    checkedAbilities={checkedAbilities}
+    conflictLevel={conflictLevel}
+    weeklyAbilities={weeklyAbilities}
+  />
+
+  <ResultWindow group={group} />
+</div>
+
+
 
         <BossMap
-          scheduleId={scheduleId}   // ✅ now passed down
-          group={group as any}      // cast since BossMap expects ExtendedGroup
+          scheduleId={scheduleId}
+          group={group as any}
           weeklyMap={weeklyMap}
           onRefresh={onRefresh}
         />
