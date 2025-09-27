@@ -76,13 +76,21 @@ export default function StandardScheduleForm({ onClose, onConfirm }: Props) {
       if (!charRes.ok) throw new Error("Failed to fetch characters");
       const characters = await charRes.json();
 
+      // ✅ filter only active characters
+      const activeCharacters = characters.filter((c: any) => c.active);
+
+      if (activeCharacters.length === 0) {
+        alert("该服务器没有启用的角色，无法创建排表。");
+        return;
+      }
+
       const payload = {
         name: name || "未命名排表",
         server,
         conflictLevel,
         checkedAbilities: checklist,
-        characterCount: characters.length,
-        characters: characters.map((c: any) => c._id),
+        characterCount: activeCharacters.length,
+        characters: activeCharacters.map((c: any) => c._id),
         groups: [],
       };
 
