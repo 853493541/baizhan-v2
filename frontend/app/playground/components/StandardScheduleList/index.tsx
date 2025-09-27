@@ -31,7 +31,6 @@ interface Props {
 export default function StandardScheduleList({ schedules }: Props) {
   return (
     <div>
-      <h3 className={styles.subtitle}>已有标准排表</h3>
       {schedules.length === 0 ? (
         <p className={styles.empty}>暂无排表</p>
       ) : (

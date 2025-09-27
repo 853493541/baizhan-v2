@@ -96,3 +96,29 @@
   color: #888;
   margin: 1rem 0 2rem;
 }
+
+.pastSection {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.showPastBtn {
+  background-color: #f1f1f1;
+  border: 1px solid #ccc;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.showPastBtn:hover {
+  background-color: #e2e2e2;
+  transform: translateY(-1px);
+}
+
+.showPastBtn:active {
+  background-color: #d6d6d6;
+  transform: translateY(0);
+}
