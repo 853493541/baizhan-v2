@@ -4,14 +4,21 @@ import styles from "./styles.module.css";
 
 interface Props {
   onClick: () => void;
+  compact?: boolean;      // use a smaller header-sized button
+  className?: string;     // optional external override
 }
 
-export default function CreateButton({ onClick }: Props) {
+export default function CreateButton({ onClick, compact = false, className }: Props) {
   return (
-    <div className={styles.createButtonWrapper}>
-      <button onClick={onClick} className={styles.createButton}>
-        + 新建角色
-      </button>
-    </div>
+    <button
+      onClick={onClick}
+      className={[
+        styles.createButton,
+        compact ? styles.compact : "",
+        className ?? "",
+      ].join(" ").trim()}
+    >
+      + 新建角色
+    </button>
   );
 }

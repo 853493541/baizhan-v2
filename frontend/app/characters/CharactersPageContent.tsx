@@ -7,7 +7,6 @@ import { Character } from "@/types/Character";
 import { normalizeGender } from "@/utils/normalize";
 import styles from "./page.module.css";
 
-import TitleBar from "@/app/components/layout/titleBar";
 import CharacterFilters from "./sections/CharacterFilters";
 import CharacterGrid from "./sections/CharacterGrid";
 import CreateButton from "./sections/CreateButton";
@@ -172,11 +171,19 @@ export default function CharactersPageContent() {
 
   return (
     <div className={styles.container}>
-      <TitleBar title="角色仓库" />
-
-      <div className={styles.createBtnWrapper}>
+      {/* Header row with text left + button right */}
+      <div className={styles.headerRow}>
+        <span className={styles.headerText}>角色仓库</span>
         <CreateButton onClick={() => setModalOpen(true)} />
       </div>
+
+      {isModalOpen && (
+        <CreateCharacterModal
+          isOpen={isModalOpen}
+          onClose={() => setModalOpen(false)}
+          onCreate={handleCreate}
+        />
+      )}
 
       <CharacterFilters
         ownerFilter={ownerFilter}
@@ -198,13 +205,6 @@ export default function CharactersPageContent() {
       />
 
       <CharacterGrid characters={filteredCharacters} onUpdated={refreshCharacters} />
-
-      {isModalOpen && (
-        <CreateCharacterModal
-          onClose={() => setModalOpen(false)}
-          onConfirm={handleCreate}
-        />
-      )}
     </div>
   );
 }
