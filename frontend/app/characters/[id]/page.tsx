@@ -100,8 +100,12 @@ export default function CharacterDetailPage() {
 
   return (
     <div className={styles.page}>
-      <h1 className={styles.pageTitle}>角色详情</h1>
-
+<div className={styles.headerRow}>
+  <button className={styles.backButton} onClick={() => router.back()}>
+    ← 返回
+  </button>
+  <h1 className={styles.pageTitle}>角色详情</h1>
+</div>
       {/* === Top section: 65/35 split === */}
       <div className={styles.topGrid}>
         {/* LEFT → Basics */}

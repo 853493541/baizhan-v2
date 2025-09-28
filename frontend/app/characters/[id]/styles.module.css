@@ -123,3 +123,44 @@
   padding: 0;           /* unify with scanBox */
   border-top: none;     /* seamless with above */
 }
+.backButton {
+  background: none;
+  border: none;
+  color: #0070f3;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+.backButton:hover {
+  text-decoration: underline;
+}
+.headerRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;       /* spacing between button and title */
+  margin-bottom: 2px;
+}
+
+.backButton {
+  padding: 6px 12px;
+  background-color: #e6f0ff;  /* soft light blue */
+  border: 1px solid #99c2ff;  /* muted border */
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: #004085;             /* navy text */
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.backButton:hover {
+  background-color: #66a3ff;  /* medium blue */
+  border-color: #3385ff;
+  color: #fff;                /* white text on hover */
+}
+
+
+.pageTitle {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
