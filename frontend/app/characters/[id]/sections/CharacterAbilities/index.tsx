@@ -36,7 +36,7 @@ export default function CharacterAbilities({ abilities }: CharacterAbilitiesProp
         </button>
       </div>
 
-      <p className={styles.lastScan}>上次扫描时间：8天前</p>
+      {/* <p className={styles.lastScan}>上次扫描时间：8天前</p> */}
 
       {open && (
         <div className={styles.modalOverlay} onClick={() => setOpen(false)}>

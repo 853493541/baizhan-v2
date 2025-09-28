@@ -175,7 +175,13 @@ export default function ComparisonModal({
       <div className={styles.modal}>
         {step === 1 ? (
           <>
-            <h2>扫描结果</h2>
+            <div className={styles.headerRow}>
+              <h2 className={styles.modalTitle}>扫描结果</h2>
+              <div className={styles.headerButtons}>
+                <button onClick={onClose} className={styles.cancelBtn}>取消</button>
+                <button onClick={handleStep1Confirm} className={styles.confirmBtn}>确认</button>
+              </div>
+            </div>
 
             <div className={styles.section}>
               <h3>核心技能</h3>
@@ -191,15 +197,16 @@ export default function ComparisonModal({
               <h3>其他技能</h3>
               {otherUpdates.length > 0 ? renderAbilityList(otherUpdates) : <p style={{ color: "#777" }}>无变化</p>}
             </div>
-
-            <div className={styles.buttons}>
-              <button onClick={onClose} className={styles.cancelBtn}>取消</button>
-              <button onClick={handleStep1Confirm} className={styles.confirmBtn}>下一步 / 确认</button>
-            </div>
           </>
         ) : (
           <>
-            <h2>未扫描到技能（手动输入）</h2>
+            <div className={styles.headerRow}>
+              <h2 className={styles.modalTitle}>未扫描到技能（手动输入）</h2>
+              <div className={styles.headerButtons}>
+                <button onClick={() => setStep(1)} className={styles.cancelBtn}>⬅ 上一步</button>
+                <button onClick={handleStep2Confirm} className={styles.confirmBtn}>✅ 确认</button>
+              </div>
+            </div>
 
             <div className={styles.stepTwoLayout}>
               <div className={styles.section} style={{ flex: 1 }}>
@@ -211,11 +218,6 @@ export default function ComparisonModal({
                   <img src={previewImage} alt="参考图片" onClick={() => setShowImageModal(true)} />
                 </div>
               )}
-            </div>
-
-            <div className={styles.buttons}>
-              <button onClick={() => setStep(1)} className={styles.cancelBtn}>⬅ 上一步</button>
-              <button onClick={handleStep2Confirm} className={styles.confirmBtn}>✅ 确认</button>
             </div>
           </>
         )}
