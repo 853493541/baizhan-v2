@@ -1,20 +1,31 @@
 .appGrid {
   display: grid;
-  grid-template-rows: 56px 1fr;
-  grid-template-columns: 240px 1fr;
+  grid-template-rows: 56px 1fr;     /* top bar fixed height */
+  grid-template-columns: 220px 1fr; /* sidebar fixed width */
   grid-template-areas:
     "topbar topbar"
     "sidebar main";
   height: 100vh;
-}
-.topbar { grid-area: topbar; }
-.sidebar { grid-area: sidebar; }
-.main {
-  grid-area: main;
-  padding: 16px 20px 24px;
-  overflow: auto;
+  width: 100vw;
+  overflow: hidden;
 }
 
-@media (max-width: 920px) {
-  .appGrid { grid-template-columns: 72px 1fr; }
+.topbar {
+  grid-area: topbar;
+  border-bottom: 1px solid #e5e5e5;
+  background: #ffffff;
+}
+
+.sidebar {
+  grid-area: sidebar;
+  border-right: 1px solid #e5e5e5;
+  background: #fafafa;
+  overflow-y: auto;
+}
+
+.main {
+  grid-area: main;
+  overflow-y: auto;
+  padding: 16px;
+  background: #ffffff;
 }

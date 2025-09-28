@@ -1,12 +1,29 @@
 .wrap {
-  height: 56px;
-  background: #fff;
-  border-bottom: 1px solid #e5e7eb;
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  height: 56px;
   padding: 0 16px;
-  gap: 12px;
+  background: #ffffff;
 }
-.title { font-weight: 700; letter-spacing: .2px; }
-.right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
-.version { color: #64748b; font-size: 12px; }
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.title {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.nav {
+  display: flex;
+  gap: 16px;
+}
+
+.right {
+  font-size: 12px;
+  color: #666;
+}
