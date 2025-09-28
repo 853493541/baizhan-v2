@@ -85,7 +85,7 @@ export default function CharacterCard({ character, onUpdated }: CharacterCardPro
           <button
             className={styles.tradableButton}
             onClick={(e) => {
-              e.stopPropagation();
+              e.stopPropagation(); // ✅ prevent card navigation
               setShowModal(true);
             }}
           >

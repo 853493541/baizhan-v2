@@ -23,7 +23,10 @@ export default function TradableModal({
 
   return (
     <div className={styles.modalOverlay} onClick={handleOverlayClick}>
-      <div className={styles.modal}>
+      <div
+        className={styles.modal}
+        onClick={(e) => e.stopPropagation()} // ✅ prevent bubbling into card
+      >
         <h3 className={styles.modalTitle}>交易行技能</h3>
         <p>可购买用于提升精耐：</p>
 
@@ -45,7 +48,10 @@ export default function TradableModal({
               </span>
 
               <button
-                onClick={() => updateAbility(ability, Math.max(current - 1, 0))}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  updateAbility(ability, Math.max(current - 1, 0));
+                }}
                 disabled={current <= 0}
                 className={current <= 0 ? styles.minusDisabled : styles.minus}
               >
@@ -55,14 +61,20 @@ export default function TradableModal({
               <span>{current}</span>
 
               <button
-                onClick={() => updateAbility(ability, current + 1)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  updateAbility(ability, current + 1);
+                }}
                 className={styles.plus}
               >
                 +
               </button>
 
               <button
-                onClick={() => onCopy(ability)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCopy(ability);
+                }}
                 className={styles.copyButton}
               >
                 复制名称
@@ -72,7 +84,13 @@ export default function TradableModal({
         })}
 
         <div className={styles.modalFooter}>
-          <button onClick={onClose} className={styles.closeButton}>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
+            className={styles.closeButton}
+          >
             关闭
           </button>
         </div>
