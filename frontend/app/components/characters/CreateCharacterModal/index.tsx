@@ -15,7 +15,14 @@ const classes = [
   "七秀", "五毒", "万花", "天策", "明教", "纯阳", "少林", "长歌", "药宗",
   "蓬莱", "刀宗", "凌雪", "唐门", "藏剑", "丐帮", "霸刀", "衍天", "万灵", "段氏", "苍云"
 ];
-const roles = ["输出", "防御", "治疗"];
+const rolesCN = ["输出", "防御", "治疗"];
+
+// ✅ map Chinese labels to backend values
+const roleMap: Record<string, string> = {
+  "输出": "DPS",
+  "防御": "Tank",
+  "治疗": "Healer",
+};
 
 export default function CreateCharacterModal({
   isOpen,
@@ -28,15 +35,21 @@ export default function CreateCharacterModal({
     server: servers[0],
     gender: genders[0],
     class: classes[0],
-    role: roles[0],
+    role: rolesCN[0], // user sees Chinese
     active: true,
     owner: "",
   });
 
+  // ✅ Restore defaults from localStorage when modal opens
   useEffect(() => {
     if (isOpen) {
       const lastOwner = localStorage.getItem("lastOwner") || "";
-      setFormData((prev) => ({ ...prev, owner: lastOwner }));
+      const lastServer = localStorage.getItem("lastServer") || servers[0];
+      setFormData((prev) => ({
+        ...prev,
+        owner: lastOwner,
+        server: lastServer,
+      }));
     }
   }, [isOpen]);
 
@@ -61,9 +74,12 @@ export default function CreateCharacterModal({
       ...formData,
       account: String(formData.account ?? "").trim(),
       owner: String(formData.owner ?? "").trim() || "Unknown",
+      role: roleMap[formData.role] || "dps", // ✅ map Chinese → backend
     };
 
+    // ✅ Persist owner + server for next time
     localStorage.setItem("lastOwner", payload.owner);
+    localStorage.setItem("lastServer", payload.server);
 
     if (!payload.account) {
       alert("账号不能为空！");
@@ -91,6 +107,7 @@ export default function CreateCharacterModal({
             onChange={handleChange}
             className={styles.input}
             required
+            autoComplete="off"
           />
           <input
             type="text"
@@ -100,6 +117,7 @@ export default function CreateCharacterModal({
             onChange={handleChange}
             className={styles.input}
             required
+            autoComplete="off"
           />
           <input
             type="text"
@@ -109,23 +127,60 @@ export default function CreateCharacterModal({
             onChange={handleChange}
             className={styles.input}
             required
+            autoComplete="off"
           />
 
-          <select name="server" value={formData.server} onChange={handleChange} className={styles.select}>
-            {servers.map((s) => <option key={s} value={s}>{s}</option>)}
+          <select
+            name="server"
+            value={formData.server}
+            onChange={handleChange}
+            className={styles.select}
+          >
+            {servers.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
           </select>
-          <select name="gender" value={formData.gender} onChange={handleChange} className={styles.select}>
-            {genders.map((g) => <option key={g} value={g}>{g}</option>)}
+
+          <select
+            name="gender"
+            value={formData.gender}
+            onChange={handleChange}
+            className={styles.select}
+          >
+            {genders.map((g) => (
+              <option key={g} value={g}>{g}</option>
+            ))}
           </select>
-          <select name="class" value={formData.class} onChange={handleChange} className={styles.select}>
-            {classes.map((c) => <option key={c} value={c}>{c}</option>)}
+
+          <select
+            name="class"
+            value={formData.class}
+            onChange={handleChange}
+            className={styles.select}
+          >
+            {classes.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
           </select>
-          <select name="role" value={formData.role} onChange={handleChange} className={styles.select}>
-            {roles.map((r) => <option key={r} value={r}>{r}</option>)}
+
+          <select
+            name="role"
+            value={formData.role}
+            onChange={handleChange}
+            className={styles.select}
+          >
+            {rolesCN.map((r) => (
+              <option key={r} value={r}>{r}</option>
+            ))}
           </select>
 
           <label className={styles.checkbox}>
-            <input type="checkbox" name="active" checked={formData.active} onChange={handleChange} />
+            <input
+              type="checkbox"
+              name="active"
+              checked={formData.active}
+              onChange={handleChange}
+            />
             <span>是否启用</span>
           </label>
 

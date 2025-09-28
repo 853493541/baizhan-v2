@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation"; // ✅ import router
 
 import CreateCharacterModal from "@/app/components/characters/CreateCharacterModal";
 import { Character } from "@/types/Character";
@@ -12,8 +13,6 @@ import CharacterGrid from "./sections/CharacterGrid";
 import CreateButton from "./sections/CreateButton";
 
 export default function CharactersPageContent() {
-  console.log("[CharactersPageContent] render start");
-
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,6 +20,7 @@ export default function CharactersPageContent() {
   const [isModalOpen, setModalOpen] = useState(false);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  const router = useRouter(); // ✅ initialize router
 
   // ===== Filter state =====
   const [ownerFilter, setOwnerFilter] = useState("");
@@ -36,22 +36,12 @@ export default function CharactersPageContent() {
       ? selectedAbilities.map((a) => ({ ability: a, level: globalLevel }))
       : [];
 
-  console.log("[CharactersPageContent] derived filters", {
-    ownerFilter,
-    serverFilter,
-    roleFilter,
-    selectedAbilities,
-    globalLevel,
-    abilityFilters,
-  });
-
   // ===== Restore filters from localStorage =====
   useEffect(() => {
     const saved = localStorage.getItem("characterFilters");
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        console.log("[CharactersPageContent] restoring from localStorage", parsed);
 
         setOwnerFilter(parsed.ownerFilter || "");
         setServerFilter(parsed.serverFilter || "");
@@ -67,10 +57,7 @@ export default function CharactersPageContent() {
 
   // ===== Save filters to localStorage whenever they change =====
   useEffect(() => {
-    if (!restored) {
-      console.log("[CharactersPageContent] skip saving (not restored yet)");
-      return;
-    }
+    if (!restored) return;
 
     const state = {
       ownerFilter,
@@ -79,13 +66,11 @@ export default function CharactersPageContent() {
       selectedAbilities,
       globalLevel,
     };
-    console.log("[CharactersPageContent] saving to localStorage", state);
     localStorage.setItem("characterFilters", JSON.stringify(state));
   }, [restored, ownerFilter, serverFilter, roleFilter, selectedAbilities, globalLevel]);
 
   // ===== Handlers =====
   const handleAddAbilityFilter = (ability: string, level: number) => {
-    console.log("[CharactersPageContent] handleAddAbilityFilter", ability, level);
     const exists = selectedAbilities.includes(ability);
     const next = exists
       ? selectedAbilities.filter((a) => a !== ability)
@@ -95,23 +80,19 @@ export default function CharactersPageContent() {
   };
 
   const handleRemoveAbilityFilter = (index: number) => {
-    console.log("[CharactersPageContent] handleRemoveAbilityFilter", index);
     const next = selectedAbilities.filter((_, i) => i !== index);
     setSelectedAbilities(next);
   };
 
   // ===== Fetch characters =====
   const refreshCharacters = () => {
-    console.log("[CharactersPageContent] refreshing characters…");
     fetch(`${API_URL}/api/characters`)
       .then((res) => res.json())
       .then((data) => {
-        console.log("[CharactersPageContent] fetched characters raw:", data);
         const normalized: Character[] = data.map((c: any) => ({
           ...c,
           gender: normalizeGender(c.gender),
         }));
-        console.log("[CharactersPageContent] normalized characters:", normalized);
         setCharacters(normalized);
         setLoading(false);
       })
@@ -126,8 +107,8 @@ export default function CharactersPageContent() {
     refreshCharacters();
   }, []);
 
+  // ===== Create handler =====
   const handleCreate = async (data: any) => {
-    console.log("[CharactersPageContent] handleCreate", data);
     try {
       const res = await fetch(`${API_URL}/api/characters`, {
         method: "POST",
@@ -136,9 +117,14 @@ export default function CharactersPageContent() {
       });
 
       if (!res.ok) throw new Error("创建失败");
+
       const newChar = await res.json();
-      console.log("[CharactersPageContent] created new character:", newChar);
+
+      // ✅ update list
       setCharacters((prev) => [...prev, newChar]);
+
+      // ✅ jump to detail page
+      router.push(`/characters/${newChar._id}`);
     } catch (err) {
       console.error("❌ Error creating character:", err);
       setError("角色创建失败");
@@ -164,7 +150,6 @@ export default function CharactersPageContent() {
     }
     return true;
   });
-  console.log("[CharactersPageContent] filtered characters", filteredCharacters);
 
   if (loading) return <p className={styles.message}>角色加载中...</p>;
   if (error) return <p className={styles.error}>{error}</p>;
