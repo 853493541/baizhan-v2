@@ -116,16 +116,15 @@
 }
 
 .progressBar {
-  width: 40%; /* static for now */
+  width: 0%; /* start empty */
   height: 100%;
   background: linear-gradient(90deg, #007bff, #66b2ff);
-  animation: progressAnim 2s infinite;
+  animation: progressAnim 4s forwards; /* ✅ fill once and stay full */
 }
 
 @keyframes progressAnim {
-  0% { width: 20%; }
-  50% { width: 60%; }
-  100% { width: 30%; }
+  from { width: 0%; }
+  to { width: 100%; }
 }
 
 .hint {
@@ -133,3 +132,5 @@
   color: #555;
   margin-top: 8px;
 }
+
+

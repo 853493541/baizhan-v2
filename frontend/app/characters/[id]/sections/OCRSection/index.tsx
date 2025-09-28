@@ -77,55 +77,49 @@ export default function CharacterOCRSection({
         </span>
       </div>
 
-  {/* Processing modal */}
-{processing && (
-  <div className={styles.processingOverlay}>
-    <div className={styles.processingBox}>
-      <h3 className={styles.modalTitle}>图片处理</h3>
+      {/* Processing modal */}
+      {processing && (
+        <div className={styles.processingOverlay}>
+          <div className={styles.processingBox}>
+            <h3 className={styles.modalTitle}>图片处理</h3>
 
-      {/* Preview of uploaded image */}
-      {previewImage && (
-        <img
-          src={previewImage}
-          alt="预览"
-          className={styles.previewImage}
-        />
+            {/* Preview of uploaded image */}
+            {previewImage && (
+              <img
+                src={previewImage}
+                alt="预览"
+                className={styles.previewImage}
+              />
+            )}
+
+            {/* Simplified scanning text */}
+            <p className={styles.scanningText}>正在扫描...</p>
+
+            {/* Animated progress bar */}
+            <div className={styles.progressBarWrapper}>
+              <div className={styles.progressBar} />
+            </div>
+
+            <div style={{ marginTop: 20 }}>
+              <button onClick={() => setProcessing(false)}>取消</button>
+            </div>
+          </div>
+        </div>
       )}
 
-      {/* Step list */}
-      <ul className={styles.stepList}>
-        <li className={styles.stepDone}>✅ 图片已上传</li>
-        <li className={styles.stepActive}>🔍 检查图片可读性...</li>
-        <li>⏳ 正在进行 OCR 识别...</li>
-      </ul>
-
-      {/* Progress bar (simulate) */}
-      <div className={styles.progressBarWrapper}>
-        <div className={styles.progressBar} />
-      </div>
-
-      <p className={styles.hint}>这可能需要几秒钟，请耐心等待...</p>
-
-      <div style={{ marginTop: 20 }}>
-        <button onClick={() => setProcessing(false)}>取消</button>
-      </div>
-    </div>
-  </div>
-)}
-
       {/* Comparison results */}
-{compareResult && (
-  <ComparisonModal
-    characterId={characterId}   // ✅ always pass ID
-    toUpdate={compareResult.toUpdate || []}
-    ocrOnly={compareResult.ocrOnly || []}
-    dbOnly={compareResult.dbOnly || []}
-    previewImage={previewImage}
-    currentAbilities={currentAbilities}
-    onAbilitiesUpdated={onAbilitiesUpdated}   // ✅ match new prop
-    onClose={() => setCompareResult(null)}
-  />
-)}
+      {compareResult && (
+        <ComparisonModal
+          characterId={characterId} // ✅ always pass ID
+          toUpdate={compareResult.toUpdate || []}
+          ocrOnly={compareResult.ocrOnly || []}
+          dbOnly={compareResult.dbOnly || []}
+          previewImage={previewImage}
+          currentAbilities={currentAbilities}
+          onAbilitiesUpdated={onAbilitiesUpdated} // ✅ match new prop
+          onClose={() => setCompareResult(null)}
+        />
+      )}
     </div>
   );
 }
