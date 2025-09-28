@@ -1,16 +1,16 @@
 .wrap {
   height: 100%;
-  width: 100%;
+  background: #fff;
+  border-right: 1px solid #e5e7eb;
+  padding: 12px 8px;
   display: flex;
   flex-direction: column;
+  gap: 8px;
 }
-
-.localNav {
-  padding: 16px;
+.brand {
+  padding: 8px 10px;
+  margin: 4px 6px 12px;
+  color: #64748b;
+  font-weight: 600;
 }
-
-.placeholder {
-  font-size: 13px;
-  color: #999;
-  font-style: italic;
-}
+.nav { display: flex; flex-direction: column; gap: 4px; }
