@@ -17,54 +17,59 @@ export default function TradableModal({
   onCopy,
   onClose,
 }: TradableModalProps) {
+  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) onClose();
+  };
+
   return (
-    <div className={styles.modalOverlay} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+    <div className={styles.modalOverlay} onClick={handleOverlayClick}>
+      <div className={styles.modal}>
         <h3 className={styles.modalTitle}>交易行技能</h3>
         <p>可购买用于提升精耐：</p>
 
-        {tradables.map(({ ability, requiredLevel }) => (
-          <div key={ability} className={styles.abilityRow}>
-            <img
-              src={`/icons/${ability}.png`}
-              alt={ability}
-              className={styles.abilityIcon}
-              onError={(e) =>
-                (e.currentTarget as HTMLImageElement).src = "/icons/default.png"
-              }
-            />
-            <span className={styles.abilityLabel}>
-              {ability} · {requiredLevel}重
-            </span>
+        {tradables.map(({ ability, requiredLevel }) => {
+          const current = localAbilities?.[ability] ?? 0;
+          return (
+            <div key={ability} className={styles.abilityRow}>
+              <img
+                src={`/icons/${ability}.png`}
+                alt={ability}
+                className={styles.abilityIcon}
+                onError={(e) =>
+                  (e.currentTarget as HTMLImageElement).src = "/icons/default.png"
+                }
+              />
 
-            <button
-              onClick={() =>
-                updateAbility(ability, Math.max((localAbilities?.[ability] ?? 0) - 1, 0))
-              }
-              disabled={(localAbilities?.[ability] ?? 0) <= 0}
-              className={
-                (localAbilities?.[ability] ?? 0) <= 0
-                  ? styles.minusDisabled
-                  : styles.minus
-              }
-            >
-              -
-            </button>
+              <span className={styles.abilityLabel}>
+                {ability} · {requiredLevel}重
+              </span>
 
-            <span>{localAbilities?.[ability] ?? 0}</span>
+              <button
+                onClick={() => updateAbility(ability, Math.max(current - 1, 0))}
+                disabled={current <= 0}
+                className={current <= 0 ? styles.minusDisabled : styles.minus}
+              >
+                -
+              </button>
 
-            <button
-              onClick={() => updateAbility(ability, (localAbilities?.[ability] ?? 0) + 1)}
-              className={styles.plus}
-            >
-              +
-            </button>
+              <span>{current}</span>
 
-            <button onClick={() => onCopy(ability)} className={styles.copyButton}>
-              复制名称
-            </button>
-          </div>
-        ))}
+              <button
+                onClick={() => updateAbility(ability, current + 1)}
+                className={styles.plus}
+              >
+                +
+              </button>
+
+              <button
+                onClick={() => onCopy(ability)}
+                className={styles.copyButton}
+              >
+                复制名称
+              </button>
+            </div>
+          );
+        })}
 
         <div className={styles.modalFooter}>
           <button onClick={onClose} className={styles.closeButton}>
