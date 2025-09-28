@@ -17,12 +17,18 @@ interface Props {
   uniqueOwners: string[];
   uniqueServers: string[];
   abilityFilters: AbilityFilter[];
+  selectedAbilities: string[];
+  globalLevel: number | null;
+
   setOwnerFilter: (v: string) => void;
   setServerFilter: (v: string) => void;
   setRoleFilter: (v: string) => void;
+
   onAddAbility: (ability: string, level: number) => void;
   onRemoveAbility: (i: number) => void;
   setAbilityFilters: React.Dispatch<React.SetStateAction<AbilityFilter[]>>;
+  setSelectedAbilities: (arr: string[]) => void;
+  onChangeGlobalLevel: (lvl: number | null) => void;
 }
 
 const CORE_ABILITIES = [
@@ -44,36 +50,47 @@ export default function CharacterFilters({
   uniqueOwners,
   uniqueServers,
   abilityFilters,
+  selectedAbilities,
+  globalLevel,
   setOwnerFilter,
   setServerFilter,
   setRoleFilter,
   onAddAbility,
   onRemoveAbility,
   setAbilityFilters,
+  setSelectedAbilities,
+  onChangeGlobalLevel,
 }: Props) {
-  const [selectedAbilities, setSelectedAbilities] = useState<string[]>([]);
-  const [globalLevel, setGlobalLevel] = useState<number | null>(null);
-  const [showModal, setShowModal] = useState(false);
+  console.log("[CharacterFilters] render start", {
+    ownerFilter,
+    serverFilter,
+    roleFilter,
+    selectedAbilities,
+    globalLevel,
+    abilityFilters,
+  });
 
-  const [extraAbilities, setExtraAbilities] = useState<
-    { name: string; icon: string }[]
-  >([]);
+  const [showModal, setShowModal] = useState(false);
+  const [extraAbilities, setExtraAbilities] = useState<{ name: string; icon: string }[]>([]);
 
   const DISPLAY_ABILITIES = [...CORE_ABILITIES, ...extraAbilities];
 
   const handleAbilityToggle = (ability: string) => {
-    if (selectedAbilities.includes(ability)) {
-      setSelectedAbilities((prev) => prev.filter((a) => a !== ability));
-      const idx = abilityFilters.findIndex((f) => f.ability === ability);
-      if (idx !== -1) onRemoveAbility(idx);
+    console.log("[CharacterFilters] toggle ability", ability);
+    const idx = selectedAbilities.indexOf(ability);
+    if (idx >= 0) {
+      const next = selectedAbilities.filter((a) => a !== ability);
+      setSelectedAbilities(next);
+      const idxInFilters = abilityFilters.findIndex((f) => f.ability === ability);
+      if (idxInFilters !== -1) onRemoveAbility(idxInFilters);
     } else {
-      setSelectedAbilities((prev) => [...prev, ability]);
-      if (globalLevel !== null) onAddAbility(ability, globalLevel);
+      onAddAbility(ability, globalLevel ?? 10);
     }
   };
 
   const handleGlobalLevelChange = (level: number | null) => {
-    setGlobalLevel(level);
+    console.log("[CharacterFilters] global level change", level);
+    onChangeGlobalLevel(level);
     if (level !== null && selectedAbilities.length > 0) {
       setAbilityFilters(selectedAbilities.map((a) => ({ ability: a, level })));
     } else {
@@ -82,6 +99,7 @@ export default function CharacterFilters({
   };
 
   const handleConfirmCustom = (abilityName: string) => {
+    console.log("[CharacterFilters] confirm custom ability", abilityName);
     const isCore = CORE_ABILITIES.some((a) => a.name === abilityName);
     const isAlreadyExtra = extraAbilities.some((a) => a.name === abilityName);
 
@@ -93,25 +111,25 @@ export default function CharacterFilters({
     }
 
     if (!selectedAbilities.includes(abilityName)) {
-      setSelectedAbilities((prev) => [...prev, abilityName]);
-      if (globalLevel !== null) onAddAbility(abilityName, globalLevel);
+      onAddAbility(abilityName, globalLevel ?? 10);
     }
 
     setShowModal(false);
   };
 
   const handleReset = () => {
+    console.log("[CharacterFilters] reset pressed");
     setOwnerFilter("");
     setServerFilter("");
     setRoleFilter("");
     setSelectedAbilities([]);
     setAbilityFilters([]);
-    setGlobalLevel(null);
+    onChangeGlobalLevel(null);
+    localStorage.removeItem("characterFilters"); // ✅ also clear saved filters
   };
 
   return (
     <div className={styles.filterSection}>
-      {/* Row 1: dropdowns + role buttons + reset */}
       <div className={styles.filterRow}>
         <Dropdown
           label="拥有者"
@@ -127,31 +145,23 @@ export default function CharacterFilters({
           onChange={setServerFilter}
         />
 
-        {/* Role buttons inline */}
-        {[
-          { label: "防御", value: "T" },
-          { label: "输出", value: "DPS" },
-          { label: "治疗", value: "Healer" },
-        ].map((opt) => (
-          <button
-            key={opt.value}
-            className={`${styles.filterBtn} ${
-              roleFilter === opt.value ? styles.selected : ""
-            }`}
-            onClick={() =>
-              setRoleFilter(roleFilter === opt.value ? "" : opt.value)
-            }
-          >
-            {opt.label}
-          </button>
-        ))}
+        {[{ label: "防御", value: "T" }, { label: "输出", value: "DPS" }, { label: "治疗", value: "Healer" }].map(
+          (opt) => (
+            <button
+              key={opt.value}
+              className={`${styles.filterBtn} ${roleFilter === opt.value ? styles.selected : ""}`}
+              onClick={() => setRoleFilter(roleFilter === opt.value ? "" : opt.value)}
+            >
+              {opt.label}
+            </button>
+          )
+        )}
 
         <button className={styles.resetBtn} onClick={handleReset}>
           重置
         </button>
       </div>
 
-      {/* Row 2: ability icons */}
       <div className={styles.abilitiesRow}>
         {DISPLAY_ABILITIES.map((a) => {
           const active = selectedAbilities.includes(a.name);
@@ -172,18 +182,13 @@ export default function CharacterFilters({
         </button>
       </div>
 
-      {/* Row 3: level buttons */}
       <div className={styles.levelRow}>
         {[8, 9, 10].map((lvl) => (
           <button
             key={lvl}
-            className={`${styles.filterBtn} ${
-              globalLevel === lvl ? styles.selected : ""
-            }`}
+            className={`${styles.filterBtn} ${globalLevel === lvl ? styles.selected : ""}`}
             aria-pressed={globalLevel === lvl}
-            onClick={() =>
-              handleGlobalLevelChange(globalLevel === lvl ? null : lvl)
-            }
+            onClick={() => handleGlobalLevelChange(globalLevel === lvl ? null : lvl)}
           >
             {lvl}
           </button>
@@ -191,10 +196,7 @@ export default function CharacterFilters({
       </div>
 
       {showModal && (
-        <AbilityFilterModal
-          onConfirm={handleConfirmCustom}
-          onClose={() => setShowModal(false)}
-        />
+        <AbilityFilterModal onConfirm={handleConfirmCustom} onClose={() => setShowModal(false)} />
       )}
     </div>
   );
