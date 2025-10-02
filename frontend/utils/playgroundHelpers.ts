@@ -1,5 +1,3 @@
-// frontend/utils/playgroundHelpers.ts
-
 import rawBossData from "@/app/data/boss_skills_collection_reward.json";
 
 interface BossData {
@@ -20,8 +18,8 @@ interface Ability {
   level: number;
 }
 
-// 🔹 Default conflict-check abilities (hardcode)
-const DEFAULT_ABILITIES = [
+// 🔹 Default conflict-check abilities (Tier 2 core set)
+export const CORE_ABILITIES = [
   "斗转金移",
   "花钱消灾",
   "黑煞落贪狼",
@@ -38,28 +36,29 @@ const DEFAULT_ABILITIES = [
 export async function getCurrentMap(): Promise<{ name: string; level: number }[]> {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map`, {
-      cache: "no-store", // ✅ force fresh fetch
+      cache: "no-store",
     });
     if (!res.ok) throw new Error("Failed to fetch weekly map");
     const data: WeeklyMapResponse = await res.json();
 
-    console.log("🌍 [playgroundHelpers] Raw weekly map response:", data);
+    console.log("[playgroundHelpers] Raw weekly map response:", data);
 
     const bosses: { name: string; level: number }[] = [];
     for (const [floor, obj] of Object.entries(data.floors)) {
       const floorNum = Number(floor);
       let level = 10;
-      if (floorNum >= 81 && floorNum <= 89) level = 9;
-      if (floorNum === 90 || floorNum === 100) level = 10;
+
+      if (floorNum >= 81 && floorNum <= 90) level = 9;   // ✅ floor 90 now treated as 9
       if (floorNum >= 91 && floorNum <= 99) level = 10;
+      if (floorNum === 100) level = 10;
 
       bosses.push({ name: obj.boss, level });
     }
 
-    console.log("📅 [playgroundHelpers] Parsed bosses with levels:", bosses);
+    console.log("[playgroundHelpers] Parsed bosses with levels:", bosses);
     return bosses;
   } catch (err) {
-    console.error("❌ [playgroundHelpers] Error fetching weekly map:", err);
+    console.error("[playgroundHelpers] Error fetching weekly map:", err);
     return [];
   }
 }
@@ -68,8 +67,13 @@ export async function getCurrentMap(): Promise<{ name: string; level: number }[]
  * Expand boss → abilities
  */
 function getBossAbilities(boss: string, level: number): Ability[] {
+  if (level === 90) {
+    console.warn(`⚠️ [playgroundHelpers] Level 90 detected for boss "${boss}", forcing to 9`);
+    level = 9;
+  }
+
   const abilities: string[] = bossData[boss] || [];
-  console.log(`🎯 [playgroundHelpers] Expanding boss "${boss}" (level ${level}) →`, abilities);
+  console.log(`[playgroundHelpers] Expanding boss "${boss}" (level ${level}) →`, abilities);
 
   if (level === 9) {
     return abilities.map((a) => ({ name: a, level: 9 }));
@@ -103,18 +107,18 @@ export async function getDefaultAbilityPool(): Promise<Ability[]> {
     return true;
   });
 
-  console.log("📦 [playgroundHelpers] Final deduped ability pool:", deduped);
+  console.log("[playgroundHelpers] Final deduped ability pool:", deduped);
   return deduped;
 }
 
 /**
- * Build the *default mode* conflict-check list for this week
+ * Build the *default mode* conflict-check list for this week (core 8 skills only)
  */
 export async function getDefaultModeChecklist(): Promise<Ability[]> {
   const pool = await getDefaultAbilityPool();
 
-  const filtered = pool.filter((a) => DEFAULT_ABILITIES.includes(a.name));
-  console.log("✅ [playgroundHelpers] Default mode checklist (filtered):", filtered);
+  const filtered = pool.filter((a) => CORE_ABILITIES.includes(a.name));
+  console.log("✅ [playgroundHelpers] Default mode checklist (core 8):", filtered);
 
   return filtered;
 }

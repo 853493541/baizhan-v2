@@ -1,9 +1,0 @@
-{
-  "dependencies": {
-    "compression": "^1.8.1"
-  },
-  "devDependencies": {
-    "@next/bundle-analyzer": "^15.5.4",
-    "@types/compression": "^1.8.1"
-  }
-}

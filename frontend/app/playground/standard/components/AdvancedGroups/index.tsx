@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { runAdvancedSolver, GroupResult, Character, AbilityCheck } from "@/utils/advancedSolver";
 import { getDefaultModeChecklist, getDefaultAbilityPool } from "@/utils/playgroundHelpers";
+import tradableAbilities from "@/app/data/tradable_abilities.json"// ✅ import tradables
 import styles from "./styles.module.css";
 
 interface Props {
@@ -40,15 +41,16 @@ export default function AdvancedGroups({ schedule, groups, setGroups }: Props) {
     fetchCoreAbilities();
   }, []);
 
-  // Load full weekly ability pool
+  // Load full weekly ability pool (excluding tradables)
   useEffect(() => {
     const fetchAllAbilities = async () => {
       setLoadingAll(true);
       try {
         const pool = await getDefaultAbilityPool();
-        const checks: AbilityCheck[] = pool.map((a) => ({ ...a, available: true }));
+        const filtered = pool.filter((a) => !tradableAbilities.includes(a.name)); // ✅ exclude tradables
+        const checks: AbilityCheck[] = filtered.map((a) => ({ ...a, available: true }));
         setAllAbilities(checks);
-        console.log("[AdvancedGroups] Full ability pool:", checks);
+        console.log("[AdvancedGroups] Full ability pool (filtered):", checks);
       } catch (err) {
         console.error("❌ Failed to load full abilities:", err);
       } finally {
@@ -63,9 +65,10 @@ export default function AdvancedGroups({ schedule, groups, setGroups }: Props) {
       console.warn(`⚠️ No abilities loaded for ${label}`);
       return;
     }
+
     console.log(`🧩 Running ADVANCED solver with ${label}`);
     console.log("👥 Character count:", schedule.characters.length);
-    console.log("🎯 Abilities:", abilities);
+    console.log(`[passing into advanced solver] ${label} abilities:`, abilities);
 
     const results = runAdvancedSolver(schedule.characters, abilities, 3);
     console.log(`✅ Advanced solver results (${label}):`, results);
@@ -74,13 +77,13 @@ export default function AdvancedGroups({ schedule, groups, setGroups }: Props) {
 
   return (
     <div className={styles.wrapper}>
-      <h3 className={styles.sectionTitle}>高级排表区域 (测试对比)</h3>
+      <h3 className={styles.sectionTitle}>高级排表区域 (测试)</h3>
 
-      <p className={styles.info}>👥 总角色数量: {schedule.characters.length}</p>
+      <p className={styles.info}>总角色数: {schedule.characters.length}</p>
 
       {/* Core 8 section */}
       <div className={styles.block}>
-        <h4>🎯 核心8技能</h4>
+        <h4>核心技能</h4>
         {loadingCore ? (
           <p>加载中核心技能...</p>
         ) : (
@@ -96,7 +99,7 @@ export default function AdvancedGroups({ schedule, groups, setGroups }: Props) {
               className={styles.btn}
               onClick={() => handleRunSolver(coreAbilities, "Core 8")}
             >
-              一键排表 (核心8)
+              一键排表
             </button>
           </>
         )}
@@ -104,7 +107,7 @@ export default function AdvancedGroups({ schedule, groups, setGroups }: Props) {
 
       {/* Full abilities section */}
       <div className={styles.block}>
-        <h4>🌐 本周全部技能</h4>
+        <h4>其他全部技能</h4>
         {loadingAll ? (
           <p>加载中全部技能...</p>
         ) : (
@@ -117,7 +120,7 @@ export default function AdvancedGroups({ schedule, groups, setGroups }: Props) {
               ))}
             </ul>
             {allAbilities.length > 15 && (
-              <p className={styles.note}>... 共 {allAbilities.length} 个技能</p>
+              <p className={styles.note}>共 {allAbilities.length} 个技能</p>
             )}
             <button
               className={styles.btn}
@@ -128,25 +131,6 @@ export default function AdvancedGroups({ schedule, groups, setGroups }: Props) {
           </>
         )}
       </div>
-
-      {/* Groups display (commented out for now) */}
-      {/*
-      <h4>📊 当前分组结果:</h4>
-      {groups.length === 0 ? (
-        <p>暂无分组</p>
-      ) : (
-        groups.map((g, i) => (
-          <div key={i} className={styles.groupCard}>
-            <h5>组 {i + 1}</h5>
-            <ul>
-              {g.characters.map((c) => (
-                <li key={c._id}>{c.name}</li>
-              ))}
-            </ul>
-          </div>
-        ))
-      )}
-      */}
     </div>
   );
 }
