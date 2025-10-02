@@ -29,12 +29,14 @@ type ViewLevel = 9 | 10;
 
 export default function AbilityCheckingSection({ checkedAbilities, groups }: Props) {
   const [viewLevel, setViewLevel] = useState<ViewLevel>(9);
-  const [hiddenByLevel, setHiddenByLevel] = useState<Record<ViewLevel, Record<string, boolean>>>({
+  const [hiddenByLevel, setHiddenByLevel] = useState<
+    Record<ViewLevel, Record<string, boolean>>
+  >({
     9: {},
     10: {},
   });
 
-  // 🔎 Candidates
+  // 🔎 Candidates (filter abilities that match the selected level + core list)
   const candidates = useMemo(() => {
     return checkedAbilities.filter(
       (a) => a.available && a.level === viewLevel && CORE_ABILITIES.includes(a.name)
@@ -51,7 +53,7 @@ export default function AbilityCheckingSection({ checkedAbilities, groups }: Pro
     }));
   };
 
-  // Counts
+  // ✅ Counts per group
   const qaResults = useMemo(() => {
     return groups.map((g, idx) => {
       const abilityCounts: Record<string, number> = {};
@@ -60,7 +62,13 @@ export default function AbilityCheckingSection({ checkedAbilities, groups }: Pro
         let count = 0;
         for (const c of g.characters) {
           const charLvl = c.abilities?.[a.name] ?? 0;
-          if (charLvl >= a.level) count++;
+
+          // ✅ Strict logic
+          if (a.level === 9) {
+            if (charLvl >= 9) count++;
+          } else if (a.level === 10) {
+            if (charLvl === 10) count++;
+          }
         }
         abilityCounts[key] = count;
       }
@@ -77,13 +85,17 @@ export default function AbilityCheckingSection({ checkedAbilities, groups }: Pro
         <div className={styles.controls}>
           <div className={styles.toggle}>
             <button
-              className={`${styles.toggleBtn} ${viewLevel === 9 ? styles.active : ""}`}
+              className={`${styles.toggleBtn} ${
+                viewLevel === 9 ? styles.active : ""
+              }`}
               onClick={() => setViewLevel(9)}
             >
               9重
             </button>
             <button
-              className={`${styles.toggleBtn} ${viewLevel === 10 ? styles.active : ""}`}
+              className={`${styles.toggleBtn} ${
+                viewLevel === 10 ? styles.active : ""
+              }`}
               onClick={() => setViewLevel(10)}
             >
               10重
@@ -97,7 +109,9 @@ export default function AbilityCheckingSection({ checkedAbilities, groups }: Pro
               return (
                 <button
                   key={key}
-                  className={`${styles.abilityIconBtn} ${off ? styles.iconOff : styles.iconOn}`}
+                  className={`${styles.abilityIconBtn} ${
+                    off ? styles.iconOff : styles.iconOn
+                  }`}
                   title={`${a.name} ${a.level}重`}
                   onClick={() => toggleAbilityVisibility(key)}
                 >
@@ -132,7 +146,9 @@ export default function AbilityCheckingSection({ checkedAbilities, groups }: Pro
                 return (
                   <div
                     key={key}
-                    className={`${styles.abilityItem} ${overLimit ? styles.over : styles.ok}`}
+                    className={`${styles.abilityItem} ${
+                      overLimit ? styles.over : styles.ok
+                    }`}
                   >
                     <Image
                       src={`/icons/${name}.png`}

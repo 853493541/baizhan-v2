@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import styles from "./styles.module.css";
-import { runSolver, GroupResult, Character, AbilityCheck } from "@/utils/solver";
 import { runAdvancedSolver } from "@/utils/advancedSolver";
 import { summarizeAftermath } from "@/utils/aftermathSummary";
+import { GroupResult, Character, AbilityCheck } from "@/utils/solver";
+import { checkAndRerun } from "@/utils/rerunLogic";  // rerun logic (disabled for now)
 
 // ✅ Hardcoded main characters
 const MAIN_CHARACTERS = new Set([
@@ -55,6 +56,7 @@ export default function MainSection({
   checkGroupQA,
 }: Props) {
   const [aftermath, setAftermath] = useState<{ wasted9: number; wasted10: number } | null>(null);
+  const [solving, setSolving] = useState(false); // 🚫 Prevent multiple solver runs
 
   // ✅ derive pools directly from schedule
   const allAbilities = schedule.checkedAbilities;
@@ -76,30 +78,25 @@ export default function MainSection({
     }
   }, [groups]);
 
-  // ========== Handlers ==========
-
-  // Old Solver (still here if you want it)
-  const handleRunSolver = async () => {
-    console.log("🧩 Running OLD solver with:", schedule.characters);
-    const results = runSolver(schedule.characters, schedule.checkedAbilities, 3);
-    console.log("✅ Old Solver results:", results);
-
-    setGroups(results);
-    await saveGroups(results);
-  };
-
-  // Advanced Solver
-  const handleRunAdvancedSolver = async (abilities: AbilityCheck[], label: string) => {
-    if (abilities.length === 0) {
-      console.warn(`⚠️ No abilities loaded for ${label}`);
+  // ---------- Safe Solver Wrapper ----------
+  const safeRunSolver = async (abilities: AbilityCheck[], label: string) => {
+    if (solving) {
+      console.log(`[SAFE] Skipping ${label}, solver already running.`);
       return;
     }
-    console.log(`🧩 Running ADVANCED solver with ${label}`);
-    const results = runAdvancedSolver(schedule.characters, abilities, 3);
-    console.log(`✅ Advanced Solver results (${label}):`, results);
+    try {
+      setSolving(true);
+      console.log(`🧩 Running solver with ${label}`);
+      const results = runAdvancedSolver(schedule.characters, abilities, 3);
+      console.log(`✅ Solver results (${label}):`, results);
 
-    setGroups(results);
-    await saveGroups(results);
+      setGroups(results);
+      await saveGroups(results);
+    } catch (err) {
+      console.error("❌ Solver failed:", err);
+    } finally {
+      setSolving(false);
+    }
   };
 
   // Save groups to backend
@@ -126,8 +123,22 @@ export default function MainSection({
     }
   };
 
-  // ========== Rendering ==========
+  // ---------- Auto Rerun Logic (DISABLED) ----------
+  useEffect(() => {
+    const rerunEnabled = false; // 🔒 toggle
+    if (!rerunEnabled) {
+      console.log("[RERUN] Disabled: rerun logic is skipped (handled in solver).");
+      return;
+    }
 
+    checkAndRerun(
+      groups,
+      { solving, runSolver: safeRunSolver, scheduleId: schedule._id },
+      coreAbilities
+    );
+  }, [groups, solving, schedule._id]);
+
+  // ---------- Rendering ----------
   const finishedCount = groups.filter((g) => g.status === "finished").length;
 
   const renderGroup = (
@@ -220,25 +231,22 @@ export default function MainSection({
         已完成小组: {finishedCount} / {groups.length}
       </p>
 
-      {/* Old solver */}
-      <button className={styles.solverBtn} onClick={handleRunSolver}>
-        一键排表 (旧版)
-      </button>
-
       {/* Advanced solver - Core */}
       <button
-        className={styles.solverBtn}
-        onClick={() => handleRunAdvancedSolver(coreAbilities, "Core 8")}
+        className={`${styles.solverBtn} ${styles.coreBtn}`}
+        onClick={() => safeRunSolver(coreAbilities, "Core 8")}
+        disabled={solving}
       >
-        高级排表 (核心技能)
+        {solving ? "处理中..." : "高级排表 (核心技能)"}
       </button>
 
       {/* Advanced solver - Full */}
       <button
-        className={styles.solverBtn}
-        onClick={() => handleRunAdvancedSolver(allAbilities, "Full Pool")}
+        className={`${styles.solverBtn} ${styles.fullBtn}`}
+        onClick={() => safeRunSolver(allAbilities, "Full Pool")}
+        disabled={solving}
       >
-        高级排表 (全部技能)
+        {solving ? "处理中..." : "高级排表 (全部技能)"}
       </button>
 
       {groups.length === 0 ? (
