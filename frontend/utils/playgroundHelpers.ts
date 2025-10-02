@@ -18,16 +18,13 @@ interface Ability {
   level: number;
 }
 
-// 🔹 Default conflict-check abilities (Tier 2 core set)
+// 🔹 Default conflict-check abilities (Tier 2 highlight set)
 export const CORE_ABILITIES = [
-  "斗转金移",
-  "花钱消灾",
-  "黑煞落贪狼",
-  "一闪天诛",
-  "引燃",
-  "漾剑式",
-  "阴阳术退散",
-  "兔死狐悲",
+  "水遁水流闪","蛮熊碎颅击","花钱消灾","斗转金移","特制金创药","万花金创药",
+  "一闪天诛","初景白雨","漾剑式","定波式","黑煞落贪狼","毓秀灵药","霞月长针",
+  "剑心通明","飞云回转刀","阴阳术退散","尸鬼封烬","兔死狐悲","血龙甩尾","七荒黑牙",
+  "三个铜钱","乾坤一掷","厄毒爆发","坠龙惊鸿","引燃","火焰之种","阴雷之种",
+  "短歌万劫","泉映幻歌",
 ];
 
 /**
@@ -112,13 +109,13 @@ export async function getDefaultAbilityPool(): Promise<Ability[]> {
 }
 
 /**
- * Build the *default mode* conflict-check list for this week (core 8 skills only)
+ * Build the *default mode* conflict-check list for this week (highlight abilities only)
  */
 export async function getDefaultModeChecklist(): Promise<Ability[]> {
   const pool = await getDefaultAbilityPool();
 
   const filtered = pool.filter((a) => CORE_ABILITIES.includes(a.name));
-  console.log("✅ [playgroundHelpers] Default mode checklist (core 8):", filtered);
+  console.log("✅ [playgroundHelpers] Default mode checklist (highlight set):", filtered);
 
   return filtered;
 }

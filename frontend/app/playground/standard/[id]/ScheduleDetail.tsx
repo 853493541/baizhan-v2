@@ -165,14 +165,14 @@ export default function ScheduleDetail({ scheduleId }: Props) {
         />
       )}
 
-      <AdvancedGroups
+      {/* <AdvancedGroups
   schedule={schedule}
   groups={groups}
   setGroups={setGroups}
   activeIdx={activeIdx}
   setActiveIdx={setActiveIdx}
   checkGroupQA={checkGroupQA}
-/>
+/> */}
     </div>
   );
 }

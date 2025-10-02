@@ -138,37 +138,63 @@ function logAftermath(groups: GroupResult[], abilityPool: AbilityCheck[]) {
   console.log(`[advanced solver][aftermath] Level 10 wasted total: ${globalWasted10.length}`);
 }
 
-// ---------- scoring (soft rules) ----------
-function evaluateViolations(groups: InternalGroup[], targeted: AbilityCheck[]): { score: number; violations: string[][] } {
+// ---------- scoring ----------
+function evaluateScore(groups: InternalGroup[], targeted: AbilityCheck[]): { score: number; violations: string[][] } {
   const violations: string[][] = [];
   let score = 0;
 
+  // Tier 1: instant fails
   for (const g of groups) {
     const v: string[] = [];
 
     if (!g.hasHealer) {
       v.push("缺少治疗");
-      score += 10;
+      score = -10;
     }
 
     const seen = new Set<string>();
     for (const c of g.chars) {
       if (seen.has(c.account)) {
         v.push(`重复账号: ${c.account}`);
-        score += 5;
+        score = -10;
       }
       seen.add(c.account);
     }
 
-    for (const [abilityKey, count] of g.abilityCount) {
-      if (count > 2) {
-        v.push(`技能超额: ${abilityKey} (${count}/2)`);
-        score += (count - 2) * 2;
+    violations.push(v);
+  }
+
+  if (score === -10) return { score, violations };
+
+  // Tier 3: wasted ability penalties
+  let wasted9 = 0;
+  let wasted10 = 0;
+
+  for (const g of groups) {
+    const charCount = g.chars.length;
+    const abilityPresence = new Map<string, number>();
+
+    for (const c of g.chars) {
+      for (const a of targeted) {
+        if ((c.abilities?.[a.name] ?? 0) >= a.level) {
+          const key = `${a.name}-${a.level}`;
+          abilityPresence.set(key, (abilityPresence.get(key) ?? 0) + 1);
+        }
       }
     }
 
-    violations.push(v);
+    for (const [key, count] of abilityPresence.entries()) {
+      if (count === charCount) {
+        const [_, levelStr] = key.split("-");
+        if (levelStr === "9") wasted9++;
+        if (levelStr === "10") wasted10++;
+      }
+    }
   }
+
+  score += wasted9 * 1 + wasted10 * 10;
+
+  console.log(`[advanced solver] score breakdown: wasted9=${wasted9}, wasted10=${wasted10}, totalScore=${score}`);
 
   return { score, violations };
 }
@@ -184,7 +210,7 @@ export function runAdvancedSolver(
   const groupsCount = Math.max(1, Math.ceil(people.length / groupSize));
   const targeted = checkedAbilities.filter((a) => a.available);
 
-  const MAX_ATTEMPTS = 1000;
+  const MAX_ATTEMPTS = 2000;
   let best: GroupResult[] | null = null;
   let bestScore = Number.MAX_SAFE_INTEGER;
 
@@ -219,18 +245,23 @@ export function runAdvancedSolver(
     for (const h of healers) placeGreedy(h);
     for (const c of others) placeGreedy(c);
 
-    if (placed.size !== people.length) continue;
+    if (placed.size !== people.length) {
+      console.log(`[advanced solver] attempt ${attempt + 1}: failed placement (placed=${placed.size}/${people.length})`);
+      continue;
+    }
 
-    const { score, violations } = evaluateViolations(groups, targeted);
+    const { score, violations } = evaluateScore(groups, targeted);
 
-    if (score < bestScore) {
+    console.log(`[advanced solver] attempt ${attempt + 1}: score=${score}`);
+
+    if (score >= 0 && score < bestScore) {
       bestScore = score;
       best = groups.map((g, i) => ({
         characters: g.chars,
         missingAbilities: evaluateMissing(g, targeted),
         violations: violations[i],
       }));
-      console.log(`[advanced solver] attempt ${attempt + 1}: new best score = ${bestScore}`);
+      console.log(`[advanced solver] ✅ new best score = ${bestScore}`);
       if (bestScore === 0) break;
     }
   }
@@ -253,5 +284,6 @@ export function runAdvancedSolver(
   }
 
   logAftermath(best, targeted);
+  console.log(`[advanced solver] finished: best score=${bestScore}`);
   return best;
 }
