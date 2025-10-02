@@ -5,8 +5,28 @@ import styles from "./styles.module.css";
 import { runSolver, GroupResult, Character, AbilityCheck } from "@/utils/solver";
 import { runAdvancedSolver } from "@/utils/advancedSolver";
 import { summarizeAftermath } from "@/utils/aftermathSummary";
-import { getDefaultModeChecklist, getDefaultAbilityPool } from "@/utils/playgroundHelpers";
-import tradableAbilities from "@/app/data/tradable_abilities.json";
+
+// ✅ Hardcoded core abilities (same as before)
+const CORE_ABILITIES = [
+  "斗转金移",
+  "花钱消灾",
+  "黑煞落贪狼",
+  "一闪天诛",
+  "引燃",
+  "漾剑式",
+  "阴阳术退散",
+  "兔死狐悲",
+];
+
+// ✅ Hardcoded main characters
+const MAIN_CHARACTERS = new Set([
+  "剑心猫猫糕",
+  "东海甜妹",
+  "饲猫大桔",
+  "五溪",
+  "唐宵风",
+  "程老黑",
+]);
 
 interface Props {
   schedule: {
@@ -27,16 +47,6 @@ interface Props {
   ) => string[];
 }
 
-// ✅ Hardcoded main characters
-const MAIN_CHARACTERS = new Set([
-  "剑心猫猫糕",
-  "东海甜妹",
-  "饲猫大桔",
-  "五溪",
-  "唐宵风",
-  "程老黑",
-]);
-
 export default function MainSection({
   schedule,
   groups,
@@ -46,54 +56,21 @@ export default function MainSection({
 }: Props) {
   const [aftermath, setAftermath] = useState<{ wasted9: number; wasted10: number } | null>(null);
 
-  // 🔑 Advanced solver ability pools
-  const [coreAbilities, setCoreAbilities] = useState<AbilityCheck[]>([]);
-  const [allAbilities, setAllAbilities] = useState<AbilityCheck[]>([]);
-  const [loadingCore, setLoadingCore] = useState(true);
-  const [loadingAll, setLoadingAll] = useState(true);
-
-  // Load Core 8
-  useEffect(() => {
-    const fetchCoreAbilities = async () => {
-      setLoadingCore(true);
-      try {
-        const core8 = await getDefaultModeChecklist();
-        const checks: AbilityCheck[] = core8.map((a) => ({ ...a, available: true }));
-        setCoreAbilities(checks);
-      } catch (err) {
-        console.error("❌ Failed to load core abilities:", err);
-      } finally {
-        setLoadingCore(false);
-      }
-    };
-    fetchCoreAbilities();
-  }, []);
-
-  // Load Full Pool (minus tradables)
-  useEffect(() => {
-    const fetchAllAbilities = async () => {
-      setLoadingAll(true);
-      try {
-        const pool = await getDefaultAbilityPool();
-        const filtered = pool.filter((a) => !tradableAbilities.includes(a.name));
-        const checks: AbilityCheck[] = filtered.map((a) => ({ ...a, available: true }));
-        setAllAbilities(checks);
-      } catch (err) {
-        console.error("❌ Failed to load full ability pool:", err);
-      } finally {
-        setLoadingAll(false);
-      }
-    };
-    fetchAllAbilities();
-  }, []);
+  // ✅ Derive ability pools directly from schedule
+  const coreAbilities: AbilityCheck[] = schedule.checkedAbilities.filter((a) =>
+    CORE_ABILITIES.includes(a.name)
+  );
+  const allAbilities: AbilityCheck[] = schedule.checkedAbilities;
 
   // ✅ Whenever groups change, recalc aftermath totals
   useEffect(() => {
     if (groups.length > 0) {
-      summarizeAftermath(groups).then(setAftermath).catch((err) => {
-        console.error("❌ Error summarizing aftermath:", err);
-        setAftermath(null);
-      });
+      summarizeAftermath(groups)
+        .then(setAftermath)
+        .catch((err) => {
+          console.error("❌ Error summarizing aftermath:", err);
+          setAftermath(null);
+        });
     } else {
       setAftermath(null);
     }
@@ -101,8 +78,8 @@ export default function MainSection({
 
   // ========== Handlers ==========
 
-  // Old Solver
-  const handleRunSolver = async (retryCount = 0) => {
+  // Old Solver (can be removed later if deprecated)
+  const handleRunSolver = async () => {
     console.log("🧩 Running OLD solver with:", schedule.characters);
 
     const results = runSolver(schedule.characters, schedule.checkedAbilities, 3);
@@ -164,11 +141,23 @@ export default function MainSection({
     const renderStatus = () => {
       switch (status) {
         case "started":
-          return <span className={`${styles.statusDot} ${styles.started}`}>● <span className={styles.statusText}>进行中</span></span>;
+          return (
+            <span className={`${styles.statusDot} ${styles.started}`}>
+              ● <span className={styles.statusText}>进行中</span>
+            </span>
+          );
         case "finished":
-          return <span className={`${styles.statusDot} ${styles.finished}`}>● <span className={styles.statusText}>完成</span></span>;
+          return (
+            <span className={`${styles.statusDot} ${styles.finished}`}>
+              ● <span className={styles.statusText}>完成</span>
+            </span>
+          );
         default:
-          return <span className={`${styles.statusDot} ${styles.notStarted}`}>● <span className={styles.statusText}>未开始</span></span>;
+          return (
+            <span className={`${styles.statusDot} ${styles.notStarted}`}>
+              ● <span className={styles.statusText}>未开始</span>
+            </span>
+          );
       }
     };
 
@@ -185,7 +174,11 @@ export default function MainSection({
               <li
                 key={c._id}
                 className={`${styles.memberItem} ${
-                  c.role === "Tank" ? styles.tank : c.role === "Healer" ? styles.healer : styles.dps
+                  c.role === "Tank"
+                    ? styles.tank
+                    : c.role === "Healer"
+                    ? styles.healer
+                    : styles.dps
                 }`}
               >
                 {isMain ? "★ " : ""}
@@ -205,31 +198,39 @@ export default function MainSection({
     );
   };
 
-  const mainPairs = groups.map((g, i) => ({ g, i })).filter(({ g }) =>
-    g.characters.some((c) => MAIN_CHARACTERS.has(c.name))
-  );
-  const altPairs = groups.map((g, i) => ({ g, i })).filter(({ g }) =>
-    !g.characters.some((c) => MAIN_CHARACTERS.has(c.name))
-  );
+  const mainPairs = groups
+    .map((g, i) => ({ g, i }))
+    .filter(({ g }) => g.characters.some((c) => MAIN_CHARACTERS.has(c.name)));
+  const altPairs = groups
+    .map((g, i) => ({ g, i }))
+    .filter(({ g }) => !g.characters.some((c) => MAIN_CHARACTERS.has(c.name)));
 
   return (
     <div className={styles.section}>
       <h3 className={styles.sectionTitle}>排表区域</h3>
-      <p className={styles.finishedCount}>已完成小组: {finishedCount} / {groups.length}</p>
+      <p className={styles.finishedCount}>
+        已完成小组: {finishedCount} / {groups.length}
+      </p>
 
-      {/* Old solver */}
-      <button className={styles.solverBtn} onClick={() => handleRunSolver(0)}>
+      {/* Old solver (can be removed in future) */}
+      <button className={styles.solverBtn} onClick={handleRunSolver}>
         一键排表 (旧版)
       </button>
 
       {/* Advanced solver - Core */}
-      <button className={styles.solverBtn} disabled={loadingCore} onClick={() => handleRunAdvancedSolver(coreAbilities, "Core 8")}>
-        {loadingCore ? "加载核心技能..." : "高级排表 (核心技能)"}
+      <button
+        className={styles.solverBtn}
+        onClick={() => handleRunAdvancedSolver(coreAbilities, "Core 8")}
+      >
+        高级排表 (核心技能)
       </button>
 
       {/* Advanced solver - Full */}
-      <button className={styles.solverBtn} disabled={loadingAll} onClick={() => handleRunAdvancedSolver(allAbilities, "Full Pool")}>
-        {loadingAll ? "加载全部技能..." : "高级排表 (全部技能)"}
+      <button
+        className={styles.solverBtn}
+        onClick={() => handleRunAdvancedSolver(allAbilities, "Full Pool")}
+      >
+        高级排表 (全部技能)
       </button>
 
       {groups.length === 0 ? (

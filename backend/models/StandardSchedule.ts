@@ -29,7 +29,7 @@ interface Group {
 export interface IStandardSchedule extends Document {
   name: string; // ✅ custom schedule name
   server: string;
-  conflictLevel: number;
+  conflictLevel?: number;   // 🔹 now optional
   createdAt: Date;
   checkedAbilities: CheckedAbility[];
   characterCount: number;
@@ -79,7 +79,7 @@ const GroupSchema = new Schema<Group>(
 const StandardScheduleSchema = new Schema<IStandardSchedule>({
   name: { type: String, default: "未命名排表" },
   server: { type: String, required: true },
-  conflictLevel: { type: Number, enum: [9, 10], required: true },
+  conflictLevel: { type: Number, enum: [9, 10] }, // 🔹 no longer required
   createdAt: { type: Date, default: Date.now },
   checkedAbilities: [AbilitySchema],
   characterCount: { type: Number, default: 0 },

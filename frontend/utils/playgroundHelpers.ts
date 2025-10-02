@@ -1,4 +1,5 @@
 import rawBossData from "@/app/data/boss_skills_collection_reward.json";
+import tradableAbilities from "@/app/data/tradable_abilities.json";
 
 interface BossData {
   [bossName: string]: string[];
@@ -104,8 +105,11 @@ export async function getDefaultAbilityPool(): Promise<Ability[]> {
     return true;
   });
 
-  console.log("[playgroundHelpers] Final deduped ability pool:", deduped);
-  return deduped;
+  // 🔹 Remove tradables here
+  const nonTradables = deduped.filter((a) => !tradableAbilities.includes(a.name));
+
+  console.log("[playgroundHelpers] Final deduped ability pool (no tradables):", nonTradables);
+  return nonTradables;
 }
 
 /**
@@ -114,6 +118,7 @@ export async function getDefaultAbilityPool(): Promise<Ability[]> {
 export async function getDefaultModeChecklist(): Promise<Ability[]> {
   const pool = await getDefaultAbilityPool();
 
+  // CORE_ABILITIES are guaranteed non-tradable set
   const filtered = pool.filter((a) => CORE_ABILITIES.includes(a.name));
   console.log("✅ [playgroundHelpers] Default mode checklist (highlight set):", filtered);
 
