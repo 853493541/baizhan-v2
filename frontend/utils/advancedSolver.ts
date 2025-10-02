@@ -12,6 +12,7 @@ export interface AbilityCheck {
   name: string;
   level: number;
   available: boolean;
+  key?: string; // ✅ precomputed `${name}-${level}`
 }
 
 export interface GroupResult {
@@ -28,39 +29,35 @@ type InternalGroup = {
 };
 
 // ---------- helpers ----------
-function keyOf(a: AbilityCheck): string {
-  return `${a.name}-${a.level}`;
-}
-
-function lvlOf(c: Character, a: AbilityCheck): number {
-  return c.abilities?.[a.name] ?? 0;
-}
-
-function hasAtLevel(c: Character, a: AbilityCheck): boolean {
-  return lvlOf(c, a) >= a.level;
-}
-
 function freeSlots(g: InternalGroup, size: number) {
   return size - g.chars.length;
 }
 
 function groupHasAbility(g: InternalGroup, a: AbilityCheck) {
-  return (g.abilityCount.get(keyOf(a)) ?? 0) > 0;
+  return (g.abilityCount.get(a.key!) ?? 0) > 0;
 }
 
-function evaluateMissing(g: InternalGroup, targeted: AbilityCheck[]) {
+function evaluateMissing(
+  g: InternalGroup,
+  targeted: AbilityCheck[],
+  charSatisfies: Map<string, Set<string>>
+) {
   return targeted.filter((a) => !groupHasAbility(g, a));
 }
 
-function addCharAndBumpCounts(g: InternalGroup, c: Character, targeted: AbilityCheck[]) {
+function addCharAndBumpCounts(
+  g: InternalGroup,
+  c: Character,
+  targeted: AbilityCheck[],
+  charSatisfies: Map<string, Set<string>>
+) {
   g.chars.push(c);
   g.accounts.add(c.account);
   if (c.role === "Healer") g.hasHealer = true;
   for (const a of targeted) {
-    if (hasAtLevel(c, a)) {
-      const key = keyOf(a);
-      const next = (g.abilityCount.get(key) ?? 0) + 1;
-      g.abilityCount.set(key, next);
+    if (charSatisfies.get(c._id)?.has(a.key!)) {
+      const next = (g.abilityCount.get(a.key!) ?? 0) + 1;
+      g.abilityCount.set(a.key!, next);
     }
   }
 }
@@ -100,8 +97,8 @@ function logAftermath(groups: GroupResult[], abilityPool: AbilityCheck[]) {
 
     for (const c of g.characters) {
       for (const a of abilityPool) {
-        if ((c.abilities?.[a.name] ?? 0) >= a.level) {
-          const key = `${a.name}-${a.level}`;
+        if (c.abilities && (c.abilities[a.name] ?? 0) >= a.level) {
+          const key = a.key!;
           abilityPresence.set(key, (abilityPresence.get(key) ?? 0) + 1);
         }
       }
@@ -134,12 +131,20 @@ function logAftermath(groups: GroupResult[], abilityPool: AbilityCheck[]) {
   });
 
   console.log("[advanced solver][aftermath] ===== Global Totals =====");
-  console.log(`[advanced solver][aftermath] Level 9 wasted total: ${globalWasted9.length}`);
-  console.log(`[advanced solver][aftermath] Level 10 wasted total: ${globalWasted10.length}`);
+  console.log(
+    `[advanced solver][aftermath] Level 9 wasted total: ${globalWasted9.length}`
+  );
+  console.log(
+    `[advanced solver][aftermath] Level 10 wasted total: ${globalWasted10.length}`
+  );
 }
 
 // ---------- scoring ----------
-function evaluateScore(groups: InternalGroup[], targeted: AbilityCheck[]): { score: number; violations: string[][] } {
+function evaluateScore(
+  groups: InternalGroup[],
+  targeted: AbilityCheck[],
+  charSatisfies: Map<string, Set<string>>
+): { score: number; violations: string[][] } {
   const violations: string[][] = [];
   let score = 0;
 
@@ -175,10 +180,10 @@ function evaluateScore(groups: InternalGroup[], targeted: AbilityCheck[]): { sco
     const abilityPresence = new Map<string, number>();
 
     for (const c of g.chars) {
+      const sat = charSatisfies.get(c._id)!;
       for (const a of targeted) {
-        if ((c.abilities?.[a.name] ?? 0) >= a.level) {
-          const key = `${a.name}-${a.level}`;
-          abilityPresence.set(key, (abilityPresence.get(key) ?? 0) + 1);
+        if (sat.has(a.key!)) {
+          abilityPresence.set(a.key!, (abilityPresence.get(a.key!) ?? 0) + 1);
         }
       }
     }
@@ -194,8 +199,6 @@ function evaluateScore(groups: InternalGroup[], targeted: AbilityCheck[]): { sco
 
   score += wasted9 * 1 + wasted10 * 10;
 
-  console.log(`[advanced solver] score breakdown: wasted9=${wasted9}, wasted10=${wasted10}, totalScore=${score}`);
-
   return { score, violations };
 }
 
@@ -205,10 +208,27 @@ export function runAdvancedSolver(
   checkedAbilities: AbilityCheck[],
   groupSize = 3
 ): GroupResult[] {
+  console.time("[advanced solver] total runtime"); // ⏱️ start timing
   console.log("[advanced solver] starting run...");
+
   const people = [...characters];
   const groupsCount = Math.max(1, Math.ceil(people.length / groupSize));
-  const targeted = checkedAbilities.filter((a) => a.available);
+
+  // ✅ Precompute ability keys once
+  const targeted = checkedAbilities
+    .filter((a) => a.available)
+    .map((a) => ({ ...a, key: `${a.name}-${a.level}` }));
+
+  // ✅ Precompute satisfied ability sets per character
+  const charSatisfies = new Map<string, Set<string>>();
+  for (const c of people) {
+    const satisfied = new Set<string>();
+    for (const [abilityName, level] of Object.entries(c.abilities ?? {})) {
+      if (level >= 9) satisfied.add(`${abilityName}-9`);
+      if (level >= 10) satisfied.add(`${abilityName}-10`);
+    }
+    charSatisfies.set(c._id, satisfied);
+  }
 
   const MAX_ATTEMPTS = 2000;
   let best: GroupResult[] | null = null;
@@ -234,7 +254,7 @@ export function runAdvancedSolver(
 
       for (const { g } of ranked) {
         if (canPlaceHard(g, c)) {
-          addCharAndBumpCounts(g, c, targeted);
+          addCharAndBumpCounts(g, c, targeted, charSatisfies);
           placed.add(c._id);
           return true;
         }
@@ -246,19 +266,25 @@ export function runAdvancedSolver(
     for (const c of others) placeGreedy(c);
 
     if (placed.size !== people.length) {
-      console.log(`[advanced solver] attempt ${attempt + 1}: failed placement (placed=${placed.size}/${people.length})`);
+      if ((attempt + 1) % 100 === 0) {
+        console.log(
+          `[advanced solver] attempt ${attempt + 1}: failed placement (placed=${placed.size}/${people.length})`
+        );
+      }
       continue;
     }
 
-    const { score, violations } = evaluateScore(groups, targeted);
+    const { score, violations } = evaluateScore(groups, targeted, charSatisfies);
 
-    console.log(`[advanced solver] attempt ${attempt + 1}: score=${score}`);
+    if ((attempt + 1) % 100 === 0) {
+      console.log(`[advanced solver] attempt ${attempt + 1}: score=${score}`);
+    }
 
     if (score >= 0 && score < bestScore) {
       bestScore = score;
       best = groups.map((g, i) => ({
         characters: g.chars,
-        missingAbilities: evaluateMissing(g, targeted),
+        missingAbilities: evaluateMissing(g, targeted, charSatisfies),
         violations: violations[i],
       }));
       console.log(`[advanced solver] ✅ new best score = ${bestScore}`);
@@ -276,14 +302,16 @@ export function runAdvancedSolver(
     }
     const fallbackResults = fallbackGroups.map((g) => ({
       characters: g.chars,
-      missingAbilities: evaluateMissing(g, targeted),
+      missingAbilities: evaluateMissing(g, targeted, charSatisfies),
       violations: !g.hasHealer ? ["缺少治疗"] : [],
     }));
     logAftermath(fallbackResults, targeted);
+    console.timeEnd("[advanced solver] total runtime");
     return fallbackResults;
   }
 
   logAftermath(best, targeted);
   console.log(`[advanced solver] finished: best score=${bestScore}`);
+  console.timeEnd("[advanced solver] total runtime");
   return best;
 }

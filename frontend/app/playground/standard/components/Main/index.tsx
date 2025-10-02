@@ -5,7 +5,6 @@ import styles from "./styles.module.css";
 import { runAdvancedSolver } from "@/utils/advancedSolver";
 import { summarizeAftermath } from "@/utils/aftermathSummary";
 import { GroupResult, Character, AbilityCheck } from "@/utils/solver";
-import { checkAndRerun } from "@/utils/rerunLogic";  // rerun logic (disabled for now)
 
 // ✅ Hardcoded main characters
 const MAIN_CHARACTERS = new Set([
@@ -122,21 +121,6 @@ export default function MainSection({
       console.error("❌ Error saving groups:", err);
     }
   };
-
-  // ---------- Auto Rerun Logic (DISABLED) ----------
-  useEffect(() => {
-    const rerunEnabled = false; // 🔒 toggle
-    if (!rerunEnabled) {
-      console.log("[RERUN] Disabled: rerun logic is skipped (handled in solver).");
-      return;
-    }
-
-    checkAndRerun(
-      groups,
-      { solving, runSolver: safeRunSolver, scheduleId: schedule._id },
-      coreAbilities
-    );
-  }, [groups, solving, schedule._id]);
 
   // ---------- Rendering ----------
   const finishedCount = groups.filter((g) => g.status === "finished").length;
