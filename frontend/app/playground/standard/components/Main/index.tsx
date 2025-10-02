@@ -6,7 +6,17 @@ import { runSolver, GroupResult, Character, AbilityCheck } from "@/utils/solver"
 import { runAdvancedSolver } from "@/utils/advancedSolver";
 import { summarizeAftermath } from "@/utils/aftermathSummary";
 
-// ✅ Hardcoded core abilities (same as before)
+// ✅ Hardcoded main characters
+const MAIN_CHARACTERS = new Set([
+  "剑心猫猫糕",
+  "东海甜妹",
+  "饲猫大桔",
+  "五溪",
+  "唐宵风",
+  "程老黑",
+]);
+
+// ✅ Core abilities (filtering subset)
 const CORE_ABILITIES = [
   "斗转金移",
   "花钱消灾",
@@ -17,16 +27,6 @@ const CORE_ABILITIES = [
   "阴阳术退散",
   "兔死狐悲",
 ];
-
-// ✅ Hardcoded main characters
-const MAIN_CHARACTERS = new Set([
-  "剑心猫猫糕",
-  "东海甜妹",
-  "饲猫大桔",
-  "五溪",
-  "唐宵风",
-  "程老黑",
-]);
 
 interface Props {
   schedule: {
@@ -56,13 +56,13 @@ export default function MainSection({
 }: Props) {
   const [aftermath, setAftermath] = useState<{ wasted9: number; wasted10: number } | null>(null);
 
-  // ✅ Derive ability pools directly from schedule
-  const coreAbilities: AbilityCheck[] = schedule.checkedAbilities.filter((a) =>
+  // ✅ derive pools directly from schedule
+  const allAbilities = schedule.checkedAbilities;
+  const coreAbilities = schedule.checkedAbilities.filter((a) =>
     CORE_ABILITIES.includes(a.name)
   );
-  const allAbilities: AbilityCheck[] = schedule.checkedAbilities;
 
-  // ✅ Whenever groups change, recalc aftermath totals
+  // ✅ Recalculate aftermath when groups change
   useEffect(() => {
     if (groups.length > 0) {
       summarizeAftermath(groups)
@@ -78,10 +78,9 @@ export default function MainSection({
 
   // ========== Handlers ==========
 
-  // Old Solver (can be removed later if deprecated)
+  // Old Solver (still here if you want it)
   const handleRunSolver = async () => {
     console.log("🧩 Running OLD solver with:", schedule.characters);
-
     const results = runSolver(schedule.characters, schedule.checkedAbilities, 3);
     console.log("✅ Old Solver results:", results);
 
@@ -135,7 +134,11 @@ export default function MainSection({
     g: GroupResult & { status?: "not_started" | "started" | "finished" },
     originalIdx: number
   ) => {
-    const qaWarnings = checkGroupQA(g, schedule.conflictLevel, schedule.checkedAbilities);
+    const qaWarnings = checkGroupQA(
+      g,
+      schedule.conflictLevel,
+      schedule.checkedAbilities
+    );
     const status = g.status || "not_started";
 
     const renderStatus = () => {
@@ -162,7 +165,11 @@ export default function MainSection({
     };
 
     return (
-      <div key={originalIdx} className={styles.groupCard} onClick={() => setActiveIdx(originalIdx)}>
+      <div
+        key={originalIdx}
+        className={styles.groupCard}
+        onClick={() => setActiveIdx(originalIdx)}
+      >
         <div className={styles.groupHeader}>
           <h4 className={styles.groupTitle}>组 {originalIdx + 1}</h4>
           {renderStatus()}
@@ -201,6 +208,7 @@ export default function MainSection({
   const mainPairs = groups
     .map((g, i) => ({ g, i }))
     .filter(({ g }) => g.characters.some((c) => MAIN_CHARACTERS.has(c.name)));
+
   const altPairs = groups
     .map((g, i) => ({ g, i }))
     .filter(({ g }) => !g.characters.some((c) => MAIN_CHARACTERS.has(c.name)));
@@ -212,7 +220,7 @@ export default function MainSection({
         已完成小组: {finishedCount} / {groups.length}
       </p>
 
-      {/* Old solver (can be removed in future) */}
+      {/* Old solver */}
       <button className={styles.solverBtn} onClick={handleRunSolver}>
         一键排表 (旧版)
       </button>

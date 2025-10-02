@@ -137,11 +137,10 @@ export default function ScheduleDetail({ scheduleId }: Props) {
       />
 
       {/* Section 2: Abilities (always render) */}
-      <AbilityCheckingSection
-        checkedAbilities={schedule.checkedAbilities}
-        loading={loading}
-        conflictLevel={schedule.conflictLevel}
-      />
+  <AbilityCheckingSection
+  groups={groups}
+  checkedAbilities={schedule.checkedAbilities}
+/>
 
       {/* Section 3: Main Area */}
       <MainSection
