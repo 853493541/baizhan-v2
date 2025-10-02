@@ -9,7 +9,7 @@ import BasicInfoSection from "../components/BasicInfo";
 import AbilityCheckingSection from "../components/AbilityChecking";
 import MainSection from "../components/Main";
 import { useRouter } from "next/navigation";
-
+import AdvancedGroups from "../components/AdvancedGroups";  
 // ✅ Extended group type to match DB
 interface ExtendedGroup extends GroupResult {
   index: number;
@@ -164,6 +164,15 @@ export default function ScheduleDetail({ scheduleId }: Props) {
           onRefresh={fetchSchedule}       // ✅ refresh after PATCH
         />
       )}
+
+      <AdvancedGroups
+  schedule={schedule}
+  groups={groups}
+  setGroups={setGroups}
+  activeIdx={activeIdx}
+  setActiveIdx={setActiveIdx}
+  checkGroupQA={checkGroupQA}
+/>
     </div>
   );
 }

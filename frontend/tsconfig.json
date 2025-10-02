@@ -19,9 +19,18 @@
       }
     ],
     "paths": {
-        "@/*": ["./*"]
+      "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.d.ts",
+    ".next/types/**/*.ts"
+  ],
+  "files": [
+    "./cssmodules.d.ts"   // 👈 force-load this
+  ],
   "exclude": ["node_modules"]
 }
