@@ -43,6 +43,16 @@ export const CORE_ABILITIES = [
   "兔死狐悲",
 ];
 
+// ---------- Main characters ----------
+const MAIN_CHARACTERS = new Set([
+  "剑心猫猫糕",
+  "东海甜妹",
+  "饲猫大桔",
+  "五溪",
+  "唐宵风",
+  "程老黑",
+]);
+
 // ---------- helpers ----------
 function cloneEmptyGroups(n: number): InternalGroup[] {
   return Array.from({ length: n }, () => ({
@@ -171,16 +181,15 @@ export function runAdvancedSolver(
       continue;
     }
 
-    // ---------- evaluate ----------
+    // ---------- Tier 1: Hard fails ----------
     let score = 0;
-
-    // Tier 1
     for (const g of groups) {
       if (!g.hasHealer) {
         if (shouldLog) console.warn(`[advanced solver] attempt ${attempt}: ❌ missing healer`);
         score = -10;
       }
       const seen = new Set<string>();
+      let mainCount = 0;
       for (const c of g.chars) {
         if (seen.has(c.account)) {
           if (shouldLog)
@@ -190,11 +199,24 @@ export function runAdvancedSolver(
           score = -10;
         }
         seen.add(c.account);
+
+        // 🔥 New rule: main characters must not be in same group
+        if (MAIN_CHARACTERS.has(c.name)) {
+          mainCount++;
+          if (mainCount > 1) {
+            if (shouldLog) {
+              console.warn(
+                `[advanced solver] attempt ${attempt}: ❌ multiple main characters in same group`
+              );
+            }
+            score = -10;
+          }
+        }
       }
     }
     if (score < 0) continue;
 
-    // Tier 2 + Tier 3
+    // ---------- Tier 2 + Tier 3 ----------
     for (const a of targeted) {
       const bit = BigInt(1) << BigInt(a.index!);
       const { tol } = abilityTolerance.get(a.index!)!;
@@ -216,7 +238,6 @@ export function runAdvancedSolver(
           score = -10;
           break;
         } else {
-          // non-core → apply penalty silently
           const excess = fullGroups - tol;
           if (excess > 0) {
             if (a.level === 9) score += excess * 1;
