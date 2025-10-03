@@ -17,11 +17,32 @@ interface Props {
 
 const SERVERS = ["乾坤一掷", "唯我独尊", "梦江南"];
 
+function generateTimestampName(server: string) {
+  const now = new Date();
+  const yyyy = now.getFullYear().toString();
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const dd = String(now.getDate()).padStart(2, "0");
+  const hh = String(now.getHours()).padStart(2, "0");
+  const min = String(now.getMinutes()).padStart(2, "0");
+  return `${server}-${yyyy}${mm}${dd}-${hh}${min}`;
+}
+
 export default function StandardScheduleForm({ onClose, onConfirm }: Props) {
   const [name, setName] = useState("");
-  const [server, setServer] = useState(SERVERS[0]);
+  const [server, setServer] = useState<string | null>(null);
+
+  // handle server select + overwrite name
+  const handleSelectServer = (s: string) => {
+    setServer(s);
+    setName(generateTimestampName(s)); // always overwrite with timestamp
+  };
 
   const handleSubmit = async () => {
+    if (!server) {
+      alert("请选择服务器后再创建排表。");
+      return;
+    }
+
     try {
       // Step 1. Fetch characters
       const charRes = await fetch(
@@ -38,27 +59,21 @@ export default function StandardScheduleForm({ onClose, onConfirm }: Props) {
 
       // Step 2. Get full pool from helper
       const poolRaw = await getDefaultAbilityPool();
-      console.log("[CreateModal] Raw pool from helper:", poolRaw);
-
-      // Step 3. Normalize to solver-ready format
       const fullPool: Ability[] = poolRaw.map((a) => ({
         ...a,
         available: true,
       }));
-      console.log("[CreateModal] Full pool with available:", fullPool);
 
-      // Step 4. Build payload
+      // Step 3. Build payload
       const payload = {
         name: name || "未命名排表",
         server,
-        checkedAbilities: fullPool, // 🔑 must match AbilitySchema in backend
+        checkedAbilities: fullPool,
         characterCount: activeCharacters.length,
         characters: activeCharacters.map((c: any) => c._id),
         groups: [],
       };
-      console.log("[CreateModal] Submitting payload:", payload);
 
-      // Step 5. Send to backend (via parent handler)
       onConfirm(payload);
       onClose();
     } catch (err) {
@@ -68,6 +83,20 @@ export default function StandardScheduleForm({ onClose, onConfirm }: Props) {
 
   return (
     <>
+      <div className={styles.label}>服务器</div>
+      <div className={styles.serverButtons}>
+        {SERVERS.map((s) => (
+          <button
+            key={s}
+            type="button"
+            className={`${styles.serverBtn} ${server === s ? styles.selected : ""}`}
+            onClick={() => handleSelectServer(s)}
+          >
+            {s}
+          </button>
+        ))}
+      </div>
+
       <label className={styles.label}>
         排表名称
         <input
@@ -79,26 +108,15 @@ export default function StandardScheduleForm({ onClose, onConfirm }: Props) {
         />
       </label>
 
-      <label className={styles.label}>
-        服务器
-        <select
-          value={server}
-          onChange={(e) => setServer(e.target.value)}
-          className={styles.select}
-        >
-          {SERVERS.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
-      </label>
-
       <div className={styles.actions}>
         <button className={styles.btnSecondary} onClick={onClose}>
           取消
         </button>
-        <button className={styles.btnPrimary} onClick={handleSubmit}>
+        <button
+          className={styles.btnPrimary}
+          onClick={handleSubmit}
+          disabled={!server}
+        >
           确认
         </button>
       </div>

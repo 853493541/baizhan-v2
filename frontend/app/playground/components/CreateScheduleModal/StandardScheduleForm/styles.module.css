@@ -58,3 +58,29 @@
 .btnSecondary:hover {
   background-color: #ddd;
 }
+
+.serverButtons {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0 16px;
+}
+
+.serverBtn {
+  padding: 8px 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #f9f9f9;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.serverBtn:hover {
+  background: #e6f0ff;
+  border-color: #0070f3;
+}
+
+.selected {
+  background: #0070f3;
+  color: white;
+  border-color: #0059c1;
+}
