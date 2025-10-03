@@ -79,67 +79,7 @@ function cloneEmptyGroups(n: number): InternalGroup[] {
   }));
 }
 
-// ---------- aftermath analysis ----------
-function logAftermath(groups: GroupResult[], abilityPool: AbilityCheck[]) {
-  console.log("[advanced solver][aftermath] ===== Aftermath Analysis =====");
-
-  const globalWasted9: string[] = [];
-  const globalWasted10: string[] = [];
-
-  groups.forEach((g, idx) => {
-    const charCount = g.characters.length;
-    if (charCount === 0) {
-      console.log(`[advanced solver][aftermath] Group ${idx + 1}: (empty)`);
-      return;
-    }
-
-    const abilityPresence = new Map<string, number>();
-
-    for (const c of g.characters) {
-      for (const a of abilityPool) {
-        if (c.abilities && (c.abilities[a.name] ?? 0) >= a.level) {
-          const key = a.key!;
-          abilityPresence.set(key, (abilityPresence.get(key) ?? 0) + 1);
-        }
-      }
-    }
-
-    const wasted9: string[] = [];
-    const wasted10: string[] = [];
-
-    for (const [key, count] of abilityPresence.entries()) {
-      if (count === charCount) {
-        const [name, levelStr] = key.split("-");
-        if (levelStr === "9") {
-          wasted9.push(name);
-          globalWasted9.push(name);
-        }
-        if (levelStr === "10") {
-          wasted10.push(name);
-          globalWasted10.push(name);
-        }
-      }
-    }
-
-    console.log(`[advanced solver][aftermath] Group ${idx + 1}:`);
-    if (wasted9.length > 0)
-      console.log(`[advanced solver][aftermath]   9重无需求: ${wasted9.join("，")}`);
-    if (wasted10.length > 0)
-      console.log(`[advanced solver][aftermath]   10重无需求: ${wasted10.join("，")}`);
-    if (wasted9.length === 0 && wasted10.length === 0)
-      console.log("[advanced solver][aftermath]   ✅ No wasted abilities");
-  });
-
-  console.log("[advanced solver][aftermath] ===== Global Totals =====");
-  console.log(
-    `[advanced solver][aftermath] Level 9 wasted total: ${globalWasted9.length}`
-  );
-  console.log(
-    `[advanced solver][aftermath] Level 10 wasted total: ${globalWasted10.length}`
-  );
-}
-
-// ---------- scoring ----------
+// ---------- scoring (optimized) ----------
 function evaluateScore(
   groups: InternalGroup[],
   targeted: AbilityCheck[],
@@ -177,28 +117,16 @@ function evaluateScore(
 
   for (const g of groups) {
     const charCount = g.chars.length;
-    const abilityPresence = new Map<string, number>();
 
-    for (const c of g.chars) {
-      const sat = charSatisfies.get(c._id)!;
-      for (const a of targeted) {
-        if (sat.has(a.key!)) {
-          abilityPresence.set(a.key!, (abilityPresence.get(a.key!) ?? 0) + 1);
-        }
-      }
-    }
-
-    for (const [key, count] of abilityPresence.entries()) {
+    for (const [key, count] of g.abilityCount.entries()) {
       if (count === charCount) {
-        const [_, levelStr] = key.split("-");
-        if (levelStr === "9") wasted9++;
-        if (levelStr === "10") wasted10++;
+        if (key.endsWith("-9")) wasted9++;
+        if (key.endsWith("-10")) wasted10++;
       }
     }
   }
 
   score += wasted9 * 1 + wasted10 * 10;
-
   return { score, violations };
 }
 
@@ -209,7 +137,6 @@ export function runAdvancedSolver(
   groupSize = 3
 ): GroupResult[] {
   console.time("[advanced solver] total runtime"); // ⏱️ start timing
-  console.log("[advanced solver] starting run...");
 
   const people = [...characters];
   const groupsCount = Math.max(1, Math.ceil(people.length / groupSize));
@@ -242,22 +169,28 @@ export function runAdvancedSolver(
     const others = shuffle(people.filter((p) => p.role !== "Healer").slice());
 
     const canPlaceHard = (g: InternalGroup, c: Character) => {
-      if (freeSlots(g, groupSize) <= 0) return false;
+      if (g.chars.length >= groupSize) return false;
       if (g.accounts.has(c.account)) return false;
       return true;
     };
 
+    // ✅ Optimized placement: scan groups, no sort
     const placeGreedy = (c: Character) => {
-      const ranked = groups
-        .map((g, i) => ({ g, i, score: freeSlots(g, groupSize) }))
-        .sort((a, b) => b.score - a.score);
+      let bestGroup: InternalGroup | null = null;
+      let bestScore = -1;
 
-      for (const { g } of ranked) {
-        if (canPlaceHard(g, c)) {
-          addCharAndBumpCounts(g, c, targeted, charSatisfies);
-          placed.add(c._id);
-          return true;
+      for (const g of groups) {
+        const score = groupSize - g.chars.length;
+        if (score > bestScore && canPlaceHard(g, c)) {
+          bestScore = score;
+          bestGroup = g;
         }
+      }
+
+      if (bestGroup) {
+        addCharAndBumpCounts(bestGroup, c, targeted, charSatisfies);
+        placed.add(c._id);
+        return true;
       }
       return false;
     };
@@ -265,20 +198,9 @@ export function runAdvancedSolver(
     for (const h of healers) placeGreedy(h);
     for (const c of others) placeGreedy(c);
 
-    if (placed.size !== people.length) {
-      if ((attempt + 1) % 100 === 0) {
-        console.log(
-          `[advanced solver] attempt ${attempt + 1}: failed placement (placed=${placed.size}/${people.length})`
-        );
-      }
-      continue;
-    }
+    if (placed.size !== people.length) continue;
 
     const { score, violations } = evaluateScore(groups, targeted, charSatisfies);
-
-    if ((attempt + 1) % 100 === 0) {
-      console.log(`[advanced solver] attempt ${attempt + 1}: score=${score}`);
-    }
 
     if (score >= 0 && score < bestScore) {
       bestScore = score;
@@ -287,13 +209,11 @@ export function runAdvancedSolver(
         missingAbilities: evaluateMissing(g, targeted, charSatisfies),
         violations: violations[i],
       }));
-      console.log(`[advanced solver] ✅ new best score = ${bestScore}`);
       if (bestScore === 0) break;
     }
   }
 
   if (!best) {
-    console.warn("[advanced solver] all attempts failed, fallback sequential.");
     const fallbackGroups = cloneEmptyGroups(groupsCount);
     let idx = 0;
     for (const c of people) {
@@ -305,13 +225,10 @@ export function runAdvancedSolver(
       missingAbilities: evaluateMissing(g, targeted, charSatisfies),
       violations: !g.hasHealer ? ["缺少治疗"] : [],
     }));
-    logAftermath(fallbackResults, targeted);
     console.timeEnd("[advanced solver] total runtime");
     return fallbackResults;
   }
 
-  logAftermath(best, targeted);
-  console.log(`[advanced solver] finished: best score=${bestScore}`);
   console.timeEnd("[advanced solver] total runtime");
   return best;
 }
