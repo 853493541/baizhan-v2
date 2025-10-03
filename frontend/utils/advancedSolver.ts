@@ -12,7 +12,9 @@ export interface AbilityCheck {
   name: string;
   level: number;
   available: boolean;
-  key?: string; // ✅ precomputed `${name}-${level}`
+  key?: string;
+  index?: number;
+  core?: boolean;
 }
 
 export interface GroupResult {
@@ -25,41 +27,31 @@ type InternalGroup = {
   chars: Character[];
   accounts: Set<string>;
   hasHealer: boolean;
-  abilityCount: Map<string, number>; // key = "name-level"
+  maskOr: bigint;
+  maskAnd: bigint;
 };
 
+// ---------- Core abilities (reduced set) ----------
+export const CORE_ABILITIES = [
+  "斗转金移",
+  "花钱消灾",
+  "黑煞落贪狼",
+  "一闪天诛",
+  "引燃",
+  "漾剑式",
+  "阴阳术退散",
+  "兔死狐悲",
+];
+
 // ---------- helpers ----------
-function freeSlots(g: InternalGroup, size: number) {
-  return size - g.chars.length;
-}
-
-function groupHasAbility(g: InternalGroup, a: AbilityCheck) {
-  return (g.abilityCount.get(a.key!) ?? 0) > 0;
-}
-
-function evaluateMissing(
-  g: InternalGroup,
-  targeted: AbilityCheck[],
-  charSatisfies: Map<string, Set<string>>
-) {
-  return targeted.filter((a) => !groupHasAbility(g, a));
-}
-
-function addCharAndBumpCounts(
-  g: InternalGroup,
-  c: Character,
-  targeted: AbilityCheck[],
-  charSatisfies: Map<string, Set<string>>
-) {
-  g.chars.push(c);
-  g.accounts.add(c.account);
-  if (c.role === "Healer") g.hasHealer = true;
-  for (const a of targeted) {
-    if (charSatisfies.get(c._id)?.has(a.key!)) {
-      const next = (g.abilityCount.get(a.key!) ?? 0) + 1;
-      g.abilityCount.set(a.key!, next);
-    }
-  }
+function cloneEmptyGroups(n: number): InternalGroup[] {
+  return Array.from({ length: n }, () => ({
+    chars: [],
+    accounts: new Set<string>(),
+    hasHealer: false,
+    maskOr: BigInt(0),
+    maskAnd: ~BigInt(0),
+  }));
 }
 
 function shuffle<T>(arr: T[]) {
@@ -70,64 +62,11 @@ function shuffle<T>(arr: T[]) {
   return arr;
 }
 
-function cloneEmptyGroups(n: number): InternalGroup[] {
-  return Array.from({ length: n }, () => ({
-    chars: [],
-    accounts: new Set<string>(),
-    hasHealer: false,
-    abilityCount: new Map<string, number>(),
-  }));
-}
-
-// ---------- scoring (optimized) ----------
-function evaluateScore(
-  groups: InternalGroup[],
-  targeted: AbilityCheck[],
-  charSatisfies: Map<string, Set<string>>
-): { score: number; violations: string[][] } {
-  const violations: string[][] = [];
-  let score = 0;
-
-  // Tier 1: instant fails
-  for (const g of groups) {
-    const v: string[] = [];
-
-    if (!g.hasHealer) {
-      v.push("缺少治疗");
-      score = -10;
-    }
-
-    const seen = new Set<string>();
-    for (const c of g.chars) {
-      if (seen.has(c.account)) {
-        v.push(`重复账号: ${c.account}`);
-        score = -10;
-      }
-      seen.add(c.account);
-    }
-
-    violations.push(v);
-  }
-
-  if (score === -10) return { score, violations };
-
-  // Tier 3: wasted ability penalties
-  let wasted9 = 0;
-  let wasted10 = 0;
-
-  for (const g of groups) {
-    const charCount = g.chars.length;
-
-    for (const [key, count] of g.abilityCount.entries()) {
-      if (count === charCount) {
-        if (key.endsWith("-9")) wasted9++;
-        if (key.endsWith("-10")) wasted10++;
-      }
-    }
-  }
-
-  score += wasted9 * 1 + wasted10 * 10;
-  return { score, violations };
+// ---------- tolerance ----------
+function computeTolerance(totalChars: number, groupSize: number, holders: number) {
+  const groups = Math.ceil(totalChars / groupSize);
+  const safeCapacity = (groupSize - 1) * groups;
+  return Math.max(0, holders - safeCapacity);
 }
 
 // ---------- main ----------
@@ -136,28 +75,51 @@ export function runAdvancedSolver(
   checkedAbilities: AbilityCheck[],
   groupSize = 3
 ): GroupResult[] {
-  console.time("[advanced solver] total runtime"); // ⏱️ start timing
+  console.time("[advanced solver] total runtime");
 
   const people = [...characters];
   const groupsCount = Math.max(1, Math.ceil(people.length / groupSize));
 
-  // ✅ Precompute ability keys once
+  // targeted abilities
   const targeted = checkedAbilities
     .filter((a) => a.available)
-    .map((a) => ({ ...a, key: `${a.name}-${a.level}` }));
+    .map((a, idx) => ({
+      ...a,
+      key: `${a.name}-${a.level}`,
+      index: idx,
+      core: CORE_ABILITIES.includes(a.name),
+    }));
 
-  // ✅ Precompute satisfied ability sets per character
-  const charSatisfies = new Map<string, Set<string>>();
+  const abilityIndex = new Map<string, number>();
+  targeted.forEach((a) => abilityIndex.set(a.key!, a.index!));
+
+  // char bitmasks
+  const charMasks = new Map<string, bigint>();
   for (const c of people) {
-    const satisfied = new Set<string>();
+    let mask = BigInt(0);
     for (const [abilityName, level] of Object.entries(c.abilities ?? {})) {
-      if (level >= 9) satisfied.add(`${abilityName}-9`);
-      if (level >= 10) satisfied.add(`${abilityName}-10`);
+      if (level >= 9) {
+        const idx9 = abilityIndex.get(`${abilityName}-9`);
+        if (idx9 !== undefined) mask |= BigInt(1) << BigInt(idx9);
+      }
+      if (level >= 10) {
+        const idx10 = abilityIndex.get(`${abilityName}-10`);
+        if (idx10 !== undefined) mask |= BigInt(1) << BigInt(idx10);
+      }
     }
-    charSatisfies.set(c._id, satisfied);
+    charMasks.set(c._id, mask);
   }
 
-  const MAX_ATTEMPTS = 2000;
+  // precompute tolerance
+  const abilityTolerance = new Map<number, { tol: number; holders: number }>();
+  for (const a of targeted) {
+    const holders = people.filter((c) => (c.abilities?.[a.name] ?? 0) >= a.level).length;
+    const tol = computeTolerance(people.length, groupSize, holders);
+    abilityTolerance.set(a.index!, { tol, holders });
+  }
+
+  const LOG_INTERVAL = 5000;
+  const MAX_ATTEMPTS = 4000;
   let best: GroupResult[] | null = null;
   let bestScore = Number.MAX_SAFE_INTEGER;
 
@@ -168,65 +130,130 @@ export function runAdvancedSolver(
     const healers = shuffle(people.filter((p) => p.role === "Healer").slice());
     const others = shuffle(people.filter((p) => p.role !== "Healer").slice());
 
+    const shouldLog = attempt === 0 || attempt % LOG_INTERVAL === 0;
+
     const canPlaceHard = (g: InternalGroup, c: Character) => {
       if (g.chars.length >= groupSize) return false;
       if (g.accounts.has(c.account)) return false;
       return true;
     };
 
-    // ✅ Optimized placement: scan groups, no sort
     const placeGreedy = (c: Character) => {
       let bestGroup: InternalGroup | null = null;
-      let bestScore = -1;
-
+      let bestFree = -1;
       for (const g of groups) {
-        const score = groupSize - g.chars.length;
-        if (score > bestScore && canPlaceHard(g, c)) {
-          bestScore = score;
+        const free = groupSize - g.chars.length;
+        if (free > bestFree && canPlaceHard(g, c)) {
+          bestFree = free;
           bestGroup = g;
         }
       }
-
-      if (bestGroup) {
-        addCharAndBumpCounts(bestGroup, c, targeted, charSatisfies);
-        placed.add(c._id);
-        return true;
-      }
-      return false;
+      if (!bestGroup) return false;
+      const mask = charMasks.get(c._id) ?? BigInt(0);
+      bestGroup.chars.push(c);
+      bestGroup.accounts.add(c.account);
+      if (c.role === "Healer") bestGroup.hasHealer = true;
+      bestGroup.maskOr |= mask;
+      bestGroup.maskAnd &= mask;
+      placed.add(c._id);
+      return true;
     };
 
     for (const h of healers) placeGreedy(h);
     for (const c of others) placeGreedy(c);
 
-    if (placed.size !== people.length) continue;
+    if (placed.size !== people.length) {
+      if (shouldLog) {
+        console.warn(
+          `[advanced solver] attempt ${attempt}: ❌ placement failed (${placed.size}/${people.length})`
+        );
+      }
+      continue;
+    }
 
-    const { score, violations } = evaluateScore(groups, targeted, charSatisfies);
+    // ---------- evaluate ----------
+    let score = 0;
 
-    if (score >= 0 && score < bestScore) {
+    // Tier 1
+    for (const g of groups) {
+      if (!g.hasHealer) {
+        if (shouldLog) console.warn(`[advanced solver] attempt ${attempt}: ❌ missing healer`);
+        score = -10;
+      }
+      const seen = new Set<string>();
+      for (const c of g.chars) {
+        if (seen.has(c.account)) {
+          if (shouldLog)
+            console.warn(
+              `[advanced solver] attempt ${attempt}: ❌ duplicate account ${c.account}`
+            );
+          score = -10;
+        }
+        seen.add(c.account);
+      }
+    }
+    if (score < 0) continue;
+
+    // Tier 2 + Tier 3
+    for (const a of targeted) {
+      const bit = BigInt(1) << BigInt(a.index!);
+      const { tol } = abilityTolerance.get(a.index!)!;
+
+      let fullGroups = 0;
+      for (const g of groups) {
+        if (g.chars.length === groupSize && (g.maskAnd & bit) !== BigInt(0)) {
+          fullGroups++;
+        }
+      }
+
+      if (fullGroups > tol) {
+        if (a.core) {
+          if (shouldLog) {
+            console.warn(
+              `[advanced solver] attempt ${attempt}: ❌ core ${a.name}-${a.level} fullGroups=${fullGroups} > tol=${tol}`
+            );
+          }
+          score = -10;
+          break;
+        } else {
+          // non-core → apply penalty silently
+          const excess = fullGroups - tol;
+          if (excess > 0) {
+            if (a.level === 9) score += excess * 1;
+            if (a.level === 10) score += excess * 10;
+          }
+        }
+      }
+    }
+    if (score < 0) continue;
+
+    if (score < bestScore) {
       bestScore = score;
-      best = groups.map((g, i) => ({
-        characters: g.chars,
-        missingAbilities: evaluateMissing(g, targeted, charSatisfies),
-        violations: violations[i],
-      }));
+      best = groups.map((g) => {
+        const missing = targeted.filter(
+          (a) => (g.maskOr & (BigInt(1) << BigInt(a.index!))) === BigInt(0)
+        );
+        return {
+          characters: g.chars,
+          missingAbilities: missing,
+          violations: [],
+        };
+      });
       if (bestScore === 0) break;
     }
   }
 
   if (!best) {
-    const fallbackGroups = cloneEmptyGroups(groupsCount);
-    let idx = 0;
-    for (const c of people) {
-      fallbackGroups[idx % groupsCount].chars.push(c);
-      idx++;
+    console.error("[advanced solver] ❌ all attempts failed");
+    const safeCapacity = (groupSize - 1) * groupsCount;
+    for (const a of targeted) {
+      const { tol, holders } = abilityTolerance.get(a.index!)!;
+      console.error(
+        `[advanced solver] tolerance ${a.name}-${a.level}: holders=${holders}, groups=${groupsCount}, safeCapacity=${safeCapacity}, tol=${tol}, core=${a.core ? "Y" : "N"}`
+      );
     }
-    const fallbackResults = fallbackGroups.map((g) => ({
-      characters: g.chars,
-      missingAbilities: evaluateMissing(g, targeted, charSatisfies),
-      violations: !g.hasHealer ? ["缺少治疗"] : [],
-    }));
     console.timeEnd("[advanced solver] total runtime");
-    return fallbackResults;
+    return [];
   }
 
   console.timeEnd("[advanced solver] total runtime");
