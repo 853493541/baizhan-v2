@@ -16,6 +16,7 @@ interface Props {
 }
 
 const SERVERS = ["乾坤一掷", "唯我独尊", "梦江南"];
+const ALL_SERVERS = "全服";
 
 function generateTimestampName(server: string) {
   const now = new Date();
@@ -34,7 +35,7 @@ export default function StandardScheduleForm({ onClose, onConfirm }: Props) {
   // handle server select + overwrite name
   const handleSelectServer = (s: string) => {
     setServer(s);
-    setName(generateTimestampName(s)); // always overwrite with timestamp
+    setName(generateTimestampName(s));
   };
 
   const handleSubmit = async () => {
@@ -45,15 +46,18 @@ export default function StandardScheduleForm({ onClose, onConfirm }: Props) {
 
     try {
       // Step 1. Fetch characters
-      const charRes = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/characters?server=${server}`
-      );
+      const url =
+        server === ALL_SERVERS
+          ? `${process.env.NEXT_PUBLIC_API_URL}/api/characters`
+          : `${process.env.NEXT_PUBLIC_API_URL}/api/characters?server=${server}`;
+
+      const charRes = await fetch(url);
       if (!charRes.ok) throw new Error("Failed to fetch characters");
       const characters = await charRes.json();
 
       const activeCharacters = characters.filter((c: any) => c.active);
       if (activeCharacters.length === 0) {
-        alert("该服务器没有启用的角色，无法创建排表。");
+        alert("没有启用的角色，无法创建排表。");
         return;
       }
 
@@ -85,7 +89,7 @@ export default function StandardScheduleForm({ onClose, onConfirm }: Props) {
     <>
       <div className={styles.label}>服务器</div>
       <div className={styles.serverButtons}>
-        {SERVERS.map((s) => (
+        {[ALL_SERVERS, ...SERVERS].map((s) => (
           <button
             key={s}
             type="button"
