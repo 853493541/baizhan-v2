@@ -9,14 +9,17 @@ const StandardSchedule_1 = __importDefault(require("../../models/StandardSchedul
 const createStandardSchedule = async (req, res) => {
     try {
         const { name, server, conflictLevel, checkedAbilities, characterCount, characters, groups, } = req.body;
-        console.log("📥 Creating standard schedule with data:", {
+        // 🔍 Debug: what backend actually received
+        console.log("📥 [Backend] Received payload:", {
             name,
             server,
             conflictLevel,
-            checkedAbilities,
             characterCount,
-            characters,
-            groups,
+            charactersCount: characters?.length,
+            groupsCount: groups?.length,
+            checkedAbilitiesPreview: Array.isArray(checkedAbilities)
+                ? checkedAbilities.slice(0, 5) // only log first 5 entries
+                : checkedAbilities,
         });
         const schedule = new StandardSchedule_1.default({
             name: name || "未命名排表", // ✅ fallback if no name
@@ -27,12 +30,29 @@ const createStandardSchedule = async (req, res) => {
             characters,
             groups,
         });
+        // 🔍 Debug: what Mongoose doc looks like before save
+        console.log("📋 [Backend] Schedule doc before save:", {
+            name: schedule.name,
+            server: schedule.server,
+            conflictLevel: schedule.conflictLevel,
+            checkedAbilitiesPreview: schedule.checkedAbilities?.slice(0, 5),
+            characterCount: schedule.characterCount,
+            charactersCount: schedule.characters?.length,
+            groupsCount: schedule.groups?.length,
+        });
         await schedule.save();
-        console.log("✅ Saved standard schedule with ID:", schedule._id);
+        // 🔍 Debug: reload from DB to confirm what was actually persisted
+        const saved = await StandardSchedule_1.default.findById(schedule._id).lean();
+        console.log("💾 [Backend] Saved doc in DB (preview):", {
+            id: saved?._id,
+            checkedAbilitiesCount: saved?.checkedAbilities?.length,
+            checkedAbilitiesPreview: saved?.checkedAbilities?.slice(0, 5),
+        });
+        console.log("✅ [Backend] Saved standard schedule with ID:", schedule._id);
         res.status(201).json(schedule);
     }
     catch (err) {
-        console.error("❌ Error creating standard schedule:", err);
+        console.error("❌ [Backend] Error creating standard schedule:", err);
         res.status(500).json({ error: "Failed to create standard schedule" });
     }
 };

@@ -53,6 +53,16 @@ const MAIN_CHARACTERS = new Set([
   "程老黑",
 ]);
 
+// ---------- Tier 4 distribution abilities ----------
+const DISTRIBUTION_ABILITIES = new Set([
+  "黑煞落贪狼",
+  "飞云回转刀",
+  "引燃",
+  "斗转星移",
+  "花钱消灾",
+  "一闪天诛",
+]);
+
 // ---------- helpers ----------
 function cloneEmptyGroups(n: number): InternalGroup[] {
   return Array.from({ length: n }, () => ({
@@ -129,7 +139,7 @@ export function runAdvancedSolver(
   }
 
   const LOG_INTERVAL = 5000;
-  const MAX_ATTEMPTS = 4000;
+  const MAX_ATTEMPTS = 20000;
   let best: GroupResult[] | null = null;
   let bestScore = Number.MAX_SAFE_INTEGER;
 
@@ -247,6 +257,37 @@ export function runAdvancedSolver(
       }
     }
     if (score < 0) continue;
+
+    // ---------- Tier 4: distribution optimization ----------
+    for (const abilityName of DISTRIBUTION_ABILITIES) {
+      for (const level of [9, 10]) {
+        const abilityKey = `${abilityName}-${level}`;
+        const idx = abilityIndex.get(abilityKey);
+        if (idx === undefined) continue;
+
+        const holders = people.filter((c) => (c.abilities?.[abilityName] ?? 0) >= level).length;
+        if (holders === 0) continue;
+
+        const bit = BigInt(1) << BigInt(idx);
+        let groupsWithAbility = 0;
+        for (const g of groups) {
+          if ((g.maskOr & bit) !== BigInt(0)) groupsWithAbility++;
+        }
+
+        const idealGroups = Math.min(holders, groupsCount);
+        if (groupsWithAbility < idealGroups) {
+          const waste = idealGroups - groupsWithAbility;
+          const penalty = waste * 30;
+          score += penalty;
+          if (shouldLog) {
+            console.warn(
+              `[advanced solver] attempt ${attempt}: ⚠️ Tier4 penalty for ${abilityName}-${level}, ` +
+              `ideal=${idealGroups}, actual=${groupsWithAbility}, waste=${waste}, +${penalty}`
+            );
+          }
+        }
+      }
+    }
 
     if (score < bestScore) {
       bestScore = score;

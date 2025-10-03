@@ -64,7 +64,7 @@ const GroupSchema = new mongoose_1.Schema({
 const StandardScheduleSchema = new mongoose_1.Schema({
     name: { type: String, default: "未命名排表" },
     server: { type: String, required: true },
-    conflictLevel: { type: Number, enum: [9, 10], required: true },
+    conflictLevel: { type: Number, enum: [9, 10] }, // 🔹 no longer required
     createdAt: { type: Date, default: Date.now },
     checkedAbilities: [AbilitySchema],
     characterCount: { type: Number, default: 0 },
