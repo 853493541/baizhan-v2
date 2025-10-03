@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import styles from "./styles.module.css";
+import styles from "./styles.module.css";   // ✅ this points to the CSS file
 import { getDefaultAbilityPool } from "@/utils/playgroundHelpers";
 
 interface Ability {
@@ -44,7 +44,6 @@ export default function CreateScheduleModal({ onClose, onConfirm }: Props) {
     }
 
     try {
-      // Step 1. Fetch characters
       const url =
         server === ALL_SERVERS
           ? `${process.env.NEXT_PUBLIC_API_URL}/api/characters`
@@ -60,14 +59,12 @@ export default function CreateScheduleModal({ onClose, onConfirm }: Props) {
         return;
       }
 
-      // Step 2. Get full pool from helper
       const poolRaw = await getDefaultAbilityPool();
       const fullPool: Ability[] = poolRaw.map((a) => ({
         ...a,
         available: true,
       }));
 
-      // Step 3. Build payload
       const payload = {
         name: name || "未命名排表",
         server,

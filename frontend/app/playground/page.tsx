@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import CreateScheduleModal from "./components/CreateScheduleModal";
 import styles from "./styles.module.css";
 import StandardScheduleList from "./components/StandardScheduleList";
-import BossScheduleList from "./components/BossScheduleList";
 
 interface Ability {
   name: string;
@@ -25,14 +24,6 @@ interface StandardSchedule {
   checkedAbilities: Ability[];
   characterCount: number;
   groups?: Group[];
-}
-
-interface BossPlan {
-  _id: string;
-  server: string;
-  groupSize?: number;
-  boss?: string;
-  createdAt: string;
 }
 
 /**
@@ -59,12 +50,10 @@ function getCnWeekCode(dateString: string): string {
 export default function PlaygroundPage() {
   const [showModal, setShowModal] = useState(false);
   const [schedules, setSchedules] = useState<StandardSchedule[]>([]);
-  const [bossPlans, setBossPlans] = useState<BossPlan[]>([]);
   const [showPast, setShowPast] = useState(false);
 
   useEffect(() => {
     fetchSchedules();
-    fetchBossPlans();
   }, []);
 
   const fetchSchedules = async () => {
@@ -76,24 +65,6 @@ export default function PlaygroundPage() {
       setSchedules(await res.json());
     } catch (err) {
       console.error("❌ Error fetching schedules:", err);
-    }
-  };
-
-  const fetchBossPlans = async () => {
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/boss-plans`
-      );
-      if (!res.ok) throw new Error("Failed to fetch boss plans");
-      const data = await res.json();
-      const patched = data.map((bp: BossPlan) => ({
-        ...bp,
-        groupSize: bp.groupSize ?? 3,
-        boss: bp.boss ?? "未选择",
-      }));
-      setBossPlans(patched);
-    } catch (err) {
-      console.error("❌ Error fetching boss plans:", err);
     }
   };
 
@@ -119,29 +90,22 @@ export default function PlaygroundPage() {
       {showModal && (
         <CreateScheduleModal
           onClose={() => setShowModal(false)}
-          onConfirm={async (data, mode) => {
+          onConfirm={async (data) => {
             setShowModal(false);
-
-            if (!mode || mode === "standard") {
-              try {
-                const res = await fetch(
-                  `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules`,
-                  {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(data),
-                  }
-                );
-                if (!res.ok) throw new Error("❌ Failed to create schedule");
-                await res.json();
-                fetchSchedules();
-              } catch (err) {
-                console.error("❌ Error creating schedule:", err);
-              }
-            }
-
-            if (mode === "boss") {
-              fetchBossPlans();
+            try {
+              const res = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(data),
+                }
+              );
+              if (!res.ok) throw new Error("❌ Failed to create schedule");
+              await res.json();
+              fetchSchedules();
+            } catch (err) {
+              console.error("❌ Error creating schedule:", err);
             }
           }}
         />
@@ -171,8 +135,6 @@ export default function PlaygroundPage() {
           </>
         )}
       </div>
-
-      {/* <BossScheduleList bossPlans={bossPlans} /> */}
     </div>
   );
 }
