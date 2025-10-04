@@ -6,6 +6,7 @@
   background: #fff;
 }
 
+/* ---------- Header Row ---------- */
 .headerRow {
   display: flex;
   align-items: center;
@@ -18,12 +19,6 @@
   font-size: 16px;
   font-weight: bold;
   color: #333;
-}
-
-.controls {
-  display: flex;
-  align-items: center;
-  gap: 16px;
 }
 
 .toggle {
@@ -51,85 +46,106 @@
   border-color: #0070f3;
 }
 
-.abilityToggleRow {
-  display: flex;
-  gap: 6px;
+/* ---------- Table Wrapper ---------- */
+.tableWrapper {
+  overflow-x: auto;
 }
 
-.abilityIconBtn {
-  width: 28px;
-  height: 28px;
-  border: 1px solid #e2e2e2;
-  border-radius: 6px;
+.chartTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+  font-size: 13px;
+}
+
+.chartTable th,
+.chartTable td {
+  border: 1px solid #ddd;
+  padding: 6px 8px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.chartTable th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+}
+
+.chartTable tr:nth-child(even) {
+  background: #fcfcfc;
+}
+
+/* ---------- Ability Name Cell ---------- */
+.abilityCell {
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: #fafafa;
-  cursor: pointer;
-  transition: opacity 0.2s, transform 0.2s;
-}
-
-.abilityIconBtn:hover {
-  transform: translateY(-1px);
-}
-
-.iconOn {
-  opacity: 1;
-}
-
-.iconOff {
-  opacity: 0.3;
-}
-
-/* Groups grid & cards */
-.groupsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 16px;
-}
-
-.groupCard {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 12px;
-  background: #fafafa;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-  transition: box-shadow 0.2s;
-}
-
-.groupCard:hover {
-  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-}
-
-.groupTitle {
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 10px;
+  justify-content: flex-start;
+  gap: 6px;
+  font-weight: 500;
   color: #444;
 }
 
-.abilityList {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.abilityItem {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 13px;
-  padding: 4px 6px;
-  border-radius: 6px;
+.icon {
+  border-radius: 4px;
   background: #fff;
-  border: 1px solid #eee;
 }
 
-.ok {
-  color: #28a745;
+/* ---------- Table Cells ---------- */
+.cell {
+  transition: background 0.2s, color 0.2s;
 }
 
-.over {
-  color: #d9534f;
+.cell.ok {
+  color: #28a745; /* green */
+  background: #f6fff8;
+}
+
+.cell.over {
+  color: #d9534f; /* red */
+  background: #fff6f6;
   font-weight: 600;
+}
+
+.cell.missing {
+  color: #999;
+  background: #f9f9f9;
+}
+
+/* ---------- Scrollbar Styling ---------- */
+.tableWrapper::-webkit-scrollbar {
+  height: 8px;
+}
+
+.tableWrapper::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 4px;
+}
+
+.tableWrapper::-webkit-scrollbar-track {
+  background-color: #f1f1f1;
+}
+.cell {
+  transition: background 0.2s, color 0.2s;
+}
+
+.cell.ok {
+  color: #28a745; /* green */
+  background: #f6fff8;
+}
+
+.cell.over {
+  color: #d9534f; /* red */
+  background: #fff6f6;
+  font-weight: 600;
+}
+
+.cell.missing {
+  color: #b8860b; /* yellowish brown */
+  background: #ffe678;
+  font-weight: 500;
+}
+
+.check {
+  font-size: 16px;
 }
