@@ -71,7 +71,7 @@ function getBossAbilities(boss: string, level: number): Ability[] {
   }
 
   const abilities: string[] = bossData[boss] || [];
-  console.log(`[playgroundHelpers] Expanding boss "${boss}" (level ${level}) →`, abilities);
+  // console.log(`[playgroundHelpers] Expanding boss "${boss}" (level ${level}) →`, abilities);
 
   if (level === 9) {
     return abilities.map((a) => ({ name: a, level: 9 }));

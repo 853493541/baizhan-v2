@@ -28,10 +28,10 @@
 }
 
 .fullBtn {
-  background: #28a745; /* green */
+  background: #0070f3; /* green */
 }
 .fullBtn:hover {
-  background: #1e7e34;
+  background: #0059c1;
 }
 
 .lockedBtn {
