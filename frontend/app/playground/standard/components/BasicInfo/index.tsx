@@ -25,7 +25,7 @@ export default function BasicInfoSection({
   onDelete,
   locked = false,
 }: Props) {
-  const [localSchedule, setLocalSchedule] = useState(schedule); // ✅ local copy for re-render
+  const [localSchedule, setLocalSchedule] = useState(schedule);
   const [editing, setEditing] = useState(false);
   const [tempName, setTempName] = useState(schedule.name);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -57,9 +57,8 @@ export default function BasicInfoSection({
       );
       if (!res.ok) throw new Error("Failed to update name");
 
-      // ✅ Update local copy so UI refreshes immediately
+      // ✅ Update UI only (no success alert)
       setLocalSchedule((prev) => ({ ...prev, name: tempName }));
-      alert("名称已更新");
       setEditing(false);
     } catch {
       alert("更新失败，请稍后再试");
@@ -70,8 +69,11 @@ export default function BasicInfoSection({
     if (locked) {
       setConfirmingDelete(true);
     } else {
-      onDelete?.();
-      setEditing(false);
+      // ✅ add system confirm for unlocked delete
+      if (confirm("确定要删除这个排表吗？")) {
+        onDelete?.();
+        setEditing(false);
+      }
     }
   };
 
@@ -79,10 +81,15 @@ export default function BasicInfoSection({
     if (deleteInput.trim() === "确认删除") {
       onDelete?.();
       setConfirmingDelete(false);
-      setEditing(false);
+      setEditing(false); // ✅ close both modals
     } else {
       alert("请输入正确的确认文字：确认删除");
     }
+  };
+
+  const handleCancelDelete = () => {
+    setConfirmingDelete(false);
+    setEditing(false); // ✅ also close editing modal when canceling
   };
 
   return (
@@ -175,14 +182,11 @@ export default function BasicInfoSection({
         <div
           className={styles.modalOverlay}
           onClick={(e) => {
-            if (e.target === e.currentTarget) setConfirmingDelete(false);
+            if (e.target === e.currentTarget) handleCancelDelete();
           }}
         >
           <div className={styles.modal}>
-            <button
-              className={styles.closeBtn}
-              onClick={() => setConfirmingDelete(false)}
-            >
+            <button className={styles.closeBtn} onClick={handleCancelDelete}>
               <X size={20} />
             </button>
             <h3>确认删除</h3>
@@ -204,10 +208,7 @@ export default function BasicInfoSection({
               <button className={styles.deleteBtn} onClick={handleConfirmDelete}>
                 确认删除
               </button>
-              <button
-                className={styles.cancelBtn}
-                onClick={() => setConfirmingDelete(false)}
-              >
+              <button className={styles.cancelBtn} onClick={handleCancelDelete}>
                 取消
               </button>
             </div>

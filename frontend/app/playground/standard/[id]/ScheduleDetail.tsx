@@ -107,7 +107,6 @@ export default function ScheduleDetail({ scheduleId }: Props) {
   }, [scheduleId]);
 
   const handleDelete = async () => {
-    if (!confirm("确定要删除这个排表吗？")) return;
     try {
       setDeleting(true);
       const res = await fetch(
@@ -142,13 +141,11 @@ export default function ScheduleDetail({ scheduleId }: Props) {
         locked={locked}   // ✅ pass lock status down
       />
 
-
       {/* Section 2: Abilities (always render) */}
       <AbilityCheckingSection
         groups={groups}
         checkedAbilities={schedule.checkedAbilities}
       />
-
 
       {/* Section 3: Main Area */}
       <MainSection
