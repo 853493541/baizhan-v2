@@ -91,8 +91,9 @@ export default function MainSection({
       const results = runAdvancedSolver(schedule.characters, abilities, 3);
       console.log(`✅ Solver results (${label}):`, results);
 
-      setGroups(results);
-      await saveGroups(results);
+      const reordered = reorderGroups(results);
+      setGroups(reordered);
+      await saveGroups(reordered);
     } catch (err) {
       console.error("❌ Solver failed:", err);
     } finally {
@@ -124,7 +125,41 @@ export default function MainSection({
     }
   };
 
-  // ---------- Split groups ----------
+  // ---------- Helper: reorder groups so 大号组 first ----------
+  const reorderGroups = (inputGroups: GroupResult[]) => {
+    const mainGroups = inputGroups.filter((g) =>
+      g.characters.some((c) => MAIN_CHARACTERS.has(c.name))
+    );
+    const altGroups = inputGroups.filter(
+      (g) => !g.characters.some((c) => MAIN_CHARACTERS.has(c.name))
+    );
+
+    const reordered = [...mainGroups, ...altGroups].map((g, idx) => ({
+      ...g,
+      index: idx + 1,
+    }));
+
+    if (mainGroups.length && altGroups.length) {
+      console.log(`🔄 Reordered groups: ${mainGroups.length} main, ${altGroups.length} alt`);
+    }
+
+    return reordered;
+  };
+
+  // ---------- Auto reorder existing groups on mount or change ----------
+  useEffect(() => {
+    if (groups.length > 0) {
+      const reordered = reorderGroups(groups);
+      const isDifferent = reordered.some((g, idx) => g.index !== groups[idx]?.index);
+      if (isDifferent) {
+        console.log("🔁 Detected index mismatch, saving reordered groups...");
+        setGroups(reordered);
+        saveGroups(reordered);
+      }
+    }
+  }, [groups]);
+
+  // ---------- Split groups for rendering ----------
   const mainPairs = groups
     .map((g, i) => ({ g, i }))
     .filter(({ g }) => g.characters.some((c) => MAIN_CHARACTERS.has(c.name)));
