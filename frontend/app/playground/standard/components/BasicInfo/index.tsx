@@ -25,11 +25,17 @@ export default function BasicInfoSection({
   onDelete,
   locked = false,
 }: Props) {
+  const [localSchedule, setLocalSchedule] = useState(schedule); // ✅ local copy for re-render
   const [editing, setEditing] = useState(false);
   const [tempName, setTempName] = useState(schedule.name);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleteInput, setDeleteInput] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setLocalSchedule(schedule);
+    setTempName(schedule.name);
+  }, [schedule]);
 
   useEffect(() => {
     if (editing && inputRef.current) {
@@ -39,10 +45,10 @@ export default function BasicInfoSection({
   }, [editing]);
 
   const handleRename = async () => {
-    if (!schedule._id) return;
+    if (!localSchedule._id) return;
     try {
       const res = await fetch(
-        `${API_BASE}/api/standard-schedules/${schedule._id}/name`,
+        `${API_BASE}/api/standard-schedules/${localSchedule._id}/name`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -50,6 +56,9 @@ export default function BasicInfoSection({
         }
       );
       if (!res.ok) throw new Error("Failed to update name");
+
+      // ✅ Update local copy so UI refreshes immediately
+      setLocalSchedule((prev) => ({ ...prev, name: tempName }));
       alert("名称已更新");
       setEditing(false);
     } catch {
@@ -59,17 +68,16 @@ export default function BasicInfoSection({
 
   const handleDeleteClick = () => {
     if (locked) {
-      // Show extra confirmation modal
       setConfirmingDelete(true);
     } else {
-      if (onDelete) onDelete();
+      onDelete?.();
       setEditing(false);
     }
   };
 
   const handleConfirmDelete = () => {
     if (deleteInput.trim() === "确认删除") {
-      if (onDelete) onDelete();
+      onDelete?.();
       setConfirmingDelete(false);
       setEditing(false);
     } else {
@@ -96,20 +104,22 @@ export default function BasicInfoSection({
 
         <div className={styles.infoRow}>
           <span className={styles.label}>排表名称:</span>
-          <span className={styles.value}>{schedule.name || "未命名排表"}</span>
+          <span className={styles.value}>
+            {localSchedule.name || "未命名排表"}
+          </span>
         </div>
         <div className={styles.infoRow}>
           <span className={styles.label}>服务器:</span>
-          <span className={styles.value}>{schedule.server}</span>
+          <span className={styles.value}>{localSchedule.server}</span>
         </div>
         <div className={styles.infoRow}>
           <span className={styles.label}>角色数量:</span>
-          <span className={styles.value}>{schedule.characterCount}</span>
+          <span className={styles.value}>{localSchedule.characterCount}</span>
         </div>
         <div className={styles.infoRow}>
           <span className={styles.label}>创建时间:</span>
           <span className={styles.value}>
-            {new Date(schedule.createdAt).toLocaleString()}
+            {new Date(localSchedule.createdAt).toLocaleString()}
           </span>
         </div>
       </div>
@@ -139,10 +149,7 @@ export default function BasicInfoSection({
             </label>
 
             <div className={styles.modalActions}>
-              <button
-                className={styles.deleteBtn}
-                onClick={handleDeleteClick}
-              >
+              <button className={styles.deleteBtn} onClick={handleDeleteClick}>
                 {locked ? (
                   <>
                     <Lock size={14} style={{ marginRight: 4 }} />
@@ -163,7 +170,7 @@ export default function BasicInfoSection({
         </div>
       )}
 
-      {/* 🔒 Delete Confirmation Modal (for locked schedules) */}
+      {/* 🔒 Delete Confirmation Modal */}
       {confirmingDelete && (
         <div
           className={styles.modalOverlay}
@@ -194,10 +201,7 @@ export default function BasicInfoSection({
             />
 
             <div className={styles.modalActions}>
-              <button
-                className={styles.deleteBtn}
-                onClick={handleConfirmDelete}
-              >
+              <button className={styles.deleteBtn} onClick={handleConfirmDelete}>
                 确认删除
               </button>
               <button
