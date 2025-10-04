@@ -20,13 +20,13 @@ const ALL_SERVERS = "全服";
 
 function generateTimestampName(server: string) {
   const now = new Date();
-  const yyyy = now.getFullYear().toString();
   const mm = String(now.getMonth() + 1).padStart(2, "0");
   const dd = String(now.getDate()).padStart(2, "0");
   const hh = String(now.getHours()).padStart(2, "0");
   const min = String(now.getMinutes()).padStart(2, "0");
-  return `${server}-${yyyy}${mm}${dd}-${hh}${min}`;
+  return `${server}${mm}${dd}-${hh}${min}`;
 }
+
 
 export default function CreateScheduleModal({ onClose, onConfirm }: Props) {
   const [name, setName] = useState("");
