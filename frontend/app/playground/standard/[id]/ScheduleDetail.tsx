@@ -9,8 +9,7 @@ import BasicInfoSection from "../components/BasicInfo";
 import AbilityCheckingSection from "../components/AbilityChecking";
 import MainSection from "../components/Main";
 import { useRouter } from "next/navigation";
-import AdvancedGroups from "../components/AdvancedGroups";  
-// ✅ Extended group type to match DB
+
 interface ExtendedGroup extends GroupResult {
   index: number;
   status?: "not_started" | "started" | "finished";
@@ -126,6 +125,12 @@ export default function ScheduleDetail({ scheduleId }: Props) {
   if (loading) return <p className={styles.loading}>加载中...</p>;
   if (!schedule) return <p className={styles.error}>未找到排表</p>;
 
+  // ✅ calculate lock status here
+  const locked =
+    groups?.some(
+      (g) => g.status === "started" || g.status === "finished"
+    ) ?? false;
+
   return (
     <div className={styles.container}>
       {/* Section 1: Basic Info with actions */}
@@ -134,9 +139,9 @@ export default function ScheduleDetail({ scheduleId }: Props) {
         onBack={() => router.push("/playground")}
         onDelete={handleDelete}
         deleting={deleting}
+        locked={locked}   // ✅ pass lock status down
       />
 
-      
       {/* Section 3: Main Area */}
       <MainSection
         schedule={schedule}
@@ -146,14 +151,12 @@ export default function ScheduleDetail({ scheduleId }: Props) {
         setActiveIdx={setActiveIdx}
         checkGroupQA={checkGroupQA}
       />
-      
 
       {/* Section 2: Abilities (always render) */}
-  <AbilityCheckingSection
-  groups={groups}
-  checkedAbilities={schedule.checkedAbilities}
-/>
-
+      <AbilityCheckingSection
+        groups={groups}
+        checkedAbilities={schedule.checkedAbilities}
+      />
 
       {activeIdx !== null && (
         <GroupDetailModal
@@ -166,7 +169,6 @@ export default function ScheduleDetail({ scheduleId }: Props) {
           onRefresh={fetchSchedule}       // ✅ refresh after PATCH
         />
       )}
-
     </div>
   );
 }
