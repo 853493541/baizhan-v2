@@ -8,134 +8,16 @@
   margin-bottom: 12px;
 }
 
+.sectionSubtitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 16px 0 8px;
+}
+
 .empty {
   color: #666;
   font-size: 14px;
   padding: 10px 0;
-}
-
-.solverBtn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 6px;
-  background: #0070f3;
-  color: white;
-  font-size: 14px;
-  cursor: pointer;
-  margin-bottom: 16px;
-  transition: background 0.2s;
-}
-
-.solverBtn:hover {
-  background: #0059c1;
-}
-
-.groupsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 16px;
-  margin-top: 16px;
-}
-
-.groupCard {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 12px;
-  background: #fff;
-  cursor: pointer;
-  transition: box-shadow 0.2s;
-}
-
-.groupCard:hover {
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-.groupHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.groupTitle {
-  font-weight: bold;
-  font-size: 15px;
-  color: #2c3e50;
-  margin: 0;
-}
-
-.statusDot {
-  font-size: 14px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.statusText {
-  font-size: 14px;
-}
-
-.notStarted {
-  color: #6c757d; /* gray */
-}
-
-.started {
-  color: #fd7e14; /* orange */
-}
-
-.finished {
-  color: #28a745; /* green */
-}
-
-.memberList {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 8px 0;
-  display: flex;
-  flex-direction: column; /* ✅ stacked vertically */
-  align-items: center;    /* ✅ centered pills */
-  gap: 8px;
-}
-
-.memberItem {
-  font-size: 14px;
-  font-weight: 600;
-  padding: 8px 12px;
-  border-radius: 8px;
-  width: 70%;             /* ✅ each pill takes 70% of group card */
-  text-align: center;
-  border: 1px solid #ccc;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-/* Role-based colors */
-.tank {
-  background: #fff4c2; /* pastel yellow */
-  color: #6b4e00;
-}
-
-.dps {
-  background: #d5f5d5; /* pastel green */
-  color: #0f5132;
-}
-
-.healer {
-  background: #fddde6; /* pastel pink */
-  color: #842029;
-}
-
-.groupViolation {
-  color: #d9534f;
-  font-size: 13px;
-  margin-top: 8px;
-}
-
-/* Lock state for solver button */
-.lockedBtn {
-  background: #ccc !important;
-  color: #444 !important;
-  cursor: not-allowed !important;
 }
 
 .finishedCount {
@@ -144,33 +26,10 @@
   font-weight: 600;
   color: #28a745; /* green emphasis */
 }
-/* Solver buttons */
-.solverBtn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 6px;
-  color: white;
-  font-size: 14px;
-  cursor: pointer;
-  margin-right: 12px;
-  margin-bottom: 16px;
-  transition: background 0.2s;
-}
 
-.coreBtn {
-  background: #0070f3; /* blue */
-}
-.coreBtn:hover {
-  background: #0059c1;
-}
-
-.fullBtn {
-  background: #28a745; /* green */
-}
-.fullBtn:hover {
-  background: #1e7e34;
-}
-.solverBtn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.groupsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
 }

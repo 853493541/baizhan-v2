@@ -136,12 +136,7 @@ export default function ScheduleDetail({ scheduleId }: Props) {
         deleting={deleting}
       />
 
-      {/* Section 2: Abilities (always render) */}
-  <AbilityCheckingSection
-  groups={groups}
-  checkedAbilities={schedule.checkedAbilities}
-/>
-
+      
       {/* Section 3: Main Area */}
       <MainSection
         schedule={schedule}
@@ -151,6 +146,14 @@ export default function ScheduleDetail({ scheduleId }: Props) {
         setActiveIdx={setActiveIdx}
         checkGroupQA={checkGroupQA}
       />
+      
+
+      {/* Section 2: Abilities (always render) */}
+  <AbilityCheckingSection
+  groups={groups}
+  checkedAbilities={schedule.checkedAbilities}
+/>
+
 
       {activeIdx !== null && (
         <GroupDetailModal
@@ -164,14 +167,6 @@ export default function ScheduleDetail({ scheduleId }: Props) {
         />
       )}
 
-      {/* <AdvancedGroups
-  schedule={schedule}
-  groups={groups}
-  setGroups={setGroups}
-  activeIdx={activeIdx}
-  setActiveIdx={setActiveIdx}
-  checkGroupQA={checkGroupQA}
-/> */}
     </div>
   );
 }

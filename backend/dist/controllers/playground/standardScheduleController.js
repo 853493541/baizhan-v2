@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteGroupKill = exports.updateGroupKill = exports.updateGroupStatus = exports.updateStandardSchedule = exports.deleteStandardSchedule = exports.getStandardScheduleById = exports.getStandardSchedules = exports.createStandardSchedule = void 0;
+exports.updateScheduleName = exports.deleteGroupKill = exports.updateGroupKill = exports.updateGroupStatus = exports.updateStandardSchedule = exports.deleteStandardSchedule = exports.getStandardScheduleById = exports.getStandardSchedules = exports.createStandardSchedule = void 0;
 const StandardSchedule_1 = __importDefault(require("../../models/StandardSchedule"));
 // ✅ Create new standard schedule
 const createStandardSchedule = async (req, res) => {
@@ -232,3 +232,23 @@ const deleteGroupKill = async (req, res) => {
     }
 };
 exports.deleteGroupKill = deleteGroupKill;
+const updateScheduleName = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name } = req.body;
+        if (!name || !name.trim()) {
+            return res.status(400).json({ error: "Name is required" });
+        }
+        const updated = await StandardSchedule_1.default.findByIdAndUpdate(id, { $set: { name: name.trim() } }, { new: true });
+        if (!updated) {
+            return res.status(404).json({ error: "Standard schedule not found" });
+        }
+        console.log("✏️ Updated schedule name:", updated._id, "->", updated.name);
+        res.json(updated);
+    }
+    catch (err) {
+        console.error("❌ Error updating schedule name:", err);
+        res.status(500).json({ error: "Failed to update schedule name" });
+    }
+};
+exports.updateScheduleName = updateScheduleName;

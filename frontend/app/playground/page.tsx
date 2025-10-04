@@ -26,9 +26,10 @@ interface StandardSchedule {
   groups?: Group[];
 }
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
+
 /**
  * 🔹 Week helper: Chinese reset time (UTC+8 Monday 7:00 AM)
- * In California this corresponds to Sunday 4:00 PM (UTC-7).
  */
 function getCnWeekCode(dateString: string): string {
   const date = new Date(dateString);
@@ -52,21 +53,19 @@ export default function PlaygroundPage() {
   const [schedules, setSchedules] = useState<StandardSchedule[]>([]);
   const [showPast, setShowPast] = useState(false);
 
-  useEffect(() => {
-    fetchSchedules();
-  }, []);
-
   const fetchSchedules = async () => {
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules`
-      );
+      const res = await fetch(`${API_BASE}/api/standard-schedules`);
       if (!res.ok) throw new Error("Failed to fetch schedules");
       setSchedules(await res.json());
     } catch (err) {
       console.error("❌ Error fetching schedules:", err);
     }
   };
+
+  useEffect(() => {
+    fetchSchedules();
+  }, []);
 
   // 🔹 Split schedules by current vs past week
   const currentWeek = getCnWeekCode(new Date().toISOString());
@@ -93,17 +92,15 @@ export default function PlaygroundPage() {
           onConfirm={async (data) => {
             setShowModal(false);
             try {
-              const res = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules`,
-                {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify(data),
-                }
-              );
+              const res = await fetch(`${API_BASE}/api/standard-schedules`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+              });
               if (!res.ok) throw new Error("❌ Failed to create schedule");
-              await res.json();
-              fetchSchedules();
+              const newSchedule = await res.json();
+              // push new schedule into state
+              setSchedules((prev) => [newSchedule, ...prev]);
             } catch (err) {
               console.error("❌ Error creating schedule:", err);
             }
@@ -112,10 +109,11 @@ export default function PlaygroundPage() {
       )}
 
       {/* 本周排表 */}
-      <h3 className={styles.sectionTitle}>
-        本周排表 ({currentWeek})
-      </h3>
-      <StandardScheduleList schedules={currentSchedules} />
+      <h3 className={styles.sectionTitle}>本周排表 ({currentWeek})</h3>
+      <StandardScheduleList
+        schedules={currentSchedules}
+        setSchedules={setSchedules}
+      />
 
       {/* 历史排表 toggle */}
       <div className={styles.pastSection}>
@@ -131,7 +129,10 @@ export default function PlaygroundPage() {
         {showPast && (
           <>
             <h3 className={styles.sectionTitle}>历史排表</h3>
-            <StandardScheduleList schedules={pastSchedules} />
+            <StandardScheduleList
+              schedules={pastSchedules}
+              setSchedules={setSchedules}
+            />
           </>
         )}
       </div>
