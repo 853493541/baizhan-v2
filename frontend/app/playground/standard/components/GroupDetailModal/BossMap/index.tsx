@@ -37,7 +37,7 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
   const row1 = [81, 82, 83, 84, 85, 86, 87, 88, 89, 90];
   const row2 = [100, 99, 98, 97, 96, 95, 94, 93, 92, 91];
 
-  // ✅ local state so UI updates instantly
+  // ✅ local copy only for visual refresh (kept synced by onRefresh)
   const [localGroup, setLocalGroup] = useState(group);
   const [selected, setSelected] = useState<{
     floor: number;
@@ -73,9 +73,8 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
           body: JSON.stringify({ status: next }),
         }
       );
-      // ✅ reflect change locally
       setLocalGroup((prev) => ({ ...prev, status: next }));
-      onRefresh?.(); // optional full refresh
+      onRefresh?.();
     } catch (err) {
       console.error("❌ updateGroupStatus error:", err);
     }
@@ -101,7 +100,7 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
         kills: updated.updatedGroup?.kills || prev.kills,
       }));
 
-      onRefresh?.(); // optional re-fetch if needed
+      onRefresh?.(); // this triggers your full parent refresh
     } catch (err) {
       console.error("❌ updateGroupKill error:", err);
     }
@@ -116,7 +115,7 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
 
   return (
     <>
-      {/* Header: title (left) + status & finish button (right) */}
+      {/* Header */}
       <div className={styles.headerRow}>
         <h3 className={styles.title}>本周地图</h3>
 
@@ -190,14 +189,21 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
             await updateGroupKill(floor, selected.boss, data);
             setSelected(null);
 
-            // ensure started status after first record
             if (status === "not_started") {
               await updateGroupStatus("started");
             }
           }}
           groupStatus={status}
           onMarkStarted={() => updateGroupStatus("started")}
+          // ✅ local visual refresh for reset only
           onAfterReset={() => {
+            // remove visually so the boss icon updates
+            setLocalGroup((prev) => ({
+              ...prev,
+              kills: prev.kills?.filter((k) => k.floor !== selected?.floor) || [],
+            }));
+
+            // now run your normal refresh logic (to re-fetch proper data)
             onRefresh?.();
             setSelected(null);
           }}

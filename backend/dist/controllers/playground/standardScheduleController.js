@@ -157,47 +157,39 @@ const updateGroupKill = async (req, res) => {
     try {
         const { id, index, floor } = req.params;
         const { boss, selection } = req.body;
-        console.log(`📥 Updating kill floor ${floor} of group ${index} in schedule ${id}`, {
+        const groupIndex = parseInt(index);
+        const floorNum = parseInt(floor);
+        console.log(`⚡ Fast update (final): group ${groupIndex}, floor ${floorNum} in ${id}`);
+        // Build new kill record
+        const newKill = {
+            floor: floorNum,
             boss,
+            completed: !!(selection?.ability || selection?.noDrop),
             selection,
-        });
-        // Load schedule
-        const schedule = await StandardSchedule_1.default.findById(id);
-        if (!schedule) {
+            recordedAt: new Date(),
+        };
+        // 🧩 Step 1: remove existing kill (if any)
+        await StandardSchedule_1.default.updateOne({ _id: id, "groups.index": groupIndex }, { $pull: { "groups.$.kills": { floor: floorNum } } });
+        // 🧩 Step 2: push new kill
+        const updated = await StandardSchedule_1.default.findOneAndUpdate({ _id: id, "groups.index": groupIndex }, { $push: { "groups.$.kills": newKill } }, { new: true } // return updated document
+        ).lean();
+        if (!updated) {
             return res.status(404).json({ error: "Schedule not found" });
         }
-        const group = schedule.groups.find((g) => g.index === parseInt(index));
-        if (!group) {
+        // 🧩 Step 3: extract just the updated group
+        const updatedGroup = updated.groups?.find((g) => g.index === groupIndex);
+        if (!updatedGroup) {
             return res.status(404).json({ error: "Group not found" });
         }
-        // Find kill entry
-        let kill = group.kills.find((k) => k.floor === parseInt(floor));
-        if (kill) {
-            // Update existing kill
-            kill.boss = boss || kill.boss;
-            kill.selection = selection;
-            kill.completed = !!(selection?.ability || selection?.noDrop);
-            kill.recordedAt = new Date();
-        }
-        else {
-            // Insert new kill
-            group.kills.push({
-                floor: parseInt(floor),
-                boss,
-                completed: !!(selection?.ability || selection?.noDrop),
-                selection,
-                recordedAt: new Date(),
-            });
-        }
-        await schedule.save();
-        console.log("✅ Updated group kill:", { groupIndex: index, floor });
-        const populated = await StandardSchedule_1.default.findById(id)
-            .populate("characters")
-            .populate("groups.characters");
-        res.json(populated);
+        console.log("✅ Updated group kill (fast final):", {
+            groupIndex,
+            floorNum,
+            kills: updatedGroup.kills.length,
+        });
+        res.json({ success: true, updatedGroup });
     }
     catch (err) {
-        console.error("❌ Error updating group kill:", err);
+        console.error("❌ updateGroupKill error:", err);
         res.status(500).json({ error: "Failed to update group kill" });
     }
 };
