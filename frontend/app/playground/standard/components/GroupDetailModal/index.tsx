@@ -121,6 +121,7 @@ export default function GroupDetailModal({
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
+        {/* === Close button === */}
         <button className={styles.closeBtn} onClick={onClose}>
           ✖
         </button>
@@ -142,8 +143,13 @@ export default function GroupDetailModal({
             conflictLevel={conflictLevel}
             weeklyAbilities={weeklyAbilities}
           />
-          {/* ✅ ResultWindow now reacts instantly to BossMap updates */}
-          <ResultWindow group={groupData} onRefresh={handleRefresh} />
+
+          {/* ✅ ResultWindow now receives scheduleId */}
+          <ResultWindow
+            scheduleId={scheduleId}
+            group={groupData}
+            onRefresh={handleRefresh}
+          />
         </div>
 
         {/* === Bottom Section: Boss Map === */}

@@ -1,0 +1,158 @@
+.box {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 12px;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  width: fit-content;         /* ✅ auto width based on content */
+  min-width: 260px;           /* ✅ still keep some minimum */
+  max-width: 480px;           /* optional limit for readability */
+}
+
+.title {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+/* === Character sections stacked vertically === */
+.charSection {
+  border-bottom: 1px solid #eee;
+  padding: 10px 0;
+}
+
+.charSection:last-child {
+  border-bottom: none;
+}
+
+/* Character bubble (role color) */
+.charBubble {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.tank {
+  background-color: #fff3cd;
+  color: #8b4513;
+}
+
+.dps {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.healer {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+/* === Ability list === */
+.assignmentList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.assignmentItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 4px;
+  border-bottom: 1px solid #eee;
+}
+
+.assignmentItem:last-child {
+  border-bottom: none;
+}
+
+.leftContent {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.assignmentIcon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.assignmentText {
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+/* === Buttons === */
+.btnGroup {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.useBtn,
+.storeBtn {
+  border: none;
+  border-radius: 4px;
+  padding: 3px 8px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.useBtn {
+  background: #4caf50;
+}
+
+.storeBtn {
+  background: #673ab7;
+}
+
+.useBtn:disabled,
+.storeBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* === Status badges === */
+.badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 12px;
+  margin-left: 6px;
+}
+.assigned { background: #eee; color: #333; }
+.pending { background: #fff3cd; color: #8b6b00; }
+.used { background: #d4edda; color: #155724; }
+.saved { background: #e2d5f9; color: #452c80; }
+.assignmentItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 4px;
+  border-bottom: 1px solid #eee;
+}
+
+/* left part: icon + text + badge */
+.leftContent {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 180px;
+}
+
+/* ✅ add extra space between text area and buttons */
+.btnGroup {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+  margin-left: 24px;   /* ← this creates clear separation */
+}

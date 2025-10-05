@@ -23,12 +23,12 @@ export const createStandardSchedule = async (req: Request, res: Response) => {
       charactersCount: characters?.length,
       groupsCount: groups?.length,
       checkedAbilitiesPreview: Array.isArray(checkedAbilities)
-        ? checkedAbilities.slice(0, 5) // only log first 5 entries
+        ? checkedAbilities.slice(0, 5)
         : checkedAbilities,
     });
 
     const schedule = new StandardSchedule({
-      name: name || "未命名排表", // ✅ fallback if no name
+      name: name || "未命名排表",
       server,
       conflictLevel,
       checkedAbilities,
@@ -65,6 +65,7 @@ export const createStandardSchedule = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to create standard schedule" });
   }
 };
+
 // ✅ Get all standard schedules
 export const getStandardSchedules = async (req: Request, res: Response) => {
   try {
@@ -104,9 +105,7 @@ export const deleteStandardSchedule = async (req: Request, res: Response) => {
   try {
     const deleted = await StandardSchedule.findByIdAndDelete(req.params.id);
     if (!deleted) {
-      return res
-        .status(404)
-        .json({ error: "Standard schedule not found" });
+      return res.status(404).json({ error: "Standard schedule not found" });
     }
 
     res.json({ message: "Standard schedule deleted successfully" });
@@ -126,16 +125,14 @@ export const updateStandardSchedule = async (req: Request, res: Response) => {
 
     const updated = await StandardSchedule.findByIdAndUpdate(
       id,
-      { $set: { groups } },   // ✅ only update groups field
+      { $set: { groups } },
       { new: true }
     )
       .populate("characters")
       .populate("groups.characters");
 
     if (!updated) {
-      return res
-        .status(404)
-        .json({ error: "Standard schedule not found" });
+      return res.status(404).json({ error: "Standard schedule not found" });
     }
 
     console.log("✅ Updated groups for schedule:", updated._id);
@@ -145,7 +142,8 @@ export const updateStandardSchedule = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to update standard schedule" });
   }
 };
-// ✅ Update a single group's status (not_started → started → finished)
+
+// ✅ Update a single group's status
 export const updateGroupStatus = async (req: Request, res: Response) => {
   try {
     const { id, index } = req.params;
@@ -203,7 +201,7 @@ export const updateGroupKill = async (req: Request, res: Response) => {
     const updated = await StandardSchedule.findOneAndUpdate(
       { _id: id, "groups.index": groupIndex },
       { $push: { "groups.$.kills": newKill } },
-      { new: true } // return updated document
+      { new: true }
     ).lean();
 
     if (!updated) {
@@ -229,8 +227,7 @@ export const updateGroupKill = async (req: Request, res: Response) => {
   }
 };
 
-
-// ✅ Delete (reset) a single kill record inside a group by floor
+// ✅ Delete a single kill record by floor
 export const deleteGroupKill = async (req: Request, res: Response) => {
   try {
     const { id, index, floor } = req.params;
@@ -264,6 +261,8 @@ export const deleteGroupKill = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to delete group kill" });
   }
 };
+
+// ✅ Update schedule name
 export const updateScheduleName = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
