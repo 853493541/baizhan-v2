@@ -6,13 +6,19 @@ import {
   updateCharacterAbilities,
   deleteCharacter,
   getAbilityHistory,
-  revertAbilityHistory,   // ✅ new import
-  deleteAbilityHistory,   // ✅ new import
+  revertAbilityHistory,
+  deleteAbilityHistory,
+  addToStorage,          // ✅ new
+  getStorage,            // ✅ new
+  useStoredAbility,      // ✅ new
 } from "../controllers/characters/updateController";
 import { compareCharacterAbilities } from "../controllers/characters/compareController";
 
 const router = express.Router();
 
+// ─────────────────────────────────────────────
+// Character CRUD
+// ─────────────────────────────────────────────
 router.post("/", createCharacter);
 router.get("/", getCharacters);
 router.get("/:id", getCharacterById);
@@ -21,15 +27,23 @@ router.put("/:id", updateCharacter);
 router.delete("/:id", deleteCharacter);
 router.post("/:id/compare-abilities", compareCharacterAbilities);
 
-// ✅ Ability history routes
-// Example: GET /api/characters/abilities/history?name=剑心猫猫糕&ability=引燃&limit=100
+// ─────────────────────────────────────────────
+// Ability History
+// ─────────────────────────────────────────────
 router.get("/abilities/history", getAbilityHistory);
-
-// ✅ Revert an ability to previous level
-// POST /api/characters/abilities/history/:id/revert
 router.post("/abilities/history/:id/revert", revertAbilityHistory);
-
-// ✅ Delete a history record (does NOT change character)
 router.delete("/abilities/history/:id", deleteAbilityHistory);
+
+// ─────────────────────────────────────────────
+// ✅ Storage System (new endpoints)
+// ─────────────────────────────────────────────
+// POST /api/characters/:id/storage → add drop to storage
+router.post("/:id/storage", addToStorage);
+
+// GET /api/characters/:id/storage → get stored abilities
+router.get("/:id/storage", getStorage);
+
+// PUT /api/characters/:id/storage/use → use stored ability
+router.put("/:id/storage/use", useStoredAbility);
 
 export default router;

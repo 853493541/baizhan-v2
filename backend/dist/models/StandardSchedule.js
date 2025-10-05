@@ -48,6 +48,11 @@ const KillSchema = new mongoose_1.Schema({
         level: { type: Number },
         characterId: { type: mongoose_1.Schema.Types.ObjectId, ref: "Character" },
         noDrop: { type: Boolean },
+        status: {
+            type: String,
+            enum: ["assigned", "pending", "used", "saved"],
+            default: "assigned",
+        }, // ✅ new field
     },
     recordedAt: { type: Date, default: Date.now },
 }, { _id: false });
@@ -64,7 +69,7 @@ const GroupSchema = new mongoose_1.Schema({
 const StandardScheduleSchema = new mongoose_1.Schema({
     name: { type: String, default: "未命名排表" },
     server: { type: String, required: true },
-    conflictLevel: { type: Number, enum: [9, 10] }, // 🔹 no longer required
+    conflictLevel: { type: Number, enum: [9, 10] },
     createdAt: { type: Date, default: Date.now },
     checkedAbilities: [AbilitySchema],
     characterCount: { type: Number, default: 0 },

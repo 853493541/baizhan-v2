@@ -1,7 +1,11 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
 import Character from "../../models/Character";
-import AbilityHistory from "../../models/AbilityHistory"; // ✅ import new model
+import AbilityHistory from "../../models/AbilityHistory";
+
+// =====================================================
+// ✅ Ability Management (existing functionality)
+// =====================================================
 
 // ✅ Update abilities + record every change
 export const updateCharacterAbilities = async (req: Request, res: Response) => {
@@ -149,7 +153,10 @@ export const deleteAbilityHistory = async (req: Request, res: Response) => {
   }
 };
 
-// unchanged below ⬇️
+// =====================================================
+// ✅ Character Basic Info Management (unchanged)
+// =====================================================
+
 export const updateCharacter = async (req: Request, res: Response) => {
   try {
     const char = await Character.findById(req.params.id);
@@ -185,5 +192,96 @@ export const deleteCharacter = async (req: Request, res: Response) => {
     res.json({ message: "Character deleted successfully" });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
+  }
+};
+
+// =====================================================
+// ✅ New: Storage System (存入仓库 / 从仓库使用)
+// =====================================================
+
+// ➕ Add a drop to storage
+export const addToStorage = async (req: Request, res: Response) => {
+  try {
+    const { ability, level, sourceBoss } = req.body;
+    if (!ability || !level) {
+      return res.status(400).json({ error: "ability and level are required" });
+    }
+
+    const char = await Character.findById(req.params.id);
+    if (!char) return res.status(404).json({ error: "Character not found" });
+
+    (char as any).storage.push({
+      ability,
+      level,
+      sourceBoss,
+      receivedAt: new Date(),
+      used: false,
+    });
+
+    await char.save();
+    console.log(`[Storage] Added ${ability}${level}重 to ${char.name}'s storage.`);
+
+    return res.json({ message: "Stored successfully", storage: char.storage });
+  } catch (err: any) {
+    console.error("❌ addToStorage error:", err);
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+// 🧾 Get stored abilities list
+export const getStorage = async (req: Request, res: Response) => {
+  try {
+    const char = await Character.findById(req.params.id);
+    if (!char) return res.status(404).json({ error: "Character not found" });
+
+    return res.json(char.storage || []);
+  } catch (err: any) {
+    console.error("❌ getStorage error:", err);
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+// ⚙️ Use stored ability (apply to abilities + mark as used)
+export const useStoredAbility = async (req: Request, res: Response) => {
+  try {
+    const { ability, level } = req.body;
+    if (!ability || !level) {
+      return res.status(400).json({ error: "ability and level are required" });
+    }
+
+    const char = await Character.findById(req.params.id);
+    if (!char) return res.status(404).json({ error: "Character not found" });
+
+    // 1️⃣ Update ability level
+    (char.abilities as any).set
+      ? (char.abilities as any).set(ability, level)
+      : ((char.abilities as any)[ability] = level);
+
+    // 2️⃣ Mark item as used
+    const stored = (char as any).storage.find(
+      (item: any) => item.ability === ability && item.used === false
+    );
+    if (stored) stored.used = true;
+
+    await char.save();
+
+    // 3️⃣ Record in AbilityHistory
+    await AbilityHistory.create({
+      characterId: char._id,
+      characterName: char.name,
+      abilityName: ability,
+      beforeLevel: 0, // old unknown
+      afterLevel: level,
+    });
+
+    console.log(`[Storage] ${char.name} used stored ${ability}${level}重`);
+
+    return res.json({
+      message: "Ability used from storage successfully",
+      character: char,
+    });
+  } catch (err: any) {
+    console.error("❌ useStoredAbility error:", err);
+    return res.status(500).json({ error: err.message });
   }
 };

@@ -36,7 +36,33 @@ export default function GroupDetailModal({
   onRefresh,
 }: Props) {
   const [weeklyMap, setWeeklyMap] = useState<Record<number, string>>({});
+  const [refreshing, setRefreshing] = useState(false);
+  const [groupData, setGroupData] = useState<GroupResult>(group);
 
+  // 🔄 reload current group data after use/store actions
+  const handleRefresh = async () => {
+    if (!scheduleId) return;
+    setRefreshing(true);
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/schedules/${scheduleId}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        const updated = data.groups.find(
+          (g: any) => g.index === groupIndex
+        );
+        if (updated) setGroupData(updated);
+        onRefresh?.(); // also trigger parent refresh if provided
+      }
+    } catch (err) {
+      console.error("❌ Failed to refresh group data:", err);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  // ✅ Load weekly map once
   useEffect(() => {
     const fetchMap = async () => {
       try {
@@ -53,11 +79,10 @@ export default function GroupDetailModal({
         console.error("❌ Failed to load weekly map:", err);
       }
     };
-
     fetchMap();
   }, []);
 
-  // ✅ Collect abilities from bosses in this week's map, with drop levels
+  // ✅ Build weekly ability pool
   const weeklyAbilities = useMemo(() => {
     const result: { name: string; level: number }[] = [];
     for (const [floorStr, boss] of Object.entries(weeklyMap)) {
@@ -81,31 +106,31 @@ export default function GroupDetailModal({
 
         <h2>分组{groupIndex + 1}</h2>
 
+        {refreshing && <p className={styles.refreshing}>刷新中...</p>}
+
         <GroupInfo
-          group={group}
+          group={groupData}
           checkedAbilities={checkedAbilities}
           conflictLevel={conflictLevel}
         />
 
-   {/* === Mid Section: Chart + Results === */}
-<div className={styles.midSection}>
-  <CoreAbilityChart
-    group={group}
-    checkedAbilities={checkedAbilities}
-    conflictLevel={conflictLevel}
-    weeklyAbilities={weeklyAbilities}
-  />
-
-  <ResultWindow group={group} />
-</div>
-
-
+        {/* === Mid Section: Chart + Results === */}
+        <div className={styles.midSection}>
+          <CoreAbilityChart
+            group={groupData}
+            checkedAbilities={checkedAbilities}
+            conflictLevel={conflictLevel}
+            weeklyAbilities={weeklyAbilities}
+          />
+          {/* ✅ pass handleRefresh so ResultWindow triggers re-fetch */}
+          <ResultWindow group={groupData} onRefresh={handleRefresh} />
+        </div>
 
         <BossMap
           scheduleId={scheduleId}
-          group={group as any}
+          group={groupData as any}
           weeklyMap={weeklyMap}
-          onRefresh={onRefresh}
+          onRefresh={handleRefresh}
         />
       </div>
     </div>

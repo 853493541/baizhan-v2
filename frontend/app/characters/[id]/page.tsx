@@ -9,6 +9,7 @@ import AbilityHighlights from "./sections/AbilityHighlights";
 import SingleAbilityUpdate from "./sections/SingleAbilityUpdate";
 import CharacterOCRSection from "./sections/OCRSection";
 import styles from "./styles.module.css";
+import CharacterStorage from "./sections/CharacterStorage";
 
 interface Character {
   _id: string;
@@ -194,6 +195,12 @@ export default function CharacterDetailPage() {
       <div className={styles.card}>
         <CollectionStatus character={character} />
       </div>
+
+<div className={styles.card}>
+  <CharacterStorage characterId={character._id} />
+</div>
+
+
     </div>
   );
 }

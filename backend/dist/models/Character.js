@@ -35,11 +35,19 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
 const uuid_1 = require("uuid");
+// 🔹 Storage sub-schema
+const StoredAbilitySchema = new mongoose_1.Schema({
+    ability: { type: String, required: true },
+    level: { type: Number, required: true },
+    sourceBoss: { type: String },
+    receivedAt: { type: Date, default: Date.now },
+    used: { type: Boolean, default: false },
+}, { _id: false });
 const CharacterSchema = new mongoose_1.Schema({
     characterId: {
         type: String,
         unique: true,
-        default: uuid_1.v4, // 👈 auto-generate a UUID
+        default: uuid_1.v4,
     },
     name: { type: String, required: true, trim: true },
     account: { type: String, required: true, trim: true },
@@ -53,6 +61,7 @@ const CharacterSchema = new mongoose_1.Schema({
     role: { type: String, enum: ["DPS", "Tank", "Healer"], required: true },
     active: { type: Boolean, default: true },
     abilities: { type: Map, of: Number, default: {} },
-    owner: { type: String, default: "Unknown", trim: true }, // 🔹 NEW field
+    owner: { type: String, default: "Unknown", trim: true },
+    storage: { type: [StoredAbilitySchema], default: [] }, // ✅ added
 });
 exports.default = mongoose_1.default.model("Character", CharacterSchema);

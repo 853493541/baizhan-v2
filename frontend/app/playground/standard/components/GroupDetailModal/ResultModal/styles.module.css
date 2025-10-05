@@ -64,3 +64,44 @@
   padding: 16px;
   min-height: 350px;       /* ✅ ensures not tiny when empty */
 }
+.badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 12px;
+  margin-left: 6px;
+}
+.assigned { background: #eee; color: #333; }
+.pending { background: #fff3cd; color: #8b6b00; }
+.used { background: #d4edda; color: #155724; }
+.saved { background: #e2d5f9; color: #452c80; }
+
+.btnGroup {
+  display: inline-flex;
+  gap: 6px;
+  margin-left: 8px;
+}
+
+.useBtn {
+  background: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 3px 8px;
+  cursor: pointer;
+}
+
+.storeBtn {
+  background: #673ab7;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 3px 8px;
+  cursor: pointer;
+}
+
+.useBtn:disabled,
+.storeBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

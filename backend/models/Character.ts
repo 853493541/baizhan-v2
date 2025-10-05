@@ -1,8 +1,17 @@
 import mongoose, { Schema, Document } from "mongoose";
 import { v4 as uuidv4 } from "uuid";
 
+// 🎯 Define storage item structure
+interface StoredAbility {
+  ability: string;
+  level: number;
+  sourceBoss?: string;
+  receivedAt: Date;
+  used: boolean;
+}
+
 export interface Character extends Document {
-  characterId: string; // 👈 internal unique ID
+  characterId: string;
   name: string;
   account: string;
   server: "梦江南" | "乾坤一掷" | "唯我独尊";
@@ -11,14 +20,27 @@ export interface Character extends Document {
   role: "DPS" | "Tank" | "Healer";
   active: boolean;
   abilities: Record<string, number>;
-  owner: string; // 🔹 NEW field
+  owner: string;
+  storage: StoredAbility[]; // 🔹 new storage field
 }
+
+// 🔹 Storage sub-schema
+const StoredAbilitySchema = new Schema<StoredAbility>(
+  {
+    ability: { type: String, required: true },
+    level: { type: Number, required: true },
+    sourceBoss: { type: String },
+    receivedAt: { type: Date, default: Date.now },
+    used: { type: Boolean, default: false },
+  },
+  { _id: false }
+);
 
 const CharacterSchema: Schema = new Schema({
   characterId: {
     type: String,
     unique: true,
-    default: uuidv4, // 👈 auto-generate a UUID
+    default: uuidv4,
   },
   name: { type: String, required: true, trim: true },
   account: { type: String, required: true, trim: true },
@@ -32,7 +54,8 @@ const CharacterSchema: Schema = new Schema({
   role: { type: String, enum: ["DPS", "Tank", "Healer"], required: true },
   active: { type: Boolean, default: true },
   abilities: { type: Map, of: Number, default: {} },
-  owner: { type: String, default: "Unknown", trim: true }, // 🔹 NEW field
+  owner: { type: String, default: "Unknown", trim: true },
+  storage: { type: [StoredAbilitySchema], default: [] }, // ✅ added
 });
 
 export default mongoose.model<Character>("Character", CharacterSchema);
