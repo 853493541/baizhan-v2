@@ -111,7 +111,7 @@ export default function Drops({
       const base = process.env.NEXT_PUBLIC_API_URL || "";
       const idx = (group as any).index;
 
-      const delUrl = `${base}/api/standard-schedules/${scheduleId}/groups/${idx}/kills/${floor}`;
+      const delUrl = `${base}/api/standard-schedules/${scheduleId}/groups/${idx}/floor/${floor}`;
       const delRes = await fetch(delUrl, { method: "DELETE" });
       if (!delRes.ok) {
         const errTxt = await delRes.text().catch(() => "");

@@ -30,15 +30,15 @@ export default function AbilityHistoryPage() {
       const json = await res.json();
       setData(json);
     } catch (err) {
-      console.error("❌ Failed to fetch ability history:", err);
+      console.error("❌ 获取技能记录失败:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ Call API to revert ability to previous level
+  // ✅ 撤回技能更新（调用后端 revert）
   const handleRevert = async (id: string, item: HistoryItem) => {
-    const confirmMsg = `确认将 ${item.characterName} 的 ${item.abilityName} 回退到 ${item.beforeLevel}重 吗？`;
+    const confirmMsg = `确认将 ${item.characterName} 的 ${item.abilityName} 撤回到 ${item.beforeLevel}重 吗？`;
     if (!confirm(confirmMsg)) return;
 
     try {
@@ -46,29 +46,13 @@ export default function AbilityHistoryPage() {
         `${process.env.NEXT_PUBLIC_API_URL}/api/characters/abilities/history/${id}/revert`,
         { method: "POST" }
       );
-      if (!res.ok) throw new Error("回退失败");
-      alert("✅ 回退成功");
+      if (!res.ok) throw new Error("撤回失败");
+      alert("✅ 撤回成功");
+      console.log(`🌀 撤回成功：${item.characterName} - ${item.abilityName} → ${item.beforeLevel}重`);
       await fetchHistory();
     } catch (err) {
-      alert("❌ 回退失败");
-      console.error(err);
-    }
-  };
-
-  // ✅ Call API to delete history record only
-  const handleDelete = async (id: string) => {
-    if (!confirm("确认删除这条记录吗？这不会影响角色实际技能。")) return;
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/characters/abilities/history/${id}`,
-        { method: "DELETE" }
-      );
-      if (!res.ok) throw new Error("删除失败");
-      alert("🗑️ 记录已删除");
-      setData((prev) => prev.filter((r) => r._id !== id)); // update locally
-    } catch (err) {
-      alert("❌ 删除失败");
-      console.error(err);
+      alert("❌ 撤回失败");
+      console.error("❌ 撤回失败:", err);
     }
   };
 
@@ -138,13 +122,7 @@ export default function AbilityHistoryPage() {
                     className={styles.revertBtn}
                     onClick={() => handleRevert(item._id, item)}
                   >
-                    回退
-                  </button>
-                  <button
-                    className={styles.deleteBtn}
-                    onClick={() => handleDelete(item._id)}
-                  >
-                    删除
+                    撤回
                   </button>
                 </td>
               </tr>

@@ -13,9 +13,10 @@ router.get("/:id", standardScheduleController_1.getStandardScheduleById);
 router.put("/:id", standardScheduleController_1.updateStandardSchedule);
 // DELETE standard schedule by ID
 router.delete("/:id", standardScheduleController_1.deleteStandardSchedule);
+// ✅ Update schedule name
 router.patch("/:id/name", standardScheduleController_1.updateScheduleName);
-// ✅ group status & kills
+// ✅ Group routes
 router.patch("/:id/groups/:index/status", standardScheduleController_1.updateGroupStatus);
-router.patch("/:id/groups/:index/kills/:floor", standardScheduleController_1.updateGroupKill);
-router.delete("/:id/groups/:index/kills/:floor", standardScheduleController_1.deleteGroupKill); // ✅ FIXED
+router.put("/:id/groups/:index/floor/:floor", standardScheduleController_1.updateGroupKill); // ✅ fixed alignment
+router.delete("/:id/groups/:index/floor/:floor", standardScheduleController_1.deleteGroupKill); // ✅ fixed alignment
 exports.default = router;

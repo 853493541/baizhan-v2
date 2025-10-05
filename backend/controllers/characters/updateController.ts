@@ -92,16 +92,20 @@ export const getAbilityHistory = async (req: Request, res: Response) => {
 };
 
 // ✅ Revert a single ability record
+// ✅ Revert a single ability record without triggering new update logs
+// ✅ Revert a single ability record silently (no new history entry)
 export const revertAbilityHistory = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    // Find the log entry
+    // 1️⃣ Find the target history record
     const history = await AbilityHistory.findById(id);
     if (!history)
-      return res.status(404).json({ error: "History record not found" });
+      return res
+        .status(404)
+        .json({ error: "History record not found or already deleted" });
 
-    // Find the character
+    // 2️⃣ Find the corresponding character
     const char = await Character.findById(history.characterId);
     if (!char)
       return res.status(404).json({ error: "Character not found" });
@@ -109,27 +113,21 @@ export const revertAbilityHistory = async (req: Request, res: Response) => {
     const abilityName = history.abilityName;
     const revertLevel = history.beforeLevel;
 
-    // ✅ update ability back to previous level
-    (char.abilities as any).set
-      ? (char.abilities as any).set(abilityName, revertLevel)
-      : ((char.abilities as any)[abilityName] = revertLevel);
-    await char.save();
-
-    // ✅ log this revert action
-    await AbilityHistory.create({
-      characterId: char._id,
-      characterName: char.name,
-      abilityName: abilityName,
-      beforeLevel: history.afterLevel,
-      afterLevel: revertLevel,
+    // 3️⃣ Direct DB update (no .save() -> no middleware/log)
+    await Character.findByIdAndUpdate(char._id, {
+      $set: { [`abilities.${abilityName}`]: revertLevel },
     });
 
+    // 4️⃣ Delete the original record after revert
+    await AbilityHistory.findByIdAndDelete(id);
+
     console.log(
-      `[AbilityHistory] Reverted ${char.name} - ${abilityName} to ${revertLevel}重`
+      `[AbilityHistory] Silently reverted ${char.name} - ${abilityName} to ${revertLevel}重 (record ${id} deleted)`
     );
 
+    // 5️⃣ Send success response
     return res.json({
-      message: "Ability reverted successfully",
+      message: "Ability reverted successfully (no new history logged)",
       revertedTo: revertLevel,
     });
   } catch (err: any) {

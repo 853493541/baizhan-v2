@@ -81,35 +81,33 @@ const getAbilityHistory = async (req, res) => {
 };
 exports.getAbilityHistory = getAbilityHistory;
 // ✅ Revert a single ability record
+// ✅ Revert a single ability record without triggering new update logs
+// ✅ Revert a single ability record silently (no new history entry)
 const revertAbilityHistory = async (req, res) => {
     try {
         const { id } = req.params;
-        // Find the log entry
+        // 1️⃣ Find the target history record
         const history = await AbilityHistory_1.default.findById(id);
         if (!history)
-            return res.status(404).json({ error: "History record not found" });
-        // Find the character
+            return res
+                .status(404)
+                .json({ error: "History record not found or already deleted" });
+        // 2️⃣ Find the corresponding character
         const char = await Character_1.default.findById(history.characterId);
         if (!char)
             return res.status(404).json({ error: "Character not found" });
         const abilityName = history.abilityName;
         const revertLevel = history.beforeLevel;
-        // ✅ update ability back to previous level
-        char.abilities.set
-            ? char.abilities.set(abilityName, revertLevel)
-            : (char.abilities[abilityName] = revertLevel);
-        await char.save();
-        // ✅ log this revert action
-        await AbilityHistory_1.default.create({
-            characterId: char._id,
-            characterName: char.name,
-            abilityName: abilityName,
-            beforeLevel: history.afterLevel,
-            afterLevel: revertLevel,
+        // 3️⃣ Direct DB update (no .save() -> no middleware/log)
+        await Character_1.default.findByIdAndUpdate(char._id, {
+            $set: { [`abilities.${abilityName}`]: revertLevel },
         });
-        console.log(`[AbilityHistory] Reverted ${char.name} - ${abilityName} to ${revertLevel}重`);
+        // 4️⃣ Delete the original record after revert
+        await AbilityHistory_1.default.findByIdAndDelete(id);
+        console.log(`[AbilityHistory] Silently reverted ${char.name} - ${abilityName} to ${revertLevel}重 (record ${id} deleted)`);
+        // 5️⃣ Send success response
         return res.json({
-            message: "Ability reverted successfully",
+            message: "Ability reverted successfully (no new history logged)",
             revertedTo: revertLevel,
         });
     }

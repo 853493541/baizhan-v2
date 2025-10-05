@@ -83,9 +83,9 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
   const updateGroupKill = async (floor: number, boss: string, selection: any) => {
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/kills/${floor}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/floor/${floor}`,
         {
-          method: "PATCH",
+          method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ boss, selection }),
         }
