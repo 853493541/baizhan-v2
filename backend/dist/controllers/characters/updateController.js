@@ -235,27 +235,32 @@ const useStoredAbility = async (req, res) => {
         const char = await Character_1.default.findById(req.params.id);
         if (!char)
             return res.status(404).json({ error: "Character not found" });
-        // 1️⃣ Update ability level
+        // 1️⃣ Upgrade the ability level
+        const oldLevel = char.abilities?.get?.(ability) ??
+            char.abilities?.[ability] ??
+            0;
         char.abilities.set
             ? char.abilities.set(ability, level)
             : (char.abilities[ability] = level);
-        // 2️⃣ Mark item as used
-        const stored = char.storage.find((item) => item.ability === ability && item.used === false);
-        if (stored)
-            stored.used = true;
+        // 2️⃣ Remove the used item from storage
+        const before = char.storage.length;
+        char.storage = char.storage.filter((item) => !(item.ability === ability && item.level === level));
+        const removed = before - char.storage.length;
+        // 3️⃣ Save the character
         await char.save();
-        // 3️⃣ Record in AbilityHistory
+        // 4️⃣ Log to ability history
         await AbilityHistory_1.default.create({
             characterId: char._id,
             characterName: char.name,
             abilityName: ability,
-            beforeLevel: 0, // old unknown
+            beforeLevel: oldLevel,
             afterLevel: level,
         });
-        console.log(`[Storage] ${char.name} used stored ${ability}${level}重`);
+        console.log(`[Storage] ${char.name} used ${ability}${level}重 from storage (removed ${removed})`);
         return res.json({
-            message: "Ability used from storage successfully",
-            character: char,
+            message: "Stored ability consumed successfully",
+            removed,
+            newLevel: level,
         });
     }
     catch (err) {

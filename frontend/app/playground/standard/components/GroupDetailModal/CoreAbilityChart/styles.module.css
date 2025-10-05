@@ -1,5 +1,5 @@
 .tableWrapper {
-  flex: 1;                 /* ✅ expand to fill parent box */
+  display: inline-block;                /* ✅ expand to fill parent box */
   display: flex;
   justify-content: center;
   align-items: flex-start;
