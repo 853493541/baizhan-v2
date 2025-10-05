@@ -14,7 +14,7 @@ const bossData: Record<string, string[]> = rawBossData;
 
 interface Props {
   scheduleId: string;
-  groupIndex: number;
+  groupIndex: number; // 0-based index passed from parent
   group: GroupResult;
   checkedAbilities: AbilityCheck[];
   conflictLevel: number;
@@ -37,24 +37,41 @@ export default function GroupDetailModal({
 }: Props) {
   const [weeklyMap, setWeeklyMap] = useState<Record<number, string>>({});
   const [refreshing, setRefreshing] = useState(false);
+
+  // 🧩 Shared group data drives both BossMap and ResultWindow
   const [groupData, setGroupData] = useState<GroupResult>(group);
 
-  // 🔄 reload current group data after use/store actions
+  // ✅ When BossMap updates instantly
+  const handleGroupUpdate = (updatedGroup: GroupResult) => {
+    if (!updatedGroup) return;
+    console.log("[GroupDetailModal] received updated group:", updatedGroup);
+    setGroupData(updatedGroup);
+  };
+
+  // 🔄 Reload full group data from backend
   const handleRefresh = async () => {
     if (!scheduleId) return;
     setRefreshing(true);
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/schedules/${scheduleId}`
-      );
-      if (res.ok) {
-        const data = await res.json();
-        const updated = data.groups.find(
-          (g: any) => g.index === groupIndex
-        );
-        if (updated) setGroupData(updated);
-        onRefresh?.(); // also trigger parent refresh if provided
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}`;
+      console.log("[GroupDetailModal] handleRefresh →", url);
+
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const data = await res.json();
+      console.log("[GroupDetailModal] backend returned:", data);
+
+      // ✅ groupIndex is 0-based, backend group.index starts at 1
+      const updated = data.groups.find((g: any) => g.index === groupIndex + 1);
+      if (updated) {
+        console.log(`[GroupDetailModal] found group with backend index ${groupIndex + 1}`, updated);
+        setGroupData(updated);
+      } else {
+        console.warn(`[GroupDetailModal] No matching group found for index: ${groupIndex}`);
       }
+
+      onRefresh?.(); // optional parent refresh
     } catch (err) {
       console.error("❌ Failed to refresh group data:", err);
     } finally {
@@ -74,6 +91,7 @@ export default function GroupDetailModal({
             floors[Number(floor)] = obj.boss;
           }
           setWeeklyMap(floors);
+          console.log("[GroupDetailModal] Weekly map loaded:", floors);
         }
       } catch (err) {
         console.error("❌ Failed to load weekly map:", err);
@@ -104,10 +122,10 @@ export default function GroupDetailModal({
           ✖
         </button>
 
-        <h2>分组{groupIndex + 1}</h2>
-
+        <h2>分组 {groupIndex + 1}</h2>
         {refreshing && <p className={styles.refreshing}>刷新中...</p>}
 
+        {/* === Top Section: Group Info === */}
         <GroupInfo
           group={groupData}
           checkedAbilities={checkedAbilities}
@@ -122,15 +140,17 @@ export default function GroupDetailModal({
             conflictLevel={conflictLevel}
             weeklyAbilities={weeklyAbilities}
           />
-          {/* ✅ pass handleRefresh so ResultWindow triggers re-fetch */}
+          {/* ✅ ResultWindow now reacts instantly to BossMap updates */}
           <ResultWindow group={groupData} onRefresh={handleRefresh} />
         </div>
 
+        {/* === Bottom Section: Boss Map === */}
         <BossMap
           scheduleId={scheduleId}
           group={groupData as any}
           weeklyMap={weeklyMap}
           onRefresh={handleRefresh}
+          onGroupUpdate={handleGroupUpdate}
         />
       </div>
     </div>

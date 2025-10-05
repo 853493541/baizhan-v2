@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./styles.module.css";
 import type { GroupResult } from "@/utils/solver";
 
@@ -15,7 +15,7 @@ interface AssignedDrop {
 
 interface Props {
   group: GroupResult;
-  onRefresh?: () => void; // 🔹 optional parent refresh callback
+  onRefresh?: () => void; // optional parent refresh callback
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
@@ -23,34 +23,38 @@ const getAbilityIcon = (ability: string) => `/icons/${ability}.png`;
 
 export default function ResultWindow({ group, onRefresh }: Props) {
   const [loading, setLoading] = useState<string | null>(null);
+  const [assigned, setAssigned] = useState<AssignedDrop[]>([]);
+
+  // ✅ Sync assigned drops from group
+  useEffect(() => {
+    if (!group) return;
+    const idToName: Record<string, string> = {};
+    group.characters?.forEach((c: any) => {
+      idToName[c._id] = c.name;
+    });
+
+    const drops =
+      group.kills
+        ?.flatMap((k: any) =>
+          k.selection?.ability && k.selection?.characterId
+            ? [
+                {
+                  ability: k.selection.ability,
+                  level: k.selection.level || 0,
+                  char: idToName[k.selection.characterId] || "",
+                  characterId: k.selection.characterId,
+                  floor: k.floor,
+                  status: k.selection.status || "assigned",
+                },
+              ]
+            : []
+        ) || [];
+
+    drops.sort((a, b) => a.level - b.level);
+    setAssigned(drops);
+  }, [group]);
 
   if (!group) return null;
-
-  // ✅ Build ID → Name lookup
-  const idToName: Record<string, string> = {};
-  group.characters?.forEach((c: any) => {
-    idToName[c._id] = c.name;
-  });
-
-  // ✅ Gather all assigned drops (include floor + status)
-  const assigned: AssignedDrop[] =
-    group.kills
-      ?.flatMap((k: any) =>
-        k.selection?.ability && k.selection?.characterId
-          ? [
-              {
-                ability: k.selection.ability,
-                level: k.selection.level || 0,
-                char: idToName[k.selection.characterId] || "",
-                characterId: k.selection.characterId,
-                floor: k.floor,
-                status: k.selection.status || "assigned",
-              },
-            ]
-          : []
-      ) || [];
-
-  assigned.sort((a, b) => a.level - b.level);
 
   // === Stats ===
   const totalLv9Boss = group.kills?.filter((k: any) => k.floor >= 81 && k.floor <= 90).length || 0;
@@ -59,10 +63,19 @@ export default function ResultWindow({ group, onRefresh }: Props) {
   const lv10Assigned = assigned.filter((a) => a.floor >= 91 && a.floor <= 100).length;
   const lv10Books = assigned.filter((a) => a.floor >= 91 && a.floor <= 100 && a.level === 10).length;
 
-  // === 🧩 Action Handlers ===
+  // === 🧩 Optimistic handlers ===
   const handleUse = async (drop: AssignedDrop) => {
     if (!drop.characterId) return alert("角色信息缺失");
     setLoading(drop.ability);
+
+    // 🧠 Optimistic UI update
+    setAssigned((prev) =>
+      prev.map((d) =>
+        d.ability === drop.ability && d.floor === drop.floor
+          ? { ...d, status: "used" }
+          : d
+      )
+    );
 
     try {
       // 1️⃣ Update ability level
@@ -74,8 +87,8 @@ export default function ResultWindow({ group, onRefresh }: Props) {
         }),
       });
 
-      // 2️⃣ Mark selection.status = "used"
-      await fetch(`${API_BASE}/api/schedules/${group._id}/groups/${group.index}/floor/${drop.floor}`, {
+      // 2️⃣ Mark selection.status = "used" (no await)
+      fetch(`${API_BASE}/api/schedules/${group._id}/groups/${group.index}/floor/${drop.floor}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -86,10 +99,11 @@ export default function ResultWindow({ group, onRefresh }: Props) {
             status: "used",
           },
         }),
-      });
+      }).catch(console.error);
 
       alert(`✅ 已使用 ${drop.ability} (${drop.level}重)`);
-      onRefresh?.();
+      // optional delayed re-sync
+      setTimeout(() => onRefresh?.(), 1000);
     } catch (err) {
       console.error("❌ Use drop failed:", err);
       alert("使用失败，请稍后再试。");
@@ -101,6 +115,15 @@ export default function ResultWindow({ group, onRefresh }: Props) {
   const handleStore = async (drop: AssignedDrop) => {
     if (!drop.characterId) return alert("角色信息缺失");
     setLoading(drop.ability);
+
+    // 🧠 Optimistic UI update
+    setAssigned((prev) =>
+      prev.map((d) =>
+        d.ability === drop.ability && d.floor === drop.floor
+          ? { ...d, status: "saved" }
+          : d
+      )
+    );
 
     try {
       // 1️⃣ Add to character storage
@@ -114,8 +137,8 @@ export default function ResultWindow({ group, onRefresh }: Props) {
         }),
       });
 
-      // 2️⃣ Mark selection.status = "saved"
-      await fetch(`${API_BASE}/api/schedules/${group._id}/groups/${group.index}/floor/${drop.floor}`, {
+      // 2️⃣ Mark selection.status = "saved" (no await)
+      fetch(`${API_BASE}/api/schedules/${group._id}/groups/${group.index}/floor/${drop.floor}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -126,10 +149,10 @@ export default function ResultWindow({ group, onRefresh }: Props) {
             status: "saved",
           },
         }),
-      });
+      }).catch(console.error);
 
       alert(`💾 已存入仓库：${drop.ability} (${drop.level}重)`);
-      onRefresh?.();
+      setTimeout(() => onRefresh?.(), 1000);
     } catch (err) {
       console.error("❌ Store drop failed:", err);
       alert("存入失败，请稍后再试。");

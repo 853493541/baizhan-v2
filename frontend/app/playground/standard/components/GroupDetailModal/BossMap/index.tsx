@@ -4,14 +4,13 @@ import React, { useState } from "react";
 import styles from "./styles.module.css";
 import type { GroupResult } from "@/utils/solver";
 import Drops from "./drops";
+import BossCard from "./BossCard";
 
 import rawBossData from "@/app/data/boss_drop.json";
 const bossData: Record<string, string[]> = rawBossData;
 
 import tradableAbilities from "@/app/data/tradable_abilities.json";
 const tradableSet = new Set(tradableAbilities as string[]);
-
-import BossCard from "./BossCard";
 
 interface ExtendedGroup extends GroupResult {
   index: number;
@@ -38,6 +37,8 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
   const row1 = [81, 82, 83, 84, 85, 86, 87, 88, 89, 90];
   const row2 = [100, 99, 98, 97, 96, 95, 94, 93, 92, 91];
 
+  // ✅ local state so UI updates instantly
+  const [localGroup, setLocalGroup] = useState(group);
   const [selected, setSelected] = useState<{
     floor: number;
     boss: string;
@@ -46,7 +47,10 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
   } | null>(null);
 
   // ---- Status helpers ----
-  const status = (group.status ?? "not_started") as "not_started" | "started" | "finished";
+  const status = (localGroup.status ?? "not_started") as
+    | "not_started"
+    | "started"
+    | "finished";
   const statusLabel: Record<typeof status, string> = {
     not_started: "未开始",
     started: "进行中",
@@ -60,30 +64,50 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
 
   // ✅ API helpers
   const updateGroupStatus = async (next: "not_started" | "started" | "finished") => {
-    await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${group.index}/status`,
-      {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: next }),
-      }
-    );
-    onRefresh?.();
+    try {
+      await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/status`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: next }),
+        }
+      );
+      // ✅ reflect change locally
+      setLocalGroup((prev) => ({ ...prev, status: next }));
+      onRefresh?.(); // optional full refresh
+    } catch (err) {
+      console.error("❌ updateGroupStatus error:", err);
+    }
   };
 
   const updateGroupKill = async (floor: number, boss: string, selection: any) => {
-    await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${group.index}/kills/${floor}`,
-      {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ boss, selection }),
-      }
-    );
-    onRefresh?.();
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/kills/${floor}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ boss, selection }),
+        }
+      );
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const updated = await res.json();
+
+      // ✅ update kills locally for instant sync
+      setLocalGroup((prev) => ({
+        ...prev,
+        kills: updated.updatedGroup?.kills || prev.kills,
+      }));
+
+      onRefresh?.(); // optional re-fetch if needed
+    } catch (err) {
+      console.error("❌ updateGroupKill error:", err);
+    }
   };
 
-  // 🔘 Finish handler (no modal)
+  // 🔘 Finish handler
   const handleFinish = async () => {
     const ok = window.confirm("确认要结束吗？");
     if (!ok) return;
@@ -114,17 +138,18 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
         </div>
       </div>
 
+      {/* Row 1 */}
       <div className={styles.row}>
         {row1.map((f) => (
           <BossCard
             key={f}
             floor={f}
             boss={weeklyMap[f]}
-            group={group}
+            group={localGroup}
             bossData={bossData}
             highlightAbilities={highlightAbilities}
             tradableSet={tradableSet}
-            kill={group.kills?.find((k) => k.floor === f)}
+            kill={localGroup.kills?.find((k) => k.floor === f)}
             onSelect={(floor, boss, dropList, dropLevel) =>
               setSelected({ floor, boss, dropList, dropLevel })
             }
@@ -132,17 +157,18 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
         ))}
       </div>
 
+      {/* Row 2 */}
       <div className={styles.row}>
         {row2.map((f) => (
           <BossCard
             key={f}
             floor={f}
             boss={weeklyMap[f]}
-            group={group}
+            group={localGroup}
             bossData={bossData}
             highlightAbilities={highlightAbilities}
             tradableSet={tradableSet}
-            kill={group.kills?.find((k) => k.floor === f)}
+            kill={localGroup.kills?.find((k) => k.floor === f)}
             onSelect={(floor, boss, dropList, dropLevel) =>
               setSelected({ floor, boss, dropList, dropLevel })
             }
@@ -150,6 +176,7 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
         ))}
       </div>
 
+      {/* Drops modal */}
       {selected && (
         <Drops
           scheduleId={scheduleId}
@@ -157,20 +184,19 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
           boss={selected.boss}
           dropList={selected.dropList}
           dropLevel={selected.dropLevel}
-          group={group}
+          group={localGroup}
           onClose={() => setSelected(null)}
           onSave={async (floor, data) => {
             await updateGroupKill(floor, selected.boss, data);
             setSelected(null);
-            // 👇 Safety net: if for any reason Drops didn’t mark started, parent enforces it here.
+
+            // ensure started status after first record
             if (status === "not_started") {
               await updateGroupStatus("started");
             }
           }}
-          // 👇 Let Drops flip to “进行中” immediately on any entry (no-drop / normal / 已有)
           groupStatus={status}
           onMarkStarted={() => updateGroupStatus("started")}
-          // ✅ After reset (delete), refresh parent like a normal save
           onAfterReset={() => {
             onRefresh?.();
             setSelected(null);
