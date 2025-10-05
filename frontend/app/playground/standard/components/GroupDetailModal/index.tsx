@@ -65,7 +65,10 @@ export default function GroupDetailModal({
       // ✅ groupIndex is 0-based, backend group.index starts at 1
       const updated = data.groups.find((g: any) => g.index === groupIndex + 1);
       if (updated) {
-        console.log(`[GroupDetailModal] found group with backend index ${groupIndex + 1}`, updated);
+        console.log(
+          `[GroupDetailModal] found group with backend index ${groupIndex + 1}`,
+          updated
+        );
         setGroupData(updated);
       } else {
         console.warn(`[GroupDetailModal] No matching group found for index: ${groupIndex}`);
@@ -123,7 +126,6 @@ export default function GroupDetailModal({
         </button>
 
         <h2>分组 {groupIndex + 1}</h2>
-        {refreshing && <p className={styles.refreshing}>刷新中...</p>}
 
         {/* === Top Section: Group Info === */}
         <GroupInfo
