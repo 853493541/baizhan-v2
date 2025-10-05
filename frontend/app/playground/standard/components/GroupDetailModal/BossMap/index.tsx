@@ -197,9 +197,16 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
           }}
           groupStatus={status}
           onMarkStarted={() => updateGroupStatus("started")}
+          // ✅ Local-only refresh for RESET (minimal change)
           onAfterReset={() => {
-            onRefresh?.();
-            setSelected(null);
+            // remove this floor kill locally so UI updates immediately
+            setLocalGroup((prev) => ({
+              ...prev,
+              kills: prev.kills?.filter((k) => k.floor !== selected?.floor) || [],
+            }));
+            // keep your existing behavior:
+            onRefresh?.();      // optional: full re-fetch if you want
+            setSelected(null);  // close the modal
           }}
         />
       )}
