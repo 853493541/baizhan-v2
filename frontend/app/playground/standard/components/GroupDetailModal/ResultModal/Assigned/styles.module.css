@@ -76,7 +76,7 @@
   align-items: center;
   gap: 8px;
   flex: 1;
-  min-width: 180px;
+  min-width: 150px;
 }
 .assignmentIcon {
   width: 20px;
@@ -88,13 +88,29 @@
   white-space: nowrap;
 }
 
-/* === Buttons === */
-.btnGroup {
+/* === Right side: warning + buttons === */
+.rightContent {
   display: flex;
-  gap: 6px;
-  justify-content: flex-end;
-  margin-left: 12px; /* add space between text and buttons */
+  align-items: center;
+  flex-shrink: 0;
+  gap: 4px; /* compact but readable */
+  margin-left: auto;
 }
+
+.warning {
+  color: #e07b00;           /* warm amber tone */
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  writing-mode: horizontal-tb;
+  display: inline-flex;
+  align-items: center;
+  margin-right: 0;           /* ✅ no gap before buttons */
+  margin-left: -2px;         /* ✅ slightly overlap with text edge */
+  margin-top: -1px;          /* ✅ vertically aligned with buttons */
+}
+
+/* === Buttons === */
 .useBtn,
 .storeBtn {
   border: none;
@@ -105,12 +121,18 @@
   font-size: 13px;
   white-space: nowrap;
 }
+
 .useBtn {
   background: #4caf50;
 }
 .storeBtn {
   background: #673ab7;
 }
+.yellowBtn {
+  background-color: #ffc107;
+  color: #212529;
+}
+
 .useBtn:disabled,
 .storeBtn:disabled {
   opacity: 0.6;
@@ -143,4 +165,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.yellowBtn {
+  background-color: #ffc107;
+  color: #212529;
+}
+.debugText {
+  color: #aaa;
+  font-size: 11px;
+  margin-left: 4px;
 }

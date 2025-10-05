@@ -37,9 +37,8 @@ export default function GroupDetailModal({
 }: Props) {
   const [weeklyMap, setWeeklyMap] = useState<Record<number, string>>({});
   const [refreshing, setRefreshing] = useState(false);
-
-  // 🧩 Shared group data drives both BossMap and ResultWindow
   const [groupData, setGroupData] = useState<GroupResult>(group);
+  const [loadingCharacters, setLoadingCharacters] = useState(false);
 
   // ✅ When BossMap updates instantly
   const handleGroupUpdate = (updatedGroup: GroupResult) => {
@@ -103,6 +102,45 @@ export default function GroupDetailModal({
     fetchMap();
   }, []);
 
+  // ✅ Fetch all character details for this group (abilities etc.)
+  useEffect(() => {
+    const fetchCharacters = async () => {
+      if (!groupData?.characters?.length) return;
+      setLoadingCharacters(true);
+      try {
+        const detailedChars = await Promise.all(
+          groupData.characters.map(async (c: any) => {
+            try {
+              const res = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/characters/${c._id}`
+              );
+              if (!res.ok) throw new Error(`Character ${c._id} fetch failed`);
+              const full = await res.json();
+              return full; // should include abilities
+            } catch (err) {
+              console.warn("⚠️ Failed to fetch one character:", c._id, err);
+              return c;
+            }
+          })
+        );
+
+        // ✅ Attach detailed characters (with abilities)
+        setGroupData((prev) => ({
+          ...prev,
+          characters: detailedChars,
+        }));
+
+        console.log("[GroupDetailModal] Fetched detailed characters:", detailedChars);
+      } catch (err) {
+        console.error("❌ Failed to fetch group characters:", err);
+      } finally {
+        setLoadingCharacters(false);
+      }
+    };
+
+    fetchCharacters();
+  }, [groupData.index]);
+
   // ✅ Build weekly ability pool
   const weeklyAbilities = useMemo(() => {
     const result: { name: string; level: number }[] = [];
@@ -128,6 +166,10 @@ export default function GroupDetailModal({
 
         <h2>分组 {groupIndex + 1}</h2>
 
+        {loadingCharacters && (
+          <div className={styles.loadingText}>正在加载角色详情...</div>
+        )}
+
         {/* === Top Section: Group Info === */}
         <GroupInfo
           group={groupData}
@@ -144,7 +186,7 @@ export default function GroupDetailModal({
             weeklyAbilities={weeklyAbilities}
           />
 
-          {/* ✅ ResultWindow now receives scheduleId */}
+          {/* ✅ ResultWindow now gets characters with full abilities */}
           <ResultWindow
             scheduleId={scheduleId}
             group={groupData}

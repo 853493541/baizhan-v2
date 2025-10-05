@@ -15,6 +15,7 @@ export interface AssignedDrop {
   characterId?: string;
   role?: "DPS" | "Tank" | "Healer";
   status?: "assigned" | "pending" | "used" | "saved";
+  character?: any; // ✅ full character object (with abilities)
 }
 
 interface Props {
@@ -29,14 +30,16 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
   const [loading, setLoading] = useState<string | null>(null);
   const [drops, setDrops] = useState<AssignedDrop[]>([]);
 
-  // ✅ Convert group data into flat drop list
+  // ✅ Convert group data into flat drop list (now attaches full character object)
   useEffect(() => {
     if (!group) return;
 
+    const idToChar: Record<string, any> = {};
     const idToName: Record<string, string> = {};
     const idToRole: Record<string, "DPS" | "Tank" | "Healer"> = {};
 
     group.characters?.forEach((c: any) => {
+      idToChar[c._id] = c;
       idToName[c._id] = c.name;
       idToRole[c._id] = c.role;
     });
@@ -54,6 +57,7 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
                   floor: k.floor,
                   role: idToRole[k.selection.characterId],
                   status: k.selection.status || "assigned",
+                  character: idToChar[k.selection.characterId], // ✅ attach full object here
                 },
               ]
             : []
@@ -61,6 +65,8 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
 
     parsed.sort((a, b) => a.char.localeCompare(b.char, "zh-CN") || a.floor - b.floor);
     setDrops(parsed);
+
+    console.log("[ResultWindow] Built drops with character objects:", parsed);
   }, [group]);
 
   if (!group) return null;
@@ -128,8 +134,7 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
 
       alert(`✅ 已使用 ${drop.ability} (${drop.level}重)`);
 
-      // refresh assigned/processed display
-      setDrops((prev) => [...prev]);
+      setDrops((prev) => [...prev]); // trigger re-render
       await onRefresh?.();
     } catch (err) {
       console.error("❌ Use drop failed:", err);
@@ -203,10 +208,8 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
         throw new Error("更新排表状态失败");
       }
 
-      alert(`💾 已存入仓库：${drop.ability} (${drop.level}重)`);
-
-      // refresh assigned/processed display
-      setDrops((prev) => [...prev]);
+      // ✅ Removed success alert (no popup)
+      setDrops((prev) => [...prev]); // trigger re-render
       await onRefresh?.();
     } catch (err) {
       console.error("❌ Store drop failed:", err);
