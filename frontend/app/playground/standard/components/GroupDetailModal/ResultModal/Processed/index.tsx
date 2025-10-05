@@ -59,7 +59,7 @@ export default function Processed({ drops, group }: { drops: AssignedDrop[]; gro
                         {a.status === "used"
                           ? "已使用"
                           : a.status === "saved"
-                          ? "已入仓"
+                          ? "已存入"
                           : a.status === "assigned"
                           ? "已分配"
                           : "已处理"}

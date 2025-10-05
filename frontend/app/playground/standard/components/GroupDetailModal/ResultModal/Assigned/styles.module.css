@@ -1,3 +1,4 @@
+/* === Outer box === */
 .box {
   display: flex;
   flex-direction: column;
@@ -6,28 +7,28 @@
   padding: 12px;
   background: #fff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  width: fit-content;         /* ✅ auto width based on content */
-  min-width: 260px;           /* ✅ still keep some minimum */
-  max-width: 480px;           /* optional limit for readability */
+  width: fit-content;
+  min-width: 260px;
+  max-width: 480px;
 }
 
+/* === Title === */
 .title {
   font-size: 16px;
   font-weight: bold;
   margin-bottom: 12px;
 }
 
-/* === Character sections stacked vertically === */
+/* === Character section === */
 .charSection {
   border-bottom: 1px solid #eee;
   padding: 10px 0;
 }
-
 .charSection:last-child {
   border-bottom: none;
 }
 
-/* Character bubble (role color) */
+/* === Character bubble === */
 .charBubble {
   display: inline-block;
   padding: 4px 10px;
@@ -37,18 +38,17 @@
   margin-bottom: 6px;
 }
 
+/* ✅ Role colors */
 .tank {
-  background-color: #fff3cd;
+  background-color: #fff3cd; /* light yellow */
   color: #8b4513;
 }
-
 .dps {
-  background-color: #d4edda;
+  background-color: #d4edda; /* light green */
   color: #155724;
 }
-
 .healer {
-  background-color: #f8d7da;
+  background-color: #f8d7da; /* light pink */
   color: #721c24;
 }
 
@@ -66,23 +66,23 @@
   padding: 6px 4px;
   border-bottom: 1px solid #eee;
 }
-
 .assignmentItem:last-child {
   border-bottom: none;
 }
 
+/* === Left part: icon + text === */
 .leftContent {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1;
+  min-width: 180px;
 }
-
 .assignmentIcon {
   width: 20px;
   height: 20px;
   flex-shrink: 0;
 }
-
 .assignmentText {
   font-size: 14px;
   white-space: nowrap;
@@ -93,8 +93,8 @@
   display: flex;
   gap: 6px;
   justify-content: flex-end;
+  margin-left: 12px; /* add space between text and buttons */
 }
-
 .useBtn,
 .storeBtn {
   border: none;
@@ -105,22 +105,19 @@
   font-size: 13px;
   white-space: nowrap;
 }
-
 .useBtn {
   background: #4caf50;
 }
-
 .storeBtn {
   background: #673ab7;
 }
-
 .useBtn:disabled,
 .storeBtn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-/* === Status badges === */
+/* === Status badges (if any) === */
 .badge {
   display: inline-block;
   padding: 2px 6px;
@@ -132,27 +129,18 @@
 .pending { background: #fff3cd; color: #8b6b00; }
 .used { background: #d4edda; color: #155724; }
 .saved { background: #e2d5f9; color: #452c80; }
-.assignmentItem {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 6px 4px;
-  border-bottom: 1px solid #eee;
-}
 
-/* left part: icon + text + badge */
-.leftContent {
+/* === Empty placeholder box === */
+.emptyBox {
+  border: 1px dashed #ccc;
+  border-radius: 6px;
+  padding: 24px;
+  text-align: center;
+  font-size: 14px;
+  color: #888;
+  background-color: #fafafa;
+  min-height: 80px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex: 1;
-  min-width: 180px;
-}
-
-/* ✅ add extra space between text area and buttons */
-.btnGroup {
-  display: flex;
-  gap: 6px;
-  justify-content: flex-end;
-  margin-left: 24px;   /* ← this creates clear separation */
+  justify-content: center;
 }

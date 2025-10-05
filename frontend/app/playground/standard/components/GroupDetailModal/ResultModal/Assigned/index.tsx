@@ -20,7 +20,15 @@ export default function Assigned({ drops, group, onUse, onStore, loading }) {
     }
   };
 
-  if (!drops?.length) return <p>暂无分配</p>;
+  // ✅ Keep box + title even when empty
+  if (!drops?.length) {
+    return (
+      <div className={styles.box}>
+        <h3 className={styles.title}>已分配</h3>
+        <div className={styles.emptyBox}>暂无分配</div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.box}>
@@ -35,7 +43,7 @@ export default function Assigned({ drops, group, onUse, onStore, loading }) {
       ).map(([charName, list]) => {
         const charRole = list[0]?.role;
 
-        // ✅ Sort so that 九重 appears before 十重
+        // ✅ 九重 appears before 十重
         const sortedList = [...list].sort((a, b) => {
           const order = { 9: 1, 10: 2 };
           return (order[a.level] || 99) - (order[b.level] || 99);
@@ -43,7 +51,9 @@ export default function Assigned({ drops, group, onUse, onStore, loading }) {
 
         return (
           <div key={charName} className={styles.charSection}>
-            <span className={`${styles.charBubble} ${getRoleColorClass(charRole)}`}>{charName}</span>
+            <span className={`${styles.charBubble} ${getRoleColorClass(charRole)}`}>
+              {charName}
+            </span>
             <ul className={styles.assignmentList}>
               {sortedList.map((a, i) => (
                 <li key={i} className={styles.assignmentItem}>
