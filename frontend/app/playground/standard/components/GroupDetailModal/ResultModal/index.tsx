@@ -18,7 +18,7 @@ export interface AssignedDrop {
 }
 
 interface Props {
-  scheduleId: string; // ✅ required for backend route
+  scheduleId: string;
   group: GroupResult;
   onRefresh?: () => void;
 }
@@ -27,11 +27,12 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
   const [loading, setLoading] = useState<string | null>(null);
-  const [assigned, setAssigned] = useState<AssignedDrop[]>([]);
+  const [drops, setDrops] = useState<AssignedDrop[]>([]);
 
   // ✅ Convert group data into flat drop list
   useEffect(() => {
     if (!group) return;
+
     const idToName: Record<string, string> = {};
     const idToRole: Record<string, "DPS" | "Tank" | "Healer"> = {};
 
@@ -40,7 +41,7 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
       idToRole[c._id] = c.role;
     });
 
-    const drops =
+    const parsed =
       group.kills
         ?.flatMap((k: any) =>
           k.selection?.ability && k.selection?.characterId
@@ -58,8 +59,8 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
             : []
         ) || [];
 
-    drops.sort((a, b) => a.char.localeCompare(b.char, "zh-CN") || a.floor - b.floor);
-    setAssigned(drops);
+    parsed.sort((a, b) => a.char.localeCompare(b.char, "zh-CN") || a.floor - b.floor);
+    setDrops(parsed);
   }, [group]);
 
   if (!group) return null;
@@ -80,14 +81,15 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
     setLoading(drop.ability);
 
     // Optimistic UI update
-    setAssigned((prev) =>
+    setDrops((prev) =>
       prev.map((d) =>
-        d.ability === drop.ability && d.floor === drop.floor ? { ...d, status: "used" } : d
+        d.ability === drop.ability && d.floor === drop.floor
+          ? { ...d, status: "used" }
+          : d
       )
     );
 
     try {
-      // 1️⃣ Update character’s ability level
       const charUrl = `${API_BASE}/api/characters/${drop.characterId}/abilities`;
       const charRes = await fetch(charUrl, {
         method: "PATCH",
@@ -101,7 +103,6 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
         throw new Error("更新角色技能失败");
       }
 
-      // 2️⃣ Update schedule record (add boss info)
       const boss = group.kills?.find((k: any) => k.floor === drop.floor)?.boss ?? undefined;
       const schedUrl = `${API_BASE}/api/standard-schedules/${scheduleId}/groups/${group.index}/floor/${drop.floor}`;
 
@@ -126,11 +127,13 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
       }
 
       alert(`✅ 已使用 ${drop.ability} (${drop.level}重)`);
+
+      // refresh assigned/processed display
+      setDrops((prev) => [...prev]);
       await onRefresh?.();
     } catch (err) {
       console.error("❌ Use drop failed:", err);
-      // Roll back
-      setAssigned((prev) =>
+      setDrops((prev) =>
         prev.map((d) =>
           d.ability === drop.ability && d.floor === drop.floor
             ? { ...d, status: "assigned" }
@@ -151,14 +154,15 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
     setLoading(drop.ability);
 
     // Optimistic UI update
-    setAssigned((prev) =>
+    setDrops((prev) =>
       prev.map((d) =>
-        d.ability === drop.ability && d.floor === drop.floor ? { ...d, status: "saved" } : d
+        d.ability === drop.ability && d.floor === drop.floor
+          ? { ...d, status: "saved" }
+          : d
       )
     );
 
     try {
-      // 1️⃣ Save to character’s storage
       const sourceBoss = group.kills?.find((k: any) => k.floor === drop.floor)?.boss || "";
       const storeUrl = `${API_BASE}/api/characters/${drop.characterId}/storage`;
 
@@ -178,7 +182,6 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
         throw new Error("存入仓库失败");
       }
 
-      // 2️⃣ Update schedule record
       const schedUrl = `${API_BASE}/api/standard-schedules/${scheduleId}/groups/${group.index}/floor/${drop.floor}`;
       const schedRes = await fetch(schedUrl, {
         method: "PUT",
@@ -201,11 +204,13 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
       }
 
       alert(`💾 已存入仓库：${drop.ability} (${drop.level}重)`);
+
+      // refresh assigned/processed display
+      setDrops((prev) => [...prev]);
       await onRefresh?.();
     } catch (err) {
       console.error("❌ Store drop failed:", err);
-      // Roll back
-      setAssigned((prev) =>
+      setDrops((prev) =>
         prev.map((d) =>
           d.ability === drop.ability && d.floor === drop.floor
             ? { ...d, status: "assigned" }
@@ -218,11 +223,11 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
     }
   };
 
-  // ✅ Split assigned vs processed
-  const assignedDrops = assigned.filter(
+  // ✅ Split assigned vs processed for display
+  const assignedDrops = drops.filter(
     (d) => d.status === "assigned" || d.status === "pending"
   );
-  const processedDrops = assigned.filter(
+  const processedDrops = drops.filter(
     (d) => d.status === "used" || d.status === "saved"
   );
 
@@ -235,8 +240,8 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
         onStore={handleStore}
         loading={loading}
       />
-      <Processed drops={processedDrops} />
-      <DropStats group={group} assigned={assigned} />
+      <Processed drops={processedDrops} group={group} />
+      <DropStats group={group} assigned={drops} />
     </div>
   );
 }
