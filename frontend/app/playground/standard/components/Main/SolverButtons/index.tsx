@@ -9,15 +9,15 @@ interface Props {
 export default function SolverButtons({ solving, onCore, onFull }: Props) {
   return (
     <div className={styles.solverButtons}>
-      {/*
+      
       <button
         className={`${styles.solverBtn} ${styles.coreBtn}`}
         onClick={onCore}
         disabled={solving}
       >
-        {solving ? "处理中..." : "高级排表 (核心技能)"}
+        {solving ? "处理中..." : "简易排表 (核心技能)"}
       </button>
-      */}
+     
       <button
         className={`${styles.solverBtn} ${styles.fullBtn}`}
         onClick={onFull}

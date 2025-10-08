@@ -6,6 +6,7 @@ import { runAdvancedSolver } from "@/utils/advancedSolver";
 import { summarizeAftermath } from "@/utils/aftermathSummary";
 import type { GroupResult, Character, AbilityCheck } from "@/utils/solver";
 
+import SolverOptions from "./SolverOptions";
 import SolverButtons from "./SolverButtons";
 import DisplayGroups from "./DisplayGroups";
 import AftermathSummary from "./AftermathSummary";
@@ -60,6 +61,11 @@ export default function MainSection({
 }: Props) {
   const [solving, setSolving] = useState(false);
   const [aftermath, setAftermath] = useState<{ wasted9: number; wasted10: number } | null>(null);
+
+  // ✅ track which core abilities are toggled on/off
+  const [enabledCore, setEnabledCore] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(CORE_ABILITIES.map((a) => [a, true]))
+  );
 
   // ✅ derive abilities
   const allAbilities = schedule.checkedAbilities;
@@ -171,6 +177,10 @@ export default function MainSection({
   // ---------- Render ----------
   const finishedCount = groups.filter((g) => g.status === "finished").length;
 
+  // ✅ Get filtered core abilities before running solver
+  const getActiveCoreAbilities = () =>
+    coreAbilities.filter((a) => enabledCore[a.name] !== false);
+
   return (
     <div className={styles.section}>
       <h3 className={styles.sectionTitle}>排表区域</h3>
@@ -178,10 +188,17 @@ export default function MainSection({
         已完成小组: {finishedCount} / {groups.length}
       </p>
 
-      {/* Solver buttons */}
+      {/* ✅ Core Ability Toggle UI */}
+      {/* <SolverOptions
+        coreAbilities={CORE_ABILITIES}
+        enabledAbilities={enabledCore}
+        setEnabledAbilities={setEnabledCore}
+      /> */}
+
+      {/* ✅ Solver buttons */}
       <SolverButtons
         solving={solving}
-        onCore={() => safeRunSolver(coreAbilities, "Core 8")}
+        onCore={() => safeRunSolver(getActiveCoreAbilities(), "Core (Selected)")}
         onFull={() => safeRunSolver(allAbilities, "Full Pool")}
       />
 

@@ -47,7 +47,7 @@ export default function AbilityHistoryPage() {
         { method: "POST" }
       );
       if (!res.ok) throw new Error("撤回失败");
-      alert("✅ 撤回成功");
+
       console.log(`🌀 撤回成功：${item.characterName} - ${item.abilityName} → ${item.beforeLevel}重`);
       await fetchHistory();
     } catch (err) {
