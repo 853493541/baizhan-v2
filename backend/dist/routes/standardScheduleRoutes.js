@@ -2,7 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const standardScheduleController_1 = require("../controllers/playground/standardScheduleController");
+const getScheduleSummaryByWeek_1 = require("../controllers/playground/standardSchedules/getScheduleSummaryByWeek");
 const router = (0, express_1.Router)();
+// ✅ Summary route must come first to avoid conflict with :id
+router.get("/summary", getScheduleSummaryByWeek_1.getScheduleSummaryByWeek);
 // POST new standard schedule
 router.post("/", standardScheduleController_1.createStandardSchedule);
 // GET all standard schedules
@@ -17,6 +20,6 @@ router.delete("/:id", standardScheduleController_1.deleteStandardSchedule);
 router.patch("/:id/name", standardScheduleController_1.updateScheduleName);
 // ✅ Group routes
 router.patch("/:id/groups/:index/status", standardScheduleController_1.updateGroupStatus);
-router.put("/:id/groups/:index/floor/:floor", standardScheduleController_1.updateGroupKill); // ✅ fixed alignment
-router.delete("/:id/groups/:index/floor/:floor", standardScheduleController_1.deleteGroupKill); // ✅ fixed alignment
+router.put("/:id/groups/:index/floor/:floor", standardScheduleController_1.updateGroupKill);
+router.delete("/:id/groups/:index/floor/:floor", standardScheduleController_1.deleteGroupKill);
 exports.default = router;

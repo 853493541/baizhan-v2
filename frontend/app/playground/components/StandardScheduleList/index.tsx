@@ -2,14 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Settings, X, Lock } from "lucide-react"; // 🔑 added Lock icon
+import { Settings, X, Lock } from "lucide-react";
 import styles from "./styles.module.css";
-
-interface Ability {
-  name: string;
-  level: number;
-  available: boolean;
-}
 
 interface Group {
   status?: "not_started" | "started" | "finished";
@@ -19,9 +13,8 @@ interface StandardSchedule {
   _id: string;
   name: string;
   server: string;
-  conflictLevel: number;
+  conflictLevel?: number;
   createdAt: string;
-  checkedAbilities: Ability[];
   characterCount: number;
   groups?: Group[];
 }
@@ -38,7 +31,7 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
   const [tempName, setTempName] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // 🔑 Auto-focus & select input text when modal opens
+  // ✅ Auto-focus on modal open
   useEffect(() => {
     if (editingId && inputRef.current) {
       inputRef.current.focus();
@@ -46,7 +39,7 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
     }
   }, [editingId]);
 
-  // ✅ rename (unchanged backend route!)
+  // ✅ Rename schedule
   const handleRename = async (id: string, name: string) => {
     try {
       const res = await fetch(`${API_BASE}/api/standard-schedules/${id}/name`, {
@@ -65,14 +58,13 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
     }
   };
 
-  // ✅ delete
+  // ✅ Delete schedule (disabled if locked)
   const handleDelete = async (id: string) => {
     try {
       const res = await fetch(`${API_BASE}/api/standard-schedules/${id}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Failed to delete schedule");
-
       setSchedules((prev) => prev.filter((s) => s._id !== id));
     } catch (err) {
       alert("删除排表失败");
@@ -86,16 +78,16 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
       ) : (
         <div className={styles.cardGrid}>
           {schedules.map((s) => {
-            const finishedCount =
-              s.groups?.filter((g) => g.status === "finished").length ?? 0;
-            const totalGroups = s.groups?.length ?? 0;
-            const locked =
-              s.groups?.some(
-                (g) => g.status === "started" || g.status === "finished"
-              ) ?? false;
+            const groups = s.groups || [];
+            const finishedCount = groups.filter((g) => g.status === "finished").length;
+            const totalGroups = groups.length;
+            const locked = groups.some(
+              (g) => g.status === "started" || g.status === "finished"
+            );
 
             return (
               <div key={s._id} className={styles.cardWrapper}>
+                {/* clickable card */}
                 <Link
                   href={`/playground/standard/${s._id}`}
                   className={`${styles.card} ${styles.standard}`}
@@ -107,7 +99,7 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
                     </p>
                     <p>
                       <span className={styles.label}>角色数量:</span>{" "}
-                      {s.characterCount}
+                      {s.characterCount ?? "N/A"}
                     </p>
                     <p>
                       <span className={styles.label}>完成进度:</span>{" "}
@@ -125,7 +117,7 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
                   </p>
                 </Link>
 
-                {/* Gear */}
+                {/* Gear icon for edit/delete */}
                 <button
                   className={styles.gearBtn}
                   onClick={() => {
@@ -141,7 +133,7 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
         </div>
       )}
 
-      {/* Modal */}
+      {/* 🔹 Modal for rename/delete */}
       {editingId && (
         <div
           className={styles.modalOverlay}
@@ -161,16 +153,18 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
             <label>
               编辑名字:
               <input
-                ref={inputRef} // 🔑 attach ref for auto-select
+                ref={inputRef}
                 type="text"
                 value={tempName}
                 onChange={(e) => setTempName(e.target.value)}
               />
             </label>
+
             <div className={styles.modalActions}>
               {(() => {
                 const schedule = schedules.find((s) => s._id === editingId);
-                const locked = schedule?.groups?.some(
+                const groups = schedule?.groups || [];
+                const locked = groups.some(
                   (g) => g.status === "started" || g.status === "finished"
                 );
 

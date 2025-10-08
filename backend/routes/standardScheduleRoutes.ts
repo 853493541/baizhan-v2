@@ -10,8 +10,12 @@ import {
   deleteGroupKill,
   updateScheduleName,
 } from "../controllers/playground/standardScheduleController";
+import { getScheduleSummaryByWeek } from "../controllers/playground/standardSchedules/getScheduleSummaryByWeek";
 
 const router = Router();
+
+// ✅ Summary route must come first to avoid conflict with :id
+router.get("/summary", getScheduleSummaryByWeek);
 
 // POST new standard schedule
 router.post("/", createStandardSchedule);
@@ -33,7 +37,7 @@ router.patch("/:id/name", updateScheduleName);
 
 // ✅ Group routes
 router.patch("/:id/groups/:index/status", updateGroupStatus);
-router.put("/:id/groups/:index/floor/:floor", updateGroupKill);     // ✅ fixed alignment
-router.delete("/:id/groups/:index/floor/:floor", deleteGroupKill);  // ✅ fixed alignment
+router.put("/:id/groups/:index/floor/:floor", updateGroupKill);
+router.delete("/:id/groups/:index/floor/:floor", deleteGroupKill);
 
 export default router;

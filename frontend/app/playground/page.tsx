@@ -2,14 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import CreateScheduleModal from "./components/CreateScheduleModal";
-import styles from "./styles.module.css";
 import StandardScheduleList from "./components/StandardScheduleList";
-
-interface Ability {
-  name: string;
-  level: number;
-  available: boolean;
-}
+import styles from "./styles.module.css";
+import { getCurrentGameWeek } from "@/utils/weekUtils";
 
 interface Group {
   status?: "not_started" | "started" | "finished";
@@ -21,118 +16,138 @@ interface StandardSchedule {
   server: string;
   conflictLevel: number;
   createdAt: string;
-  checkedAbilities: Ability[];
   characterCount: number;
   groups?: Group[];
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
-/**
- * 🔹 Week helper: Chinese reset time (UTC+8 Monday 7:00 AM)
- */
-function getCnWeekCode(dateString: string): string {
-  const date = new Date(dateString);
-
-  // Convert to UTC+8
-  const utc8 = new Date(date.getTime() + 8 * 60 * 60 * 1000);
-
-  // Get Thursday of this week (ISO logic anchor)
-  const tmp = new Date(Date.UTC(utc8.getUTCFullYear(), utc8.getUTCMonth(), utc8.getUTCDate()));
-  tmp.setUTCDate(utc8.getUTCDate() + 4 - (utc8.getUTCDay() || 7));
-
-  // Year start in UTC+8
-  const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1));
-  const weekNo = Math.ceil(((tmp.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
-
-  return `${tmp.getUTCFullYear()}W${weekNo}`;
-}
-
 export default function PlaygroundPage() {
   const [showModal, setShowModal] = useState(false);
-  const [schedules, setSchedules] = useState<StandardSchedule[]>([]);
+  const [currentSchedules, setCurrentSchedules] = useState<StandardSchedule[]>([]);
+  const [pastSchedules, setPastSchedules] = useState<StandardSchedule[]>([]);
   const [showPast, setShowPast] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadingPast, setLoadingPast] = useState(false); // ✅ separate loader for past
 
-  const fetchSchedules = async () => {
+  const currentWeek = getCurrentGameWeek();
+
+  // ✅ Fetch only current week initially
+  useEffect(() => {
+    const fetchCurrent = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(
+          `${API_BASE}/api/standard-schedules/summary?week=${currentWeek}`
+        );
+        const data = res.ok ? await res.json() : [];
+        setCurrentSchedules(data);
+      } catch (err) {
+        console.error("❌ Error fetching current schedules:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCurrent();
+  }, [currentWeek]);
+
+  // ✅ Lazy-load past schedules when user expands section
+  const handleTogglePast = async () => {
+    if (!showPast && pastSchedules.length === 0) {
+      try {
+        setLoadingPast(true);
+        const res = await fetch(
+          `${API_BASE}/api/standard-schedules/summary?before=${currentWeek}`
+        );
+        const data = res.ok ? await res.json() : [];
+        setPastSchedules(data);
+      } catch (err) {
+        console.error("❌ Error fetching past schedules:", err);
+      } finally {
+        setLoadingPast(false);
+      }
+    }
+
+    // Toggle section regardless of fetch
+    setShowPast((prev) => !prev);
+  };
+
+  const handleCreateSchedule = async (data: any) => {
+    setShowModal(false);
     try {
-      const res = await fetch(`${API_BASE}/api/standard-schedules`);
-      if (!res.ok) throw new Error("Failed to fetch schedules");
-      setSchedules(await res.json());
+      const res = await fetch(`${API_BASE}/api/standard-schedules`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("❌ Failed to create schedule");
+      const newSchedule = await res.json();
+      setCurrentSchedules((prev) => [newSchedule, ...prev]);
     } catch (err) {
-      console.error("❌ Error fetching schedules:", err);
+      console.error("❌ Error creating schedule:", err);
     }
   };
 
-  useEffect(() => {
-    fetchSchedules();
-  }, []);
-
-  // 🔹 Split schedules by current vs past week
-  const currentWeek = getCnWeekCode(new Date().toISOString());
-  const currentSchedules = schedules.filter(
-    (s) => getCnWeekCode(s.createdAt) === currentWeek
-  );
-  const pastSchedules = schedules.filter(
-    (s) => getCnWeekCode(s.createdAt) !== currentWeek
-  );
+  if (loading) return <p className={styles.loading}>加载中...</p>;
 
   return (
     <div className={styles.container}>
       <h2 className={styles.title}>排表</h2>
 
+      {/* New schedule button */}
       <div className={styles.buttonRow}>
         <button className={styles.createBtn} onClick={() => setShowModal(true)}>
           新建排表
         </button>
       </div>
 
+      {/* Modal */}
       {showModal && (
         <CreateScheduleModal
           onClose={() => setShowModal(false)}
-          onConfirm={async (data) => {
-            setShowModal(false);
-            try {
-              const res = await fetch(`${API_BASE}/api/standard-schedules`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data),
-              });
-              if (!res.ok) throw new Error("❌ Failed to create schedule");
-              const newSchedule = await res.json();
-              // push new schedule into state
-              setSchedules((prev) => [newSchedule, ...prev]);
-            } catch (err) {
-              console.error("❌ Error creating schedule:", err);
-            }
-          }}
+          onConfirm={handleCreateSchedule}
         />
       )}
 
       {/* 本周排表 */}
       <h3 className={styles.sectionTitle}>本周排表 ({currentWeek})</h3>
-      <StandardScheduleList
-        schedules={currentSchedules}
-        setSchedules={setSchedules}
-      />
+      {currentSchedules.length > 0 ? (
+        <StandardScheduleList
+          schedules={currentSchedules}
+          setSchedules={setCurrentSchedules}
+        />
+      ) : (
+        <p className={styles.empty}>暂无本周排表</p>
+      )}
 
       {/* 历史排表 toggle */}
       <div className={styles.pastSection}>
         <button
           className={styles.showPastBtn}
-          onClick={() => setShowPast((prev) => !prev)}
+          onClick={handleTogglePast}
+          disabled={loadingPast}
         >
-          {showPast
+          {loadingPast
+            ? "加载中..."
+            : showPast
             ? "收起历史排表 ▲"
-            : `查看历史排表 (${pastSchedules.length}) ▼`}
+            : `查看历史排表 ▼`}
         </button>
 
         {showPast && (
           <>
             <h3 className={styles.sectionTitle}>历史排表</h3>
-            <StandardScheduleList
-              schedules={pastSchedules}
-              setSchedules={setSchedules}
-            />
+            {loadingPast ? (
+              <p className={styles.loading}>加载中...</p>
+            ) : pastSchedules.length > 0 ? (
+              <StandardScheduleList
+                schedules={pastSchedules}
+                setSchedules={setPastSchedules}
+              />
+            ) : (
+              <p className={styles.empty}>暂无历史排表</p>
+            )}
           </>
         )}
       </div>

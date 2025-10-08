@@ -5,11 +5,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.lockWeeklyMap = exports.getWeeklyMapHistory = exports.getPastWeeklyMap = exports.deleteWeeklyMap = exports.getWeeklyMap = exports.saveWeeklyMap = void 0;
 const WeeklyMap_1 = __importDefault(require("../../models/WeeklyMap"));
-const weekUtils_1 = require("../../utils/weekUtils");
+const weekUtils_1 = require("../../utils/weekUtils"); // ✅ updated import name
 // Save or update this week's map
 const saveWeeklyMap = async (req, res) => {
     try {
-        const week = (0, weekUtils_1.getCurrentWeek)();
+        const week = (0, weekUtils_1.getCurrentGameWeek)(); // ✅ updated
         const { floors } = req.body;
         if (!floors) {
             return res.status(400).json({ error: "floors are required" });
@@ -25,7 +25,7 @@ exports.saveWeeklyMap = saveWeeklyMap;
 // Get this week's map
 const getWeeklyMap = async (_req, res) => {
     try {
-        const week = (0, weekUtils_1.getCurrentWeek)();
+        const week = (0, weekUtils_1.getCurrentGameWeek)(); // ✅ updated
         const map = await WeeklyMap_1.default.findOne({ week });
         if (!map)
             return res.status(404).json({ error: "No map for this week" });
@@ -39,7 +39,7 @@ exports.getWeeklyMap = getWeeklyMap;
 // ✅ Delete current week's map
 const deleteWeeklyMap = async (_req, res) => {
     try {
-        const week = (0, weekUtils_1.getCurrentWeek)();
+        const week = (0, weekUtils_1.getCurrentGameWeek)(); // ✅ updated
         const result = await WeeklyMap_1.default.deleteOne({ week });
         if (result.deletedCount === 0) {
             return res.status(404).json({ error: "No map found for this week" });
@@ -73,7 +73,7 @@ exports.getPastWeeklyMap = getPastWeeklyMap;
 // Get all past weeks (history, newest → oldest)
 const getWeeklyMapHistory = async (_req, res) => {
     try {
-        const currentWeek = (0, weekUtils_1.getCurrentWeek)();
+        const currentWeek = (0, weekUtils_1.getCurrentGameWeek)(); // ✅ updated
         const maps = await WeeklyMap_1.default.find({ week: { $ne: currentWeek } })
             .sort({ week: -1 })
             .limit(5);
@@ -86,7 +86,7 @@ const getWeeklyMapHistory = async (_req, res) => {
 exports.getWeeklyMapHistory = getWeeklyMapHistory;
 const lockWeeklyMap = async (_req, res) => {
     try {
-        const week = (0, weekUtils_1.getCurrentWeek)();
+        const week = (0, weekUtils_1.getCurrentGameWeek)(); // ✅ updated
         const updated = await WeeklyMap_1.default.findOneAndUpdate({ week }, { locked: true }, { new: true });
         if (!updated) {
             return res.status(404).json({ error: "No map for this week" });

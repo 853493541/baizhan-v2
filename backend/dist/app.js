@@ -9,7 +9,6 @@ const db_1 = require("./db");
 const characterRoutes_1 = __importDefault(require("./routes/characterRoutes"));
 const mapRoutes_1 = __importDefault(require("./routes/mapRoutes"));
 const standardScheduleRoutes_1 = __importDefault(require("./routes/standardScheduleRoutes")); // ✅ renamed
-const bossPlanRoutes_1 = __importDefault(require("./routes/bossPlanRoutes"));
 const compression_1 = __importDefault(require("compression"));
 const app = (0, express_1.default)();
 // ✅ Allowed origins (dev + prod)
@@ -40,5 +39,4 @@ app.use((0, compression_1.default)());
 app.use("/api/characters", characterRoutes_1.default);
 app.use("/api/weekly-map", mapRoutes_1.default);
 app.use("/api/standard-schedules", standardScheduleRoutes_1.default); // ✅ updated
-app.use("/api/boss-plans", bossPlanRoutes_1.default);
 exports.default = app;
