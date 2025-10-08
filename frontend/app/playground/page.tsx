@@ -91,6 +91,11 @@ export default function PlaygroundPage() {
 
   if (loading) return <p className={styles.loading}>加载中...</p>;
 
+  // ✅ NEW: determine if any current schedule should be locked
+  const anyLocked = currentSchedules.some((s) =>
+    s.groups?.some((g) => g.status !== "not_started")
+  );
+
   return (
     <div className={styles.container}>
       <h2 className={styles.title}>排表</h2>
@@ -116,6 +121,7 @@ export default function PlaygroundPage() {
         <StandardScheduleList
           schedules={currentSchedules}
           setSchedules={setCurrentSchedules}
+          disabled={anyLocked} // ✅ pass disabled flag
         />
       ) : (
         <p className={styles.empty}>暂无本周排表</p>

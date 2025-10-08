@@ -177,6 +177,15 @@ export default function MainSection({
   // ---------- Render ----------
   const finishedCount = groups.filter((g) => g.status === "finished").length;
 
+  // ✅ Calculate lock: if any group started or finished
+  const shouldLock = groups.some((g) => g.status !== "not_started");
+
+  console.log(
+    "🔒 shouldLock:",
+    shouldLock,
+    groups.map((g) => ({ idx: g.index, status: g.status }))
+  );
+
   // ✅ Get filtered core abilities before running solver
   const getActiveCoreAbilities = () =>
     coreAbilities.filter((a) => enabledCore[a.name] !== false);
@@ -188,16 +197,10 @@ export default function MainSection({
         已完成小组: {finishedCount} / {groups.length}
       </p>
 
-      {/* ✅ Core Ability Toggle UI */}
-      {/* <SolverOptions
-        coreAbilities={CORE_ABILITIES}
-        enabledAbilities={enabledCore}
-        setEnabledAbilities={setEnabledCore}
-      /> */}
-
       {/* ✅ Solver buttons */}
       <SolverButtons
         solving={solving}
+        disabled={shouldLock} // ✅ lock buttons based on group status
         onCore={() => safeRunSolver(getActiveCoreAbilities(), "Core (Selected)")}
         onFull={() => safeRunSolver(allAbilities, "Full Pool")}
       />
