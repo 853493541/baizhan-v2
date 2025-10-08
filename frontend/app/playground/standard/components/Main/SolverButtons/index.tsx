@@ -8,26 +8,32 @@ interface Props {
 }
 
 export default function SolverButtons({ solving, disabled, onCore, onFull }: Props) {
-  const isLocked = solving || disabled;
+  const isLocked = disabled ?? false;
+
+  // helper to decide button text
+  const getLabel = (type: "core" | "full") => {
+    if (solving && isLocked) return type === "core" ? "🔒 处理中" : "🔒 排表中";
+    if (solving) return type === "core" ? "🔒处理中" : "🔒排表中";
+    if (isLocked) return "🔒 已锁定";
+    return type === "core" ? "简易排表" : "一键排表";
+  };
 
   return (
     <div className={styles.solverButtons}>
       <button
         className={`${styles.solverBtn} ${styles.coreBtn} ${isLocked ? styles.locked : ""}`}
         onClick={onCore}
-        disabled={isLocked}
+        disabled={solving || isLocked}
       >
-        {isLocked ? "🔒 " : ""}
-        {solving ? "处理中..." : "简易排表 (核心技能)"}
+        {getLabel("core")}
       </button>
 
       <button
         className={`${styles.solverBtn} ${styles.fullBtn} ${isLocked ? styles.locked : ""}`}
         onClick={onFull}
-        disabled={isLocked}
+        disabled={solving || isLocked}
       >
-        {isLocked ? "🔒 " : ""}
-        {solving ? "排表中..." : "一键排表"}
+        {getLabel("full")}
       </button>
     </div>
   );

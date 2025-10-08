@@ -177,8 +177,10 @@ export default function MainSection({
   // ---------- Render ----------
   const finishedCount = groups.filter((g) => g.status === "finished").length;
 
-  // ✅ Calculate lock: if any group started or finished
-  const shouldLock = groups.some((g) => g.status !== "not_started");
+  // ✅ Lock only if any group is started or finished
+  const shouldLock = groups.some(
+    (g) => g.status === "started" || g.status === "finished"
+  );
 
   console.log(
     "🔒 shouldLock:",
