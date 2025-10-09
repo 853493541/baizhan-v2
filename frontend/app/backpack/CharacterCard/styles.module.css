@@ -1,0 +1,66 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 20px;
+  min-width: 280px;
+  min-height: 180px;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* Header */
+.headerRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.classIcon {
+  width: 28px;
+  height: 28px;
+  margin-right: 8px;
+  margin-top: 2px;
+}
+
+.nameBlock {
+  flex-grow: 1;
+}
+
+.name {
+  font-size: 1.05rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.server {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* Role colors */
+.tank {
+  background-color: #fff3cd;
+  color: #8b4513;
+}
+
+.dps {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.healer {
+  background-color: #f8d7da;
+  color: #721c24;
+}

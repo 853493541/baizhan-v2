@@ -1,6 +1,10 @@
 import express from "express";
 import { createCharacter } from "../controllers/characters/createController";
-import { getCharacters, getCharacterById } from "../controllers/characters/getController";
+import {
+  getCharacters,
+  getCharacterById,
+  getAllStorage, // ✅ new import
+} from "../controllers/characters/getController";
 import {
   updateCharacter,
   updateCharacterAbilities,
@@ -8,9 +12,9 @@ import {
   getAbilityHistory,
   revertAbilityHistory,
   deleteAbilityHistory,
-  addToStorage,          // ✅ new
-  getStorage,            // ✅ new
-  useStoredAbility,      // ✅ new
+  addToStorage,
+  getStorage,
+  useStoredAbility,
 } from "../controllers/characters/updateController";
 import { compareCharacterAbilities } from "../controllers/characters/compareController";
 
@@ -35,7 +39,7 @@ router.post("/abilities/history/:id/revert", revertAbilityHistory);
 router.delete("/abilities/history/:id", deleteAbilityHistory);
 
 // ─────────────────────────────────────────────
-// ✅ Storage System (new endpoints)
+// ✅ Storage System (per-character endpoints)
 // ─────────────────────────────────────────────
 // POST /api/characters/:id/storage → add drop to storage
 router.post("/:id/storage", addToStorage);
@@ -45,5 +49,11 @@ router.get("/:id/storage", getStorage);
 
 // PUT /api/characters/:id/storage/use → use stored ability
 router.put("/:id/storage/use", useStoredAbility);
+
+// ─────────────────────────────────────────────
+// 🎒 Global Storage Endpoint (Backpack Page)
+// ─────────────────────────────────────────────
+// ⚠️ Must be declared *after* per-character routes, but *before* /:id
+router.get("/storage/all", getAllStorage);
 
 export default router;
