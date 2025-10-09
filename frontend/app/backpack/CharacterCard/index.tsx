@@ -20,31 +20,33 @@ const getClassIcon = (cls: string) => `/icons/class_icons/${cls}.png`;
 interface Props {
   char: Character;
   API_URL: string;
-  showCoreOnly: boolean; // ✅ passed from parent
-  onGlobalRefresh?: () => Promise<void>; // ✅ new optional callback
+  showCoreOnly: boolean;
+  onCharacterUpdate?: (updated: Character) => void; // ✅ new
 }
 
 export default function CharacterCard({
   char,
   API_URL,
   showCoreOnly,
-  onGlobalRefresh,
+  onCharacterUpdate,
 }: Props) {
   const [currentChar, setCurrentChar] = useState<Character>(char);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  /** 🔄 Refresh full character info from backend */
-  const refreshCharacter = async () => {
+  /** 🔄 Refresh single character */
+  const refreshCharacter = async (): Promise<Character | null> => {
     setLoading(true);
     try {
       const res = await fetch(`${API_URL}/api/characters/${char._id}`);
       if (!res.ok) throw new Error("刷新失败");
       const updated = await res.json();
       setCurrentChar(updated);
+      return updated;
     } catch (err) {
       console.error("❌ refreshCharacter error:", err);
       alert("刷新角色失败，请稍后再试");
+      return null;
     } finally {
       setLoading(false);
     }
@@ -93,14 +95,10 @@ export default function CharacterCard({
           characterId={currentChar._id}
           onClose={() => setShowModal(false)}
           onAdded={async () => {
-            // 🪄 Local refresh first
-            await refreshCharacter();
-
-            // 🪄 Then notify parent (to refresh full character list)
-            if (onGlobalRefresh) {
-              await onGlobalRefresh();
+            const updated = await refreshCharacter();
+            if (updated && onCharacterUpdate) {
+              onCharacterUpdate(updated); // ✅ patch parent’s data
             }
-
             setShowModal(false);
           }}
         />

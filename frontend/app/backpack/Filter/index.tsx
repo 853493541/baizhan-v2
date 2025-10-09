@@ -3,6 +3,7 @@
 import React, { useEffect } from "react";
 import styles from "./styles.module.css";
 import Dropdown from "../../components/layout/dropdown";
+import pinyin from "pinyin";
 
 interface Props {
   ownerFilter: string;
@@ -10,6 +11,7 @@ interface Props {
   roleFilter: string;
   onlyWithStorage: boolean;
   showCoreOnly: boolean;
+  nameFilter: string; // ✅ new
   uniqueOwners: string[];
   uniqueServers: string[];
   setOwnerFilter: (v: string) => void;
@@ -17,6 +19,7 @@ interface Props {
   setRoleFilter: (v: string) => void;
   setOnlyWithStorage: (v: boolean) => void;
   setShowCoreOnly: (v: boolean) => void;
+  setNameFilter: (v: string) => void; // ✅ new
 }
 
 export default function BackpackFilter({
@@ -25,6 +28,7 @@ export default function BackpackFilter({
   roleFilter,
   onlyWithStorage,
   showCoreOnly,
+  nameFilter,
   uniqueOwners,
   uniqueServers,
   setOwnerFilter,
@@ -32,6 +36,7 @@ export default function BackpackFilter({
   setRoleFilter,
   setOnlyWithStorage,
   setShowCoreOnly,
+  setNameFilter,
 }: Props) {
   // ✅ Load from localStorage
   useEffect(() => {
@@ -43,6 +48,7 @@ export default function BackpackFilter({
       setRoleFilter(parsed.role || "");
       setOnlyWithStorage(parsed.onlyWithStorage ?? true);
       setShowCoreOnly(parsed.showCoreOnly ?? false);
+      setNameFilter(parsed.name || "");
     } else {
       setOnlyWithStorage(true);
       setShowCoreOnly(false);
@@ -59,9 +65,10 @@ export default function BackpackFilter({
         role: roleFilter,
         onlyWithStorage,
         showCoreOnly,
+        name: nameFilter,
       })
     );
-  }, [ownerFilter, serverFilter, roleFilter, onlyWithStorage, showCoreOnly]);
+  }, [ownerFilter, serverFilter, roleFilter, onlyWithStorage, showCoreOnly, nameFilter]);
 
   // ✅ Reset
   const handleReset = () => {
@@ -70,6 +77,7 @@ export default function BackpackFilter({
     setRoleFilter("");
     setOnlyWithStorage(true);
     setShowCoreOnly(false);
+    setNameFilter("");
     localStorage.removeItem("backpackFilters");
   };
 
@@ -79,7 +87,7 @@ export default function BackpackFilter({
         <div className={styles.leftGroup}>
           {/* === Dropdowns === */}
           <Dropdown
-            label="角色"
+            label="拥有者"
             options={["全部", ...uniqueOwners]}
             value={ownerFilter ? ownerFilter : "拥有者"}
             onChange={(val) => setOwnerFilter(val === "全部" ? "" : val)}
@@ -100,33 +108,34 @@ export default function BackpackFilter({
           ].map((opt) => (
             <button
               key={opt.value}
-              className={`${styles.filterBtn} ${
-                roleFilter === opt.value ? styles.selected : ""
-              }`}
-              onClick={() =>
-                setRoleFilter(roleFilter === opt.value ? "" : opt.value)
-              }
+              className={`${styles.filterBtn} ${roleFilter === opt.value ? styles.selected : ""}`}
+              onClick={() => setRoleFilter(roleFilter === opt.value ? "" : opt.value)}
             >
               {opt.label}
             </button>
           ))}
+
+          {/* ✅ Move name search bar here */}
+          <input
+            type="text"
+            placeholder="搜索角色名 / 拼音"
+            className={styles.searchInput}
+            value={nameFilter}
+            onChange={(e) => setNameFilter(e.target.value)}
+          />
         </div>
 
         <div className={styles.rightGroup}>
           {/* === Toggle buttons on right === */}
           <button
-            className={`${styles.toggleBtn} ${
-              onlyWithStorage ? styles.active : ""
-            }`}
+            className={`${styles.toggleBtn} ${onlyWithStorage ? styles.active : ""}`}
             onClick={() => setOnlyWithStorage(!onlyWithStorage)}
           >
             仅显示有书
           </button>
 
           <button
-            className={`${styles.toggleBtn} ${
-              showCoreOnly ? styles.active : ""
-            }`}
+            className={`${styles.toggleBtn} ${showCoreOnly ? styles.active : ""}`}
             onClick={() => setShowCoreOnly(!showCoreOnly)}
           >
             仅显示核心技能

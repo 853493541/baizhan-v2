@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import styles from "./styles.module.css";
 import FilterSection from "./Filter";
 import CharacterCard from "./CharacterCard";
+import { createPinyinMap, pinyinFilter } from "../../utils/pinyinSearch"; // ✅ use helper
 
 interface StorageItem {
   ability: string;
@@ -24,7 +25,7 @@ interface Character {
   storage?: StorageItem[];
 }
 
-// ✅ Core abilities (same as BackpackWindow)
+// ✅ Core abilities
 const CORE_ABILITIES = [
   "斗转金移",
   "花钱消灾",
@@ -43,14 +44,13 @@ const CORE_ABILITIES = [
   "厄毒爆发",
 ];
 
-
 export default function BackpackPage() {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-  // ===== Initialize filters from localStorage synchronously =====
+  // ===== Initialize filters =====
   const getSavedFilters = () => {
     try {
       const saved = localStorage.getItem("backpackFilters");
@@ -69,29 +69,28 @@ export default function BackpackPage() {
     saved.onlyWithStorage ?? true
   );
   const [showCoreOnly, setShowCoreOnly] = useState(saved.showCoreOnly ?? false);
+  const [nameFilter, setNameFilter] = useState(saved.name || ""); // ✅ NEW
 
-  // 🧭 Fetch all characters (reusable)
-  const fetchAll = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(`${API_URL}/api/characters`);
-      if (!res.ok) throw new Error("无法加载角色数据");
-      const data = await res.json();
-      setCharacters(data);
-    } catch (err) {
-      console.error("❌ fetchAll error:", err);
-      setError("无法加载角色信息");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Initial load
+  // 🧭 Fetch all characters once
   useEffect(() => {
+    async function fetchAll() {
+      try {
+        setLoading(true);
+        const res = await fetch(`${API_URL}/api/characters`);
+        if (!res.ok) throw new Error("无法加载角色数据");
+        const data = await res.json();
+        setCharacters(data);
+      } catch (err) {
+        console.error("❌ fetchAll error:", err);
+        setError("无法加载角色信息");
+      } finally {
+        setLoading(false);
+      }
+    }
     fetchAll();
   }, [API_URL]);
 
-  // 🔍 Derive unique owners and servers
+  // 🔍 Unique lists
   const uniqueOwners = useMemo(
     () => Array.from(new Set(characters.map((c) => c.owner).filter(Boolean))),
     [characters]
@@ -102,25 +101,39 @@ export default function BackpackPage() {
     [characters]
   );
 
-  // 🧩 Apply filters (including page-level core filter)
+  // 🧩 Precompute pinyin map once
+  const pinyinMap = useMemo(() => {
+    const names = characters.map((c) => c.name);
+    return createPinyinMap(names);
+  }, [characters]);
+
+  // 🧩 Apply filters
   const filtered = useMemo(() => {
-    return characters.filter((char) => {
-      if (ownerFilter && char.owner !== ownerFilter) return false;
-      if (serverFilter && char.server !== serverFilter) return false;
-      if (roleFilter && char.role !== roleFilter) return false;
-      if (onlyWithStorage && (!char.storage || char.storage.length === 0))
-        return false;
+    let list = characters;
 
-      // ✅ Only keep characters that have at least one core item when toggled
-      if (showCoreOnly) {
-        const hasCore = (char.storage || []).some((item) =>
+    if (ownerFilter)
+      list = list.filter((char) => char.owner === ownerFilter);
+    if (serverFilter)
+      list = list.filter((char) => char.server === serverFilter);
+    if (roleFilter)
+      list = list.filter((char) => char.role === roleFilter);
+    if (onlyWithStorage)
+      list = list.filter((char) => char.storage && char.storage.length > 0);
+    if (showCoreOnly)
+      list = list.filter((char) =>
+        (char.storage || []).some((item) =>
           CORE_ABILITIES.includes(item.ability)
-        );
-        if (!hasCore) return false;
-      }
+        )
+      );
 
-      return true;
-    });
+    // ✅ Name search (supports Chinese, full pinyin, and initials)
+    if (nameFilter.trim()) {
+      const allNames = list.map((c) => c.name);
+      const matchedNames = pinyinFilter(allNames, pinyinMap, nameFilter.trim());
+      list = list.filter((c) => matchedNames.includes(c.name));
+    }
+
+    return list;
   }, [
     characters,
     ownerFilter,
@@ -128,9 +141,11 @@ export default function BackpackPage() {
     roleFilter,
     onlyWithStorage,
     showCoreOnly,
+    nameFilter,
+    pinyinMap,
   ]);
 
-  // ✅ Persist filters whenever they change
+  // ✅ Persist filters
   useEffect(() => {
     localStorage.setItem(
       "backpackFilters",
@@ -140,13 +155,23 @@ export default function BackpackPage() {
         role: roleFilter,
         onlyWithStorage,
         showCoreOnly,
+        name: nameFilter,
       })
     );
-  }, [ownerFilter, serverFilter, roleFilter, onlyWithStorage, showCoreOnly]);
+  }, [
+    ownerFilter,
+    serverFilter,
+    roleFilter,
+    onlyWithStorage,
+    showCoreOnly,
+    nameFilter,
+  ]);
 
-  // 🪄 Global refresh hook (used by each CharacterCard)
-  const handleGlobalRefresh = async () => {
-    await fetchAll();
+  // ✅ Local patch update
+  const handleCharacterUpdate = (updated: Character) => {
+    setCharacters((prev) =>
+      prev.map((c) => (c._id === updated._id ? updated : c))
+    );
   };
 
   // ===== Render =====
@@ -163,6 +188,7 @@ export default function BackpackPage() {
         roleFilter={roleFilter}
         onlyWithStorage={onlyWithStorage}
         showCoreOnly={showCoreOnly}
+        nameFilter={nameFilter} // ✅ pass down
         uniqueOwners={uniqueOwners}
         uniqueServers={uniqueServers}
         setOwnerFilter={setOwnerFilter}
@@ -170,6 +196,7 @@ export default function BackpackPage() {
         setRoleFilter={setRoleFilter}
         setOnlyWithStorage={setOnlyWithStorage}
         setShowCoreOnly={setShowCoreOnly}
+        setNameFilter={setNameFilter} // ✅ pass setter
       />
 
       <div className={styles.grid}>
@@ -179,7 +206,7 @@ export default function BackpackPage() {
             char={char}
             API_URL={API_URL || ""}
             showCoreOnly={showCoreOnly}
-            onGlobalRefresh={handleGlobalRefresh} // ✅ NEW: notify parent
+            onCharacterUpdate={handleCharacterUpdate}
           />
         ))}
       </div>
