@@ -3,7 +3,7 @@ import { createCharacter } from "../controllers/characters/createController";
 import {
   getCharacters,
   getCharacterById,
-  getAllStorage, // ✅ new import
+  getAllStorage, // ✅ global backpack endpoint
 } from "../controllers/characters/getController";
 import {
   updateCharacter,
@@ -15,6 +15,7 @@ import {
   addToStorage,
   getStorage,
   useStoredAbility,
+  deleteFromStorage, // ✅ new import
 } from "../controllers/characters/updateController";
 import { compareCharacterAbilities } from "../controllers/characters/compareController";
 
@@ -41,14 +42,17 @@ router.delete("/abilities/history/:id", deleteAbilityHistory);
 // ─────────────────────────────────────────────
 // ✅ Storage System (per-character endpoints)
 // ─────────────────────────────────────────────
-// POST /api/characters/:id/storage → add drop to storage
+// POST /api/characters/:id/storage → add ability to storage
 router.post("/:id/storage", addToStorage);
 
 // GET /api/characters/:id/storage → get stored abilities
 router.get("/:id/storage", getStorage);
 
-// PUT /api/characters/:id/storage/use → use stored ability
+// PUT /api/characters/:id/storage/use → use a stored ability
 router.put("/:id/storage/use", useStoredAbility);
+
+// DELETE /api/characters/:id/storage/delete → remove a stored ability
+router.delete("/:id/storage/delete", deleteFromStorage);
 
 // ─────────────────────────────────────────────
 // 🎒 Global Storage Endpoint (Backpack Page)

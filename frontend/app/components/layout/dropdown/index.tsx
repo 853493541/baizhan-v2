@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import styles from "./styles.module.css";
 
 interface Props {
@@ -11,9 +11,21 @@ interface Props {
 
 export default function Dropdown({ label, options, value, onChange }: Props) {
   const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // ✅ Close when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
-    <div className={styles.dropdown}>
+    <div ref={ref} className={styles.dropdown}>
       <button
         type="button"
         className={styles.dropdownBtn}
@@ -31,7 +43,7 @@ export default function Dropdown({ label, options, value, onChange }: Props) {
               className={styles.dropdownItem}
               onClick={() => {
                 onChange(opt);
-                setOpen(false);
+                setOpen(false); // ✅ close after selection
               }}
             >
               {opt}

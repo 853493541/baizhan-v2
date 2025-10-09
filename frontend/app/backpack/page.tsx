@@ -111,7 +111,8 @@ export default function BackpackPage() {
 
   return (
     <div className={styles.page}>
-      <h1 className={styles.title}>🎒 背包仓库</h1>
+      <h1 className={styles.title}>全角色背包
+      </h1>
 
       <FilterSection
         ownerFilter={ownerFilter}

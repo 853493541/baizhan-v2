@@ -39,7 +39,6 @@ export default function BackpackFilter({
       setRoleFilter(parsed.role || "");
       setOnlyWithStorage(parsed.onlyWithStorage ?? true);
     } else {
-      // Default first-time load: checked
       setOnlyWithStorage(true);
     }
   }, []);
@@ -69,18 +68,20 @@ export default function BackpackFilter({
   return (
     <div className={styles.filterSection}>
       <div className={styles.filterRow}>
+        {/* ✅ “全部角色” 默认显示 */}
         <Dropdown
-          label="拥有者"
-          options={uniqueOwners}
-          value={ownerFilter}
-          onChange={setOwnerFilter}
+          label="角色"
+          options={["全部", ...uniqueOwners]}
+          value={ownerFilter ? ownerFilter : "拥有者"}
+          onChange={(val) => setOwnerFilter(val === "全部" ? "" : val)}
         />
 
+        {/* ✅ “全部服务器” 默认显示 */}
         <Dropdown
           label="服务器"
-          options={uniqueServers}
-          value={serverFilter}
-          onChange={setServerFilter}
+          options={["全部", ...uniqueServers]}
+          value={serverFilter ? serverFilter : "服务器"}
+          onChange={(val) => setServerFilter(val === "全部" ? "" : val)}
         />
 
         {/* ✅ Role buttons */}

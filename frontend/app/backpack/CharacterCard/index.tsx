@@ -1,6 +1,9 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import styles from "./styles.module.css";
 import BackpackWindow from "./BackpackWindow/Index";
+import AddStorageModal from "./AddStorageModal";
 
 interface Character {
   _id: string;
@@ -20,25 +23,61 @@ interface Props {
 }
 
 export default function CharacterCard({ char, API_URL }: Props) {
+  const [currentChar, setCurrentChar] = useState<Character>(char);
+  const [showModal, setShowModal] = useState(false);
+
+  /** 🔄 Refresh full character info from backend */
+  const refreshCharacter = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/characters/${char._id}`);
+      if (!res.ok) throw new Error("刷新失败");
+      const updated = await res.json();
+      setCurrentChar(updated);
+    } catch (err) {
+      console.error("❌ refreshCharacter error:", err);
+      alert("刷新角色失败");
+    }
+  };
+
   return (
-    <div className={`${styles.card} ${styles[char.role?.toLowerCase()]}`}>
+    <div className={`${styles.card} ${styles[currentChar.role?.toLowerCase()]}`}>
       {/* === Header === */}
       <div className={styles.headerRow}>
         <div className={styles.nameBlock}>
           <div className={styles.name}>
             <img
-              src={getClassIcon(char.class)}
-              alt={char.class}
+              src={getClassIcon(currentChar.class)}
+              alt={currentChar.class}
               className={styles.classIcon}
             />
-            {char.name}
+            {currentChar.name}
           </div>
         </div>
-        <div className={styles.server}>{char.server}</div>
+
+        <button onClick={() => setShowModal(true)} className={styles.addBtn}>
+          + 
+        </button>
       </div>
 
       {/* === Backpack Section === */}
-      <BackpackWindow char={char} API_URL={API_URL} />
+      <BackpackWindow
+        char={currentChar}
+        API_URL={API_URL}
+        onRefresh={refreshCharacter} // ✅ pass refresh callback
+      />
+
+      {/* === Modal === */}
+      {showModal && (
+        <AddStorageModal
+          API_URL={API_URL}
+          characterId={currentChar._id}
+          onClose={() => setShowModal(false)}
+          onAdded={async () => {
+            await refreshCharacter();
+            setShowModal(false);
+          }}
+        />
+      )}
     </div>
   );
 }

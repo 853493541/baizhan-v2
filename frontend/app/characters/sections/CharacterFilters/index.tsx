@@ -61,22 +61,12 @@ export default function CharacterFilters({
   setSelectedAbilities,
   onChangeGlobalLevel,
 }: Props) {
-  console.log("[CharacterFilters] render start", {
-    ownerFilter,
-    serverFilter,
-    roleFilter,
-    selectedAbilities,
-    globalLevel,
-    abilityFilters,
-  });
-
   const [showModal, setShowModal] = useState(false);
   const [extraAbilities, setExtraAbilities] = useState<{ name: string; icon: string }[]>([]);
 
   const DISPLAY_ABILITIES = [...CORE_ABILITIES, ...extraAbilities];
 
   const handleAbilityToggle = (ability: string) => {
-    console.log("[CharacterFilters] toggle ability", ability);
     const idx = selectedAbilities.indexOf(ability);
     if (idx >= 0) {
       const next = selectedAbilities.filter((a) => a !== ability);
@@ -89,7 +79,6 @@ export default function CharacterFilters({
   };
 
   const handleGlobalLevelChange = (level: number | null) => {
-    console.log("[CharacterFilters] global level change", level);
     onChangeGlobalLevel(level);
     if (level !== null && selectedAbilities.length > 0) {
       setAbilityFilters(selectedAbilities.map((a) => ({ ability: a, level })));
@@ -99,7 +88,6 @@ export default function CharacterFilters({
   };
 
   const handleConfirmCustom = (abilityName: string) => {
-    console.log("[CharacterFilters] confirm custom ability", abilityName);
     const isCore = CORE_ABILITIES.some((a) => a.name === abilityName);
     const isAlreadyExtra = extraAbilities.some((a) => a.name === abilityName);
 
@@ -118,44 +106,50 @@ export default function CharacterFilters({
   };
 
   const handleReset = () => {
-    console.log("[CharacterFilters] reset pressed");
     setOwnerFilter("");
     setServerFilter("");
     setRoleFilter("");
     setSelectedAbilities([]);
     setAbilityFilters([]);
     onChangeGlobalLevel(null);
-    localStorage.removeItem("characterFilters"); // ✅ also clear saved filters
+    localStorage.removeItem("characterFilters");
   };
 
   return (
     <div className={styles.filterSection}>
       <div className={styles.filterRow}>
+        {/* ✅ Dropdown with 全部角色 */}
         <Dropdown
-          label="拥有者"
-          options={uniqueOwners}
-          value={ownerFilter}
-          onChange={setOwnerFilter}
+          label="角色"
+          options={["全部", ...uniqueOwners]}
+          value={ownerFilter ? ownerFilter : "拥有者"}
+          onChange={(val) => setOwnerFilter(val === "全部" ? "" : val)}
         />
 
+        {/* ✅ Dropdown with 全部服务器 */}
         <Dropdown
           label="服务器"
-          options={uniqueServers}
-          value={serverFilter}
-          onChange={setServerFilter}
+          options={["全部", ...uniqueServers]}
+          value={serverFilter ? serverFilter : "服务器"}
+          onChange={(val) => setServerFilter(val === "全部" ? "" : val)}
         />
 
-        {[{ label: "防御", value: "T" }, { label: "输出", value: "DPS" }, { label: "治疗", value: "Healer" }].map(
-          (opt) => (
-            <button
-              key={opt.value}
-              className={`${styles.filterBtn} ${roleFilter === opt.value ? styles.selected : ""}`}
-              onClick={() => setRoleFilter(roleFilter === opt.value ? "" : opt.value)}
-            >
-              {opt.label}
-            </button>
-          )
-        )}
+        {/* ✅ Role buttons */}
+        {[
+          { label: "防御", value: "Tank" },
+          { label: "输出", value: "DPS" },
+          { label: "治疗", value: "Healer" },
+        ].map((opt) => (
+          <button
+            key={opt.value}
+            className={`${styles.filterBtn} ${
+              roleFilter === opt.value ? styles.selected : ""
+            }`}
+            onClick={() => setRoleFilter(roleFilter === opt.value ? "" : opt.value)}
+          >
+            {opt.label}
+          </button>
+        ))}
 
         <button className={styles.resetBtn} onClick={handleReset}>
           重置
@@ -196,7 +190,10 @@ export default function CharacterFilters({
       </div>
 
       {showModal && (
-        <AbilityFilterModal onConfirm={handleConfirmCustom} onClose={() => setShowModal(false)} />
+        <AbilityFilterModal
+          onConfirm={handleConfirmCustom}
+          onClose={() => setShowModal(false)}
+        />
       )}
     </div>
   );

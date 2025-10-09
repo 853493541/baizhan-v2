@@ -293,3 +293,25 @@ export const useStoredAbility = async (req: Request, res: Response) => {
     return res.status(500).json({ error: err.message });
   }
 };
+export const deleteFromStorage = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { ability, level } = req.body;
+
+    if (!ability || !level)
+      return res.status(400).json({ error: "缺少参数 ability 或 level" });
+
+    const char = await Character.findById(id);
+    if (!char) return res.status(404).json({ error: "角色不存在" });
+
+    char.storage = (char.storage || []).filter(
+      (item: any) => !(item.ability === ability && item.level === level)
+    );
+
+    await char.save();
+    res.json({ success: true, message: `已删除 ${ability}${level}重` });
+  } catch (err: any) {
+    console.error("❌ deleteFromStorage error:", err);
+    res.status(500).json({ error: err.message });
+  }
+};

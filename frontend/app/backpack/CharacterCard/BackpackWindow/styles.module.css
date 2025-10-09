@@ -1,4 +1,6 @@
 .itemList {
+  list-style: none;
+  padding-left: 0;
   margin-top: 10px;
   display: flex;
   flex-direction: column;
@@ -12,35 +14,62 @@
   background: #f8fafc;
   padding: 6px 8px;
   border-radius: 8px;
+  transition: background 0.15s ease;
+}
+.itemRow:hover {
+  background: #eef3f9;
+}
+
+.itemUsed {
+  opacity: 0.6;
+  text-decoration: line-through;
 }
 
 .itemLeft {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .abilityIcon {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   object-fit: contain;
   border-radius: 4px;
   background: #fff;
   border: 1px solid #ddd;
+  flex-shrink: 0;
 }
 
-.ability {
-  font-weight: 600;
-  font-size: 14px;
+/* ✅ Compact inline layout for ability text */
+.abilityLine {
   display: flex;
-  align-items: center;
-  gap: 6px;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 14px;
+  color: #1f2937;
+}
+
+/* ✅ Only this part is clamped (name only) */
+.abilityName {
+  max-width: 4em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Levels and current info remain normal width */
+.levelInfo {
+  font-weight: 500;
+  color: #1f2937;
 }
 
 .currentLevel {
   font-size: 13px;
   color: #374151;
-  opacity: 0.85;
+  opacity: 0.9;
 }
 
 .buttons {
@@ -48,32 +77,32 @@
   gap: 6px;
 }
 
-.useBtn {
-  background: #2563eb;
-  color: white;
+.btn {
   border: none;
   border-radius: 8px;
-  padding: 2px 8px;
+  padding: 3px 10px;
   font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.useBtn {
+  background: #2563eb;
+  color: #fff;
+}
+.useBtn:hover {
+  background: #1d4ed8;
+  box-shadow: 0 0 4px rgba(37, 99, 235, 0.4);
 }
 
 .deleteBtn {
   background: #ef4444;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 2px 8px;
-  font-size: 12px;
-  cursor: pointer;
+  color: #fff;
 }
-
-.useBtn:hover {
-  background: #1d4ed8;
-}
-
 .deleteBtn:hover {
   background: #dc2626;
+  box-shadow: 0 0 4px rgba(239, 68, 68, 0.4);
 }
 
 .empty {
@@ -81,4 +110,17 @@
   font-size: 13px;
   text-align: center;
   padding: 8px 0;
+}
+.abilityName {
+  display: inline-block;
+  font-weight: 700;
+  color: #111827;
+  max-width: 4em; /* optional safeguard */
+}
+
+/* Optional: tighter clamp on smaller screens */
+@media (max-width: 480px) {
+  .abilityName {
+    max-width: 3em;
+  }
 }
