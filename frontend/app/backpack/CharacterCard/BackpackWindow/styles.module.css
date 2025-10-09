@@ -6,7 +6,6 @@
   flex-direction: column;
   justify-content: flex-start; /* ✅ Start at top */
   gap: 6px;
-  /* border:2px red solid; */
 
   /* ✅ Limit to 4 visible items with scroll */
   max-height: calc(4 * 48px + 24px);
@@ -117,21 +116,23 @@
 
 /* Use button */
 .useBtn {
-  background: #2563eb;
-  color: #fff;
+  background: #e0ecff;
+  color: #1e3a8a;
 }
 .useBtn:hover {
   background: #1d4ed8;
+  color: #fff;
   box-shadow: 0 0 4px rgba(37, 99, 235, 0.4);
 }
 
 /* Delete button */
 .deleteBtn {
-  background: #ef4444;
-  color: #fff;
+  background: #ffe4e6;
+  color: #b91c1c;
 }
 .deleteBtn:hover {
   background: #dc2626;
+  color: #fff;
   box-shadow: 0 0 4px rgba(239, 68, 68, 0.4);
 }
 
@@ -145,15 +146,68 @@
 
 /* Responsive: tighter clamp for smaller screens */
 @media (max-width: 480px) {
+  /* Trim ability name further */
   .abilityName {
     max-width: 3em;
   }
 }
-.useBtn {
-  background: #e0ecff;
-  color: #1e3a8a;
-}
-.deleteBtn {
-  background: #ffe4e6;
-  color: #b91c1c;
+
+/* ========================================================= */
+/* 📱 Mobile optimization — preserve mid-screen layout (≤600px) */
+/* ========================================================= */
+@media (max-width: 600px) {
+  /* 🧱 Make list taller on phones so it feels natural */
+  .itemList {
+    max-height: none;
+    overflow-y: visible;
+  }
+
+  /* 🧩 Stack left & right sections for each item */
+  .itemRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 8px 10px;
+  }
+
+  .itemLeft {
+    gap: 6px;
+  }
+
+  .abilityIcon {
+    width: 26px;
+    height: 26px;
+  }
+
+  .abilityLine {
+    font-size: 15px;
+  }
+
+  /* 🔘 Buttons full-width for easy tap */
+  .buttons {
+    width: 100%;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .btn {
+    padding: 6px 14px;
+    font-size: 14px;
+    border-radius: 6px;
+  }
+
+  /* ✅ Add subtle spacing between entries */
+  .itemRow + .itemRow {
+    margin-top: 4px;
+  }
+
+  /* 🧾 Prevent text overflow */
+  .abilityName {
+    max-width: 5em;
+    font-size: 15px;
+  }
+
+  .currentLevel {
+    font-size: 14px;
+  }
 }

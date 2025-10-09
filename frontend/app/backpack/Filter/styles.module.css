@@ -13,7 +13,7 @@
 /* === Main row === */
 .filterRow {
   display: flex;
-  justify-content: space-between; /* ⬅️ left/right groups */
+  justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
   gap: 12px;
@@ -105,28 +105,8 @@
   border-color: #c66;
   color: #a94442;
 }
-.searchInput {
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  padding: 6px 10px;
-  font-size: 0.95rem;
-  min-width: 140px;
-  margin-right: 8px;
-  transition: all 0.2s;
-}
 
-.searchInput:focus {
-  outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 4px rgba(0, 123, 255, 0.4);
-}
-.leftGroup {
-  display: flex;
-  align-items: center;
-  gap: 8px; /* tighten spacing */
-  flex-wrap: wrap;
-}
-
+/* === Search input === */
 .searchInput {
   border: 1px solid #ccc;
   border-radius: 6px;
@@ -142,8 +122,83 @@
   box-shadow: 0 0 4px rgba(0, 123, 255, 0.4);
 }
 
+/* === Groups === */
+.leftGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .rightGroup {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* ===================================================== */
+/* 📱 Mobile optimization – larger input + cleaner spacing */
+/* ===================================================== */
+@media (max-width: 600px) {
+  .filterRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .leftGroup,
+  .rightGroup {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 6px;
+  }
+
+  .filterBtn,
+  .toggleBtn,
+  .resetBtn {
+    height: 38px;
+    font-size: 15px;
+    padding: 0 12px;
+  }
+
+  .filterBtn {
+    flex: 1;
+    min-width: 30%;
+  }
+
+  /* ✨ Bigger, easier-to-type search bar */
+  .searchInput {
+    width: 100%;
+    min-width: 0;
+    font-size: 1.05rem;
+    padding: 10px 12px;
+    height: 42px;
+    border-radius: 8px;
+  }
+
+  .searchInput::placeholder {
+    color: #999;
+    font-size: 0.95rem;
+  }
+
+  .rightGroup {
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .toggleBtn {
+    flex: 1;
+    text-align: center;
+  }
+
+  .resetBtn {
+    flex: 0 0 100%;
+    text-align: center;
+    margin-top: 4px;
+  }
+
+  .filterSection {
+    padding: 12px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  }
 }

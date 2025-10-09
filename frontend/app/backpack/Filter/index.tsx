@@ -46,11 +46,11 @@ export default function BackpackFilter({
       setOwnerFilter(parsed.owner || "");
       setServerFilter(parsed.server || "");
       setRoleFilter(parsed.role || "");
-      setOnlyWithStorage(parsed.onlyWithStorage ?? true);
+      setOnlyWithStorage(parsed.onlyWithStorage ?? false);
       setShowCoreOnly(parsed.showCoreOnly ?? false);
       setNameFilter(parsed.name || "");
     } else {
-      setOnlyWithStorage(true);
+      setOnlyWithStorage(false);
       setShowCoreOnly(false);
     }
   }, []);
@@ -131,14 +131,14 @@ export default function BackpackFilter({
             className={`${styles.toggleBtn} ${onlyWithStorage ? styles.active : ""}`}
             onClick={() => setOnlyWithStorage(!onlyWithStorage)}
           >
-            仅显示有书
+            仅有书
           </button>
 
           <button
             className={`${styles.toggleBtn} ${showCoreOnly ? styles.active : ""}`}
             onClick={() => setShowCoreOnly(!showCoreOnly)}
           >
-            仅显示核心技能
+            仅核心技能
           </button>
 
           <button className={styles.resetBtn} onClick={handleReset}>
