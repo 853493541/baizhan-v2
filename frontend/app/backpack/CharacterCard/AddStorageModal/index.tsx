@@ -13,6 +13,24 @@ interface Props {
   onAdded: () => void;
 }
 
+const CORE_ABILITIES = [
+  "斗转金移",
+  "花钱消灾",
+  "黑煞落贪狼",
+  "一闪天诛",
+  "引燃",
+  "漾剑式",
+  "阴阳术退散",
+  "兔死狐悲",
+  "火焰之种",
+  "阴雷之种",
+  "飞云回转刀",
+  "三个铜钱",
+  "乾坤一掷",
+  "尸鬼封烬",
+  "厄毒爆发",
+];
+
 const getAbilityIcon = (name: string) => `/icons/${name}.png`;
 
 // ✅ Flatten all boss abilities into one list
@@ -37,7 +55,7 @@ export default function AddStorageModal({
 }: Props) {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState("");
-  const [level, setLevel] = useState<9 | 10>(9);
+  const [level, setLevel] = useState<9 | 10>(10);
   const [loading, setLoading] = useState(false);
 
   // ✅ Smart search: Chinese / full pinyin / initials
@@ -68,7 +86,6 @@ export default function AddStorageModal({
         }
       );
       if (!res.ok) throw new Error("添加失败");
-      alert(`✅ 已添加 ${selected}${level}重`);
       onAdded();
     } catch (e) {
       alert("❌ 添加失败");
@@ -82,6 +99,27 @@ export default function AddStorageModal({
     <div className={styles.overlay}>
       <div className={styles.modal}>
         <h3>添加技能到背包</h3>
+
+        {/* ✅ Quick Access (icons only) */}
+        <div className={styles.quickAccess}>
+          {CORE_ABILITIES.map((a) => (
+            <div
+              key={a}
+              className={`${styles.quickIconWrapper} ${
+                selected === a ? styles.selected : ""
+              }`}
+              title={a}
+              onClick={() => setSelected(a)}
+            >
+              <img
+                src={getAbilityIcon(a)}
+                alt={a}
+                className={styles.quickIcon}
+                onError={(e) => (e.currentTarget.style.display = "none")}
+              />
+            </div>
+          ))}
+        </div>
 
         <input
           type="text"
@@ -112,7 +150,6 @@ export default function AddStorageModal({
                 <span className={styles.name}>{a}</span>
               </div>
 
-              {/* ✅ Always visible, clean Add button */}
               <button
                 className={styles.addBtn}
                 onClick={(e) => {

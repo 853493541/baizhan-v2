@@ -22,6 +22,7 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
+/* === Search === */
 .search {
   border: 1px solid #ccc;
   border-radius: 6px;
@@ -29,6 +30,7 @@
   font-size: 14px;
   transition: border 0.2s;
 }
+
 .search:focus {
   outline: none;
   border-color: #28a745;
@@ -69,6 +71,7 @@
   border: 1px solid #28a745;
 }
 
+/* === Item Left Side === */
 .left {
   display: flex;
   align-items: center;
@@ -178,20 +181,66 @@
   cursor: pointer;
   transition: all 0.15s;
 }
+
 .cancel {
   background: #eee;
 }
+
 .cancel:hover {
   background: #e0e0e0;
 }
+
 .confirm {
   background: #28a745;
   color: #fff;
 }
+
 .confirm:hover {
   background: #22963a;
 }
+
 .confirm:disabled {
   opacity: 0.7;
   cursor: wait;
+}
+
+/* === Quick Access (Core Abilities) === */
+.quickAccess {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start; /* ✅ align from left */
+  gap: 6px;                    /* ✅ even spacing between icons */
+  margin-bottom: 12px;
+}
+
+.quickIconWrapper {
+  flex: 0 0 calc(12.5% - 6px); /* ✅ 8 per row (100 / 8) */
+  aspect-ratio: 1 / 1;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid transparent;
+  transition: border-color 0.2s ease; /* ✅ removed scale-up effect */
+  box-sizing: border-box;
+}
+
+.quickIconWrapper:hover {
+  border-color: #ccc;
+}
+
+.quickIconWrapper.selected {
+  border: 4px solid #28a745; /* ✅ thick green border */
+  background: #e9f9ec;
+}
+
+.quickIcon {
+  width: 100%;
+  height: 100%;
+  border-radius: 6px; /* ✅ smaller, matches outer border cleanly */
+  object-fit: cover;
+  display: block;
 }

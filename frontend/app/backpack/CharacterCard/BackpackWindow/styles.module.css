@@ -149,3 +149,11 @@
     max-width: 3em;
   }
 }
+.useBtn {
+  background: #e0ecff;
+  color: #1e3a8a;
+}
+.deleteBtn {
+  background: #ffe4e6;
+  color: #b91c1c;
+}
