@@ -1,7 +1,7 @@
 .card {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start; /* ✅ start everything at top */
   border: 1px solid #ddd;
   border-radius: 10px;
   padding: 20px;
@@ -11,7 +11,6 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
-
 /* Header */
 .headerRow {
   display: flex;

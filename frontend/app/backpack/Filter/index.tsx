@@ -110,7 +110,7 @@ export default function BackpackFilter({
             checked={onlyWithStorage}
             onChange={(e) => setOnlyWithStorage(e.target.checked)}
           />
-          仅显示有存储
+          仅显示有书
         </label>
 
         <button className={styles.resetBtn} onClick={handleReset}>

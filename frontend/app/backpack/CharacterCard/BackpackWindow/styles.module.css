@@ -4,9 +4,30 @@
   margin-top: 10px;
   display: flex;
   flex-direction: column;
+  justify-content: flex-start; /* ✅ Start at top */
   gap: 6px;
+  /* border:2px red solid; */
+
+  /* ✅ Limit to 4 visible items with scroll */
+  max-height: calc(4 * 48px + 24px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
 }
 
+/* ✅ Scrollbar styling (Chrome/Safari) */
+.itemList::-webkit-scrollbar {
+  width: 6px;
+}
+.itemList::-webkit-scrollbar-track {
+  background: transparent;
+}
+.itemList::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+/* === Individual Item Rows === */
 .itemRow {
   display: flex;
   justify-content: space-between;
@@ -20,17 +41,20 @@
   background: #eef3f9;
 }
 
+/* Used item styling */
 .itemUsed {
   opacity: 0.6;
   text-decoration: line-through;
 }
 
+/* === Left Section (Icon + Text) === */
 .itemLeft {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
+/* Ability Icon */
 .abilityIcon {
   width: 22px;
   height: 22px;
@@ -41,7 +65,7 @@
   flex-shrink: 0;
 }
 
-/* ✅ Compact inline layout for ability text */
+/* Inline layout for ability name + level */
 .abilityLine {
   display: flex;
   align-items: baseline;
@@ -50,8 +74,9 @@
   color: #1f2937;
 }
 
-/* ✅ Only this part is clamped (name only) */
+/* Ability name (trimmed to 4 chars max) */
 .abilityName {
+  display: inline-block;
   max-width: 4em;
   white-space: nowrap;
   overflow: hidden;
@@ -60,23 +85,26 @@
   color: #111827;
 }
 
-/* Levels and current info remain normal width */
+/* Level info */
 .levelInfo {
   font-weight: 500;
   color: #1f2937;
 }
 
+/* Current level (small gray text) */
 .currentLevel {
   font-size: 13px;
   color: #374151;
   opacity: 0.9;
 }
 
+/* === Right-side Buttons === */
 .buttons {
   display: flex;
   gap: 6px;
 }
 
+/* Button base */
 .btn {
   border: none;
   border-radius: 8px;
@@ -87,6 +115,7 @@
   transition: all 0.2s ease;
 }
 
+/* Use button */
 .useBtn {
   background: #2563eb;
   color: #fff;
@@ -96,6 +125,7 @@
   box-shadow: 0 0 4px rgba(37, 99, 235, 0.4);
 }
 
+/* Delete button */
 .deleteBtn {
   background: #ef4444;
   color: #fff;
@@ -105,20 +135,15 @@
   box-shadow: 0 0 4px rgba(239, 68, 68, 0.4);
 }
 
+/* Empty message */
 .empty {
   color: #555;
   font-size: 13px;
   text-align: center;
   padding: 8px 0;
 }
-.abilityName {
-  display: inline-block;
-  font-weight: 700;
-  color: #111827;
-  max-width: 4em; /* optional safeguard */
-}
 
-/* Optional: tighter clamp on smaller screens */
+/* Responsive: tighter clamp for smaller screens */
 @media (max-width: 480px) {
   .abilityName {
     max-width: 3em;

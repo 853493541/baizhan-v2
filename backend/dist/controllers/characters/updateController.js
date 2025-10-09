@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.useStoredAbility = exports.getStorage = exports.addToStorage = exports.deleteCharacter = exports.updateCharacter = exports.deleteAbilityHistory = exports.revertAbilityHistory = exports.getAbilityHistory = exports.updateCharacterAbilities = void 0;
+exports.deleteFromStorage = exports.useStoredAbility = exports.getStorage = exports.addToStorage = exports.deleteCharacter = exports.updateCharacter = exports.deleteAbilityHistory = exports.revertAbilityHistory = exports.getAbilityHistory = exports.updateCharacterAbilities = void 0;
 const Character_1 = __importDefault(require("../../models/Character"));
 const AbilityHistory_1 = __importDefault(require("../../models/AbilityHistory"));
 // =====================================================
@@ -269,3 +269,22 @@ const useStoredAbility = async (req, res) => {
     }
 };
 exports.useStoredAbility = useStoredAbility;
+const deleteFromStorage = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { ability, level } = req.body;
+        if (!ability || !level)
+            return res.status(400).json({ error: "缺少参数 ability 或 level" });
+        const char = await Character_1.default.findById(id);
+        if (!char)
+            return res.status(404).json({ error: "角色不存在" });
+        char.storage = (char.storage || []).filter((item) => !(item.ability === ability && item.level === level));
+        await char.save();
+        res.json({ success: true, message: `已删除 ${ability}${level}重` });
+    }
+    catch (err) {
+        console.error("❌ deleteFromStorage error:", err);
+        res.status(500).json({ error: err.message });
+    }
+};
+exports.deleteFromStorage = deleteFromStorage;

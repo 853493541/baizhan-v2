@@ -56,7 +56,12 @@ export default function BackpackWindow({ char, API_URL, onRefresh }: Props) {
       if (!res.ok) throw new Error("删除失败");
     });
 
-  const sortedStorage = [...(char.storage || [])].reverse();
+  // ✅ Sort: Lv9 first, then Lv10, from top to bottom
+  const sortedStorage = [...(char.storage || [])].sort((a, b) => {
+    if (a.level === 9 && b.level === 10) return -1;
+    if (a.level === 10 && b.level === 9) return 1;
+    return 0;
+  });
 
   if (!sortedStorage.length) return <p className={styles.empty}>仓库为空</p>;
 
@@ -65,7 +70,7 @@ export default function BackpackWindow({ char, API_URL, onRefresh }: Props) {
       {sortedStorage.map((item, idx) => {
         const currentLevel = char.abilities?.[item.ability] ?? null;
 
-        // ✅ Only show first 4 characters of ability name
+        // ✅ Show only first 4 chars of ability name
         const shortName =
           item.ability.length > 4 ? item.ability.slice(0, 4) : item.ability;
 
