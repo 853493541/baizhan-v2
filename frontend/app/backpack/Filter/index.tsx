@@ -75,7 +75,7 @@ export default function BackpackFilter({
     setOwnerFilter("");
     setServerFilter("");
     setRoleFilter("");
-    setOnlyWithStorage(true);
+    setOnlyWithStorage(false);
     setShowCoreOnly(false);
     setNameFilter("");
     localStorage.removeItem("backpackFilters");
