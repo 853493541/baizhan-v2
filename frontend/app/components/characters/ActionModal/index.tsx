@@ -48,7 +48,7 @@ export default function ActionModal({
   return (
     <div className={styles.modalOverlay} onClick={handleOverlayClick}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <h3 className={styles.modalTitle}>行动面板</h3>
+        <h3 className={styles.modalTitle}>可读书籍</h3>
 
         {/* === Section 1: 可研读技能 === */}
         {readables.length > 0 && (

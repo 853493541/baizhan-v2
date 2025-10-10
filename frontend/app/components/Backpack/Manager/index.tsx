@@ -3,7 +3,8 @@
 import React, { useState, useMemo } from "react";
 import { Plus, X } from "lucide-react";
 import styles from "./styles.module.css";
-import AddBackpackModal from "../AddBackpackModal"; // ✅ updated import
+import AddBackpackModal from "../AddBackpackModal";
+import { createPinyinMap, pinyinFilter } from "../../../../utils/pinyinSearch";
 
 interface StorageItem {
   ability: string;
@@ -33,12 +34,19 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const pinyinMap = useMemo(() => {
+    const names = (localChar.storage || []).map((s) => s.ability);
+    return createPinyinMap(names);
+  }, [localChar]);
+
   const filteredItems = useMemo(() => {
     const q = search.trim().toLowerCase();
     const list = localChar.storage || [];
     if (!q) return list;
-    return list.filter((it) => it.ability.toLowerCase().includes(q));
-  }, [search, localChar]);
+    const abilityNames = list.map((it) => it.ability);
+    const filteredNames = pinyinFilter(abilityNames, pinyinMap, q);
+    return list.filter((it) => filteredNames.includes(it.ability));
+  }, [search, localChar, pinyinMap]);
 
   const refreshCharacter = async () => {
     try {
@@ -68,7 +76,7 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
 
   const handleUse = (item: StorageItem) =>
     runWithRefresh(async () => {
-      if (!confirm(`确定要使用 ${item.ability}${item.level}重 吗？`)) return;
+      if (!confirm(`确定要使用 ${item.ability}：${item.level}重 吗？`)) return;
       const res = await fetch(
         `${API_URL}/api/characters/${char._id}/storage/use`,
         {
@@ -82,7 +90,7 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
 
   const handleDelete = (item: StorageItem) =>
     runWithRefresh(async () => {
-      if (!confirm(`确定要删除 ${item.ability}${item.level}重 吗？`)) return;
+      if (!confirm(`确定要删除 ${item.ability}：${item.level}重 吗？`)) return;
       const res = await fetch(
         `${API_URL}/api/characters/${char._id}/storage/delete`,
         {
@@ -99,7 +107,7 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
       <div className={styles.overlay}>
         <div className={styles.modal}>
           <div className={styles.header}>
-            <h2>全部背包技能 {loading && <span>加载中...</span>}</h2>
+            <h2>全部技能 {loading && <span>加载中...</span>}</h2>
             <button className={styles.closeBtn} onClick={onClose}>
               <X size={20} />
             </button>
@@ -116,7 +124,7 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
               className={styles.addBtn}
               onClick={() => setShowAddModal(true)}
             >
-              <Plus size={18} /> 添加技能
+              <Plus size={18} /> 添加书籍
             </button>
           </div>
 
@@ -140,7 +148,7 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
                     onError={(e) => (e.currentTarget.style.display = "none")}
                   />
                   <span className={styles.abilityText}>
-                    {item.ability} — {item.level}重
+                    {item.ability}：{item.level}重
                   </span>
                 </div>
 

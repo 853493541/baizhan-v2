@@ -127,9 +127,16 @@ export default function CharacterCard({
         </div>
       </div>
 
-      {/* === Orange Action Button (Above Backpack) === */}
-      {hasActions && (
-        <div className={styles.tradeableWrapper}>
+      {/* === Backpack Section === */}
+      {loading ? (
+        <p className={styles.loading}>刷新中...</p>
+      ) : (
+        <BackpackWindow char={currentChar} API_URL={API_URL} />
+      )}
+
+      {/* === Orange Action Button (Always at Bottom) === */}
+      <div className={styles.tradeableWrapper}>
+        {hasActions ? (
           <button
             className={styles.tradableButton}
             onClick={(e) => {
@@ -139,28 +146,23 @@ export default function CharacterCard({
           >
             ⚡ 有书籍可读
           </button>
+        ) : (
+          <div className={styles.tradeablePlaceholder}></div>
+        )}
 
-          {showModal && (
-            <ActionModal
-              tradables={tradables}
-              readables={readables}
-              localAbilities={localAbilities}
-              updateAbility={updateAbility}
-              API_URL={API_URL}
-              charId={currentChar._id}
-              onRefresh={refreshCharacter}
-              onClose={handleCloseModal}
-            />
-          )}
-        </div>
-      )}
-
-      {/* === Backpack Section === */}
-      {loading ? (
-        <p className={styles.loading}>刷新中...</p>
-      ) : (
-        <BackpackWindow char={currentChar} API_URL={API_URL} />
-      )}
+        {showModal && (
+          <ActionModal
+            tradables={tradables}
+            readables={readables}
+            localAbilities={localAbilities}
+            updateAbility={updateAbility}
+            API_URL={API_URL}
+            charId={currentChar._id}
+            onRefresh={refreshCharacter}
+            onClose={handleCloseModal}
+          />
+        )}
+      </div>
 
       {/* === Modals === */}
       {showAddModal && (

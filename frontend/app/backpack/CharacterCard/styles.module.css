@@ -4,7 +4,7 @@
 .card {
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: space-between; /* keep bottom action fixed */
   border: 1px solid #ddd;
   border-radius: 10px;
   padding: 20px;
@@ -15,27 +15,19 @@
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-/* Header */
+/* =========================
+   🧩 Header
+   ========================= */
 .headerRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  flex-wrap: wrap;
-}
-
-.classIcon {
-  width: 28px;
-  height: 28px;
-  margin-right: 8px;
-  margin-top: 2px;
+  margin-bottom: 10px;
 }
 
 .nameBlock {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  flex: 1;
   overflow: hidden;
 }
 
@@ -44,52 +36,115 @@
   font-weight: bold;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   flex-wrap: wrap;
   word-break: break-word;
 }
 
-.server {
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin-top: 2px;
-}
-
-/* Role color backgrounds */
-.tank {
-  background-color: #fff3cd;
-  color: #8b4513;
-}
-
-.dps {
-  background-color: #d4edda;
-  color: #155724;
-}
-
-.healer {
-  background-color: #f8d7da;
-  color: #721c24;
+.classIcon {
+  width: 28px;
+  height: 28px;
+  margin-right: 4px;
 }
 
 /* =========================
-   ⚡ Action Button Section
+   ⚙️ Header Actions
+   ========================= */
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.iconBtn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  background: #fff;
+  color: #333;
+  transition: all 0.2s ease;
+}
+
+.iconBtn:hover {
+  background: #f0f0f0;
+  transform: translateY(-1px);
+}
+
+/* + Add button */
+.addBtn {
+  color: #1d4ed8;
+}
+.addBtn:hover {
+  background: rgba(37, 99, 235, 0.1);
+}
+
+/* 📂 Manager button */
+.managerBtn {
+  position: relative;
+  color: #166534;
+}
+.managerBtn:hover {
+  background: rgba(40, 167, 69, 0.1);
+}
+
+/* Red badge for storage count */
+.badge {
+  position: absolute;
+  top: -3px;
+  right: -4px;
+  background: #dc2626;
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 999px;
+  min-width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+}
+
+/* =========================
+   🎨 Role Colors
+   ========================= */
+.tank {
+  background-color: #fff3cd;
+}
+.dps {
+  background-color: #d4edda;
+}
+.healer {
+  background-color: #f8d7da;
+}
+
+/* =========================
+   ⚡ Action Button (Bottom)
    ========================= */
 .tradeableWrapper {
   display: flex;
   justify-content: center;
+  align-items: center;
   width: 100%;
-  margin: 10px 0 14px 0;
+  margin-top: 12px;
+  min-height: 36px; /* always reserve space */
 }
 
 .tradableButton {
   width: 100%;
-  background-color: #ffe5b4; /* light orange */
+  background-color: #ffe5b4;
   color: #b94a00;
   border: 1px solid #f0ad4e;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
-  padding: 6px 0; /* ✅ reduced height for a slimmer feel */
+  padding: 6px 0;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
@@ -109,365 +164,27 @@
   transform: scale(0.98);
 }
 
+/* Placeholder for missing button */
+.tradeablePlaceholder {
+  width: 100%;
+  height: 28px;
+  border-radius: 8px;
+  background: transparent;
+}
+
 /* =========================
-   ➕ Add Button
+   🕓 Miscellaneous
    ========================= */
-.addBtn {
-  background: rgba(0, 0, 0, 0.1);
-  border: none;
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 26px;
-  font-weight: 700;
-  cursor: pointer;
-  opacity: 0.9;
-  text-shadow: 0 0 3px rgba(0, 0, 0, 0.25);
-  transition: transform 0.15s ease, opacity 0.15s ease, background 0.15s ease;
-}
-
-.addBtn:hover {
-  transform: scale(1.2);
-  opacity: 1;
-  background: rgba(40, 167, 69, 0.85);
-  text-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
-}
-
-.addBtn:active {
-  transform: scale(1.05);
-  background: rgba(40, 167, 69, 1);
-  text-shadow: none;
-}
-
-/* =============================
-   📱 Mobile optimization ≤600px
-   ============================= */
-@media (max-width: 600px) {
-  .card {
-    min-width: auto;
-    min-height: 160px;
-    padding: 14px 16px;
-    border-radius: 8px;
-  }
-
-  .headerRow {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-  }
-
-  .classIcon {
-    width: 28px;
-    height: 28px;
-    margin-right: 6px;
-  }
-
-  .name {
-    font-size: 1rem;
-    flex: 1;
-    line-height: 1.2;
-  }
-
-  .server {
-    font-size: 0.85rem;
-    color: #555;
-  }
-
-  .addBtn {
-    width: 40px;
-    height: 40px;
-    font-size: 28px;
-    margin-top: 0;
-    align-self: center;
-    flex-shrink: 0;
-  }
-
-  .tradableButton {
-    font-size: 15px;
-    padding: 7px 0;
-  }
-}
-.card {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  padding: 20px;
-  min-width: 280px;
-  min-height: 180px;
-  background: #fff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-/* Header */
-.headerRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.classIcon {
-  width: 28px;
-  height: 28px;
-  margin-right: 8px;
-}
-
-.nameBlock {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.name {
-  font-size: 1.05rem;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex-wrap: wrap;
-}
-
-.server {
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin-top: 2px;
-}
-
-/* Role colors */
-.tank {
-  background-color: #fff3cd;
-  color: #8b4513;
-}
-
-.dps {
-  background-color: #d4edda;
-  color: #155724;
-}
-
-.healer {
-  background-color: #f8d7da;
-  color: #721c24;
-}
-
-/* Add button */
-.addBtn {
-  background: rgba(0, 0, 0, 0.1);
-  border: none;
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 26px;
-  font-weight: 700;
-  cursor: pointer;
-  opacity: 0.9;
-  transition: transform 0.15s ease, opacity 0.15s ease, background 0.15s ease;
-}
-.addBtn:hover {
-  transform: scale(1.1);
-  background: rgba(40, 167, 69, 0.85);
-}
-
-/* ⚡ Orange Action Button */
-.tradeableWrapper {
-  display: flex;
-  justify-content: center;
-  margin: 10px 0 12px 0;
-  width: 100%;
-}
-.tradableButton {
-  width: 100%;
-  background-color: #ffe5b4;
-  color: #b94a00;
-  border: 1px solid #f0ad4e;
-  border-radius: 8px;
+.loading {
+  text-align: center;
+  color: #666;
   font-size: 14px;
-  font-weight: 600;
-  padding: 5px 0; /* ⬇️ slightly shorter height */
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-.tradableButton:hover {
-  background-color: #ffcf7d;
-  border-color: #e5a832;
-  transform: translateY(-1px);
-}
-.tradableButton:active {
-  transform: scale(0.98);
+  padding: 4px 0;
 }
 
-/* Mobile tweaks */
-@media (max-width: 600px) {
-  .card {
-    padding: 14px 16px;
-  }
-  .addBtn {
-    width: 40px;
-    height: 40px;
-  }
-}
-.card {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  padding: 20px;
-  min-width: 280px;
-  min-height: 180px;
-  background: #fff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-/* === Header === */
-.headerRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.nameBlock {
-  flex: 1;
-  overflow: hidden;
-}
-
-.name {
-  font-size: 1.05rem;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.classIcon {
-  width: 28px;
-  height: 28px;
-  margin-right: 4px;
-}
-
-/* === Header Actions (top-right) === */
-.headerActions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.iconBtn {
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  border-radius: 50%;
-  border: 1px solid #ccc;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background: #fff;
-  color: #333;
-}
-.iconBtn:hover {
-  background: #f0f0f0;
-  transform: translateY(-1px);
-}
-
-.addBtn {
-  color: #1d4ed8;
-}
-.addBtn:hover {
-  background: rgba(37, 99, 235, 0.1);
-}
-
-.managerBtn {
-  position: relative;
-  color: #166534;
-}
-.managerBtn:hover {
-  background: rgba(40, 167, 69, 0.1);
-}
-
-.badge {
-  position: absolute;
-  top: -3px;
-  right: -4px;
-  background: #dc2626;
-  color: white;
-  font-size: 10px;
-  font-weight: 600;
-  border-radius: 999px;
-  min-width: 14px;
-  height: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 3px;
-}
-
-/* === Role Colors === */
-.tank {
-  background-color: #fff3cd;
-}
-.dps {
-  background-color: #d4edda;
-}
-.healer {
-  background-color: #f8d7da;
-}
-
-/* === Orange Action Button === */
-.tradeableWrapper {
-  display: flex;
-  justify-content: center;
-  margin: 10px 0 14px 0;
-  width: 100%;
-}
-.tradableButton {
-  width: 100%;
-  background-color: #ffe5b4;
-  color: #b94a00;
-  border: 1px solid #f0ad4e;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  padding: 6px 0;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-.tradableButton:hover {
-  background-color: #ffcf7d;
-  border-color: #e5a832;
-  transform: translateY(-1px);
-}
-.tradableButton:active {
-  transform: scale(0.98);
-}
-
-/* === Mobile === */
+/* =========================
+   📱 Mobile Optimization ≤600px
+   ========================= */
 @media (max-width: 600px) {
   .card {
     padding: 14px 16px;
@@ -475,4 +192,47 @@
   .headerActions {
     gap: 4px;
   }
+  .tradableButton {
+    font-size: 15px;
+    padding: 7px 0;
+  }
+}
+/* =========================
+   ⚡ Action Button (Bottom)
+   ========================= */
+.tradeableWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: 8px; /* 🔽 slightly tighter spacing from content */
+  min-height: 28px; /* 🔽 reduced from 36px */
+}
+
+.tradableButton {
+  width: 100%;
+  background-color: #ffe5b4;
+  color: #b94a00;
+  border: 1px solid #f0ad4e;
+  border-radius: 6px; /* 🔽 tighter radius */
+  font-size: 13px; /* 🔽 slightly smaller font */
+  font-weight: 600;
+  padding: 4px 0; /* 🔽 reduced from 6px */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  letter-spacing: 0.2px;
+}
+
+.tradableButton:hover {
+  background-color: #ffcf7d;
+  border-color: #e5a832;
+  transform: translateY(-1px);
+}
+
+.tradableButton:active {
+  transform: scale(0.98);
 }

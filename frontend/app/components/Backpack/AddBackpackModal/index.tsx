@@ -69,6 +69,7 @@ export default function AddBackpackModal({
     });
   }, [search]);
 
+  // ✅ auto close after success
   const handleConfirm = async () => {
     if (!selected) return alert("请选择技能");
     setLoading(true);
@@ -82,7 +83,8 @@ export default function AddBackpackModal({
         }
       );
       if (!res.ok) throw new Error("添加失败");
-      onAdded();
+      onAdded();  // refresh parent
+      onClose();  // close modal automatically ✅
     } catch (e) {
       alert("❌ 添加失败");
       console.error(e);
@@ -96,6 +98,7 @@ export default function AddBackpackModal({
       <div className={styles.modal}>
         <h3>添加技能到背包</h3>
 
+        {/* === Quick Access (core skills) === */}
         <div className={styles.quickAccess}>
           {CORE_ABILITIES.map((a) => (
             <div
@@ -116,6 +119,7 @@ export default function AddBackpackModal({
           ))}
         </div>
 
+        {/* === Search === */}
         <input
           type="text"
           placeholder="搜索技能..."
@@ -124,6 +128,7 @@ export default function AddBackpackModal({
           className={styles.search}
         />
 
+        {/* === Skill List === */}
         <div className={styles.list}>
           {filtered.map((a) => (
             <div
@@ -159,6 +164,7 @@ export default function AddBackpackModal({
           ))}
         </div>
 
+        {/* === Level Select === */}
         <div className={styles.levelRow}>
           {[9, 10].map((l) => (
             <button
@@ -173,6 +179,7 @@ export default function AddBackpackModal({
           ))}
         </div>
 
+        {/* === Footer === */}
         <div className={styles.actions}>
           <button onClick={onClose} className={styles.cancel}>
             取消
