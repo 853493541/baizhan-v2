@@ -2,10 +2,8 @@
 
 import { useState } from "react";
 import { Character } from "@/types/Character";
-import { getTradables } from "@/utils/tradables";
 import { updateCharacterAbilities } from "@/lib/characterService";
 import styles from "./styles.module.css";
-import TradableModal from "../TradableModal";
 
 interface CharacterCardProps {
   character: Character;
@@ -13,12 +11,9 @@ interface CharacterCardProps {
 }
 
 export default function CharacterCard({ character, onUpdated }: CharacterCardProps) {
-  const [showModal, setShowModal] = useState(false);
   const [localAbilities, setLocalAbilities] = useState<Record<string, number>>(
     character.abilities ? { ...character.abilities } : {}
   );
-
-  const tradables = getTradables(character);
 
   const updateAbility = async (ability: string, newLevel: number) => {
     if (newLevel < 0) return;
@@ -32,11 +27,6 @@ export default function CharacterCard({ character, onUpdated }: CharacterCardPro
     } catch (err) {
       console.error("⚠️ Error updating ability", err);
     }
-  };
-
-  const handleCloseModal = () => {
-    setShowModal(false);
-    onUpdated?.();
   };
 
   let roleClass = "";
@@ -58,7 +48,7 @@ export default function CharacterCard({ character, onUpdated }: CharacterCardPro
       className={`${styles.card} ${roleClass}`}
       onClick={() => (window.location.href = `/characters/${character._id}`)}
     >
-      {/* top content */}
+      {/* === Top Content === */}
       <div className={styles.content}>
         <div className={styles.headerRow}>
           <img src={classIcon} alt={character.class} className={styles.classIcon} />
@@ -78,31 +68,6 @@ export default function CharacterCard({ character, onUpdated }: CharacterCardPro
           <span className={styles.account}>{character.account}</span>
         </div>
       </div>
-
-      {/* bottom pinned tradable */}
-      {tradables.length > 0 && (
-        <div className={styles.tradeableWrapper}>
-          <button
-            className={styles.tradableButton}
-            onClick={(e) => {
-              e.stopPropagation(); // ✅ prevent card navigation
-              setShowModal(true);
-            }}
-          >
-            ⚡ 有紫书可补
-          </button>
-
-          {showModal && (
-            <TradableModal
-              tradables={tradables}
-              localAbilities={localAbilities}
-              updateAbility={updateAbility}
-              onCopy={(ability) => navigator.clipboard.writeText(ability)}
-              onClose={handleCloseModal}
-            />
-          )}
-        </div>
-      )}
     </div>
   );
 }

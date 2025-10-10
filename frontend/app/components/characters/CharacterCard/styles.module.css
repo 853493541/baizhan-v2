@@ -71,25 +71,7 @@
   margin-top: 2px;
 }
 
-/* pinned tradable */
-.tradeableWrapper {
-  margin-top: auto; /* push to bottom */
-}
-
-.tradableButton {
-  margin-top: 6px;
-  padding: 3px 6px;
-  background-color: #ffe0b2;
-  color: #e65100;
-  border: 1px solid #ff9800;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: bold;
-  width: 100%;
-  cursor: pointer;
-}
-
-/* Role colors */
+/* === Role colors === */
 .tank {
   background-color: #fff3cd;
   color: #8b4513;
