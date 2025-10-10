@@ -1,0 +1,218 @@
+/* =========================
+   ⚙️ Overlay and Modal Base
+   ========================= */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  width: 420px;
+  max-width: 95%;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    transform: scale(0.98);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* =========================
+   🧾 Title and Form
+   ========================= */
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 16px;
+  color: #1b4332;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* =========================
+   🧩 Option Button Group
+   ========================= */
+.optionGroup {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.optionBtn {
+  background: #f5f5f5;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  color: #333;
+  transition: background 0.2s ease, border 0.2s ease, color 0.2s ease;
+}
+
+.optionBtn:hover {
+  background: #e9ecef;
+}
+
+.active {
+  background: #28a745;
+  color: #fff;
+  border-color: #28a745;
+}
+
+/* =========================
+   🌙 Custom Toggle Switch
+   ========================= */
+.toggle {
+  width: 46px;
+  height: 24px;
+  border-radius: 999px;
+  background: #ccc;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.toggle .knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: left 0.2s ease;
+}
+
+.toggle.on {
+  background: #28a745;
+}
+
+.toggle.on .knob {
+  left: 25px;
+}
+
+/* =========================
+   🔘 Action Buttons
+   ========================= */
+.actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.save {
+  background: #28a745;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.save:hover {
+  background: #218838;
+}
+
+.cancel {
+  background: #ccc;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  margin-right: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.cancel:hover {
+  background: #b3b3b3;
+}
+
+.delete {
+  background: #dc3545;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.delete:hover {
+  background: #c82333;
+}
+
+/* =========================
+   📱 Mobile Adjustments
+   ========================= */
+@media (max-width: 480px) {
+  .modal {
+    width: 90%;
+    padding: 20px;
+  }
+
+  .optionGroup {
+    gap: 6px;
+  }
+
+  .optionBtn {
+    flex: 1;
+    text-align: center;
+  }
+
+  .actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .delete {
+    width: 100%;
+  }
+
+  .cancel,
+  .save {
+    width: 48%;
+  }
+}
+.saving {
+  font-size: 13px;
+  color: #888;
+  text-align: right;
+  margin-top: 8px;
+}
