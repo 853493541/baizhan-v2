@@ -33,12 +33,10 @@ const CORE_ABILITIES = [
 
 const getAbilityIcon = (name: string) => `/icons/${name}.png`;
 
-// ✅ Flatten all boss abilities into one list
 const ALL_ABILITIES: string[] = Array.from(
   new Set(Object.values(bossData).flat() as string[])
 );
 
-// ✅ Build a lookup table with pinyin and initials
 const PINYIN_MAP: Record<string, { full: string; short: string }> = {};
 for (const ability of ALL_ABILITIES) {
   const pyArr = pinyin(ability, { style: pinyin.STYLE_NORMAL }).flat();
@@ -47,7 +45,7 @@ for (const ability of ALL_ABILITIES) {
   PINYIN_MAP[ability] = { full, short };
 }
 
-export default function AddStorageModal({
+export default function AddBackpackModal({
   API_URL,
   characterId,
   onClose,
@@ -58,11 +56,9 @@ export default function AddStorageModal({
   const [level, setLevel] = useState<9 | 10>(10);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Smart search: Chinese / full pinyin / initials
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
     if (!term) return ALL_ABILITIES;
-
     return ALL_ABILITIES.filter((name) => {
       const py = PINYIN_MAP[name];
       return (
@@ -100,7 +96,6 @@ export default function AddStorageModal({
       <div className={styles.modal}>
         <h3>添加技能到背包</h3>
 
-        {/* ✅ Quick Access (icons only) */}
         <div className={styles.quickAccess}>
           {CORE_ABILITIES.map((a) => (
             <div

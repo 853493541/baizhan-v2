@@ -1,0 +1,207 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1200;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  width: 600px;
+  height: 700px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.closeBtn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #666;
+  transition: color 0.2s;
+}
+.closeBtn:hover {
+  color: #000;
+}
+
+.topBar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.search {
+  flex: 1;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 14px;
+}
+.search:focus {
+  outline: none;
+  border-color: #28a745;
+}
+
+.addBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #28a745;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.addBtn:hover {
+  background: #22963a;
+}
+
+.itemList {
+  flex: 1;
+  overflow-y: auto;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.itemRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 6px 10px;
+  transition: background 0.15s;
+}
+.itemRow:hover {
+  background: #eef3f9;
+}
+.itemUsed {
+  opacity: 0.6;
+  text-decoration: line-through;
+}
+
+.itemLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.abilityIcon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.abilityText {
+  font-size: 14px;
+  color: #1f2937;
+  font-weight: 500;
+}
+
+.buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.btn {
+  border: none;
+  border-radius: 8px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.useBtn {
+  background: #e0ecff;
+  color: #1e3a8a;
+}
+.useBtn:hover {
+  background: #1d4ed8;
+  color: #fff;
+}
+
+.deleteBtn {
+  background: #ffe4e6;
+  color: #b91c1c;
+}
+.deleteBtn:hover {
+  background: #dc2626;
+  color: #fff;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.cancelBtn {
+  border: none;
+  background: #eee;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.cancelBtn:hover {
+  background: #ddd;
+}
+
+.empty {
+  color: #555;
+  text-align: center;
+  padding: 12px 0;
+  font-size: 14px;
+}
+
+@media (max-width: 600px) {
+  .modal {
+    width: 92%;
+    height: auto;
+    max-height: 85vh;
+    padding: 16px;
+  }
+  .search {
+    font-size: 15px;
+  }
+  .addBtn {
+    font-size: 15px;
+    padding: 8px 14px;
+  }
+  .abilityText {
+    font-size: 15px;
+  }
+  .btn {
+    font-size: 14px;
+    padding: 5px 12px;
+  }
+  .cancelBtn {
+    flex: 1;
+    padding: 10px 0;
+  }
+}
