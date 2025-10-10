@@ -45,11 +45,8 @@ interface Props {
 
 export default function BackpackWindow({ char: initialChar, API_URL }: Props) {
   const [char, setChar] = useState<Character>(initialChar);
-  const [showManager, setShowManager] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // === Refresh character ===
   const refreshCharacter = async () => {
     try {
       setLoading(true);
@@ -103,47 +100,17 @@ export default function BackpackWindow({ char: initialChar, API_URL }: Props) {
       if (!res.ok) throw new Error("删除失败");
     });
 
-  // === Ability logic ===
   const allItems = char.storage || [];
-
-  // Sort: core abilities first
   const sortedItems = [...allItems].sort((a, b) => {
     const aCore = CORE_ABILITIES.includes(a.ability);
     const bCore = CORE_ABILITIES.includes(b.ability);
     return aCore === bCore ? 0 : aCore ? -1 : 1;
   });
-
-  // Limit display to 3
   const limitedItems = sortedItems.slice(0, 3);
 
   return (
-    <div className={`${styles.wrapper}`}>
-      {/* === Header === */}
-      <div className={styles.headerRow}>
-        <div className={styles.actions}>
-          <button
-            className={`${styles.iconBtn} ${styles.addBtn}`}
-            title="添加技能"
-            onClick={() => setShowAddModal(true)}
-          >
-            +
-          </button>
-
-          <button
-            className={`${styles.iconBtn} ${styles.managerBtn}`}
-            title="查看全部技能"
-            onClick={() => setShowManager(true)}
-          >
-            📂
-            {char.storage && char.storage.length > 3 && (
-              <span className={styles.badge}>{char.storage.length}</span>
-            )}
-          </button>
-        </div>
-      </div>
-
+    <div className={styles.wrapper}>
       {loading && <p className={styles.loading}>加载中...</p>}
-
       {!limitedItems.length && <p className={styles.empty}>暂无技能记录</p>}
 
       <ul className={styles.itemList}>
@@ -151,13 +118,10 @@ export default function BackpackWindow({ char: initialChar, API_URL }: Props) {
           const currentLevel = char.abilities?.[item.ability] ?? null;
           const shortName =
             item.ability.length > 4 ? item.ability.slice(0, 4) : item.ability;
-
           return (
             <li
               key={`${item.ability}-${idx}`}
-              className={`${styles.itemRow} ${
-                item.used ? styles.itemUsed : ""
-              }`}
+              className={`${styles.itemRow} ${item.used ? styles.itemUsed : ""}`}
             >
               <div className={styles.itemLeft}>
                 <img
@@ -200,26 +164,6 @@ export default function BackpackWindow({ char: initialChar, API_URL }: Props) {
           );
         })}
       </ul>
-
-      {/* Add Modal */}
-      {showAddModal && (
-        <AddBackpackModal
-          API_URL={API_URL}
-          characterId={char._id}
-          onClose={() => setShowAddModal(false)}
-          onAdded={refreshCharacter}
-        />
-      )}
-
-      {/* Manager Modal */}
-      {showManager && (
-        <Manager
-          char={char}
-          API_URL={API_URL}
-          onClose={() => setShowManager(false)}
-          onUpdated={setChar}
-        />
-      )}
     </div>
   );
 }

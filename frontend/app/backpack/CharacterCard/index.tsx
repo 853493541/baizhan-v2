@@ -3,10 +3,13 @@
 import React, { useState } from "react";
 import styles from "./styles.module.css";
 import BackpackWindow from "../../components/Backpack/Index";
-import ActionModal from "../../components/characters/ActionModal"; // ✅ unified modal
+import ActionModal from "../../components/characters/ActionModal";
 import { getTradables } from "@/utils/tradables";
 import { getReadableFromStorage } from "@/utils/readables";
 import { updateCharacterAbilities } from "@/lib/characterService";
+
+import Manager from "../../components/Backpack/Manager";
+import AddBackpackModal from "../../components/Backpack/AddBackpackModal";
 
 interface Character {
   _id: string;
@@ -34,11 +37,12 @@ export default function CharacterCard({
   const [currentChar, setCurrentChar] = useState<Character>(char);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [showManager, setShowManager] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [localAbilities, setLocalAbilities] = useState<Record<string, number>>(
     char.abilities ? { ...char.abilities } : {}
   );
 
-  /** 🔄 Refresh character data */
   const refreshCharacter = async (): Promise<Character | null> => {
     try {
       setLoading(true);
@@ -58,15 +62,12 @@ export default function CharacterCard({
     }
   };
 
-  /** ⚡️ Compute upgrade opportunities */
   const tradables = getTradables(currentChar);
   const readables = getReadableFromStorage(currentChar);
 
-  /** ✏️ Update ability both locally and remotely */
   const updateAbility = async (ability: string, newLevel: number) => {
     if (newLevel < 0) return;
     setLocalAbilities((prev) => ({ ...prev, [ability]: newLevel }));
-
     try {
       const updatedChar = await updateCharacterAbilities(currentChar._id, {
         [ability]: newLevel,
@@ -101,6 +102,28 @@ export default function CharacterCard({
             />
             {currentChar.name}
           </div>
+        </div>
+
+        {/* === Add / Manager Buttons === */}
+        <div className={styles.headerActions}>
+          <button
+            className={`${styles.iconBtn} ${styles.addBtn}`}
+            title="添加技能"
+            onClick={() => setShowAddModal(true)}
+          >
+            +
+          </button>
+
+          <button
+            className={`${styles.iconBtn} ${styles.managerBtn}`}
+            title="查看全部技能"
+            onClick={() => setShowManager(true)}
+          >
+            📂
+            {currentChar.storage && currentChar.storage.length > 3 && (
+              <span className={styles.badge}>{currentChar.storage.length}</span>
+            )}
+          </button>
         </div>
       </div>
 
@@ -137,6 +160,25 @@ export default function CharacterCard({
         <p className={styles.loading}>刷新中...</p>
       ) : (
         <BackpackWindow char={currentChar} API_URL={API_URL} />
+      )}
+
+      {/* === Modals === */}
+      {showAddModal && (
+        <AddBackpackModal
+          API_URL={API_URL}
+          characterId={currentChar._id}
+          onClose={() => setShowAddModal(false)}
+          onAdded={refreshCharacter}
+        />
+      )}
+
+      {showManager && (
+        <Manager
+          char={currentChar}
+          API_URL={API_URL}
+          onClose={() => setShowManager(false)}
+          onUpdated={setCurrentChar}
+        />
       )}
     </div>
   );

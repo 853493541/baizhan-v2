@@ -324,3 +324,155 @@
     height: 40px;
   }
 }
+.card {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 20px;
+  min-width: 280px;
+  min-height: 180px;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* === Header === */
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.nameBlock {
+  flex: 1;
+  overflow: hidden;
+}
+
+.name {
+  font-size: 1.05rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.classIcon {
+  width: 28px;
+  height: 28px;
+  margin-right: 4px;
+}
+
+/* === Header Actions (top-right) === */
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.iconBtn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #fff;
+  color: #333;
+}
+.iconBtn:hover {
+  background: #f0f0f0;
+  transform: translateY(-1px);
+}
+
+.addBtn {
+  color: #1d4ed8;
+}
+.addBtn:hover {
+  background: rgba(37, 99, 235, 0.1);
+}
+
+.managerBtn {
+  position: relative;
+  color: #166534;
+}
+.managerBtn:hover {
+  background: rgba(40, 167, 69, 0.1);
+}
+
+.badge {
+  position: absolute;
+  top: -3px;
+  right: -4px;
+  background: #dc2626;
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 999px;
+  min-width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+}
+
+/* === Role Colors === */
+.tank {
+  background-color: #fff3cd;
+}
+.dps {
+  background-color: #d4edda;
+}
+.healer {
+  background-color: #f8d7da;
+}
+
+/* === Orange Action Button === */
+.tradeableWrapper {
+  display: flex;
+  justify-content: center;
+  margin: 10px 0 14px 0;
+  width: 100%;
+}
+.tradableButton {
+  width: 100%;
+  background-color: #ffe5b4;
+  color: #b94a00;
+  border: 1px solid #f0ad4e;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 6px 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.tradableButton:hover {
+  background-color: #ffcf7d;
+  border-color: #e5a832;
+  transform: translateY(-1px);
+}
+.tradableButton:active {
+  transform: scale(0.98);
+}
+
+/* === Mobile === */
+@media (max-width: 600px) {
+  .card {
+    padding: 14px 16px;
+  }
+  .headerActions {
+    gap: 4px;
+  }
+}
