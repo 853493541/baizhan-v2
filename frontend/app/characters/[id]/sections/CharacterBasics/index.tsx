@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FaCog } from "react-icons/fa"; // ⚙️ gear icon
+import EditBasicInfoModal from "@/app/components/characters/EditBasicInfoModal"; // ✅ use shared modal
 import styles from "./styles.module.css";
 
 interface Character {
@@ -23,12 +24,9 @@ export interface CharacterEditData {
 
 interface CharacterBasicsProps {
   character: Character;
-  onSave: (data: CharacterEditData) => void;
+  onSave: () => void; // ✅ we’ll just trigger parent refresh
   onDelete: () => void;
 }
-
-const servers = ["梦江南", "乾坤一掷", "唯我独尊"];
-const roles = ["DPS", "Tank", "Healer"];
 
 export default function CharacterBasics({
   character,
@@ -38,6 +36,7 @@ export default function CharacterBasics({
   const [isModalOpen, setModalOpen] = useState(false);
   const genderLabel = character.gender === "男" ? "男 ♂" : "女 ♀";
 
+  // === Role color class ===
   const roleClass =
     character.role === "Tank"
       ? styles.tank
@@ -48,7 +47,7 @@ export default function CharacterBasics({
   return (
     <>
       <div className={`${styles.card} ${roleClass}`}>
-        {/* Edit button at top-right */}
+        {/* ⚙️ Edit button at top-right */}
         <button
           onClick={() => setModalOpen(true)}
           className={styles.iconButton}
@@ -65,12 +64,14 @@ export default function CharacterBasics({
         </div>
       </div>
 
+      {/* ✅ Shared modal for editing basic info */}
       {isModalOpen && (
-        <CharacterEditModal
+        <EditBasicInfoModal
           isOpen={isModalOpen}
           onClose={() => setModalOpen(false)}
-          onSave={onSave}
+          onSave={onSave} // refresh parent after save
           onDelete={onDelete}
+          characterId={character._id}
           initialData={{
             server: character.server,
             role: character.role,
@@ -79,105 +80,5 @@ export default function CharacterBasics({
         />
       )}
     </>
-  );
-}
-
-// ======================
-// Edit Modal inline
-// ======================
-interface CharacterEditModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (data: CharacterEditData) => void;
-  onDelete: () => void;
-  initialData: CharacterEditData;
-}
-
-function CharacterEditModal({
-  isOpen,
-  onClose,
-  onSave,
-  onDelete,
-  initialData,
-}: CharacterEditModalProps) {
-  const [server, setServer] = useState(initialData.server);
-  const [role, setRole] = useState(initialData.role);
-  const [active, setActive] = useState(initialData.active);
-
-  useEffect(() => {
-    setServer(initialData.server);
-    setRole(initialData.role);
-    setActive(initialData.active);
-  }, [initialData, isOpen]);
-
-  if (!isOpen) return null;
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSave({ server, role, active });
-    onClose();
-  };
-
-  return (
-    <div className={styles.modalOverlay}>
-      <div className={styles.modal}>
-        <h2 style={{ marginBottom: 16 }}>编辑角色</h2>
-        <form onSubmit={handleSubmit} style={{ display: "grid", gap: "12px" }}>
-          <label>
-            区服/分组:
-            <select
-              value={server}
-              onChange={(e) => setServer(e.target.value)}
-              style={{ marginLeft: 8 }}
-            >
-              {servers.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label>
-            定位:
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              style={{ marginLeft: 8 }}
-            >
-              {roles.map((r) => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label>
-            是否启用:
-            <input
-              type="checkbox"
-              checked={active}
-              onChange={(e) => setActive(e.target.checked)}
-              style={{ marginLeft: 8 }}
-            />
-          </label>
-
-          <div className={styles.modalActions}>
-            <button type="button" onClick={onDelete} className={styles.delete}>
-              删除角色
-            </button>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button type="button" onClick={onClose} className={styles.cancel}>
-                取消
-              </button>
-              <button type="submit" className={styles.save}>
-                保存
-              </button>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
   );
 }

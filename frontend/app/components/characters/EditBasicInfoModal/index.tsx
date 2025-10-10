@@ -12,7 +12,7 @@ interface CharacterEditData {
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  onSave: () => void;        // refresh parent list
+  onSave: () => void; // refresh parent list
   characterId: string;
   initialData: CharacterEditData;
 }
@@ -45,45 +45,38 @@ export default function EditBasicInfoModal({
   if (!isOpen) return null;
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
-  if (!API_URL) console.warn("⚠️ NEXT_PUBLIC_API_URL not defined!");
 
-  // ✅ Auto-save helper (fixed URL)
+  // ✅ Auto-save helper
   const autoSave = async (field: Partial<CharacterEditData>) => {
-    console.log("🟡 AutoSave:", field);
-    const url = `${API_URL}/api/characters/${characterId}`; // ✅ fixed path
-    console.log("🔵 PUT →", url);
-
+    if (!API_URL) return;
     setSaving(true);
     try {
-      const res = await fetch(url, {
+      const res = await fetch(`${API_URL}/api/characters/${characterId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(field),
       });
-
-      console.log("🟣 Status:", res.status);
-      const text = await res.text();
-      console.log("📩 Response:", text.slice(0, 150)); // print snippet only
-
-      if (!res.ok) throw new Error(`Auto save failed: ${res.status}`);
-      onSave();
+      if (!res.ok) throw new Error(`Save failed: ${res.status}`);
+      onSave(); // refresh parent data
     } catch (err) {
-      console.error("❌ Auto save error:", err);
+      console.error("Auto save failed:", err);
     } finally {
       setSaving(false);
     }
   };
 
   const handleServerClick = (s: string) => {
-    if (s === server) return;
-    setServer(s);
-    autoSave({ server: s });
+    if (s !== server) {
+      setServer(s);
+      autoSave({ server: s });
+    }
   };
 
   const handleRoleClick = (r: string) => {
-    if (r === role) return;
-    setRole(r);
-    autoSave({ role: r });
+    if (r !== role) {
+      setRole(r);
+      autoSave({ role: r });
+    }
   };
 
   const handleToggle = () => {
@@ -93,7 +86,7 @@ export default function EditBasicInfoModal({
   };
 
   const handleDelete = async () => {
-    if (!confirm("确定要删除这个角色吗？")) return;
+    if (!API_URL || !confirm("确定要删除这个角色吗？")) return;
     try {
       const res = await fetch(`${API_URL}/api/characters/${characterId}`, {
         method: "DELETE",
@@ -102,11 +95,10 @@ export default function EditBasicInfoModal({
       onSave();
       onClose();
     } catch (err) {
-      console.error("❌ Failed to delete character:", err);
+      console.error("Delete failed:", err);
     }
   };
 
-  // === Render ===
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
