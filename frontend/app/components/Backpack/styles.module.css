@@ -136,3 +136,36 @@
   gap: 4px;
   min-height: calc((22px + 8px) * 3); /* ✅ reserve height for 3 rows */
 }
+/* === 📱 Phone Layout Adjustments === */
+@media (max-width: 600px) {
+  .abilityName {
+    display: none; /* ✅ hide name on phones */
+  }
+
+  .abilityLine {
+    gap: 2px;
+  }
+
+  .abilityIcon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .levelInfo,
+  .currentLevel {
+    font-size: 11px;
+  }
+
+  .itemRow {
+    padding: 3px 5px; /* tighter */
+  }
+
+  .buttons {
+    gap: 3px;
+  }
+
+  .btn {
+    padding: 2px 4px;
+    font-size: 11px;
+  }
+}

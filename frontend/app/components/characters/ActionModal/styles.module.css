@@ -187,3 +187,27 @@
     align-items: center;
   }
 }
+@media (min-width: 601px) and (max-width: 1200px) {
+  .itemRow {
+    flex-direction: row;
+    align-items: center;
+    padding: 6px 8px; /* 🔽 was 8px 10px — trimmed sides */
+  }
+
+  .itemLeft {
+    gap: 8px; /* 🔽 was 10px */
+  }
+
+  .abilityLine {
+    gap: 4px; /* 🔽 tighten spacing between name and level */
+  }
+
+  .abilityIcon {
+    width: 28px; /* 🔽 slightly smaller icon */
+    height: 28px;
+  }
+
+  .abilityName {
+    font-size: 13px; /* 🔽 smaller text helps one-line fit */
+  }
+}
