@@ -33,3 +33,11 @@
   gap: 16px;
   margin-top: 16px;
 }
+/* === Solver Control Bar (Gear + Buttons) === */
+.solverBar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;               /* space between gear and buttons */
+  margin-bottom: 12px;     /* spacing below bar */
+}

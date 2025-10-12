@@ -13,9 +13,9 @@ export default function SolverButtons({ solving, disabled, onCore, onFull }: Pro
   // helper to decide button text
   const getLabel = (type: "core" | "full") => {
     if (solving && isLocked) return type === "core" ? "🔒 处理中" : "🔒 排表中";
-    if (solving) return type === "core" ? "🔒处理中" : "🔒排表中";
+    if (solving) return type === "core" ? "🔒处理中..." : "🔒排表中";
     if (isLocked) return "🔒 已锁定";
-    return type === "core" ? "简易排表" : "一键排表";
+    return type === "core" ? "自定义排表" : "全局排表";
   };
 
   return (

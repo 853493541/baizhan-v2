@@ -21,18 +21,6 @@ const MAIN_CHARACTERS = new Set([
   "程老黑",
 ]);
 
-// ✅ Core abilities (subset)
-const CORE_ABILITIES = [
-  "斗转金移",
-  "花钱消灾",
-  "黑煞落贪狼",
-  "一闪天诛",
-  "引燃",
-  "漾剑式",
-  "阴阳术退散",
-  "兔死狐悲",
-];
-
 interface Props {
   schedule: {
     _id: string;
@@ -62,16 +50,18 @@ export default function MainSection({
   const [solving, setSolving] = useState(false);
   const [aftermath, setAftermath] = useState<{ wasted9: number; wasted10: number } | null>(null);
 
-  // ✅ track which core abilities are toggled on/off
-  const [enabledCore, setEnabledCore] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(CORE_ABILITIES.map((a) => [a, true]))
+  // ✅ All abilities from schedule (each has name + level)
+  const allAbilities = schedule.checkedAbilities;
+
+  // ✅ Helper: unique key per ability/level
+  const keyFor = (a: AbilityCheck) => `${a.name}-${a.level}`;
+
+  // ✅ Initialize toggle state for all ability levels
+  const [enabledAbilities, setEnabledAbilities] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(allAbilities.map((a) => [keyFor(a), true]))
   );
 
-  // ✅ derive abilities
-  const allAbilities = schedule.checkedAbilities;
-  const coreAbilities = allAbilities.filter((a) => CORE_ABILITIES.includes(a.name));
-
-  // ✅ update aftermath on group change
+  // ✅ Update aftermath on group change
   useEffect(() => {
     if (groups.length > 0) {
       summarizeAftermath(groups)
@@ -152,7 +142,7 @@ export default function MainSection({
     return reordered;
   };
 
-  // ---------- Auto reorder existing groups on mount or change ----------
+  // ---------- Auto reorder existing groups ----------
   useEffect(() => {
     if (groups.length > 0) {
       const reordered = reorderGroups(groups);
@@ -177,20 +167,13 @@ export default function MainSection({
   // ---------- Render ----------
   const finishedCount = groups.filter((g) => g.status === "finished").length;
 
-  // ✅ Lock only if any group is started or finished
   const shouldLock = groups.some(
     (g) => g.status === "started" || g.status === "finished"
   );
 
-  console.log(
-    "🔒 shouldLock:",
-    shouldLock,
-    groups.map((g) => ({ idx: g.index, status: g.status }))
-  );
-
-  // ✅ Get filtered core abilities before running solver
-  const getActiveCoreAbilities = () =>
-    coreAbilities.filter((a) => enabledCore[a.name] !== false);
+  // ✅ Build list of abilities currently toggled ON (name-level aware)
+  const getActiveAbilities = () =>
+    allAbilities.filter((a) => enabledAbilities[keyFor(a)] !== false);
 
   return (
     <div className={styles.section}>
@@ -199,13 +182,20 @@ export default function MainSection({
         已完成小组: {finishedCount} / {groups.length}
       </p>
 
-      {/* ✅ Solver buttons */}
-      <SolverButtons
-        solving={solving}
-        disabled={shouldLock} // ✅ lock buttons based on group status
-        onCore={() => safeRunSolver(getActiveCoreAbilities(), "Core (Selected)")}
-        onFull={() => safeRunSolver(allAbilities, "Full Pool")}
-      />
+      {/* ✅ Solver control bar (Gear + Buttons side by side) */}
+      <div className={styles.solverBar}>
+        <SolverOptions
+          allAbilities={allAbilities.map((a) => ({ name: a.name, level: a.level }))}
+          enabledAbilities={enabledAbilities}
+          setEnabledAbilities={setEnabledAbilities}
+        />
+        <SolverButtons
+          solving={solving}
+          disabled={shouldLock}
+          onCore={() => safeRunSolver(getActiveAbilities(), "Custom (Selected)")}
+          onFull={() => safeRunSolver(allAbilities, "Full Pool")}
+        />
+      </div>
 
       {groups.length === 0 ? (
         <p className={styles.empty}>暂无排表结果</p>
@@ -232,7 +222,10 @@ export default function MainSection({
             />
           )}
           {aftermath && (
-            <AftermathSummary wasted9={aftermath.wasted9} wasted10={aftermath.wasted10} />
+            <AftermathSummary
+              wasted9={aftermath.wasted9}
+              wasted10={aftermath.wasted10}
+            />
           )}
         </>
       )}
