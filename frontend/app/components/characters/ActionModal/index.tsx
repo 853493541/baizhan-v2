@@ -15,6 +15,16 @@ export interface ActionModalProps {
 
 const getAbilityIcon = (name: string) => `/icons/${name}.png`;
 
+// 🈶 Convert level number to Chinese numerals
+const numToChinese = (num: number): string => {
+  const map = ["〇", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
+  if (num <= 10) return map[num];
+  if (num < 20) return "十" + map[num - 10];
+  const tens = Math.floor(num / 10);
+  const ones = num % 10;
+  return `${map[tens]}十${ones ? map[ones] : ""}`;
+};
+
 export default function ActionModal({
   tradables,
   readables,
@@ -28,7 +38,6 @@ export default function ActionModal({
     if (e.target === e.currentTarget) onClose();
   };
 
-  /** identical to BackpackWindow’s use logic */
   const handleUse = async (ability: string, level: number) => {
     if (!confirm(`确定要使用 ${ability}${level}重 吗？`)) return;
     try {
@@ -50,7 +59,7 @@ export default function ActionModal({
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <h3 className={styles.modalTitle}>可读书籍</h3>
 
-        {/* === Section 1: 可研读技能 === */}
+        {/* === 可读蓝书 === */}
         {readables.length > 0 && (
           <section className={styles.section}>
             <h4 className={styles.sectionTitle}>📜 可读蓝书</h4>
@@ -94,7 +103,7 @@ export default function ActionModal({
           </section>
         )}
 
-        {/* === Section 2: 可购买技能 === */}
+        {/* === 可买紫书 === */}
         {tradables.length > 0 && (
           <section className={styles.section}>
             <h4 className={styles.sectionTitle}>⚡ 可买紫书</h4>
@@ -134,8 +143,9 @@ export default function ActionModal({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
+                        const chineseLevel = numToChinese(requiredLevel);
                         navigator.clipboard
-                          .writeText(`《${ability}》招式要诀·${requiredLevel}重`)
+                          .writeText(`《${ability}》招式要诀·${chineseLevel}重`)
                           .catch(console.error);
                       }}
                       className={`${styles.btn} ${styles.copyBtn}`}
