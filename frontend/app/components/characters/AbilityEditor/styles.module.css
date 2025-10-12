@@ -1,3 +1,7 @@
+/* ===============================
+   🎯 Ability Editor + Single Update
+   =============================== */
+
 .wrapper {
   display: flex;
   flex-direction: column;
@@ -18,7 +22,7 @@
   margin-bottom: 8px;
 }
 
-/* Better layout for narrow column */
+/* === Ability Row Layout === */
 .abilityRow {
   display: grid;
   grid-template-columns: 32px 1fr auto; /* icon | name | controls */
@@ -40,7 +44,7 @@
 .name {
   font-size: 14px;
   color: #333;
-  white-space: nowrap; 
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -86,4 +90,32 @@
 .level {
   min-width: 20px;
   text-align: center;
+}
+
+/* ===============================
+   ✨ Optional Polish (Hover + Scrollbar)
+   =============================== */
+
+/* Soft hover highlight for each ability row */
+.abilityRow:hover {
+  background: #fdfdfd;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Custom scrollbar for better UX */
+.wrapper::-webkit-scrollbar {
+  width: 6px;
+}
+
+.wrapper::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+
+.wrapper::-webkit-scrollbar-thumb:hover {
+  background: #aaa;
+}
+
+.wrapper::-webkit-scrollbar-track {
+  background: transparent;
 }

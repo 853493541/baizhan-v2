@@ -61,3 +61,39 @@ __pycache__/
 *.pyd
 *.pdb
 *.egg-info/
+# === Python virtual environment ===
+backend/venv/
+venv/
+
+# === Node build output ===
+frontend/Build/
+frontend/.next/
+frontend/out/
+frontend/node_modules/
+
+# === Logs, caches ===
+*.log
+__pycache__/
+*.pyc
+.DS_Store
+
+# === Env files ===
+.env
+.env.local
+# PM2 process files
+ecosystem.config.js
+pm2.log
+pm2.pid
+
+# IDE/editor configs
+.vscode/
+.idea/
+
+# Local runtime or debug outputs
+*.sqlite3
+*.db
+frontend/.eslintcache
+
+# Optional: backup files
+*.bak
+*.swp

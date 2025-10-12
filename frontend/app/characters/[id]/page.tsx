@@ -10,6 +10,8 @@ import SingleAbilityUpdate from "./sections/SingleAbilityUpdate";
 import CharacterOCRSection from "./sections/OCRSection";
 import styles from "./styles.module.css";
 import CharacterStorage from "./sections/CharacterStorage";
+import AbilityEditor from "../../components/characters/AbilityEditor";
+
 
 interface Character {
   _id: string;
@@ -167,26 +169,33 @@ export default function CharacterDetailPage() {
                 );
               }}
             />
+
+
+
           </div>
         </div>
 
         {/* RIGHT → Single Ability Update */}
         <div className={styles.rightStack}>
           <div className={styles.card}>
-            <SingleAbilityUpdate
-              characterId={character._id}
-              abilities={character.abilities}
-              onAbilityUpdate={(ability, newLevel) => {
-                setCharacter((prev) =>
-                  prev
-                    ? {
-                        ...prev,
-                        abilities: { ...prev.abilities, [ability]: newLevel },
-                      }
-                    : prev
-                );
-              }}
-            />
+
+
+            <AbilityEditor
+            characterId={character._id}
+            abilities={character.abilities} // optional, can remove later if you want auto-fetch
+            onAbilityUpdate={(ability, newLevel) => {
+              setCharacter((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      abilities: { ...prev.abilities, [ability]: newLevel },
+                    }
+                  : prev
+              );
+            }}
+/>
+
+
           </div>
         </div>
       </div>
