@@ -7,7 +7,6 @@ import CollectionStatus from "./sections/CollectionStatus";
 import CharacterBasics, { CharacterEditData } from "./sections/CharacterBasics";
 import AbilityHighlights from "./sections/AbilityHighlights";
 import CharacterOCRSection from "./sections/OCRSection";
-import CharacterStorage from "./sections/CharacterStorage";
 import AbilityEditor from "../../components/characters/AbilityEditor";
 import Backpack from "./sections/Backpack"; // ✅ new import
 import styles from "./styles.module.css";
