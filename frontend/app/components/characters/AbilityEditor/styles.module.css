@@ -1,28 +1,72 @@
 /* ===============================
-   🎯 Ability Editor + Single Update
+   🎯 Ability Editor Layout
    =============================== */
-
-.wrapper {
+.editorContainer {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  height: 400px;          /* ✅ fixed height */
-  overflow-y: auto;       /* ✅ scroll inside */
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 8px;
-  background: #fafafa;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: hidden; /* ✅ prevents overshoot due to flex rounding */
 }
 
+.title {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+/* ===============================
+   🔍 Search Bar
+   =============================== */
 .searchInput {
   width: 100%;
   padding: 6px;
   border: 1px solid #ccc;
   border-radius: 6px;
   margin-bottom: 8px;
+  font-size: 13px;
+  background: #fff;
 }
 
-/* === Ability Row Layout === */
+/* ===============================
+   📜 Ability List Wrapper
+   =============================== */
+.wrapper {
+  flex: 0 0 auto;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px; /* tighter row gap */
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fafafa;
+  padding: 4px 6px; /* compact padding */
+
+  /* 🎯 exact fit for 3 rows (no scrollbar when 3 abilities) */
+  height: calc(3 * 40px + 2 * 6px + 8px);
+  max-height: calc(3 * 40px + 2 * 6px + 8px);
+}
+
+/* Scrollbar styling */
+.wrapper::-webkit-scrollbar {
+  width: 6px;
+}
+.wrapper::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+.wrapper::-webkit-scrollbar-thumb:hover {
+  background: #aaa;
+}
+.wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ===============================
+   🧩 Ability Row
+   =============================== */
 .abilityRow {
   display: grid;
   grid-template-columns: 32px 1fr auto; /* icon | name | controls */
@@ -31,16 +75,22 @@
   background: #fff;
   border: 1px solid #eee;
   border-radius: 6px;
-  padding: 6px 8px;
+  padding: 4px 6px; /* compact row */
+  box-sizing: border-box;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.abilityRow:hover {
+  background: #fdfdfd;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .abilityRow img {
-  border-radius: 4px;
   width: 28px;
   height: 28px;
+  border-radius: 4px;
 }
 
-/* ✅ Name can wrap or truncate */
 .name {
   font-size: 14px;
   color: #333;
@@ -49,7 +99,9 @@
   text-overflow: ellipsis;
 }
 
-/* Controls shrink to fit */
+/* ===============================
+   ➕ / ➖ Controls
+   =============================== */
 .controls {
   display: flex;
   align-items: center;
@@ -57,65 +109,41 @@
   flex-shrink: 0;
 }
 
-.minus {
-  background: #fee2e2;
-  border: 1px solid #fca5a5;
-  color: #b91c1c;
+.minus,
+.plus {
   padding: 2px 6px;
   border-radius: 4px;
   cursor: pointer;
   font-weight: bold;
+  border: 1px solid;
+  transition: transform 0.1s ease;
 }
 
-.minus:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.minus {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #b91c1c;
 }
 
 .plus {
   background: #dcfce7;
-  border: 1px solid #86efac;
+  border-color: #86efac;
   color: #166534;
-  padding: 2px 6px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
 }
 
+.minus:disabled,
 .plus:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
+.minus:hover:not(:disabled),
+.plus:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
 .level {
   min-width: 20px;
   text-align: center;
-}
-
-/* ===============================
-   ✨ Optional Polish (Hover + Scrollbar)
-   =============================== */
-
-/* Soft hover highlight for each ability row */
-.abilityRow:hover {
-  background: #fdfdfd;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-/* Custom scrollbar for better UX */
-.wrapper::-webkit-scrollbar {
-  width: 6px;
-}
-
-.wrapper::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 3px;
-}
-
-.wrapper::-webkit-scrollbar-thumb:hover {
-  background: #aaa;
-}
-
-.wrapper::-webkit-scrollbar-track {
-  background: transparent;
+  font-size: 13px;
 }

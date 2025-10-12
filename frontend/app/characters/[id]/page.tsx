@@ -6,12 +6,11 @@ import CharacterAbilities from "./sections/CharacterAbilities";
 import CollectionStatus from "./sections/CollectionStatus";
 import CharacterBasics, { CharacterEditData } from "./sections/CharacterBasics";
 import AbilityHighlights from "./sections/AbilityHighlights";
-import SingleAbilityUpdate from "./sections/SingleAbilityUpdate";
 import CharacterOCRSection from "./sections/OCRSection";
-import styles from "./styles.module.css";
 import CharacterStorage from "./sections/CharacterStorage";
 import AbilityEditor from "../../components/characters/AbilityEditor";
-
+import Backpack from "./sections/Backpack"; // ✅ new import
+import styles from "./styles.module.css";
 
 interface Character {
   _id: string;
@@ -23,6 +22,7 @@ interface Character {
   role: "DPS" | "Tank" | "Healer";
   active: boolean;
   abilities: Record<string, number>;
+  storage?: any[];
 }
 
 export default function CharacterDetailPage() {
@@ -95,6 +95,22 @@ export default function CharacterDetailPage() {
   };
 
   // ============================
+  // Refresh character
+  // ============================
+  const refreshCharacter = async (): Promise<void> => {
+    if (!characterId) return;
+    try {
+      const res = await fetch(`${API_URL}/api/characters/${characterId}`);
+      if (!res.ok) throw new Error("刷新失败");
+      const updated = await res.json();
+      setCharacter(updated);
+    } catch (err) {
+      console.error("❌ refreshCharacter error:", err);
+      alert("刷新角色失败，请稍后再试");
+    }
+  };
+
+  // ============================
   // Render
   // ============================
   if (loading) return <p>Loading...</p>;
@@ -103,15 +119,16 @@ export default function CharacterDetailPage() {
 
   return (
     <div className={styles.page}>
-<div className={styles.headerRow}>
-  <button className={styles.backButton} onClick={() => router.back()}>
-    ← 返回
-  </button>
-  <h1 className={styles.pageTitle}>角色详情</h1>
-</div>
-      {/* === Top section: 65/35 split === */}
+      {/* === Header === */}
+      <div className={styles.headerRow}>
+        <button className={styles.backButton} onClick={() => router.back()}>
+          ← 返回
+        </button>
+        <h1 className={styles.pageTitle}>角色详情</h1>
+      </div>
+
+      {/* === Top Section === */}
       <div className={styles.topGrid}>
-        {/* LEFT → Basics */}
         <div className={styles.topLeft}>
           <CharacterBasics
             character={character}
@@ -120,13 +137,9 @@ export default function CharacterDetailPage() {
           />
         </div>
 
-        {/* RIGHT → Abilities (top) + OCR (bottom) in same card */}
         <div className={styles.topRight}>
           <div className={styles.card}>
-            {/* ✅ Abilities overview first */}
             <CharacterAbilities abilities={character.abilities} />
-
-            {/* ✅ OCR upload + scan status second */}
             <div className={styles.ocrWrapper}>
               <CharacterOCRSection
                 characterId={character._id}
@@ -150,9 +163,8 @@ export default function CharacterDetailPage() {
         </div>
       </div>
 
-      {/* === Middle section (65/35 flipped) === */}
+      {/* === Middle Section === */}
       <div className={styles.midGrid}>
-        {/* LEFT → Ability Highlights */}
         <div className={styles.leftStack}>
           <div className={styles.card}>
             <AbilityHighlights
@@ -169,47 +181,42 @@ export default function CharacterDetailPage() {
                 );
               }}
             />
-
-
-
           </div>
         </div>
 
-        {/* RIGHT → Single Ability Update */}
+        {/* RIGHT → Editor (half height) + Backpack */}
         <div className={styles.rightStack}>
-          <div className={styles.card}>
-
-
+          {/* Ability Editor */}
+          <div className={styles.halfCard}>
             <AbilityEditor
-            characterId={character._id}
-            abilities={character.abilities} // optional, can remove later if you want auto-fetch
-            onAbilityUpdate={(ability, newLevel) => {
-              setCharacter((prev) =>
-                prev
-                  ? {
-                      ...prev,
-                      abilities: { ...prev.abilities, [ability]: newLevel },
-                    }
-                  : prev
-              );
-            }}
-/>
-
-
+              characterId={character._id}
+              abilities={character.abilities}
+              onAbilityUpdate={(ability, newLevel) => {
+                setCharacter((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        abilities: { ...prev.abilities, [ability]: newLevel },
+                      }
+                    : prev
+                );
+              }}
+            />
           </div>
+
+          {/* ✅ Backpack Section */}
+          <Backpack
+            character={character}
+            API_URL={API_URL}
+            refreshCharacter={refreshCharacter}
+          />
         </div>
       </div>
 
-      {/* === Collection section === */}
+      {/* === Collection + Storage === */}
       <div className={styles.card}>
         <CollectionStatus character={character} />
       </div>
-
-<div className={styles.card}>
-  <CharacterStorage characterId={character._id} />
-</div>
-
-
     </div>
   );
 }

@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import styles from "./styles.module.css";
 import { updateCharacterAbilities } from "@/lib/characterService";
-import { createPinyinMap, pinyinFilter } from "@/utils/pinyinSearch"; // ✅ import
+import { createPinyinMap, pinyinFilter } from "@/utils/pinyinSearch";
 
 interface AbilityEditorProps {
   characterId: string;
@@ -46,7 +46,7 @@ export default function AbilityEditor({
     fetchAbilities();
   }, [characterId, externalAbilities, API_URL]);
 
-  /** 🧮 Build Pinyin map when abilities change */
+  /** 🧮 Build Pinyin map */
   const pinyinMap = useMemo(
     () => createPinyinMap(Object.keys(abilities)),
     [abilities]
@@ -54,9 +54,9 @@ export default function AbilityEditor({
 
   /** 🔍 Filter with pinyin support */
   const allAbilities = Object.keys(abilities);
-  const results = query.trim()
+  const filtered = query.trim()
     ? pinyinFilter(allAbilities, pinyinMap, query)
-    : allAbilities;
+    : allAbilities.slice(0, 3); // ✅ show only top 3 by default
 
   /** 🔄 Update ability */
   const updateAbility = async (ability: string, newLevel: number) => {
@@ -64,8 +64,6 @@ export default function AbilityEditor({
     setLoadingAbility(ability);
     try {
       await updateCharacterAbilities(characterId, { [ability]: newLevel });
-
-      // local state update
       setAbilities((prev) => ({ ...prev, [ability]: newLevel }));
       onAbilityUpdate?.(ability, newLevel);
     } catch (err) {
@@ -79,14 +77,14 @@ export default function AbilityEditor({
   return (
     <div>
       <h3 style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "6px" }}>
-        单个技能更新
+        搜索技能更新
       </h3>
 
       <input
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="输入技能名或拼音..."
+        placeholder="输入技能名..."
         className={styles.searchInput}
       />
 
@@ -94,7 +92,7 @@ export default function AbilityEditor({
         <p style={{ color: "#888", fontSize: "13px" }}>加载中...</p>
       ) : (
         <div className={styles.wrapper}>
-          {results.map((name) => {
+          {filtered.map((name) => {
             const level = abilities[name] || 0;
             const iconPath = `/icons/${name}.png`;
 
@@ -103,10 +101,10 @@ export default function AbilityEditor({
                 <img
                   src={iconPath}
                   alt={name}
-                  onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).src =
-                      "/icons/default.png";
-                  }}
+                  onError={(e) =>
+                    ((e.currentTarget as HTMLImageElement).src =
+                      "/icons/default.png")
+                  }
                 />
                 <span className={styles.name}>{name}</span>
 
@@ -131,7 +129,7 @@ export default function AbilityEditor({
             );
           })}
 
-          {results.length === 0 && (
+          {filtered.length === 0 && (
             <p style={{ color: "#666", fontSize: "13px" }}>未找到匹配技能</p>
           )}
         </div>
