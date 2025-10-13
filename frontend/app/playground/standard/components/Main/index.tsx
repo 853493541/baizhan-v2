@@ -10,6 +10,7 @@ import SolverOptions from "./SolverOptions";
 import SolverButtons from "./SolverButtons";
 import DisplayGroups from "./DisplayGroups";
 import AftermathSummary from "./AftermathSummary";
+import ReversedSolver from "./ReversedSolver";
 
 // ✅ Hardcoded main characters (still used to split main/alt groups)
 const MAIN_CHARACTERS = new Set([
@@ -196,7 +197,10 @@ export default function MainSection({
           onFull={() => safeRunSolver(allAbilities, "Full Pool")}
         />
       </div>
-
+      <ReversedSolver characters={schedule.characters}
+       checkedAbilities={schedule.checkedAbilities}
+        />
+      
       {groups.length === 0 ? (
         <p className={styles.empty}>暂无排表结果</p>
       ) : (

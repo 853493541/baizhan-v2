@@ -1,0 +1,180 @@
+.wrapper {
+  margin-top: 20px;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1b4332;
+  margin-bottom: 10px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table th,
+.table td {
+  border-bottom: 1px solid #eee;
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+}
+
+.table tr:hover td {
+  background: #fafafa;
+}
+
+.chipWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  font-size: 12px;
+}
+
+.name {
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+.lv {
+  color: #555;
+  font-weight: 500;
+}
+
+.empty {
+  font-size: 14px;
+  color: #666;
+  padding: 10px 0;
+  text-align: center;
+}
+.wrapper {
+  margin-top: 20px;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1b4332;
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f5132;
+  margin: 16px 0 6px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.table th,
+.table td {
+  border-bottom: 1px solid #eee;
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+}
+
+.table tr:hover td {
+  background: #fafafa;
+}
+
+.chipWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  font-size: 12px;
+}
+
+.name {
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+.lv {
+  color: #555;
+  font-weight: 500;
+}
+
+.empty {
+  font-size: 14px;
+  color: #666;
+  padding: 10px 0;
+  text-align: center;
+}
+
+.btn {
+  background: #e8f5e9;
+  border: 1px solid #9ccc65;
+  border-radius: 6px;
+  font-size: 13px;
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn:hover {
+  background: #c5e1a5;
+}
+
+.evalSection {
+  margin-top: 20px;
+}
+.chip {
+  display: inline-block;
+  margin: 2px 6px 2px 0;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
