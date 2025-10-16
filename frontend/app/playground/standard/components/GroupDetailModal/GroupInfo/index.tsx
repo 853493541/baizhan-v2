@@ -12,10 +12,12 @@ function checkGroupQA(
   const warnings: string[] = [];
   if (!group || !group.characters) return warnings;
 
+  // 🔹 Check healer presence
   if (!group.characters.some((c) => c.role === "Healer")) {
     warnings.push("缺少治疗");
   }
 
+  // 🔹 Check duplicate accounts
   const seen = new Set<string>();
   const dups = new Set<string>();
   for (const c of group.characters) {
@@ -26,6 +28,7 @@ function checkGroupQA(
     warnings.push(`重复账号: ${Array.from(dups).join("、")}`);
   }
 
+  // 🔹 Check ability conflicts
   const activeAbilities = checkedAbilities.filter((a) => a.available);
   const abilityCount: Record<string, number> = {};
   for (const c of group.characters) {
@@ -56,8 +59,8 @@ export default function GroupInfo({ group, checkedAbilities, conflictLevel }: Pr
   const qaWarnings = checkGroupQA(group, conflictLevel, checkedAbilities);
 
   return (
-    <>
-      {/* ✅ Warnings aligned to left */}
+    <div className={styles.groupInfoRow}>
+      {/* ⚠️ Warnings on the left */}
       <div className={styles.warningRow}>
         {qaWarnings.length > 0 ? (
           qaWarnings.map((v, idx) => (
@@ -70,7 +73,7 @@ export default function GroupInfo({ group, checkedAbilities, conflictLevel }: Pr
         )}
       </div>
 
-      {/* ✅ Character list unchanged */}
+      {/* 👥 Characters centered on the same line */}
       <div className={styles.memberList}>
         {group.characters.map((c) => (
           <span
@@ -87,6 +90,6 @@ export default function GroupInfo({ group, checkedAbilities, conflictLevel }: Pr
           </span>
         ))}
       </div>
-    </>
+    </div>
   );
 }

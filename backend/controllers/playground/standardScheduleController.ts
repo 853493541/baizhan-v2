@@ -289,3 +289,29 @@ export const updateScheduleName = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to update schedule name" });
   }
 };
+// ✅ Get only one group's kills (and status)
+export const getGroupKills = async (req: Request, res: Response) => {
+  try {
+    const { id, index } = req.params;
+
+    const schedule = await StandardSchedule.findById(id, { groups: 1 }); // only pull groups
+    if (!schedule) {
+      return res.status(404).json({ error: "Schedule not found" });
+    }
+
+    const group = schedule.groups.find((g: any) => g.index === parseInt(index));
+    if (!group) {
+      return res.status(404).json({ error: "Group not found" });
+    }
+
+    // ✅ Return only minimal fields
+    res.json({
+      index: group.index,
+      status: group.status,
+      kills: group.kills || [],
+    });
+  } catch (err) {
+    console.error("❌ Error fetching group kills:", err);
+    res.status(500).json({ error: "Failed to fetch group kills" });
+  }
+};

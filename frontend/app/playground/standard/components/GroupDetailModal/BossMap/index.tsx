@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./styles.module.css";
 import type { GroupResult } from "@/utils/solver";
 import Drops from "./drops";
 import BossCard from "./BossCard";
-import { Check } from "lucide-react"; // ✅ Lucide checkmark icon
 
 import rawBossData from "@/app/data/boss_drop.json";
 const bossData: Record<string, string[]> = rawBossData;
@@ -23,6 +22,7 @@ interface Props {
   scheduleId: string;
   group: ExtendedGroup;
   weeklyMap: Record<number, string>;
+  countdown?: number; // ⏱️ passed from parent
   onRefresh?: () => void;
 }
 
@@ -34,11 +34,18 @@ const highlightAbilities = [
   "短歌万劫","泉映幻歌",
 ];
 
-export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Props) {
+export default function BossMap({ scheduleId, group, weeklyMap, countdown, onRefresh }: Props) {
   const row1 = [81, 82, 83, 84, 85, 86, 87, 88, 89, 90];
   const row2 = [100, 99, 98, 97, 96, 95, 94, 93, 92, 91];
 
+  // ✅ Local group reflects latest parent updates
   const [localGroup, setLocalGroup] = useState(group);
+
+  // Keep local state in sync when parent data updates
+  useEffect(() => {
+    setLocalGroup(group);
+  }, [group]);
+
   const [selected, setSelected] = useState<{
     floor: number;
     boss: string;
@@ -72,7 +79,22 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
     finished: styles.statusDoneDot,
   };
 
-  // ✅ API helpers
+  // ✅ helper to get role color class
+  const getRoleClass = (role: string) => {
+    if (!role) return "";
+    switch (role.toLowerCase()) {
+      case "tank":
+        return styles.tankBtn;
+      case "dps":
+        return styles.dpsBtn;
+      case "healer":
+        return styles.healerBtn;
+      default:
+        return "";
+    }
+  };
+
+  // ✅ Update group status
   const updateGroupStatus = async (next: "not_started" | "started" | "finished") => {
     try {
       await fetch(
@@ -90,6 +112,7 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
     }
   };
 
+  // ✅ Update single kill (when user records a drop)
   const updateGroupKill = async (floor: number, boss: string, selection: any) => {
     try {
       const res = await fetch(
@@ -121,27 +144,19 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
     await updateGroupStatus("finished");
   };
 
-  // ✅ helper to get role color class
-  const getRoleClass = (role: string) => {
-    if (!role) return "";
-    switch (role.toLowerCase()) {
-      case "tank":
-        return styles.tankBtn;
-      case "dps":
-        return styles.dpsBtn;
-      case "healer":
-        return styles.healerBtn;
-      default:
-        return "";
-    }
-  };
-
   return (
     <>
       {/* Header */}
       <div className={styles.headerRow}>
         <div className={styles.leftSection}>
-          <h3 className={styles.title}>本周地图</h3>
+          <h3 className={styles.title}>
+            本周地图
+            {countdown !== undefined && (
+              <span style={{ marginLeft: 8, fontSize: 13, color: "#6b7280" }}>
+                （{countdown}秒后刷新）
+              </span>
+            )}
+          </h3>
 
           {/* ✅ Member toggle buttons with role colors */}
           <div className={styles.memberButtons}>
@@ -156,7 +171,6 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
                     !isActive ? styles.inactiveBtn : ""
                   }`}
                 >
-                  
                   {c.name}
                 </button>
               );
@@ -235,9 +249,7 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
           onSave={async (floor, data) => {
             await updateGroupKill(floor, selected.boss, data);
             setSelected(null);
-            if (status === "not_started") {
-              await updateGroupStatus("started");
-            }
+            if (status === "not_started") await updateGroupStatus("started");
           }}
           groupStatus={status}
           onMarkStarted={() => updateGroupStatus("started")}

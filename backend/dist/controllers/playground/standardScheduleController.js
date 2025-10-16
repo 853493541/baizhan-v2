@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateScheduleName = exports.deleteGroupKill = exports.updateGroupKill = exports.updateGroupStatus = exports.updateStandardSchedule = exports.deleteStandardSchedule = exports.getStandardScheduleById = exports.getStandardSchedules = exports.createStandardSchedule = void 0;
+exports.getGroupKills = exports.updateScheduleName = exports.deleteGroupKill = exports.updateGroupKill = exports.updateGroupStatus = exports.updateStandardSchedule = exports.deleteStandardSchedule = exports.getStandardScheduleById = exports.getStandardSchedules = exports.createStandardSchedule = void 0;
 const StandardSchedule_1 = __importDefault(require("../../models/StandardSchedule"));
 // ✅ Create new standard schedule
 const createStandardSchedule = async (req, res) => {
@@ -239,3 +239,28 @@ const updateScheduleName = async (req, res) => {
     }
 };
 exports.updateScheduleName = updateScheduleName;
+// ✅ Get only one group's kills (and status)
+const getGroupKills = async (req, res) => {
+    try {
+        const { id, index } = req.params;
+        const schedule = await StandardSchedule_1.default.findById(id, { groups: 1 }); // only pull groups
+        if (!schedule) {
+            return res.status(404).json({ error: "Schedule not found" });
+        }
+        const group = schedule.groups.find((g) => g.index === parseInt(index));
+        if (!group) {
+            return res.status(404).json({ error: "Group not found" });
+        }
+        // ✅ Return only minimal fields
+        res.json({
+            index: group.index,
+            status: group.status,
+            kills: group.kills || [],
+        });
+    }
+    catch (err) {
+        console.error("❌ Error fetching group kills:", err);
+        res.status(500).json({ error: "Failed to fetch group kills" });
+    }
+};
+exports.getGroupKills = getGroupKills;
