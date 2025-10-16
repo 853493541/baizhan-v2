@@ -1,26 +1,29 @@
-/* Character buttons (base) */
+/* === Character Buttons === */
 .memberBtn {
   display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 6px;
+  flex-direction: column; /* two-line layout */
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
   padding: 6px 10px;
   border-radius: 6px;
   font-size: 0.9rem;
   min-width: 180px;
   max-width: 220px;
-  height: 40px;
+  height: auto;
   box-sizing: border-box;
   cursor: pointer;
   margin-bottom: 3px;
   border: 1px solid #28a745;
   background: #eafbea;
   color: #155724;
+  transition: background 0.15s ease;
 }
 .memberBtn:hover {
   background: #d4f5d4;
 }
 
+/* Disabled */
 .memberDisabled {
   background: #f0f0f0;
   color: #888;
@@ -28,7 +31,7 @@
   cursor: not-allowed;
 }
 
-/* Section titles */
+/* Section title */
 .sectionDivider {
   margin: 10px 0;
   font-size: 0.85rem;
@@ -39,29 +42,73 @@
   padding-bottom: 2px;
 }
 
-/* Member grid layout */
+/* Grid layout */
 .memberGrid {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 6px;
 }
 
-/* Highlight: Top assignable (green) */
+/* === Highlight colors === */
 .levelGreen {
-  background-color: #e2fbe2 !important;  /* soft green bg */
-  border-color: #1c7c2d !important;      /* dark green border */
-  color: #1c7c2d !important;             /* dark green text */
+  background-color: #e2fbe2 !important;
+  border-color: #1c7c2d !important;
+  color: #1c7c2d !important;
 }
 
-/* Highlight: Lower assignable (yellow) */
 .levelYellow {
-  background-color: #fff6cc !important;  /* soft yellow bg */
-  border-color: #b89600 !important;      /* gold border */
-  color: #4a3f00 !important;             /* neutral dark-brown text */
+  background-color: #fff6cc !important;
+  border-color: #b89600 !important;
+  color: #4a3f00 !important;
 }
-/* Member grid layout */
-.memberGrid {
+
+/* === First line: Name + Progress aligned right === */
+.topRow {
   display: flex;
-  flex-direction: column; /* ✅ stack vertically */
-  gap: 6px;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.progressText {
+  font-size: 13px;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  color: #155724;
+  white-space: nowrap;
+}
+
+/* === Second line: warning row === */
+.warningRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 1px;
+  font-size: 13px;
+  color: #b8860b;
+}
+
+.warningIcon {
+  font-size: 14px;
+}
+
+.warningText {
+  color: #b8860b;
+}
+/* === First line: Name + Progress aligned right === */
+.topRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.progressText {
+  font-size: 13px;
+  color: inherit;        /* same color as box text */
+  margin-left: 6px;
+  white-space: nowrap;
+  background: none;      /* remove background */
+  padding: 0;            /* remove padding */
 }
