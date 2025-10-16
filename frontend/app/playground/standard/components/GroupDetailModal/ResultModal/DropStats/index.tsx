@@ -11,27 +11,28 @@ export default function DropStats({
   group: GroupResult;
   assigned: AssignedDrop[];
 }) {
-  // ✅ Prefer using assigned (fresh local data) if available
-  const killsSource = assigned.length > 0 ? assigned : group.kills || [];
+  // 🟩 Always use real kills list (from backend)
+  const kills = group.kills || [];
 
-  // ✅ Count bosses by floor
-  const totalLv9Boss =
-    killsSource.filter((k: any) => k.floor >= 81 && k.floor <= 90).length || 0;
-  const totalLv10Boss =
-    killsSource.filter((k: any) => k.floor >= 91 && k.floor <= 100).length || 0;
+  // 🟫 Denominators – how many bosses killed
+  const totalLv9Boss = kills.filter(k => k.floor >= 81 && k.floor <= 90).length;
+  const totalLv10Boss = kills.filter(k => k.floor >= 91 && k.floor <= 100).length;
 
-  // ✅ Assigned drop counts
+  // 🟦 Numerators – how many drops actually assigned
   const lv9Assigned = assigned.filter(
-    (a) => a.floor >= 81 && a.floor <= 90 && a.level === 9
-  ).length;
-  const lv10Assigned = assigned.filter(
-    (a) => a.floor >= 91 && a.floor <= 100 && a.level === 10
-  ).length;
-  const lv10Books = assigned.filter(
-    (a) => a.floor >= 91 && a.floor <= 100 && a.level === 10
+    a => a.floor >= 81 && a.floor <= 90 && a.level === 9
   ).length;
 
-  // ✅ Safe percentage formatter
+  // any 10-tier drop counts as assigned for that tier
+  const lv10Assigned = assigned.filter(
+    a => a.floor >= 91 && a.floor <= 100
+  ).length;
+
+  // only level-10 abilities count as “books”
+  const lv10Books = assigned.filter(
+    a => a.floor >= 91 && a.floor <= 100 && a.level === 10
+  ).length;
+
   const percent = (num: number, denom: number) =>
     denom > 0 ? ((num / denom) * 100).toFixed(1) : "0.0";
 

@@ -27,47 +27,68 @@ interface Props {
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
-  const [loading, setLoading] = useState<string | null>(null);
+  const [localGroup, setLocalGroup] = useState<GroupResult>(group);
   const [drops, setDrops] = useState<AssignedDrop[]>([]);
-  const lastLocalUpdate = useRef<number>(Date.now()); // 🕒 remember freshest update time
+  const [loading, setLoading] = useState<string | null>(null);
+  const lastLocalUpdate = useRef<number>(0);
 
-  /* 🟢 Instant lightweight fetch on mount */
+  /* 🟢 Instant lightweight refresh on open */
   useEffect(() => {
-    const instantFetch = async () => {
+    const fetchInstant = async () => {
       try {
         const res = await fetch(
           `${API_BASE}/api/standard-schedules/${scheduleId}/groups/${group.index}/kills`
         );
         if (!res.ok) return;
         const data = await res.json();
-        if (!data?.kills) return;
 
-        const updatedGroup = { ...group, kills: data.kills, status: data.status };
-        buildDrops(updatedGroup);
+        // merge with parent to retain characters etc.
+        const merged = {
+          ...group,
+          kills: data.kills || [],
+          status: data.status || group.status,
+        };
+        setLocalGroup(merged);
         lastLocalUpdate.current = Date.now();
-        console.log("[ResultWindow] Instant fetch applied");
+        console.log("⚡ Instant refresh applied in ResultWindow");
       } catch (err) {
-        console.error("❌ Instant refresh in ResultWindow failed:", err);
+        console.error("❌ Instant refresh failed:", err);
       }
     };
-    instantFetch();
+    fetchInstant();
   }, [scheduleId, group.index]);
 
-  // ✅ Build drops safely from any group
-  const buildDrops = (grp: GroupResult) => {
-    if (!grp) return;
+  /* 🧩 Smart merge – don’t overwrite fresher local data */
+  useEffect(() => {
+    if (!group) return;
+    const parentKills = group.kills?.length || 0;
+    const localKills = localGroup.kills?.length || 0;
+    const timeSinceLocal = Date.now() - lastLocalUpdate.current;
+
+    if (parentKills > localKills || timeSinceLocal > 5000) {
+      // parent likely newer
+      setLocalGroup(group);
+    } else {
+      // ignore stale overwrite
+      console.log("🛡️ Ignoring parent overwrite (local newer)");
+    }
+  }, [group]);
+
+  /* 🧮 Rebuild drop list whenever localGroup changes */
+  useEffect(() => {
+    if (!localGroup.kills) return;
     const idToChar: Record<string, any> = {};
     const idToName: Record<string, string> = {};
     const idToRole: Record<string, "DPS" | "Tank" | "Healer"> = {};
 
-    grp.characters?.forEach((c: any) => {
+    localGroup.characters?.forEach((c: any) => {
       idToChar[c._id] = c;
       idToName[c._id] = c.name;
       idToRole[c._id] = c.role;
     });
 
     const parsed =
-      grp.kills
+      localGroup.kills
         ?.flatMap((k: any) =>
           k.selection?.ability && k.selection?.characterId
             ? [
@@ -85,22 +106,14 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
             : []
         ) || [];
 
-    parsed.sort((a, b) => a.char.localeCompare(b.char, "zh-CN") || a.floor - b.floor);
+    parsed.sort(
+      (a, b) =>
+        a.char.localeCompare(b.char, "zh-CN") || a.floor - b.floor
+    );
     setDrops(parsed);
-  };
+  }, [localGroup]);
 
-  /* 🧩 Protect from parent overwrite */
-  useEffect(() => {
-    const parentKillCount = group.kills?.length || 0;
-    const localKillCount = drops.length || 0;
-    const timeSinceLocal = Date.now() - lastLocalUpdate.current;
-
-    // only rebuild from parent if its data is newer or local is stale (>3s)
-    if (parentKillCount > localKillCount || timeSinceLocal > 3000) {
-      buildDrops(group);
-    }
-  }, [group]);
-
+  /* 🔧 Helper for safe text read */
   const readTextSafe = async (res: Response) => {
     try {
       return await res.text();
@@ -109,14 +122,14 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
     }
   };
 
-  // ✅ 使用：升级角色技能 + 标记为 used
+  /* ✅ 使用：升级角色技能 + 标记为 used */
   const handleUse = async (drop: AssignedDrop) => {
     if (!drop.characterId) return alert("角色信息缺失");
-    if (!scheduleId) return alert("未能找到排表ID，无法更新分配状态。");
+    if (!scheduleId) return alert("未能找到排表ID");
 
     setLoading(drop.ability);
-    setDrops((p) =>
-      p.map((d) =>
+    setDrops((prev) =>
+      prev.map((d) =>
         d.ability === drop.ability && d.floor === drop.floor
           ? { ...d, status: "used" }
           : d
@@ -132,8 +145,9 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
       });
       if (!charRes.ok) throw new Error("更新角色技能失败");
 
-      const boss = group.kills?.find((k: any) => k.floor === drop.floor)?.boss;
-      const schedUrl = `${API_BASE}/api/standard-schedules/${scheduleId}/groups/${group.index}/floor/${drop.floor}`;
+      const boss =
+        localGroup.kills?.find((k: any) => k.floor === drop.floor)?.boss;
+      const schedUrl = `${API_BASE}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/floor/${drop.floor}`;
       const schedRes = await fetch(schedUrl, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -168,10 +182,10 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
     }
   };
 
-  // ✅ 存入仓库：保存 storage + 标记为 saved
+  /* ✅ 存入仓库：保存 storage + 标记为 saved */
   const handleStore = async (drop: AssignedDrop) => {
     if (!drop.characterId) return alert("角色信息缺失");
-    if (!scheduleId) return alert("未能找到排表ID，无法更新分配状态。");
+    if (!scheduleId) return alert("未能找到排表ID");
 
     setLoading(drop.ability);
     setDrops((p) =>
@@ -184,7 +198,7 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
 
     try {
       const sourceBoss =
-        group.kills?.find((k: any) => k.floor === drop.floor)?.boss || "";
+        localGroup.kills?.find((k: any) => k.floor === drop.floor)?.boss || "";
       const storeUrl = `${API_BASE}/api/characters/${drop.characterId}/storage`;
       const storeRes = await fetch(storeUrl, {
         method: "POST",
@@ -197,7 +211,7 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
       });
       if (!storeRes.ok) throw new Error("存入仓库失败");
 
-      const schedUrl = `${API_BASE}/api/standard-schedules/${scheduleId}/groups/${group.index}/floor/${drop.floor}`;
+      const schedUrl = `${API_BASE}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/floor/${drop.floor}`;
       const schedRes = await fetch(schedUrl, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -231,6 +245,7 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
     }
   };
 
+  /* ✅ Split assigned vs processed */
   const assignedDrops = drops.filter(
     (d) => d.status === "assigned" || d.status === "pending"
   );
@@ -242,13 +257,13 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
     <div className={styles.row}>
       <Assigned
         drops={assignedDrops}
-        group={group}
+        group={localGroup}
         onUse={handleUse}
         onStore={handleStore}
         loading={loading}
       />
-      <Processed drops={processedDrops} group={group} />
-      <DropStats group={group} assigned={drops} />
+      <Processed drops={processedDrops} group={localGroup} />
+      <DropStats group={localGroup} assigned={drops} />
     </div>
   );
 }
