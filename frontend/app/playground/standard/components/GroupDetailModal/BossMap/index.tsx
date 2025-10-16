@@ -5,6 +5,7 @@ import styles from "./styles.module.css";
 import type { GroupResult } from "@/utils/solver";
 import Drops from "./drops";
 import BossCard from "./BossCard";
+import { Check } from "lucide-react"; // ✅ Lucide checkmark icon
 
 import rawBossData from "@/app/data/boss_drop.json";
 const bossData: Record<string, string[]> = rawBossData;
@@ -37,7 +38,6 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
   const row1 = [81, 82, 83, 84, 85, 86, 87, 88, 89, 90];
   const row2 = [100, 99, 98, 97, 96, 95, 94, 93, 92, 91];
 
-  // ✅ local copy only for visual refresh (kept synced by onRefresh)
   const [localGroup, setLocalGroup] = useState(group);
   const [selected, setSelected] = useState<{
     floor: number;
@@ -45,6 +45,16 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
     dropList: string[];
     dropLevel: 9 | 10;
   } | null>(null);
+
+  // ✅ member toggle state
+  const [activeMembers, setActiveMembers] = useState<number[]>([0, 1, 2]);
+  const toggleMember = (index: number) => {
+    setActiveMembers((prev) =>
+      prev.includes(index)
+        ? prev.filter((i) => i !== index)
+        : [...prev, index]
+    );
+  };
 
   // ---- Status helpers ----
   const status = (localGroup.status ?? "not_started") as
@@ -94,30 +104,65 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const updated = await res.json();
 
-      // ✅ update kills locally for instant sync
       setLocalGroup((prev) => ({
         ...prev,
         kills: updated.updatedGroup?.kills || prev.kills,
       }));
 
-      onRefresh?.(); // this triggers your full parent refresh
+      onRefresh?.();
     } catch (err) {
       console.error("❌ updateGroupKill error:", err);
     }
   };
 
-  // 🔘 Finish handler
   const handleFinish = async () => {
     const ok = window.confirm("确认要结束吗？");
     if (!ok) return;
     await updateGroupStatus("finished");
   };
 
+  // ✅ helper to get role color class
+  const getRoleClass = (role: string) => {
+    if (!role) return "";
+    switch (role.toLowerCase()) {
+      case "tank":
+        return styles.tankBtn;
+      case "dps":
+        return styles.dpsBtn;
+      case "healer":
+        return styles.healerBtn;
+      default:
+        return "";
+    }
+  };
+
   return (
     <>
       {/* Header */}
       <div className={styles.headerRow}>
-        <h3 className={styles.title}>本周地图</h3>
+        <div className={styles.leftSection}>
+          <h3 className={styles.title}>本周地图</h3>
+
+          {/* ✅ Member toggle buttons with role colors */}
+          <div className={styles.memberButtons}>
+            {localGroup.characters?.map((c: any, i: number) => {
+              const isActive = activeMembers.includes(i);
+              const roleClass = getRoleClass(c.role);
+              return (
+                <button
+                  key={i}
+                  onClick={() => toggleMember(i)}
+                  className={`${styles.actionBtn} ${roleClass} ${
+                    !isActive ? styles.inactiveBtn : ""
+                  }`}
+                >
+                  
+                  {c.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         <div className={styles.rightControls}>
           <div className={styles.statusWrap} title={`当前状态：${statusLabel[status]}`}>
@@ -149,6 +194,7 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
             highlightAbilities={highlightAbilities}
             tradableSet={tradableSet}
             kill={localGroup.kills?.find((k) => k.floor === f)}
+            activeMembers={activeMembers}
             onSelect={(floor, boss, dropList, dropLevel) =>
               setSelected({ floor, boss, dropList, dropLevel })
             }
@@ -168,6 +214,7 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
             highlightAbilities={highlightAbilities}
             tradableSet={tradableSet}
             kill={localGroup.kills?.find((k) => k.floor === f)}
+            activeMembers={activeMembers}
             onSelect={(floor, boss, dropList, dropLevel) =>
               setSelected({ floor, boss, dropList, dropLevel })
             }
@@ -188,22 +235,17 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
           onSave={async (floor, data) => {
             await updateGroupKill(floor, selected.boss, data);
             setSelected(null);
-
             if (status === "not_started") {
               await updateGroupStatus("started");
             }
           }}
           groupStatus={status}
           onMarkStarted={() => updateGroupStatus("started")}
-          // ✅ local visual refresh for reset only
           onAfterReset={() => {
-            // remove visually so the boss icon updates
             setLocalGroup((prev) => ({
               ...prev,
               kills: prev.kills?.filter((k) => k.floor !== selected?.floor) || [],
             }));
-
-            // now run your normal refresh logic (to re-fetch proper data)
             onRefresh?.();
             setSelected(null);
           }}
