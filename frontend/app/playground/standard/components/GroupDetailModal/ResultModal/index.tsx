@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styles from "./styles.module.css";
 import Assigned from "./Assigned";
 import Processed from "./Processed";
@@ -15,7 +15,7 @@ export interface AssignedDrop {
   characterId?: string;
   role?: "DPS" | "Tank" | "Healer";
   status?: "assigned" | "pending" | "used" | "saved";
-  character?: any; // ✅ full character object (with abilities)
+  character?: any;
 }
 
 interface Props {
@@ -29,23 +29,45 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
   const [loading, setLoading] = useState<string | null>(null);
   const [drops, setDrops] = useState<AssignedDrop[]>([]);
+  const lastLocalUpdate = useRef<number>(Date.now()); // 🕒 remember freshest update time
 
-  // ✅ Convert group data into flat drop list (now attaches full character object)
+  /* 🟢 Instant lightweight fetch on mount */
   useEffect(() => {
-    if (!group) return;
+    const instantFetch = async () => {
+      try {
+        const res = await fetch(
+          `${API_BASE}/api/standard-schedules/${scheduleId}/groups/${group.index}/kills`
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data?.kills) return;
 
+        const updatedGroup = { ...group, kills: data.kills, status: data.status };
+        buildDrops(updatedGroup);
+        lastLocalUpdate.current = Date.now();
+        console.log("[ResultWindow] Instant fetch applied");
+      } catch (err) {
+        console.error("❌ Instant refresh in ResultWindow failed:", err);
+      }
+    };
+    instantFetch();
+  }, [scheduleId, group.index]);
+
+  // ✅ Build drops safely from any group
+  const buildDrops = (grp: GroupResult) => {
+    if (!grp) return;
     const idToChar: Record<string, any> = {};
     const idToName: Record<string, string> = {};
     const idToRole: Record<string, "DPS" | "Tank" | "Healer"> = {};
 
-    group.characters?.forEach((c: any) => {
+    grp.characters?.forEach((c: any) => {
       idToChar[c._id] = c;
       idToName[c._id] = c.name;
       idToRole[c._id] = c.role;
     });
 
     const parsed =
-      group.kills
+      grp.kills
         ?.flatMap((k: any) =>
           k.selection?.ability && k.selection?.characterId
             ? [
@@ -57,7 +79,7 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
                   floor: k.floor,
                   role: idToRole[k.selection.characterId],
                   status: k.selection.status || "assigned",
-                  character: idToChar[k.selection.characterId], // ✅ attach full object here
+                  character: idToChar[k.selection.characterId],
                 },
               ]
             : []
@@ -65,11 +87,19 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
 
     parsed.sort((a, b) => a.char.localeCompare(b.char, "zh-CN") || a.floor - b.floor);
     setDrops(parsed);
+  };
 
-    console.log("[ResultWindow] Built drops with character objects:", parsed);
+  /* 🧩 Protect from parent overwrite */
+  useEffect(() => {
+    const parentKillCount = group.kills?.length || 0;
+    const localKillCount = drops.length || 0;
+    const timeSinceLocal = Date.now() - lastLocalUpdate.current;
+
+    // only rebuild from parent if its data is newer or local is stale (>3s)
+    if (parentKillCount > localKillCount || timeSinceLocal > 3000) {
+      buildDrops(group);
+    }
   }, [group]);
-
-  if (!group) return null;
 
   const readTextSafe = async (res: Response) => {
     try {
@@ -85,10 +115,8 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
     if (!scheduleId) return alert("未能找到排表ID，无法更新分配状态。");
 
     setLoading(drop.ability);
-
-    // Optimistic UI update
-    setDrops((prev) =>
-      prev.map((d) =>
+    setDrops((p) =>
+      p.map((d) =>
         d.ability === drop.ability && d.floor === drop.floor
           ? { ...d, status: "used" }
           : d
@@ -102,16 +130,10 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ abilities: { [drop.ability]: drop.level } }),
       });
+      if (!charRes.ok) throw new Error("更新角色技能失败");
 
-      if (!charRes.ok) {
-        const t = await readTextSafe(charRes);
-        console.error("❌ 更新角色技能失败:", t);
-        throw new Error("更新角色技能失败");
-      }
-
-      const boss = group.kills?.find((k: any) => k.floor === drop.floor)?.boss ?? undefined;
+      const boss = group.kills?.find((k: any) => k.floor === drop.floor)?.boss;
       const schedUrl = `${API_BASE}/api/standard-schedules/${scheduleId}/groups/${group.index}/floor/${drop.floor}`;
-
       const schedRes = await fetch(schedUrl, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -125,21 +147,16 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
           },
         }),
       });
-
-      if (!schedRes.ok) {
-        const t = await readTextSafe(schedRes);
-        console.error("❌ 更新排表状态失败:", t);
-        throw new Error("更新排表状态失败");
-      }
+      if (!schedRes.ok) throw new Error("更新排表状态失败");
 
       alert(`✅ 已使用 ${drop.ability} (${drop.level}重)`);
-
-      setDrops((prev) => [...prev]); // trigger re-render
+      lastLocalUpdate.current = Date.now();
+      setDrops((p) => [...p]);
       await onRefresh?.();
     } catch (err) {
       console.error("❌ Use drop failed:", err);
-      setDrops((prev) =>
-        prev.map((d) =>
+      setDrops((p) =>
+        p.map((d) =>
           d.ability === drop.ability && d.floor === drop.floor
             ? { ...d, status: "assigned" }
             : d
@@ -157,10 +174,8 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
     if (!scheduleId) return alert("未能找到排表ID，无法更新分配状态。");
 
     setLoading(drop.ability);
-
-    // Optimistic UI update
-    setDrops((prev) =>
-      prev.map((d) =>
+    setDrops((p) =>
+      p.map((d) =>
         d.ability === drop.ability && d.floor === drop.floor
           ? { ...d, status: "saved" }
           : d
@@ -168,9 +183,9 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
     );
 
     try {
-      const sourceBoss = group.kills?.find((k: any) => k.floor === drop.floor)?.boss || "";
+      const sourceBoss =
+        group.kills?.find((k: any) => k.floor === drop.floor)?.boss || "";
       const storeUrl = `${API_BASE}/api/characters/${drop.characterId}/storage`;
-
       const storeRes = await fetch(storeUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -180,12 +195,7 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
           sourceBoss,
         }),
       });
-
-      if (!storeRes.ok) {
-        const t = await readTextSafe(storeRes);
-        console.error("❌ 存入仓库失败:", t);
-        throw new Error("存入仓库失败");
-      }
+      if (!storeRes.ok) throw new Error("存入仓库失败");
 
       const schedUrl = `${API_BASE}/api/standard-schedules/${scheduleId}/groups/${group.index}/floor/${drop.floor}`;
       const schedRes = await fetch(schedUrl, {
@@ -201,20 +211,15 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
           },
         }),
       });
+      if (!schedRes.ok) throw new Error("更新排表状态失败");
 
-      if (!schedRes.ok) {
-        const t = await readTextSafe(schedRes);
-        console.error("❌ 更新排表状态失败:", t);
-        throw new Error("更新排表状态失败");
-      }
-
-      // ✅ Removed success alert (no popup)
-      setDrops((prev) => [...prev]); // trigger re-render
+      lastLocalUpdate.current = Date.now();
+      setDrops((p) => [...p]);
       await onRefresh?.();
     } catch (err) {
       console.error("❌ Store drop failed:", err);
-      setDrops((prev) =>
-        prev.map((d) =>
+      setDrops((p) =>
+        p.map((d) =>
           d.ability === drop.ability && d.floor === drop.floor
             ? { ...d, status: "assigned" }
             : d
@@ -226,7 +231,6 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
     }
   };
 
-  // ✅ Split assigned vs processed for display
   const assignedDrops = drops.filter(
     (d) => d.status === "assigned" || d.status === "pending"
   );
