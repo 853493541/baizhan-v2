@@ -5,12 +5,14 @@
   align-items: flex-start;
   justify-content: center;
   gap: 2px;
-  padding: 6px 10px;
+  padding: 3px 16px;
   border-radius: 6px;
   font-size: 0.9rem;
-  min-width: 180px;
+  font-weight: 450;           /* 🟢 slightly bolder text */
+  min-width: 220px;
   max-width: 220px;
-  height: auto;
+  height: 35px;
+  line-height: 1.2;
   box-sizing: border-box;
   cursor: pointer;
   margin-bottom: 3px;
@@ -72,43 +74,31 @@
 
 .progressText {
   font-size: 13px;
-  padding: 1px 6px;
-  border-radius: 5px;
-  background: rgba(255, 255, 255, 0.5);
-  color: #155724;
+  font-weight: 500;       /* 🟡 medium bold for progress */
+  color: inherit;
+  margin-left: 6px;
   white-space: nowrap;
+  background: none;
+  padding: 0;
 }
 
-/* === Second line: warning row === */
+/* === Second line: “包里有10” (positive indicator) === */
 .warningRow {
   display: flex;
   align-items: center;
   gap: 4px;
   margin-top: 1px;
   font-size: 13px;
-  color: #b8860b;
+  font-weight: 600;       /* 🟢 make the tag more visible */
+  color: #1c7c2d;
 }
 
 .warningIcon {
   font-size: 14px;
+  color: #1c7c2d;
 }
 
 .warningText {
-  color: #b8860b;
-}
-/* === First line: Name + Progress aligned right === */
-.topRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
-.progressText {
-  font-size: 13px;
-  color: inherit;        /* same color as box text */
-  margin-left: 6px;
-  white-space: nowrap;
-  background: none;      /* remove background */
-  padding: 0;            /* remove padding */
+  color: #1c7c2d;
+  font-weight: 600;
 }
