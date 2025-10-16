@@ -227,3 +227,16 @@
   gap: 8px;
   justify-content: flex-end;
 }
+/* 🟩 Highlight: Top assignable (green) */
+.levelGreen {
+  background-color: #e2fbe2 !important;  /* soft green bg */
+  border-color: #1c7c2d !important;      /* dark green border */
+  color: #1c7c2d !important;             /* ✅ dark green text */
+}
+
+/* 🟨 Highlight: Lower assignable (yellow) */
+.levelYellow {
+  background-color: #fff6cc !important;  /* soft yellow bg */
+  border-color: #b89600 !important;      /* gold border */
+  color: #4a3f00 !important;             /* ✅ neutral dark-brown text */
+}
