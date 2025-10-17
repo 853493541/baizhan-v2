@@ -40,6 +40,10 @@ export default function GroupDetailModal({
   const [groupData, setGroupData] = useState<GroupResult>(group);
   const [loadingCharacters, setLoadingCharacters] = useState(false);
 
+  /* 🕒 Auto-refresh countdown */
+  const [countdown, setCountdown] = useState(5);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
   // ✅ When BossMap updates instantly
   const handleGroupUpdate = (updatedGroup: GroupResult) => {
     if (!updatedGroup) return;
@@ -47,39 +51,63 @@ export default function GroupDetailModal({
     setGroupData(updatedGroup);
   };
 
-  // 🔄 Reload full group data from backend
+  // 🔄 Full reload (manual or from children)
   const handleRefresh = async () => {
     if (!scheduleId) return;
     setRefreshing(true);
     try {
       const url = `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}`;
-      console.log("[GroupDetailModal] handleRefresh →", url);
-
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
       const data = await res.json();
-      console.log("[GroupDetailModal] backend returned:", data);
 
-      // ✅ groupIndex is 0-based, backend group.index starts at 1
       const updated = data.groups.find((g: any) => g.index === groupIndex + 1);
-      if (updated) {
-        console.log(
-          `[GroupDetailModal] found group with backend index ${groupIndex + 1}`,
-          updated
-        );
-        setGroupData(updated);
-      } else {
-        console.warn(`[GroupDetailModal] No matching group found for index: ${groupIndex}`);
-      }
-
-      onRefresh?.(); // optional parent refresh
+      if (updated) setGroupData(updated);
+      onRefresh?.();
     } catch (err) {
       console.error("❌ Failed to refresh group data:", err);
     } finally {
       setRefreshing(false);
     }
   };
+
+  // ✅ Lightweight auto-refresh (kills + status only)
+  useEffect(() => {
+    if (!scheduleId) return;
+
+    const fetchGroupKills = async () => {
+      try {
+        setIsRefreshing(true);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${groupIndex + 1}/kills`
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        setGroupData((prev) => ({
+          ...prev,
+          kills: data.kills || prev.kills,
+          status: data.status || prev.status,
+        }));
+        onRefresh?.();
+      } catch (err) {
+        console.error("❌ Auto refresh failed:", err);
+      } finally {
+        setIsRefreshing(false);
+      }
+    };
+
+    const timer = setInterval(() => {
+      setCountdown((c) => {
+        if (c <= 1) {
+          fetchGroupKills();
+          return 5; // ⏱️ now every 5 seconds
+        }
+        return c - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [scheduleId, groupIndex]);
 
   // ✅ Load weekly map once
   useEffect(() => {
@@ -93,7 +121,6 @@ export default function GroupDetailModal({
             floors[Number(floor)] = obj.boss;
           }
           setWeeklyMap(floors);
-          console.log("[GroupDetailModal] Weekly map loaded:", floors);
         }
       } catch (err) {
         console.error("❌ Failed to load weekly map:", err);
@@ -102,7 +129,7 @@ export default function GroupDetailModal({
     fetchMap();
   }, []);
 
-  // ✅ Fetch all character details for this group (abilities etc.)
+  // ✅ Fetch character details once
   useEffect(() => {
     const fetchCharacters = async () => {
       if (!groupData?.characters?.length) return;
@@ -116,21 +143,17 @@ export default function GroupDetailModal({
               );
               if (!res.ok) throw new Error(`Character ${c._id} fetch failed`);
               const full = await res.json();
-              return full; // should include abilities
+              return full;
             } catch (err) {
               console.warn("⚠️ Failed to fetch one character:", c._id, err);
               return c;
             }
           })
         );
-
-        // ✅ Attach detailed characters (with abilities)
         setGroupData((prev) => ({
           ...prev,
           characters: detailedChars,
         }));
-
-        console.log("[GroupDetailModal] Fetched detailed characters:", detailedChars);
       } catch (err) {
         console.error("❌ Failed to fetch group characters:", err);
       } finally {
@@ -141,7 +164,7 @@ export default function GroupDetailModal({
     fetchCharacters();
   }, [groupData.index]);
 
-  // ✅ Build weekly ability pool
+  // ✅ Weekly ability pool
   const weeklyAbilities = useMemo(() => {
     const result: { name: string; level: number }[] = [];
     for (const [floorStr, boss] of Object.entries(weeklyMap)) {
@@ -164,11 +187,11 @@ export default function GroupDetailModal({
           ✖
         </button>
 
-        <h2>分组 {groupIndex + 1}</h2>
+        {/* <h2>分组 {groupIndex + 1}</h2> */}
 
-        {loadingCharacters && (
-          <div className={styles.loadingText}>正在加载角色详情...</div>
-        )}
+        {/* {loadingCharacters && (
+          // <div className={styles.loadingText}>正在加载角色详情...</div>
+        )} */}
 
         {/* === Top Section: Group Info === */}
         <GroupInfo
@@ -185,11 +208,10 @@ export default function GroupDetailModal({
             conflictLevel={conflictLevel}
             weeklyAbilities={weeklyAbilities}
           />
-
-          {/* ✅ ResultWindow now gets characters with full abilities */}
           <ResultWindow
             scheduleId={scheduleId}
             group={groupData}
+            countdown={countdown}
             onRefresh={handleRefresh}
           />
         </div>
@@ -199,6 +221,7 @@ export default function GroupDetailModal({
           scheduleId={scheduleId}
           group={groupData as any}
           weeklyMap={weeklyMap}
+          countdown={countdown}
           onRefresh={handleRefresh}
           onGroupUpdate={handleGroupUpdate}
         />

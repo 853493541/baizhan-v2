@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styles from "./styles.module.css";
 import type { GroupResult } from "@/utils/solver";
 import Drops from "./drops";
@@ -8,7 +8,6 @@ import BossCard from "./BossCard";
 
 import rawBossData from "@/app/data/boss_drop.json";
 const bossData: Record<string, string[]> = rawBossData;
-
 import tradableAbilities from "@/app/data/tradable_abilities.json";
 const tradableSet = new Set(tradableAbilities as string[]);
 
@@ -22,6 +21,7 @@ interface Props {
   scheduleId: string;
   group: ExtendedGroup;
   weeklyMap: Record<number, string>;
+  countdown?: number;
   onRefresh?: () => void;
 }
 
@@ -33,12 +33,24 @@ const highlightAbilities = [
   "短歌万劫","泉映幻歌",
 ];
 
-export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Props) {
-  const row1 = [81, 82, 83, 84, 85, 86, 87, 88, 89, 90];
-  const row2 = [100, 99, 98, 97, 96, 95, 94, 93, 92, 91];
+export default function BossMap({ scheduleId, group, weeklyMap, countdown, onRefresh }: Props) {
+  const row1 = [81,82,83,84,85,86,87,88,89,90];
+  const row2 = [100,99,98,97,96,95,94,93,92,91];
 
-  // ✅ local copy only for visual refresh (kept synced by onRefresh)
   const [localGroup, setLocalGroup] = useState(group);
+  const lastLocalUpdate = useRef<number>(Date.now());
+
+  // ✅ Only replace local when parent has strictly newer data
+  useEffect(() => {
+    const parentKillCount = group.kills?.length || 0;
+    const localKillCount = localGroup.kills?.length || 0;
+
+    // ignore parent update if local seems newer (has same or more kills recently)
+    if (parentKillCount >= localKillCount || Date.now() - lastLocalUpdate.current > 3000) {
+      setLocalGroup(group);
+    }
+  }, [group]);
+
   const [selected, setSelected] = useState<{
     floor: number;
     boss: string;
@@ -46,34 +58,36 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
     dropLevel: 9 | 10;
   } | null>(null);
 
-  // ---- Status helpers ----
-  const status = (localGroup.status ?? "not_started") as
-    | "not_started"
-    | "started"
-    | "finished";
-  const statusLabel: Record<typeof status, string> = {
-    not_started: "未开始",
-    started: "进行中",
-    finished: "已完成",
-  };
-  const statusCircleClass: Record<typeof status, string> = {
+  const [activeMembers, setActiveMembers] = useState<number[]>([0,1,2]);
+  const toggleMember = (i: number) =>
+    setActiveMembers((p) => (p.includes(i) ? p.filter((x) => x !== i) : [...p, i]));
+
+  const status = (localGroup.status ?? "not_started") as "not_started" | "started" | "finished";
+  const statusLabel = { not_started:"未开始", started:"进行中", finished:"已完成" };
+  const statusCircleClass = {
     not_started: styles.statusIdleDot,
     started: styles.statusBusyDot,
     finished: styles.statusDoneDot,
   };
 
-  // ✅ API helpers
+  const getRoleClass = (role: string) => {
+    if (!role) return "";
+    switch (role.toLowerCase()) {
+      case "tank": return styles.tankBtn;
+      case "dps": return styles.dpsBtn;
+      case "healer": return styles.healerBtn;
+      default: return "";
+    }
+  };
+
   const updateGroupStatus = async (next: "not_started" | "started" | "finished") => {
     try {
-      await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/status`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: next }),
-        }
-      );
-      setLocalGroup((prev) => ({ ...prev, status: next }));
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: next }),
+      });
+      setLocalGroup((p) => ({ ...p, status: next }));
       onRefresh?.();
     } catch (err) {
       console.error("❌ updateGroupStatus error:", err);
@@ -90,34 +104,78 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
           body: JSON.stringify({ boss, selection }),
         }
       );
-
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const updated = await res.json();
 
-      // ✅ update kills locally for instant sync
       setLocalGroup((prev) => ({
         ...prev,
         kills: updated.updatedGroup?.kills || prev.kills,
       }));
-
-      onRefresh?.(); // this triggers your full parent refresh
+      lastLocalUpdate.current = Date.now();
+      onRefresh?.();
     } catch (err) {
       console.error("❌ updateGroupKill error:", err);
     }
   };
 
-  // 🔘 Finish handler
+  // ✅ Instant fetch when opened
+  useEffect(() => {
+    const instantFetch = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/kills`
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        setLocalGroup((prev) => ({
+          ...prev,
+          kills: data.kills || prev.kills,
+          status: data.status || prev.status,
+        }));
+        lastLocalUpdate.current = Date.now();
+      } catch (err) {
+        console.error("❌ Instant fetch failed:", err);
+      }
+    };
+    instantFetch();
+  }, [scheduleId, localGroup.index]);
+
   const handleFinish = async () => {
-    const ok = window.confirm("确认要结束吗？");
-    if (!ok) return;
-    await updateGroupStatus("finished");
+    if (window.confirm("确认要结束吗？")) {
+      await updateGroupStatus("finished");
+    }
   };
 
   return (
     <>
-      {/* Header */}
       <div className={styles.headerRow}>
-        <h3 className={styles.title}>本周地图</h3>
+        <div className={styles.leftSection}>
+          <h3 className={styles.title}>
+            本周地图
+            {countdown !== undefined && (
+              <span style={{ marginLeft: 8, fontSize: 13, color: "#6b7280" }}>
+                （{countdown}秒后刷新）
+              </span>
+            )}
+          </h3>
+          <div className={styles.memberButtons}>
+            {localGroup.characters?.map((c: any, i: number) => {
+              const isActive = activeMembers.includes(i);
+              const roleClass = getRoleClass(c.role);
+              return (
+                <button
+                  key={i}
+                  onClick={() => toggleMember(i)}
+                  className={`${styles.actionBtn} ${roleClass} ${
+                    !isActive ? styles.inactiveBtn : ""
+                  }`}
+                >
+                  {c.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         <div className={styles.rightControls}>
           <div className={styles.statusWrap} title={`当前状态：${statusLabel[status]}`}>
@@ -126,18 +184,13 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
           </div>
 
           {status !== "finished" && (
-            <button
-              className={styles.actionBtn}
-              onClick={handleFinish}
-              aria-label="结束并提交"
-            >
+            <button className={styles.actionBtn} onClick={handleFinish}>
               结束
             </button>
           )}
         </div>
       </div>
 
-      {/* Row 1 */}
       <div className={styles.row}>
         {row1.map((f) => (
           <BossCard
@@ -149,6 +202,7 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
             highlightAbilities={highlightAbilities}
             tradableSet={tradableSet}
             kill={localGroup.kills?.find((k) => k.floor === f)}
+            activeMembers={activeMembers}
             onSelect={(floor, boss, dropList, dropLevel) =>
               setSelected({ floor, boss, dropList, dropLevel })
             }
@@ -156,7 +210,6 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
         ))}
       </div>
 
-      {/* Row 2 */}
       <div className={styles.row}>
         {row2.map((f) => (
           <BossCard
@@ -168,6 +221,7 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
             highlightAbilities={highlightAbilities}
             tradableSet={tradableSet}
             kill={localGroup.kills?.find((k) => k.floor === f)}
+            activeMembers={activeMembers}
             onSelect={(floor, boss, dropList, dropLevel) =>
               setSelected({ floor, boss, dropList, dropLevel })
             }
@@ -175,7 +229,6 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
         ))}
       </div>
 
-      {/* Drops modal */}
       {selected && (
         <Drops
           scheduleId={scheduleId}
@@ -188,22 +241,15 @@ export default function BossMap({ scheduleId, group, weeklyMap, onRefresh }: Pro
           onSave={async (floor, data) => {
             await updateGroupKill(floor, selected.boss, data);
             setSelected(null);
-
-            if (status === "not_started") {
-              await updateGroupStatus("started");
-            }
+            if (status === "not_started") await updateGroupStatus("started");
           }}
           groupStatus={status}
           onMarkStarted={() => updateGroupStatus("started")}
-          // ✅ local visual refresh for reset only
           onAfterReset={() => {
-            // remove visually so the boss icon updates
-            setLocalGroup((prev) => ({
-              ...prev,
-              kills: prev.kills?.filter((k) => k.floor !== selected?.floor) || [],
+            setLocalGroup((p) => ({
+              ...p,
+              kills: p.kills?.filter((k) => k.floor !== selected?.floor) || [],
             }));
-
-            // now run your normal refresh logic (to re-fetch proper data)
             onRefresh?.();
             setSelected(null);
           }}

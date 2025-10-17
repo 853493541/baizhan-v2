@@ -150,3 +150,68 @@
   margin-bottom: 4px;
   text-align: right;
 }
+/* === 📱 Responsive for phone screens === */
+@media (max-width: 768px) {
+  /* Modal adjustments */
+  .modal {
+    padding: 16px;
+    width: 98%;
+    max-width: 100%;
+    max-height: 90vh;
+    border-radius: 6px;
+  }
+
+  .closeBtn {
+    top: 8px;
+    right: 8px;
+    font-size: 18px;
+  }
+
+  /* Stack mid section vertically */
+  .midSection {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    margin: 14px 0;
+    min-height: auto;
+  }
+
+  /* Allow tables to scroll horizontally */
+  .tableWrapper {
+    overflow-x: auto;
+    justify-content: flex-start;
+  }
+
+  .abilityTable th,
+  .abilityTable td {
+    padding: 4px 8px;
+    font-size: 13px;
+    min-width: 50px;
+  }
+
+  .abilityLogo {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Reduce padding and simplify result boxes */
+  .resultContent {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .resultSubBox {
+    padding: 10px;
+  }
+
+  /* Make role colors slightly subtler on mobile */
+  .tank {
+    background-color: #fff9dc;
+  }
+  .dps {
+    background-color: #e6f7e6;
+  }
+  .healer {
+    background-color: #ffe5ea;
+  }
+}

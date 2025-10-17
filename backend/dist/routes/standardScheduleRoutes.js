@@ -10,8 +10,10 @@ router.get("/summary", getScheduleSummaryByWeek_1.getScheduleSummaryByWeek);
 router.post("/", standardScheduleController_1.createStandardSchedule);
 // GET all standard schedules
 router.get("/", standardScheduleController_1.getStandardSchedules);
-// GET one standard schedule by ID
+// GET one standard schedule by ID (full data)
 router.get("/:id", standardScheduleController_1.getStandardScheduleById);
+// ✅ NEW: lightweight route to get only a group’s kills + status
+router.get("/:id/groups/:index/kills", standardScheduleController_1.getGroupKills);
 // UPDATE standard schedule groups
 router.put("/:id", standardScheduleController_1.updateStandardSchedule);
 // DELETE standard schedule by ID

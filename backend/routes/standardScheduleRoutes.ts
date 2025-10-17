@@ -9,6 +9,7 @@ import {
   updateGroupKill,
   deleteGroupKill,
   updateScheduleName,
+  getGroupKills, // ✅ new controller
 } from "../controllers/playground/standardScheduleController";
 import { getScheduleSummaryByWeek } from "../controllers/playground/standardSchedules/getScheduleSummaryByWeek";
 
@@ -23,8 +24,11 @@ router.post("/", createStandardSchedule);
 // GET all standard schedules
 router.get("/", getStandardSchedules);
 
-// GET one standard schedule by ID
+// GET one standard schedule by ID (full data)
 router.get("/:id", getStandardScheduleById);
+
+// ✅ NEW: lightweight route to get only a group’s kills + status
+router.get("/:id/groups/:index/kills", getGroupKills);
 
 // UPDATE standard schedule groups
 router.put("/:id", updateStandardSchedule);

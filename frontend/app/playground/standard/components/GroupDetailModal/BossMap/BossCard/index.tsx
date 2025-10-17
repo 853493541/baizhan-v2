@@ -12,6 +12,7 @@ interface BossCardProps {
   highlightAbilities: string[];
   tradableSet: Set<string>;
   kill?: any;
+  activeMembers?: number[]; // ✅ new prop
   onSelect: (
     floor: number,
     boss: string,
@@ -30,9 +31,9 @@ export default function BossCard({
   highlightAbilities,
   tradableSet,
   kill,
+  activeMembers = [0, 1, 2],
   onSelect,
 }: BossCardProps) {
-  // 🔍 Debug logging
   useEffect(() => {
     console.log(`[BossCard] floor=${floor}`, {
       kill,
@@ -52,11 +53,16 @@ export default function BossCard({
   const dropList: string[] = bossData[boss] || [];
   const dropLevel = floor >= 81 && floor <= 90 ? 9 : 10;
 
+  // ✅ Only include selected members
+  const includedChars = group.characters.filter((_: any, i: number) =>
+    activeMembers.includes(i)
+  );
+
   // ✅ Needs calculation
   let needs = dropList
     .filter((ability) => !tradableSet.has(ability))
     .map((ability) => {
-      const needCount = group.characters.filter((c: any) => {
+      const needCount = includedChars.filter((c: any) => {
         const lvl = c.abilities?.[ability] ?? 0;
         const usable = canUseAbility(c, ability);
         return usable && lvl < dropLevel;
@@ -105,11 +111,10 @@ export default function BossCard({
     assignedName = char ? char.name : kill.selection.characterId;
   }
 
-  // ✅ Drop display with icons + ability name
+  // ✅ Drop display
   let dropDisplay = null;
   if (kill?.selection) {
     if (kill.selection.noDrop || !kill.selection.ability) {
-      // true no drop
       dropDisplay = (
         <div className={`${styles.dropResult} ${styles.noDrop}`}>
           <img
@@ -121,7 +126,6 @@ export default function BossCard({
         </div>
       );
     } else if (kill.selection.ability && !kill.selection.characterId) {
-      // wasted (icon in grayscale)
       dropDisplay = (
         <div
           className={`${styles.dropResult} ${styles.wasted} ${styles.stackCenter}`}
@@ -137,7 +141,6 @@ export default function BossCard({
         </div>
       );
     } else {
-      // normal
       dropDisplay = (
         <div className={`${styles.dropResult} ${styles.normal}`}>
           <img
@@ -158,15 +161,14 @@ export default function BossCard({
       key={floor}
       className={`${styles.card} ${styles.cardInteractive} ${
         kill?.selection?.ability && kill?.selection?.characterId
-          ? styles.cardNormal // normal = green
+          ? styles.cardNormal
           : (kill?.selection?.noDrop ||
             (kill?.selection?.ability && !kill?.selection?.characterId))
-          ? styles.cardHealer // noDrop or wasted = pink/red
+          ? styles.cardHealer
           : ""
       }`}
       onClick={() => onSelect(floor, boss, dropList, dropLevel as 9 | 10)}
     >
-      {/* ✅ Header: floor left, boss centered */}
       <div className={styles.header}>
         {floor} {boss}
       </div>
