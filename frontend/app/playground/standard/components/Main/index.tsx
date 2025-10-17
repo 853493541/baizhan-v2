@@ -199,6 +199,7 @@ export default function MainSection({
       </div>
       <ReversedSolver characters={schedule.characters}
        checkedAbilities={schedule.checkedAbilities}
+       scheduleId={schedule._id}  
         />
       
       {groups.length === 0 ? (
