@@ -178,3 +178,35 @@
   font-weight: 500;
   color: #333;
 }
+.controls {
+  margin-bottom: 1rem;
+}
+
+.runButton {
+  padding: 6px 14px;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background: #eaffea;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.runButton:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.progressBar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.summaryBox {
+  background: #f8f8f8;
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 10px;
+  font-family: monospace;
+  white-space: pre-line;
+}

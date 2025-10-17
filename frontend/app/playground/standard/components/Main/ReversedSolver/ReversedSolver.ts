@@ -1,12 +1,12 @@
 /**
  * ReversedSolver.ts
  * -----------------------------
- * Adds hard-fail logic for core abilities:
- *  - If any core ability ❌ → instantly stop and log "CORE VIOLATION".
- * Scoring:
- *  - Missing CORE → -1000 and terminate
- *  - Non-core ✅ Lv9 → +1
- *  - Non-core ✅ Lv10 → +10
+ * Minimal logging version.
+ * - Logs only core violations in one line.
+ * - Scoring:
+ *   • Missing CORE → -1000 and terminate early
+ *   • Non-core Lv9 ✅ → +1
+ *   • Non-core Lv10 ✅ → +10
  */
 
 interface Character {
@@ -35,21 +35,19 @@ interface SolverInput {
 export function runReversedSolver(input: SolverInput) {
   const { groups, abilitySummary, coreAbilities } = input;
 
-  console.log("🧩 [Reversed Solver] Input received ------------------");
-  console.log(`[Reversed Solver] 总组数: ${groups.length}`);
-  console.log(`[Reversed Solver] 能力数量: ${abilitySummary.length}`);
-  console.log("[Reversed Solver] Weekly Core Abilities:", coreAbilities);
-  console.log("[Reversed Solver] === Ability Coverage Check ===");
-
-  const penalized: string[] = [];
   let totalScore = 0;
   let coreViolated = false;
+  const penalized: string[] = [];
 
   // 🟢 Separate core and non-core abilities
-  const coreList = abilitySummary.filter((a) => coreAbilities.includes(a.ability));
-  const otherList = abilitySummary.filter((a) => !coreAbilities.includes(a.ability));
+  const coreList = abilitySummary.filter((a) =>
+    coreAbilities.includes(a.ability)
+  );
+  const otherList = abilitySummary.filter(
+    (a) => !coreAbilities.includes(a.ability)
+  );
 
-  // 🔍 Helper to check one ability and apply score
+  // 🔍 Check one ability and update score
   const checkAbility = (a: AbilitySummary, isCore: boolean) => {
     const abilityName = a.ability;
     const isLv10 = abilityName.endsWith("10");
@@ -62,37 +60,27 @@ export function runReversedSolver(input: SolverInput) {
       return count + (hasNeed ? 1 : 0);
     }, 0);
 
-    const mark = groupNeedCount < a.neededGroups ? "❌" : "✅";
-    const tag = isCore ? "(CORE)" : "";
-
-    // 🧮 Scoring
+    // 🧮 Scoring logic
     if (isCore) {
-      if (mark === "❌") {
+      if (groupNeedCount < a.neededGroups) {
         coreViolated = true;
         totalScore -= 1000;
+        penalized.push(abilityName);
+        console.warn(
+          // `[Reversed Solver] ❌ CORE VIOLATION → ${abilityName} missing in required groups (${groupNeedCount}/${a.neededGroups})`
+        );
       }
-    } else if (mark === "✅") {
+    } else if (groupNeedCount >= a.neededGroups) {
       totalScore += isLv10 ? 10 : isLv9 ? 1 : 0;
+    } else {
+      penalized.push(abilityName);
     }
-
-    if (mark === "❌") penalized.push(abilityName);
-
-    console.log(
-      `[Reversed Solver] ${abilityName.padEnd(12)} ${String(
-        groupNeedCount
-      ).padStart(2)}/${a.neededGroups}  → ${mark} ${tag}`
-    );
   };
 
-  // ✅ Check core abilities first
+  // ✅ Step 1: Core abilities first (stop early if missing)
   for (const a of coreList) {
     checkAbility(a, true);
     if (coreViolated) {
-      console.log("🚨 [Reversed Solver] CORE VIOLATION — Aborting further checks.");
-      console.log("--------------------------------------------------");
-      console.log(`[Reversed Solver] ❌ Invalid schedule due to missing core ability.`);
-      console.log(`[Reversed Solver] 🧮 Total Score: ${totalScore}`);
-      console.log("[Reversed Solver] --------------------------------------------------");
       return {
         status: "core_violation",
         totalGroups: groups.length,
@@ -103,17 +91,12 @@ export function runReversedSolver(input: SolverInput) {
     }
   }
 
-  // 🟡 Then check non-core abilities
-  otherList.forEach((a) => checkAbility(a, false));
+  // 🟡 Step 2: Non-core abilities
+  for (const a of otherList) {
+    checkAbility(a, false);
+  }
 
-  console.log("--------------------------------------------------");
-  console.log(
-    `[Reversed Solver] ✅ Check Complete. Penalized (${penalized.length}):`,
-    penalized.length > 0 ? penalized.join(", ") : "None"
-  );
-  console.log(`[Reversed Solver] 🧮 Total Score: ${totalScore}`);
-  console.log("[Reversed Solver] --------------------------------------------------");
-
+  // ✅ Final result
   return {
     status: "checked",
     totalGroups: groups.length,

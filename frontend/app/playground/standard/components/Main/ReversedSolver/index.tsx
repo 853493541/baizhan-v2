@@ -19,14 +19,6 @@ interface Character {
   needs?: { name: string; level: number }[];
 }
 
-interface FilledSkeleton {
-  index: number;
-  groups: {
-    index: number;
-    members: Character[];
-  }[];
-}
-
 const CORE_ABILITIES = [
   "斗转金移",
   "花钱消灾",
@@ -34,36 +26,165 @@ const CORE_ABILITIES = [
   "一闪天诛",
   "引燃",
   "漾剑式",
-  "阴阳术退散",
   "兔死狐悲",
-  "乾坤一掷",
-  "飞云回转刀",
+  "阴阳术退散",
+  // "乾坤一掷",
+  // "飞云回转刀",
   "厄毒爆发",
   "短歌万劫",
 ];
 
+/** === Utility: tolerance summary (需求组数) === */
 function calculateTolerance(characters: Character[], groupCount: number) {
   const toleranceMap: Record<string, number> = {};
-
-  for (const char of characters) {
-    if (!char.needs) continue;
-    for (const { name, level } of char.needs) {
+  for (const c of characters) {
+    if (!c.needs) continue;
+    for (const { name, level } of c.needs) {
       const key = `${name}${level}`;
       toleranceMap[key] = (toleranceMap[key] || 0) + 1;
     }
   }
-
-  const GROUP_COUNT = groupCount;
-
   return Object.entries(toleranceMap)
     .map(([key, count]) => {
-      const tolerance = Math.max(0, GROUP_COUNT - count);
-      const neededGroups = GROUP_COUNT - tolerance;
+      const tolerance = Math.max(0, groupCount - count);
+      const neededGroups = groupCount - tolerance;
       return { ability: key, neededGroups };
     })
     .sort((a, b) => b.neededGroups - a.neededGroups);
 }
 
+/** === Core Engine: run 20k solver checks with safety & retries === */
+async function runMassSolver(
+  characters: Character[],
+  checkedAbilities: { name: string; level: number; available: boolean }[],
+  setProgress: (p: number) => void,
+  setSummary: (txt: string) => void
+) {
+  const start = performance.now();
+  const charsWithNeeds = ComputeNeeds(characters, checkedAbilities);
+  const accountCaps = toAccountCapabilities(charsWithNeeds);
+
+  const skeletonCount = 40; // outer loop
+  const variantsPerSkeleton = 500; // inner loop → 20k runs total
+  const groupCount = Math.ceil(characters.length / 3);
+  const tol = calculateTolerance(charsWithNeeds, groupCount);
+
+  // 🔍 Build weekly core list (Lv9 + Lv10)
+  const weekCoreAbilities: string[] = [];
+  for (const base of CORE_ABILITIES) {
+    const foundLevels = checkedAbilities
+      .filter((a) => a.name.startsWith(base))
+      .map((a) => `${a.name}${a.level}`);
+    weekCoreAbilities.push(...foundLevels);
+  }
+
+  // === Stats ===
+  let totalRuns = 0;
+  let validRuns = 0;
+  let coreFails = 0;
+  let sumScore = 0;
+  let bestScore = Infinity;
+  let bestSet: any = null;
+
+  console.log(
+    `[Mass Solver] Starting full random run: Skeletons=${skeletonCount}, Variants=${variantsPerSkeleton}`
+  );
+
+  // === MAIN LOOP ===
+  for (let s = 0; s < skeletonCount; s++) {
+    for (let v = 0; v < variantsPerSkeleton; v++) {
+      totalRuns++;
+
+      // 🟢 Full random shuffle → new skeleton each time
+      const shuffledCaps = [...accountCaps].sort(() => Math.random() - 0.5);
+      const skeleton = generateAccountSkeletons(shuffledCaps)[0];
+      if (!skeleton) continue;
+
+      // 🌀 Attempt to fill up to 5 times
+      let filledAttempt: any = null;
+      for (let retry = 0; retry < 5; retry++) {
+        const tryFill = fillSkeletonsWithCharacters([skeleton], charsWithNeeds);
+        if (tryFill.length > 0) {
+          filledAttempt = tryFill[0];
+          break;
+        }
+      }
+      if (!filledAttempt) continue; // skip if still invalid
+
+      const filled = filledAttempt;
+
+      // 🧩 Debug first few runs
+      if (totalRuns <= 3) {
+        console.log(
+          `[Debug] Run #${totalRuns} (${filled.groups.length} groups):`,
+          filled.groups.map((g) => g.members.map((m) => m.name).join("、"))
+        );
+      }
+
+      // 🧮 Run solver on this filled set
+      const result = runReversedSolver({
+        groups: filled.groups.map((g) => ({
+          index: g.index,
+          members: g.members.map((m) => ({
+            _id: m._id,
+            name: m.name,
+            account: m.account,
+            needs: m.needs,
+          })),
+        })),
+        abilitySummary: tol,
+        coreAbilities: weekCoreAbilities,
+      });
+
+      // ⚠️ Skip if core violation
+      if (result.status === "core_violation") {
+        coreFails++;
+        continue;
+      }
+
+      validRuns++;
+      sumScore += result.totalScore;
+
+      // 🏆 Track best (lowest positive) score
+      if (result.totalScore > 0 && result.totalScore < bestScore) {
+        bestScore = result.totalScore;
+        bestSet = filled;
+      }
+
+      // 🕓 Periodic progress update
+      if (totalRuns % 1000 === 0) {
+        setProgress((totalRuns / (skeletonCount * variantsPerSkeleton)) * 100);
+        await new Promise((r) => setTimeout(r, 0)); // yield to UI
+      }
+    }
+  }
+
+  // === SUMMARY ===
+  const avgScore =
+    validRuns > 0 ? (sumScore / validRuns).toFixed(2) : "N/A";
+  const time = ((performance.now() - start) / 1000).toFixed(2);
+
+  let summary = `🏁 Total Runs: ${totalRuns}
+✅ Valid Runs: ${validRuns}
+Core Violations: ${coreFails}
+Best (lowest >0): ${bestScore === Infinity ? "None" : bestScore}
+Avg Score: ${avgScore}
+⏱Time: ${time}s`;
+
+  // === BEST COMPOSITION ===
+  if (bestSet) {
+    summary += `\n\nBest Composition:\n`;
+    for (const g of bestSet.groups) {
+      const names = g.members.map((m) => m.name).join("、");
+      summary += `组 ${g.index + 1}: ${names}\n`;
+    }
+  }
+
+  setSummary(summary);
+  console.log("[Mass Solver] Finished\n" + summary);
+}
+
+/** === Component === */
 export default function ReversedSolver({
   characters,
   checkedAbilities,
@@ -71,108 +192,57 @@ export default function ReversedSolver({
   characters: Character[];
   checkedAbilities: { name: string; level: number; available: boolean }[];
 }) {
-  const [filledSkeletons, setFilledSkeletons] = useState<FilledSkeleton[]>([]);
-  const [tolerance, setTolerance] = useState<{ ability: string; neededGroups: number }[]>([]);
+  const [tolerance, setTolerance] = useState<
+    { ability: string; neededGroups: number }[]
+  >([]);
+  const [isRunning, setIsRunning] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [summary, setSummary] = useState("");
 
   useEffect(() => {
     if (!characters?.length || !checkedAbilities?.length) return;
-
     const charsWithNeeds = ComputeNeeds(characters, checkedAbilities);
-
-    const weekCoreAbilities: string[] = [];
-    for (const base of CORE_ABILITIES) {
-      const foundLevels = checkedAbilities
-        .filter((a) => a.name.startsWith(base))
-        .map((a) => `${a.name}${a.level}`);
-      weekCoreAbilities.push(...foundLevels);
-    }
-    console.log("[Reversed Solver] Weekly Core Abilities (auto-expanded):", weekCoreAbilities);
-
-    const accountCaps = toAccountCapabilities(charsWithNeeds);
-    const skeletonSets: FilledSkeleton[] = [];
-
-    for (let i = 0; i < 10; i++) {
-      const shuffled = [...accountCaps].sort(() => Math.random() - 0.5);
-      const skeleton = generateAccountSkeletons(shuffled);
-      const filled = fillSkeletonsWithCharacters(skeleton, charsWithNeeds);
-      if (filled.length > 0) skeletonSets.push({ ...filled[0], index: i });
-    }
-
-    setFilledSkeletons(skeletonSets);
-    console.log("🎯 [Reversed Solver] 10 filled skeleton sets:", skeletonSets);
-
-    const groupCount = skeletonSets[0]?.groups.length || Math.ceil(characters.length / 3);
+    const groupCount = Math.ceil(characters.length / 3);
     const tol = calculateTolerance(charsWithNeeds, groupCount);
     setTolerance(tol);
-    console.log(`[Reversed Solver] Using groupCount = ${groupCount}`);
-    console.log("[Reversed Solver] Ability Summary:", tol);
-
-    // 🧩 Run solver for each skeleton
-    let bestScore = -Infinity;
-    let bestIndex = -1;
-    let coreFails = 0;
-    const results: { index: number; score: number; status: string }[] = [];
-
-    for (const sk of skeletonSets) {
-      const cleanGroups = sk.groups.map((g) => ({
-        index: g.index,
-        members: g.members.map((m) => ({
-          _id: m._id,
-          name: m.name,
-          account: m.account,
-          needs: m.needs,
-        })),
-      }));
-
-      const result = runReversedSolver({
-        groups: cleanGroups,
-        abilitySummary: tol,
-        coreAbilities: weekCoreAbilities,
-      });
-
-      results.push({ index: sk.index, score: result.totalScore, status: result.status });
-
-      if (result.status === "core_violation") coreFails++;
-      if (result.totalScore > bestScore) {
-        bestScore = result.totalScore;
-        bestIndex = sk.index;
-      }
-    }
-
-    // 🧾 Summary
-    console.log("--------------------------------------------------");
-    console.log(`🏁 [Reversed Solver] Completed ${skeletonSets.length} evaluations`);
-    console.log(
-      `[Reversed Solver] Core Violations: ${coreFails} / ${skeletonSets.length}`
-    );
-    console.log(`[Reversed Solver] Best Score: ${bestScore} (Skeleton #${bestIndex})`);
-    console.log(
-      `[Reversed Solver] All Results:`,
-      results.map((r) => `[${r.index}] ${r.status} → ${r.score}`).join(", ")
-    );
-    console.log("--------------------------------------------------");
   }, [characters, checkedAbilities]);
-
-  // 🎨 UI Display (same)
-  const getRoleStyle = (role: string) => {
-    switch (role) {
-      case "Healer":
-        return { backgroundColor: "#ffe0f0", borderColor: "#ffa0c0" };
-      case "Tank":
-        return { backgroundColor: "#fff6c4", borderColor: "#ffd700" };
-      case "DPS":
-        return { backgroundColor: "#d8f3dc", borderColor: "#95d5b2" };
-      default:
-        return { backgroundColor: "#f0f0f0", borderColor: "#ccc" };
-    }
-  };
 
   return (
     <div className={styles.wrapper}>
-      <h3 className={styles.title}>
-        🧩 Reversed Solver — 批量测试 10 骨架组
-      </h3>
+      <h3 className={styles.title}>🧩 Reversed Solver — 最佳组合搜索 (20,000次)</h3>
 
+      {/* === Control Panel === */}
+      <div className={styles.controls}>
+        <button
+          onClick={async () => {
+            setIsRunning(true);
+            setProgress(0);
+            setSummary("");
+            await runMassSolver(
+              characters,
+              checkedAbilities,
+              setProgress,
+              setSummary
+            );
+            setIsRunning(false);
+          }}
+          disabled={isRunning}
+          className={styles.runButton}
+        >
+          {isRunning ? "⏳ Running..." : "▶ Run Mass Solver"}
+        </button>
+
+        {isRunning && (
+          <div className={styles.progressBar}>
+            <progress value={progress} max="100"></progress>
+            <span>{progress.toFixed(1)}%</span>
+          </div>
+        )}
+
+        {summary && <pre className={styles.summaryBox}>{summary}</pre>}
+      </div>
+
+      {/* === Tolerance Table === */}
       {tolerance.length > 0 && (
         <div className={styles.toleranceBox}>
           <h4>📊 能力需求组数</h4>
@@ -193,46 +263,6 @@ export default function ReversedSolver({
             </tbody>
           </table>
         </div>
-      )}
-
-      {filledSkeletons.length === 0 ? (
-        <p className={styles.empty}>暂无角色数据</p>
-      ) : (
-        filledSkeletons.map((sk) => (
-          <div key={sk.index} className={styles.skeletonCard}>
-            <div className={styles.skeletonHeader}>
-              <strong>骨架组 #{sk.index + 1}</strong> — 共 {sk.groups.length} 组
-            </div>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>组号</th>
-                  <th>角色成员</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sk.groups.map((g) => (
-                  <tr key={g.index}>
-                    <td>G{g.index + 1}</td>
-                    <td>
-                      {g.members.length === 0
-                        ? "—"
-                        : g.members.map((m, i) => (
-                            <span
-                              key={m._id}
-                              className={styles.chip}
-                              style={getRoleStyle(m.role)}
-                            >
-                              {m.name} {m.account}
-                            </span>
-                          ))}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ))
       )}
     </div>
   );
