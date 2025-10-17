@@ -8,7 +8,7 @@ import {
 } from "./generateAccountSkeletons";
 import { fillSkeletonsWithCharacters } from "./fillSkeletonsWithCharacters";
 import { ComputeNeeds } from "./ComputeNeeds";
-import { runReversedSolver } from "./ReversedSolver"; // 🧩 solver logic file
+import { runReversedSolver } from "./ReversedSolver"; // solver logic file
 
 interface Character {
   _id: string;
@@ -27,7 +27,6 @@ interface FilledSkeleton {
   }[];
 }
 
-// 🧩 Core Ability Base Names (no levels)
 const CORE_ABILITIES = [
   "斗转金移",
   "花钱消灾",
@@ -43,26 +42,23 @@ const CORE_ABILITIES = [
   "短歌万劫",
 ];
 
-// 🧮 Step 1: calculate tolerance (dynamic version)
 function calculateTolerance(characters: Character[], groupCount: number) {
   const toleranceMap: Record<string, number> = {};
 
-  // Count how many characters need each ability-level pair
   for (const char of characters) {
-    if (!char.needs || char.needs.length === 0) continue;
+    if (!char.needs) continue;
     for (const { name, level } of char.needs) {
       const key = `${name}${level}`;
       toleranceMap[key] = (toleranceMap[key] || 0) + 1;
     }
   }
 
-  const GROUP_COUNT = groupCount; // 🟢 dynamically determined
+  const GROUP_COUNT = groupCount;
 
-  // Compute neededGroups for each ability
   return Object.entries(toleranceMap)
     .map(([key, count]) => {
       const tolerance = Math.max(0, GROUP_COUNT - count);
-      const neededGroups = GROUP_COUNT - tolerance; // 需求组数
+      const neededGroups = GROUP_COUNT - tolerance;
       return { ability: key, neededGroups };
     })
     .sort((a, b) => b.neededGroups - a.neededGroups);
@@ -81,10 +77,8 @@ export default function ReversedSolver({
   useEffect(() => {
     if (!characters?.length || !checkedAbilities?.length) return;
 
-    // 🧩 Step A: compute missing abilities (needs)
     const charsWithNeeds = ComputeNeeds(characters, checkedAbilities);
 
-    // ⚙️ Step B: Identify which core abilities (with levels) are relevant this week
     const weekCoreAbilities: string[] = [];
     for (const base of CORE_ABILITIES) {
       const foundLevels = checkedAbilities
@@ -94,7 +88,6 @@ export default function ReversedSolver({
     }
     console.log("[Reversed Solver] Weekly Core Abilities (auto-expanded):", weekCoreAbilities);
 
-    // 🦴 Step C: generate skeletons
     const accountCaps = toAccountCapabilities(charsWithNeeds);
     const skeletonSets: FilledSkeleton[] = [];
 
@@ -108,18 +101,20 @@ export default function ReversedSolver({
     setFilledSkeletons(skeletonSets);
     console.log("🎯 [Reversed Solver] 10 filled skeleton sets:", skeletonSets);
 
-    // ⚙️ Step D: dynamically determine group count
     const groupCount = skeletonSets[0]?.groups.length || Math.ceil(characters.length / 3);
-
-    // 🧮 Step E: calculate tolerance summary based on actual group count
     const tol = calculateTolerance(charsWithNeeds, groupCount);
     setTolerance(tol);
     console.log(`[Reversed Solver] Using groupCount = ${groupCount}`);
     console.log("[Reversed Solver] Ability Summary:", tol);
 
-    // 🧩 Step F: run reversed solver (pass minimal data + weekly core list)
-    if (skeletonSets.length > 0) {
-      const cleanGroups = skeletonSets[0].groups.map((g) => ({
+    // 🧩 Run solver for each skeleton
+    let bestScore = -Infinity;
+    let bestIndex = -1;
+    let coreFails = 0;
+    const results: { index: number; score: number; status: string }[] = [];
+
+    for (const sk of skeletonSets) {
+      const cleanGroups = sk.groups.map((g) => ({
         index: g.index,
         members: g.members.map((m) => ({
           _id: m._id,
@@ -129,15 +124,36 @@ export default function ReversedSolver({
         })),
       }));
 
-      runReversedSolver({
+      const result = runReversedSolver({
         groups: cleanGroups,
         abilitySummary: tol,
         coreAbilities: weekCoreAbilities,
       });
+
+      results.push({ index: sk.index, score: result.totalScore, status: result.status });
+
+      if (result.status === "core_violation") coreFails++;
+      if (result.totalScore > bestScore) {
+        bestScore = result.totalScore;
+        bestIndex = sk.index;
+      }
     }
+
+    // 🧾 Summary
+    console.log("--------------------------------------------------");
+    console.log(`🏁 [Reversed Solver] Completed ${skeletonSets.length} evaluations`);
+    console.log(
+      `[Reversed Solver] Core Violations: ${coreFails} / ${skeletonSets.length}`
+    );
+    console.log(`[Reversed Solver] Best Score: ${bestScore} (Skeleton #${bestIndex})`);
+    console.log(
+      `[Reversed Solver] All Results:`,
+      results.map((r) => `[${r.index}] ${r.status} → ${r.score}`).join(", ")
+    );
+    console.log("--------------------------------------------------");
   }, [characters, checkedAbilities]);
 
-  // 🎨 Helper: role-based background color (for UI display only)
+  // 🎨 UI Display (same)
   const getRoleStyle = (role: string) => {
     switch (role) {
       case "Healer":
@@ -154,13 +170,12 @@ export default function ReversedSolver({
   return (
     <div className={styles.wrapper}>
       <h3 className={styles.title}>
-        🧩 Reversed Solver — 多骨架生成展示 (自动识别组数)
+        🧩 Reversed Solver — 批量测试 10 骨架组
       </h3>
 
-      {/* === 🧮 Ability Summary (需求组数) === */}
       {tolerance.length > 0 && (
         <div className={styles.toleranceBox}>
-          <h4>📊 能力需求组数（根据实际组数计算）</h4>
+          <h4>📊 能力需求组数</h4>
           <table className={styles.table}>
             <thead>
               <tr>
@@ -180,7 +195,6 @@ export default function ReversedSolver({
         </div>
       )}
 
-      {/* === 🦴 Skeleton Display === */}
       {filledSkeletons.length === 0 ? (
         <p className={styles.empty}>暂无角色数据</p>
       ) : (
@@ -189,7 +203,6 @@ export default function ReversedSolver({
             <div className={styles.skeletonHeader}>
               <strong>骨架组 #{sk.index + 1}</strong> — 共 {sk.groups.length} 组
             </div>
-
             <table className={styles.table}>
               <thead>
                 <tr>
@@ -211,7 +224,6 @@ export default function ReversedSolver({
                               style={getRoleStyle(m.role)}
                             >
                               {m.name} {m.account}
-                              {i < g.members.length - 1 ? "" : ""}
                             </span>
                           ))}
                     </td>
