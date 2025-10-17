@@ -1,17 +1,35 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import styles from "./styles.module.css";
-import { runSolver, GroupResult, Character, AbilityCheck } from "@/utils/solver";
+import { runAdvancedSolver } from "@/utils/advancedSolver";
+import { summarizeAftermath } from "@/utils/aftermathSummary";
+import type { GroupResult, Character, AbilityCheck } from "@/utils/solver";
+
+import SolverOptions from "./SolverOptions";
+import SolverButtons from "./SolverButtons";
+import DisplayGroups from "./DisplayGroups";
+import AftermathSummary from "./AftermathSummary";
+
+// ✅ Hardcoded main characters (still used to split main/alt groups)
+const MAIN_CHARACTERS = new Set([
+  "剑心猫猫糕",
+  "东海甜妹",
+  "饲猫大桔",
+  "五溪",
+  "唐宵风",
+  "程老黑",
+]);
 
 interface Props {
   schedule: {
     _id: string;
     server: string;
     conflictLevel: number;
-    checkedAbilities: AbilityCheck[];
     characters: Character[];
+    checkedAbilities: AbilityCheck[];
   };
-  groups: GroupResult[];
+  groups: (GroupResult & { status?: "not_started" | "started" | "finished" })[];
   setGroups: (groups: GroupResult[]) => void;
   activeIdx: number | null;
   setActiveIdx: (idx: number | null) => void;
@@ -22,16 +40,6 @@ interface Props {
   ) => string[];
 }
 
-// ✅ Hardcoded main characters
-const MAIN_CHARACTERS = new Set([
-  "剑心猫猫糕",
-  "东海甜妹",
-  "饲猫大桔",
-  "五溪",
-  "唐逍风",
-  "程老黑",
-]);
-
 export default function MainSection({
   schedule,
   groups,
@@ -39,66 +47,58 @@ export default function MainSection({
   setActiveIdx,
   checkGroupQA,
 }: Props) {
-  // ✅ Run solver + save to backend
-  const handleRunSolver = async (retryCount = 0) => {
-    console.log("🧩 Running solver with:", schedule.characters);
+  const [solving, setSolving] = useState(false);
+  const [aftermath, setAftermath] = useState<{ wasted9: number; wasted10: number } | null>(null);
 
-    const results = runSolver(
-      schedule.characters,
-      schedule.checkedAbilities,
-      3 // group size (adjust if needed)
-    );
+  // ✅ All abilities from schedule (each has name + level)
+  const allAbilities = schedule.checkedAbilities;
 
-    console.log("✅ Solver results:", results);
+  // ✅ Helper: unique key per ability/level
+  const keyFor = (a: AbilityCheck) => `${a.name}-${a.level}`;
 
-    // 🔎 Conflict check flags
-    let hasConflict = false;
+  // ✅ Initialize toggle state for all ability levels
+  const [enabledAbilities, setEnabledAbilities] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(allAbilities.map((a) => [keyFor(a), true]))
+  );
 
-    // 1️⃣ Main-character rule
-    results.forEach((g, idx) => {
-      const mainsInGroup = g.characters.filter((c) =>
-        MAIN_CHARACTERS.has(c.name)
-      );
-      if (mainsInGroup.length > 1) {
-        hasConflict = true;
-        console.warn(
-          `⚠️ Group ${idx + 1} contains multiple main characters:`,
-          mainsInGroup.map((c) => c.name)
-        );
-        console.debug(
-          `📝 Full member list for Group ${idx + 1}:`,
-          g.characters.map((c) => `${c.name} (${c.role})`)
-        );
-      }
-    });
-
-    // 2️⃣ 七秀 rule (only for server=乾坤一掷)
-    if (schedule.server === "乾坤一掷") {
-      results.forEach((g, idx) => {
-        const hasSevenShow = g.characters.some((c) => c.class === "七秀");
-        if (!hasSevenShow) {
-          hasConflict = true;
-          console.warn(
-            `⚠️ Group ${idx + 1} has no 七秀 (server=${schedule.server})`
-          );
-          console.debug(
-            `📝 Full member list for Group ${idx + 1}:`,
-            g.characters.map((c) => `${c.name} (${c.class})`)
-          );
-        }
-      });
+  // ✅ Update aftermath on group change
+  useEffect(() => {
+    if (groups.length > 0) {
+      summarizeAftermath(groups)
+        .then(setAftermath)
+        .catch((err) => {
+          console.error("❌ Error summarizing aftermath:", err);
+          setAftermath(null);
+        });
+    } else {
+      setAftermath(null);
     }
+  }, [groups]);
 
-    // 🔁 Retry up to 20 times if conflict found
-    if (hasConflict && retryCount < 20) {
-      console.log(`🔄 Rerunning solver (attempt ${retryCount + 1}/20)...`);
-      return handleRunSolver(retryCount + 1);
+  // ---------- Safe Solver Wrapper ----------
+  const safeRunSolver = async (abilities: AbilityCheck[], label: string) => {
+    if (solving) {
+      console.log(`[SAFE] Skipping ${label}, solver already running.`);
+      return;
     }
+    try {
+      setSolving(true);
+      console.log(`🧩 Running solver with ${label}`);
+      const results = runAdvancedSolver(schedule.characters, abilities, 3);
+      console.log(`✅ Solver results (${label}):`, results);
 
-    // ✅ Accept results if no conflict or max retries reached
-    setGroups(results);
+      const reordered = reorderGroups(results);
+      setGroups(reordered);
+      await saveGroups(reordered);
+    } catch (err) {
+      console.error("❌ Solver failed:", err);
+    } finally {
+      setSolving(false);
+    }
+  };
 
-    // Build payload for backend
+  // ---------- Save groups to backend ----------
+  const saveGroups = async (results: GroupResult[]) => {
     const payload = results.map((g, idx) => ({
       index: idx + 1,
       characters: g.characters.map((c) => c._id),
@@ -113,7 +113,6 @@ export default function MainSection({
           body: JSON.stringify({ groups: payload }),
         }
       );
-
       if (!res.ok) throw new Error("Failed to update groups");
       await res.json();
       console.log("💾 Groups saved to backend");
@@ -122,59 +121,113 @@ export default function MainSection({
     }
   };
 
+  // ---------- Helper: reorder groups so 大号组 first ----------
+  const reorderGroups = (inputGroups: GroupResult[]) => {
+    const mainGroups = inputGroups.filter((g) =>
+      g.characters.some((c) => MAIN_CHARACTERS.has(c.name))
+    );
+    const altGroups = inputGroups.filter(
+      (g) => !g.characters.some((c) => MAIN_CHARACTERS.has(c.name))
+    );
+
+    const reordered = [...mainGroups, ...altGroups].map((g, idx) => ({
+      ...g,
+      index: idx + 1,
+    }));
+
+    if (mainGroups.length && altGroups.length) {
+      console.log(`🔄 Reordered groups: ${mainGroups.length} main, ${altGroups.length} alt`);
+    }
+
+    return reordered;
+  };
+
+  // ---------- Auto reorder existing groups ----------
+  useEffect(() => {
+    if (groups.length > 0) {
+      const reordered = reorderGroups(groups);
+      const isDifferent = reordered.some((g, idx) => g.index !== groups[idx]?.index);
+      if (isDifferent) {
+        console.log("🔁 Detected index mismatch, saving reordered groups...");
+        setGroups(reordered);
+        saveGroups(reordered);
+      }
+    }
+  }, [groups]);
+
+  // ---------- Split groups for rendering ----------
+  const mainPairs = groups
+    .map((g, i) => ({ g, i }))
+    .filter(({ g }) => g.characters.some((c) => MAIN_CHARACTERS.has(c.name)));
+
+  const altPairs = groups
+    .map((g, i) => ({ g, i }))
+    .filter(({ g }) => !g.characters.some((c) => MAIN_CHARACTERS.has(c.name)));
+
+  // ---------- Render ----------
+  const finishedCount = groups.filter((g) => g.status === "finished").length;
+
+  const shouldLock = groups.some(
+    (g) => g.status === "started" || g.status === "finished"
+  );
+
+  // ✅ Build list of abilities currently toggled ON (name-level aware)
+  const getActiveAbilities = () =>
+    allAbilities.filter((a) => enabledAbilities[keyFor(a)] !== false);
+
   return (
     <div className={styles.section}>
       <h3 className={styles.sectionTitle}>排表区域</h3>
+      <p className={styles.finishedCount}>
+        已完成小组: {finishedCount} / {groups.length}
+      </p>
 
-      <button className={styles.solverBtn} onClick={() => handleRunSolver(0)}>
-        一键排表
-      </button>
+      {/* ✅ Solver control bar (Gear + Buttons side by side) */}
+      <div className={styles.solverBar}>
+        <SolverOptions
+          allAbilities={allAbilities.map((a) => ({ name: a.name, level: a.level }))}
+          enabledAbilities={enabledAbilities}
+          setEnabledAbilities={setEnabledAbilities}
+        />
+        <SolverButtons
+          solving={solving}
+          disabled={shouldLock}
+          onCore={() => safeRunSolver(getActiveAbilities(), "Custom (Selected)")}
+          onFull={() => safeRunSolver(allAbilities, "Full Pool")}
+        />
+      </div>
 
       {groups.length === 0 ? (
         <p className={styles.empty}>暂无排表结果</p>
       ) : (
-        <div className={styles.groupsGrid}>
-          {groups.map((g, idx) => {
-            const qaWarnings = checkGroupQA(
-              g,
-              schedule.conflictLevel,
-              schedule.checkedAbilities
-            );
-
-            return (
-              <div
-                key={idx}
-                className={styles.groupCard}
-                onClick={() => setActiveIdx(idx)}
-              >
-                <h4 className={styles.groupTitle}>组 {idx + 1}</h4>
-                <ul className={styles.memberList}>
-                  {g.characters.map((c) => (
-                    <li
-                      key={c._id}
-                      className={`${styles.memberItem} ${
-                        c.role === "Tank"
-                          ? styles.tank
-                          : c.role === "Healer"
-                          ? styles.healer
-                          : styles.dps
-                      }`}
-                    >
-                      {c.name}
-                    </li>
-                  ))}
-                </ul>
-                {qaWarnings.length > 0 && (
-                  <div className={styles.groupViolation}>
-                    {qaWarnings.map((w, i) => (
-                      <p key={i}>⚠️ {w}</p>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+        <>
+          {mainPairs.length > 0 && (
+            <DisplayGroups
+              title="大号组"
+              groups={mainPairs}
+              setActiveIdx={setActiveIdx}
+              checkGroupQA={checkGroupQA}
+              conflictLevel={schedule.conflictLevel}
+              checkedAbilities={schedule.checkedAbilities}
+            />
+          )}
+          {altPairs.length > 0 && (
+            <DisplayGroups
+              title="小号组"
+              groups={altPairs}
+              setActiveIdx={setActiveIdx}
+              checkGroupQA={checkGroupQA}
+              conflictLevel={schedule.conflictLevel}
+              checkedAbilities={schedule.checkedAbilities}
+            />
+          )}
+          {aftermath && (
+            <AftermathSummary
+              wasted9={aftermath.wasted9}
+              wasted10={aftermath.wasted10}
+            />
+          )}
+        </>
       )}
     </div>
   );

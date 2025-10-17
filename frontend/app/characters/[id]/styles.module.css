@@ -1,23 +1,160 @@
+/* ==============================
+   🧱 Base Page Layout
+   ============================== */
 .page {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.topSection {
-  display: flex;
-  gap: 20px;
-  align-items: flex-start;
-  margin-bottom: 20px;
-}
-
-.leftColumn {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  padding: 16px 24px;
+  font-family: "Segoe UI", system-ui, -apple-system, "PingFang SC", "Microsoft Yahei", sans-serif;
+  background: #fafafa;
+  color: #222;
+  max-width: 1024px;
+  width: 100%;
+  margin: 0 auto;
+  overflow-x: hidden;
 }
 
-.rightColumn {
+/* ==============================
+   🧭 Header + Back Button
+   ============================== */
+.headerRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 4px;
+}
+
+.backButton {
+  padding: 6px 12px;
+  background-color: #e6f0ff;
+  border: 1px solid #99c2ff;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: #004085;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.backButton:hover {
+  background-color: #66a3ff;
+  border-color: #3385ff;
+  color: #fff;
+}
+
+.pageTitle {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+/* ==============================
+   🪶 Generic Card
+   ============================== */
+.card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  box-sizing: border-box;
   flex: 1;
+}
+
+/* ==============================
+   🎯 Top & Middle Grids
+   ============================== */
+.topGrid,
+.midGrid {
+  display: grid;
+  gap: 20px;
+  margin-bottom: 22px;
+  align-items: stretch;
+}
+
+.topGrid {
+  grid-template-columns: 0.65fr 0.35fr;
+}
+
+.midGrid {
+  grid-template-columns: 0.65fr 0.35fr;
+}
+
+.topLeft,
+.topRight,
+.leftStack,
+.rightStack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  height: 100%;
+}
+
+/* ==============================
+   🧭 Section Title
+   ============================== */
+.sectionTitle {
+  font-size: 1.2rem;
+  margin: 14px 0 10px;
+  border-left: 4px solid #007acc;
+  padding-left: 8px;
+  font-weight: 700;
+}
+
+/* ==============================
+   📱 Responsive
+   ============================== */
+@media (max-width: 900px) {
+  .page {
+    padding: 12px 16px;
+  }
+
+  .pageTitle {
+    font-size: 1.5rem;
+  }
+
+  .topGrid,
+  .midGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==============================
+   ✨ Compact Half Card (Ability Editor)
+   ============================== */
+.halfCard {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  flex: 0 0 48%;
+  min-height: 200px;
+  max-height: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  position: relative;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Inner content */
+.halfCard > * {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Soft bottom fade */
+.halfCard::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 30px;
+  pointer-events: none;
+  background: linear-gradient(to top, #fff, rgba(255, 255, 255, 0));
 }

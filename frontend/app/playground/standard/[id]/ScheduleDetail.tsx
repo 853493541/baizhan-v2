@@ -10,6 +10,12 @@ import AbilityCheckingSection from "../components/AbilityChecking";
 import MainSection from "../components/Main";
 import { useRouter } from "next/navigation";
 
+interface ExtendedGroup extends GroupResult {
+  index: number;
+  status?: "not_started" | "started" | "finished";
+  kills?: any[];
+}
+
 interface StandardSchedule {
   _id: string;
   name: string;
@@ -19,7 +25,7 @@ interface StandardSchedule {
   checkedAbilities: AbilityCheck[];
   characterCount: number;
   characters: Character[];
-  groups?: { index: number; characters: Character[] }[];
+  groups?: ExtendedGroup[];
 }
 
 interface Props {
@@ -71,35 +77,36 @@ function checkGroupQA(
 export default function ScheduleDetail({ scheduleId }: Props) {
   const [schedule, setSchedule] = useState<StandardSchedule | null>(null);
   const [loading, setLoading] = useState(true);
-  const [groups, setGroups] = useState<GroupResult[]>([]);
+  const [groups, setGroups] = useState<ExtendedGroup[]>([]);
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const router = useRouter();
 
-  // ✅ Fetch
+  // ✅ Extract fetch so it can be reused by onRefresh
+  const fetchSchedule = async () => {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}`
+      );
+      if (!res.ok) throw new Error("Failed to fetch schedule");
+      const data: StandardSchedule = await res.json();
+      console.log("📥 Loaded schedule:", data);
+      setSchedule(data);
+      if (data.groups) setGroups(data.groups);
+    } catch (err) {
+      console.error("❌ Error fetching schedule:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ Initial load
   useEffect(() => {
-    const fetchSchedule = async () => {
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}`
-        );
-        if (!res.ok) throw new Error("Failed to fetch schedule");
-        const data = await res.json();
-        console.log("📥 Loaded schedule:", data);
-        setSchedule(data);
-        if (data.groups) setGroups(data.groups);
-      } catch (err) {
-        console.error("❌ Error fetching schedule:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchSchedule();
   }, [scheduleId]);
 
   const handleDelete = async () => {
-    if (!confirm("确定要删除这个排表吗？")) return;
     try {
       setDeleting(true);
       const res = await fetch(
@@ -117,6 +124,12 @@ export default function ScheduleDetail({ scheduleId }: Props) {
   if (loading) return <p className={styles.loading}>加载中...</p>;
   if (!schedule) return <p className={styles.error}>未找到排表</p>;
 
+  // ✅ calculate lock status here
+  const locked =
+    groups?.some(
+      (g) => g.status === "started" || g.status === "finished"
+    ) ?? false;
+
   return (
     <div className={styles.container}>
       {/* Section 1: Basic Info with actions */}
@@ -125,13 +138,13 @@ export default function ScheduleDetail({ scheduleId }: Props) {
         onBack={() => router.push("/playground")}
         onDelete={handleDelete}
         deleting={deleting}
+        locked={locked}   // ✅ pass lock status down
       />
 
       {/* Section 2: Abilities (always render) */}
       <AbilityCheckingSection
+        groups={groups}
         checkedAbilities={schedule.checkedAbilities}
-        loading={loading}
-        conflictLevel={schedule.conflictLevel}
       />
 
       {/* Section 3: Main Area */}
@@ -146,11 +159,13 @@ export default function ScheduleDetail({ scheduleId }: Props) {
 
       {activeIdx !== null && (
         <GroupDetailModal
+          scheduleId={schedule._id}       // ✅ make sure this is passed
           groupIndex={activeIdx}
           group={groups[activeIdx]}
           checkedAbilities={schedule.checkedAbilities}
           conflictLevel={schedule.conflictLevel}
           onClose={() => setActiveIdx(null)}
+          onRefresh={fetchSchedule}       // ✅ refresh after PATCH
         />
       )}
     </div>

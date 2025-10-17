@@ -1,0 +1,111 @@
+.sectionSubtitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 16px 0 8px;
+}
+
+.groupsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+/* Card */
+.groupCard {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+
+  /* ✅ prevent full width stretch */
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.groupCard:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.groupHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.groupTitle {
+  font-weight: bold;
+  font-size: 15px;
+  color: #2c3e50;
+  margin: 0;
+}
+
+/* Status */
+.statusDot {
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.statusText {
+  font-size: 14px;
+}
+
+.notStarted {
+  color: #6c757d;
+}
+.started {
+  color: #fd7e14;
+}
+.finished {
+  color: #28a745;
+}
+
+/* Members */
+.memberList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 8px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.memberItem {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 8px;
+  width: 70%;
+  text-align: center;
+  border: 1px solid #ccc;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Role-based colors */
+.tank {
+  background: #fff4c2;
+  color: #6b4e00;
+}
+.dps {
+  background: #d5f5d5;
+  color: #0f5132;
+}
+.healer {
+  background: #fddde6;
+  color: #842029;
+}
+
+/* Violations */
+.groupViolation {
+  color: #d9534f;
+  font-size: 13px;
+  margin-top: 8px;
+}

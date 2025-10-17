@@ -1,0 +1,136 @@
+.uploadArea {
+  height:50%;
+ 
+  padding: 16px;
+  border: 1px dashed #aaa;
+  border-radius: 8px;
+  background: transparent;
+  margin-top:5px;
+  text-align: center;
+  background-color: #fafafa;
+  
+  
+}
+
+.uploadText {
+  margin-bottom: 8px;
+  color: #666;
+  font-size: 14px;
+}
+
+.uploadButton {
+  display: inline-block;
+  background: #2563eb;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+.uploadButton:hover {
+  background: #1e40af;
+}
+
+.fileName {
+  color: #555;
+  font-size: 14px;
+}
+
+.processingOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.processingBox {
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px 32px;
+  text-align: center;
+  width: 360px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #ddd;
+  border-top: 4px solid #333;
+  border-radius: 50%;
+  margin: 0 auto 16px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+.modalTitle {
+  margin-bottom: 12px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.previewImage {
+  max-width: 120px;
+  margin: 10px auto;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  display: block;
+}
+
+.stepList {
+  list-style: none;
+  padding: 0;
+  margin: 15px 0;
+  text-align: left;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.stepDone {
+  color: green;
+}
+
+.stepActive {
+  color: #007bff;
+  font-weight: bold;
+}
+
+.progressBarWrapper {
+  width: 100%;
+  background: #eee;
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 10px 0;
+  height: 8px;
+}
+
+.progressBar {
+  width: 0%; /* start empty */
+  height: 100%;
+  background: linear-gradient(90deg, #007bff, #66b2ff);
+  animation: progressAnim 4s forwards; /* ✅ fill once and stay full */
+}
+
+@keyframes progressAnim {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+.hint {
+  font-size: 13px;
+  color: #555;
+  margin-top: 8px;
+}
+
+

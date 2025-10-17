@@ -1,0 +1,107 @@
+/* Overlay fills parent, with background dimming */
+.modalOverlay {
+  position: absolute;   /* anchored to parent */
+  inset: 0;             /* cover the whole parent */
+  background-color: rgba(0, 0, 0, 0.4); /* dim background */
+  z-index: 100;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Modal box */
+.modal {
+  position: relative;
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+
+  min-width: 320px;
+  max-width: 90%;
+  max-height: 80%;
+  overflow-y: auto;
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* Title */
+.modalTitle {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+/* Footer */
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+  gap: 8px;
+}
+
+.closeButton {
+  padding: 6px 12px;
+  background-color: #6c757d;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.copyButton {
+  padding: 4px 8px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Ability row */
+.abilityRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 6px;
+  margin-top: 8px;
+}
+
+.abilityIcon {
+  width: 32px;
+  height: 32px;
+}
+
+.abilityLabel {
+  flex: 1;
+}
+
+/* Plus / Minus buttons */
+.minus,
+.minusDisabled,
+.plus {
+  border: none;
+  border-radius: 4px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.minus {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.minusDisabled {
+  background: #e9ecef;
+  color: #6c757d;
+  cursor: not-allowed;
+}
+
+.plus {
+  background: #d4edda;
+  color: #155724;
+}

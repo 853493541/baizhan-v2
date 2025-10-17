@@ -1,0 +1,204 @@
+/* === Filter container === */
+.filterSection {
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* === Main row === */
+.filterRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.leftGroup,
+.rightGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* === Role buttons === */
+.filterBtn {
+  min-width: 50px;
+  height: 30px;
+  border: 1px solid #bbb;
+  border-radius: 6px;
+  background: #f0f2f5;
+  color: #333;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.filterBtn:hover {
+  border-color: #28a745;
+  background: #eef7ef;
+  color: #1e7a34;
+}
+
+.filterBtn.selected {
+  background: #28a745 !important;
+  color: #fff !important;
+  border-color: #28a745 !important;
+  font-weight: bold;
+  box-shadow: 0 0 4px rgba(40, 167, 69, 0.4);
+}
+
+/* === Toggle buttons === */
+.toggleBtn {
+  height: 30px;
+  border-radius: 6px;
+  padding: 0 14px;
+  border: 1px solid #bbb;
+  background: #fff;
+  color: #444;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.25s ease;
+}
+
+.toggleBtn:hover {
+  border-color: #007bff;
+  color: #007bff;
+  background: #eef6ff;
+}
+
+.toggleBtn.active {
+  background: #007bff;
+  border-color: #007bff;
+  color: #fff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.4);
+}
+
+/* === Reset button === */
+.resetBtn {
+  background: #fff0f0;
+  border: 1px solid #e0b4b4;
+  border-radius: 6px;
+  padding: 0 12px;
+  height: 30px;
+  font-size: 14px;
+  cursor: pointer;
+  color: #b94a48;
+  transition: all 0.2s;
+}
+
+.resetBtn:hover {
+  background: #f8d7da;
+  border-color: #c66;
+  color: #a94442;
+}
+
+/* === Search input === */
+.searchInput {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.95rem;
+  min-width: 160px;
+  transition: all 0.2s;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 4px rgba(0, 123, 255, 0.4);
+}
+
+/* === Groups === */
+.leftGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.rightGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ===================================================== */
+/* 📱 Mobile optimization – larger input + cleaner spacing */
+/* ===================================================== */
+@media (max-width: 600px) {
+  .filterRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .leftGroup,
+  .rightGroup {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 6px;
+  }
+
+  .filterBtn,
+  .toggleBtn,
+  .resetBtn {
+    height: 38px;
+    font-size: 15px;
+    padding: 0 12px;
+  }
+
+  .filterBtn {
+    flex: 1;
+    min-width: 30%;
+  }
+
+  /* ✨ Bigger, easier-to-type search bar */
+  .searchInput {
+    width: 100%;
+    min-width: 0;
+    font-size: 1.05rem;
+    padding: 10px 12px;
+    height: 42px;
+    border-radius: 8px;
+  }
+
+  .searchInput::placeholder {
+    color: #999;
+    font-size: 0.95rem;
+  }
+
+  .rightGroup {
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .toggleBtn {
+    flex: 1;
+    text-align: center;
+  }
+
+  .resetBtn {
+    flex: 0 0 100%;
+    text-align: center;
+    margin-top: 4px;
+  }
+
+  .filterSection {
+    padding: 12px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  }
+}

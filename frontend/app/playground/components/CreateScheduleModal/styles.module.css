@@ -1,3 +1,4 @@
+/* --- Modal container --- */
 .overlay {
   position: fixed;
   top: 0;
@@ -26,11 +27,13 @@
   color: #333;
 }
 
+/* --- Labels + inputs --- */
 .label {
   display: block;
   margin-bottom: 12px;
+  font-weight: 500;
   font-size: 14px;
-  color: #444;
+  color: #333;
 }
 
 .input,
@@ -39,10 +42,38 @@
   padding: 8px;
   margin-top: 4px;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 14px;
 }
 
+/* --- Server buttons --- */
+.serverButtons {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0 16px;
+}
+
+.serverBtn {
+  padding: 8px 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #f9f9f9;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.serverBtn:hover {
+  background: #e6f0ff;
+  border-color: #0070f3;
+}
+
+.selected {
+  background: #0070f3;
+  color: white;
+  border-color: #0059c1;
+}
+
+/* --- Actions + buttons --- */
 .actions {
   display: flex;
   justify-content: flex-end;
@@ -50,27 +81,31 @@
   gap: 10px;
 }
 
-.cancel {
-  background: #e0e0e0;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.cancel:hover {
-  background: #d5d5d5;
-}
-
-.confirm {
-  background: #1976d2;
+.btnPrimary {
+  background-color: #0070f3;
   color: white;
+  padding: 8px 16px;
   border: none;
-  padding: 8px 14px;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s ease;
 }
 
-.confirm:hover {
-  background: #1565c0;
+.btnPrimary:hover {
+  background-color: #0059c1;
+}
+
+.btnSecondary {
+  background-color: #eee;
+  color: #333;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btnSecondary:hover {
+  background-color: #ddd;
 }

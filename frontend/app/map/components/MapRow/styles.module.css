@@ -1,0 +1,41 @@
+.row {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.card {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 8px;
+  background: #f9f9f9;
+  text-align: center;
+  font-size: 14px;
+}
+
+.floorLabel {
+  font-weight: bold;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.readonlyValue {
+  font-size: 13px;
+  color: #444;
+  padding: 4px 0;
+}
+
+.dropdown {
+  width: 100%;
+  padding: 6px;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  background: #fff;
+  font-size: 13px;
+}
+
+.dropdownElite {
+  border-color: #d32f2f;
+  box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.12);
+}

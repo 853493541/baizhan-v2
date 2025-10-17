@@ -1,44 +1,164 @@
-/* Map layout */
 .row {
   display: grid;
-  grid-template-columns: repeat(10, 1fr); /* exactly 10 boxes per row */
+  grid-template-columns: repeat(10, 1fr);
   gap: 8px;
   margin-bottom: 14px;
 }
 
-.card {
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  padding: 8px;
-  background-color: #fafafa;
-  font-size: 12px;
-  line-height: 1.4;
-  min-height: 100px; /* uniform height */
+/* ===============================
+   🧭 Header Layout
+   =============================== */
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
 }
 
-.floorLabel {
-  font-weight: bold;
-  margin-bottom: 6px;
-  font-size: 13px;
+.leftSection {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.needList {
+.title {
   margin: 0;
-  padding-left: 16px;
 }
 
-.needList li {
-  list-style: disc;
-  font-size: 12px;
+/* Right-side controls (status + button) */
+.rightControls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
-/* red text for no-need case */
-.noNeed {
-  color: rgb(0, 103, 27);
-  font-weight: bold;
+/* ===============================
+   🔘 Status Indicators
+   =============================== */
+.statusWrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.coreHighlight {
-  color: red;
-  font-weight: bold;
+.statusText {
+  font-size: 16px;
+  font-weight: 600;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.statusDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.statusIdleDot {
+  background: #e5e7eb;
+  color: #6b7280;
+}
+.statusBusyDot {
+  background: #fb923c;
+  color: #f97316;
+}
+.statusDoneDot {
+  background: #34d399;
+  color: #059669;
+}
+
+/* ===============================
+   🟩 Buttons
+   =============================== */
+.actionBtn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: #166534 1.5px solid;
+  background-color: #bbf7d0;
+  color: #166534;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  transition: background 0.2s ease;
+}
+
+/* subtle hover effect */
+.actionBtn:hover {
+  filter: brightness(0.95);
+}
+
+/* ===============================
+   👥 Member Buttons
+   =============================== */
+.memberButtons {
+  display: flex;
+  gap: 8px;
+  margin-left: 16px;
+  flex-wrap: wrap;
+}
+
+/* Balanced flexible width for 2–6 Chinese characters */
+.memberButtons button {
+  transform: scale(0.9);
+  transform-origin: center;
+  min-width: 80px;           /* short names stay compact */
+  max-width: 140px;          /* 6-char names fit comfortably */
+  height: 34px;
+  font-size: 15px;
+  line-height: 1.15;
+  border-radius: 6px;
+  display: flex;             /* center content */
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 10px;
+  transition: transform 0.15s ease;
+}
+
+.memberButtons button:hover {
+  transform: scale(0.93);
+}
+
+/* Inactive toggle */
+.inactiveBtn {
+  background-color: #f3f3f3 !important;
+  border-color: #ccc !important;
+  color: #777 !important;
+  opacity: 0.9;
+}
+
+/* ===============================
+   🎨 Role Colors
+   =============================== */
+.tankBtn {
+  background-color: #fff3cd;
+  color: #8b4513;
+  border-color: #d6a742;
+}
+
+.dpsBtn {
+  background-color: #d4edda;
+  color: #155724;
+  border-color: #51a351;
+}
+
+.healerBtn {
+  background-color: #f8d7da;
+  color: #721c24;
+  border-color: #d48a8f;
+}
+/* ===============================
+   👥 Member Buttons
+   =============================== */
+.memberButtons {
+  display: flex;
+  gap: 4px;            /* 🔹 reduced from 8px to 4px for tighter grouping */
+  margin-left: 12px;   /* slightly closer to title for visual balance */
+  flex-wrap: wrap;
 }
