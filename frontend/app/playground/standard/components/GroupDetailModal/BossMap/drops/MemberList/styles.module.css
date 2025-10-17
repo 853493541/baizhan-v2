@@ -8,21 +8,23 @@
   padding: 3px 16px;
   border-radius: 6px;
   font-size: 0.9rem;
-  font-weight: 450;           /* 🟢 slightly bolder text */
+  font-weight: 450;
   min-width: 220px;
   max-width: 220px;
-  height: 35px;
+  height: auto;               /* 🟢 allow height to grow */
+  min-height: 37px;      /* ✅ keep consistent base height */
   line-height: 1.2;
   box-sizing: border-box;
   cursor: pointer;
-  margin-bottom: 3px;
+  /* margin-bottom: 1px; */
   border: 1px solid #28a745;
   background: #eafbea;
   color: #155724;
-  transition: background 0.15s ease;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 .memberBtn:hover {
   background: #d4f5d4;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); /* subtle depth */
 }
 
 /* Disabled */
@@ -31,6 +33,7 @@
   color: #888;
   border: 1px solid #ddd;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 /* Section title */
@@ -74,7 +77,7 @@
 
 .progressText {
   font-size: 13px;
-  font-weight: 500;       /* 🟡 medium bold for progress */
+  font-weight: 500;
   color: inherit;
   margin-left: 6px;
   white-space: nowrap;
@@ -89,7 +92,7 @@
   gap: 4px;
   margin-top: 1px;
   font-size: 13px;
-  font-weight: 600;       /* 🟢 make the tag more visible */
+  font-weight: 600;
   color: #1c7c2d;
 }
 
