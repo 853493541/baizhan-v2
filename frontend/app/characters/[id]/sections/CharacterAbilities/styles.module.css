@@ -1,0 +1,61 @@
+.scanBox {
+background: transparent; 
+  color: #000;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+}
+
+.scanHeader {
+  display: flex;
+  justify-content: space-between; /* ✅ title left, button right */
+  align-items: center;
+}
+
+.scanTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.scanIcon {
+  font-size: 1.4rem;
+}
+
+.scanTitle {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin: 0;
+  color: #111;
+}
+
+.lastScan {
+  margin-top: 4px;
+  color: #dc2626;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.showButton {
+  background: #000;
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 700;
+  border: none;
+  transition: background 0.2s ease;
+}
+
+.showButton:hover {
+  background: #333;
+}

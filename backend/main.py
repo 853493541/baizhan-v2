@@ -22,11 +22,13 @@ app.add_middleware(
 # Initialize OCR once (downloads models on first run; caches afterwards)
 ocr = RapidOCR()
 
-@app.get("/health")
+@app.get("/ocr/health")
 def health():
     return {"ok": True}
 
+# === OCR from file ===
 @app.post("/ocr")
+@app.post("/ocr/")  # ✅ also accept with trailing slash, avoids 307 redirect loop
 async def ocr_image(file: UploadFile = File(...)) -> dict:
     """
     Upload an image file (png/jpg/webp/etc). Returns plain text lines.
@@ -44,7 +46,9 @@ async def ocr_image(file: UploadFile = File(...)) -> dict:
     lines: List[str] = [item[1] for item in (result or [])]
     return {"lines": lines, "count": len(lines)}
 
+# === OCR from base64 ===
 @app.post("/ocr/base64")
+@app.post("/ocr/base64/")  # ✅ also accept trailing slash
 async def ocr_image_base64(payload: dict) -> dict:
     """
     Accepts: { "imageBase64": "data:image/png;base64,..." or raw base64 }

@@ -1,69 +1,395 @@
 .previewBox {
-  margin-bottom: 24px;
-  padding: 16px;
-  background: #fafafa;
+  border: 1px solid #ddd;
   border-radius: 8px;
-  border: 1px solid #eee;
-  max-width: 30%;        /* ✅ limit section width */
+  padding: 16px;
+  margin-top: 20px;
+  background: #fff;
+}
+
+/* ---------- Header Row ---------- */
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 12px;
 }
 
 .header {
   font-size: 16px;
   font-weight: bold;
-  margin-bottom: 12px;
-  color: #2c3e50;
+  color: #333;
+}
+
+.toggle {
+  display: flex;
+  gap: 6px;
+}
+
+.toggleBtn {
+  padding: 4px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  background: #f9f9f9;
+  transition: all 0.2s;
+}
+
+.toggleBtn:hover {
+  background: #eee;
+}
+
+.active {
   background: #0070f3;
   color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  display: inline-block;
+  border-color: #0070f3;
 }
 
-.list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+/* ---------- Table Wrapper ---------- */
+.tableWrapper {
+  overflow-x: auto;
 }
 
-.item {
+.chartTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+  font-size: 13px;
+}
+
+.chartTable th,
+.chartTable td {
+  border: 1px solid #ddd;
+  padding: 6px 8px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.chartTable th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+}
+
+.chartTable tr:nth-child(even) {
+  background: #fcfcfc;
+}
+
+/* ---------- Ability Name Cell ---------- */
+.abilityCell {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: 6px;
-  margin-bottom: 6px;
-  font-size: 14px;
-}
-
-.item:last-child {
-  margin-bottom: 0;
+  justify-content: flex-start;
+  gap: 6px;
+  font-weight: 500;
+  color: #444;
 }
 
 .icon {
   border-radius: 4px;
+  background: #fff;
 }
 
-.text {
-  flex: 1;
+/* ---------- Table Cells ---------- */
+.cell {
+  transition: background 0.2s, color 0.2s;
 }
 
-.available {
-  background: #eafaf1;
-  color: #2e7d32;
+.cell.ok {
+  color: #28a745; /* green */
+  background: #f6fff8;
 }
 
-.unavailable {
-  background: #fdecea;
-  color: #c62828;
+.cell.over {
+  color: #d9534f; /* red */
+  background: #fff6f6;
+  font-weight: 600;
 }
 
-.missing {
+.cell.missing {
+  color: #999;
+  background: #f9f9f9;
+}
+
+/* ---------- Scrollbar Styling ---------- */
+.tableWrapper::-webkit-scrollbar {
+  height: 8px;
+}
+
+.tableWrapper::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 4px;
+}
+
+.tableWrapper::-webkit-scrollbar-track {
+  background-color: #f1f1f1;
+}
+.cell {
+  transition: background 0.2s, color 0.2s;
+}
+
+.cell.ok {
+  color: #28a745; /* green */
+  background: #f6fff8;
+}
+
+.cell.over {
+  color: #d9534f; /* red */
+  background: #fff6f6;
+  font-weight: 600;
+}
+
+.cell.missing {
+  color: #b8860b; /* yellowish brown */
+  background: #ffe678;
+  font-weight: 500;
+}
+
+.check {
+  font-size: 16px;
+}
+.cell {
+  transition: background 0.2s, color 0.2s;
+}
+
+.cell.ok {
+  color: #28a745; /* green */
+  background: #f6fff8;
+}
+
+.cell.over {
+  color: #d9534f; /* red */
+  background: #fff6f6;
+  font-weight: 600;
+}
+
+.cell.missing {
+  color: #b8860b; /* dark golden yellow */
+  background: #fffdf2; /* ✅ much lighter pastel yellow */
+  font-weight: 500;
+}
+
+.cell.missing:hover {
+  background: #fff9d6; /* slightly deeper yellow on hover */
+  cursor: help;
+}
+
+.check {
+  font-size: 16px;
+}
+.cell {
+  transition: background 0.2s, color 0.2s;
+  white-space: pre-line; /* ✅ makes multiline tooltip render correctly */
+}
+
+.cell.ok {
+  color: #28a745; /* green */
+  background: #f6fff8;
+}
+
+.cell.over {
+  color: #d9534f; /* red */
+  background: #fff6f6;
+  font-weight: 600;
+}
+
+.cell.missing {
+  color: #b8860b; /* yellow-brown */
+  background: #fffef5; /* ✅ pastel yellow */
+  font-weight: 500;
+}
+
+.cell.missing:hover {
+  background: #fffbe3; /* slightly deeper on hover */
+  cursor: help;
+}
+
+.check {
+  font-size: 16px;
+}
+.cell {
+  transition: background 0.2s, color 0.2s;
+  white-space: pre-line; /* ✅ allows multi-line tooltips */
+}
+
+.cell.ok {
+  color: #28a745; /* green */
+  background: #f6fff8;
+}
+
+.cell.ok:hover {
+  background: #e8fbe8;
+  cursor: help;
+}
+
+.cell.over {
+  color: #d9534f; /* red */
+  background: #fff6f6;
+  font-weight: 600;
+}
+
+.cell.missing {
+  color: #b8860b; /* yellow-brown */
+  background: #fffef5; /* ✅ soft pastel yellow */
+  font-weight: 500;
+}
+
+.cell.missing:hover {
+  background: #fffbe3;
+  cursor: help;
+}
+
+.check {
+  font-size: 16px;
+}
+/* Tooltip styling */
+.tooltip {
+  position: absolute;
+  background: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 8px 10px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+  font-size: 13px;
+  color: #333;
+  line-height: 1.4;
+  white-space: pre-line;
+  pointer-events: none;
+  z-index: 999;
+  max-width: 260px;
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* Hover popup */
+.hoverBox {
+  position: absolute;
+  background: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px 12px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  font-size: 13px;
+  color: #333;
+  line-height: 1.5;
+  pointer-events: none;
+  z-index: 1000;
+  width: max-content;
+  max-width: 260px;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.hoverHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.hoverTitle {
+  font-weight: 600;
+  color: #0070f3;
+}
+
+.hoverIcon {
+  border-radius: 4px;
+}
+
+.hoverContent {
+  color: #444;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* Hover popup */
+.hoverBox {
+  position: absolute;
+  background: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px 12px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  font-size: 13px;
+  color: #333;
+  line-height: 1.5;
+  pointer-events: none;
+  z-index: 1000;
+  width: max-content;
+  max-width: 260px;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.hoverHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.hoverTitle {
+  font-weight: 600;
+  color: #0070f3;
+}
+
+.hoverIcon {
+  border-radius: 4px;
+}
+
+.hoverContent {
+  color: #444;
+}
+
+/* Colored role badges inside hover */
+.roleBadge {
+  display: inline-block;
+  margin: 3px 4px 0 0;
+  padding: 2px 6px;
+  border-radius: 6px;
   font-size: 12px;
-  color: #c62828;
-  margin-left: 6px;
+  font-weight: 500;
 }
 
-.loading {
-  color: #666;
-  font-size: 14px;
+/* Role colors */
+.tank {
+  background-color: #fff3cd; /* light yellow */
+  color: #8b4513; /* brown */
+}
+
+.dps {
+  background-color: #d4edda; /* light green */
+  color: #155724; /* dark green */
+}
+
+.healer {
+  background-color: #f8d7da; /* light pink */
+  color: #721c24; /* dark red */
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

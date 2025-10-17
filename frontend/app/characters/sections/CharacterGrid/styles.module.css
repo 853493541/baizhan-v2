@@ -1,0 +1,143 @@
+/* =========================
+   📦 Card Grid Layout
+   ========================= */
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Desktop: lock to 3 columns for perfect alignment */
+@media (min-width: 1024px) {
+  .cardGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Ultra-wide screens: 4 columns */
+@media (min-width: 1440px) {
+  .cardGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* =========================
+   🧩 Character Card
+   ========================= */
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 20px;
+  min-width: 280px;
+  min-height: 180px;
+  cursor: pointer;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+.content {
+  flex-grow: 1;
+}
+
+.headerRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.classIcon {
+  width: 28px;
+  height: 28px;
+  margin-right: 8px;
+  margin-top: 2px;
+}
+
+.nameBlock {
+  flex-grow: 1;
+}
+
+.name {
+  font-size: 1.05rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.gender {
+  font-size: 1.2rem;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.male {
+  color: #1e90ff;
+  text-shadow: 0 0 1px #000;
+}
+
+.female {
+  color: #ff1493;
+  text-shadow: 0 0 1px #000;
+}
+
+.server {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* =========================
+   ⚙️ Settings Button — inline with header
+   ========================= */
+.iconButton {
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 18px;
+  margin-left: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.iconButton:hover {
+  color: #000;
+}
+
+/* =========================
+   🎨 Role Colors
+   ========================= */
+.tank {
+  background-color: #fff3cd; /* light yellow */
+  color: #8b4513;
+}
+
+.dps {
+  background-color: #d4edda; /* light green */
+  color: #155724;
+}
+
+.healer {
+  background-color: #f8d7da; /* light pink */
+  color: #721c24;
+}
+
+.inactive {
+  background-color: #e0e0e0;
+  color: #000;
+  opacity: 0.85;
+}

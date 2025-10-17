@@ -2,14 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import CreateScheduleModal from "./components/CreateScheduleModal";
-import styles from "./styles.module.css";
 import StandardScheduleList from "./components/StandardScheduleList";
-import BossScheduleList from "./components/BossScheduleList";
+import styles from "./styles.module.css";
+import { getCurrentGameWeek } from "@/utils/weekUtils";
 
-interface Ability {
-  name: string;
-  level: number;
-  available: boolean;
+interface Group {
+  status?: "not_started" | "started" | "finished";
 }
 
 interface StandardSchedule {
@@ -18,102 +16,147 @@ interface StandardSchedule {
   server: string;
   conflictLevel: number;
   createdAt: string;
-  checkedAbilities: Ability[];
   characterCount: number;
+  groups?: Group[];
 }
 
-interface BossPlan {
-  _id: string;
-  server: string;
-  groupSize?: number;
-  boss?: string;
-  createdAt: string;
-}
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 export default function PlaygroundPage() {
   const [showModal, setShowModal] = useState(false);
-  const [schedules, setSchedules] = useState<StandardSchedule[]>([]);
-  const [bossPlans, setBossPlans] = useState<BossPlan[]>([]);
+  const [currentSchedules, setCurrentSchedules] = useState<StandardSchedule[]>([]);
+  const [pastSchedules, setPastSchedules] = useState<StandardSchedule[]>([]);
+  const [showPast, setShowPast] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadingPast, setLoadingPast] = useState(false); // ✅ separate loader for past
 
+  const currentWeek = getCurrentGameWeek();
+
+  // ✅ Fetch only current week initially
   useEffect(() => {
-    fetchSchedules();
-    fetchBossPlans();
-  }, []);
+    const fetchCurrent = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(
+          `${API_BASE}/api/standard-schedules/summary?week=${currentWeek}`
+        );
+        const data = res.ok ? await res.json() : [];
+        setCurrentSchedules(data);
+      } catch (err) {
+        console.error("❌ Error fetching current schedules:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const fetchSchedules = async () => {
+    fetchCurrent();
+  }, [currentWeek]);
+
+  // ✅ Lazy-load past schedules when user expands section
+  const handleTogglePast = async () => {
+    if (!showPast && pastSchedules.length === 0) {
+      try {
+        setLoadingPast(true);
+        const res = await fetch(
+          `${API_BASE}/api/standard-schedules/summary?before=${currentWeek}`
+        );
+        const data = res.ok ? await res.json() : [];
+        setPastSchedules(data);
+      } catch (err) {
+        console.error("❌ Error fetching past schedules:", err);
+      } finally {
+        setLoadingPast(false);
+      }
+    }
+
+    // Toggle section regardless of fetch
+    setShowPast((prev) => !prev);
+  };
+
+  const handleCreateSchedule = async (data: any) => {
+    setShowModal(false);
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules`
-      );
-      if (!res.ok) throw new Error("Failed to fetch schedules");
-      setSchedules(await res.json());
+      const res = await fetch(`${API_BASE}/api/standard-schedules`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("❌ Failed to create schedule");
+      const newSchedule = await res.json();
+      setCurrentSchedules((prev) => [newSchedule, ...prev]);
     } catch (err) {
-      console.error("❌ Error fetching schedules:", err);
+      console.error("❌ Error creating schedule:", err);
     }
   };
 
-  const fetchBossPlans = async () => {
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/boss-plans`
-      );
-      if (!res.ok) throw new Error("Failed to fetch boss plans");
-      const data = await res.json();
-      const patched = data.map((bp: BossPlan) => ({
-        ...bp,
-        groupSize: bp.groupSize ?? 3,
-        boss: bp.boss ?? "未选择",
-      }));
-      setBossPlans(patched);
-    } catch (err) {
-      console.error("❌ Error fetching boss plans:", err);
-    }
-  };
+  if (loading) return <p className={styles.loading}>加载中...</p>;
+
+  // ✅ NEW: determine if any current schedule should be locked
+  const anyLocked = currentSchedules.some((s) =>
+    s.groups?.some((g) => g.status !== "not_started")
+  );
 
   return (
     <div className={styles.container}>
       <h2 className={styles.title}>排表</h2>
 
+      {/* New schedule button */}
       <div className={styles.buttonRow}>
         <button className={styles.createBtn} onClick={() => setShowModal(true)}>
           新建排表
         </button>
       </div>
 
+      {/* Modal */}
       {showModal && (
         <CreateScheduleModal
           onClose={() => setShowModal(false)}
-          onConfirm={async (data, mode) => {
-            setShowModal(false);
-
-            if (!mode || mode === "standard") {
-              // ✅ Standard schedule
-              try {
-                const res = await fetch(
-                  `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules`,
-                  {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(data),
-                  }
-                );
-                if (!res.ok) throw new Error("❌ Failed to create schedule");
-                await res.json();
-                fetchSchedules();
-              } catch (err) {
-                console.error("❌ Error creating schedule:", err);
-              }
-            }
-
-            if (mode === "boss") {
-              fetchBossPlans();
-            }
-          }}
+          onConfirm={handleCreateSchedule}
         />
       )}
 
-      <StandardScheduleList schedules={schedules} />
-      <BossScheduleList bossPlans={bossPlans} />
+      {/* 本周排表 */}
+      <h3 className={styles.sectionTitle}>本周排表 ({currentWeek})</h3>
+      {currentSchedules.length > 0 ? (
+        <StandardScheduleList
+          schedules={currentSchedules}
+          setSchedules={setCurrentSchedules}
+          disabled={anyLocked} // ✅ pass disabled flag
+        />
+      ) : (
+        <p className={styles.empty}>暂无本周排表</p>
+      )}
+
+      {/* 历史排表 toggle */}
+      <div className={styles.pastSection}>
+        <button
+          className={styles.showPastBtn}
+          onClick={handleTogglePast}
+          disabled={loadingPast}
+        >
+          {loadingPast
+            ? "加载中..."
+            : showPast
+            ? "收起历史排表 ▲"
+            : `查看历史排表 ▼`}
+        </button>
+
+        {showPast && (
+          <>
+            <h3 className={styles.sectionTitle}>历史排表</h3>
+            {loadingPast ? (
+              <p className={styles.loading}>加载中...</p>
+            ) : pastSchedules.length > 0 ? (
+              <StandardScheduleList
+                schedules={pastSchedules}
+                setSchedules={setPastSchedules}
+              />
+            ) : (
+              <p className={styles.empty}>暂无历史排表</p>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }

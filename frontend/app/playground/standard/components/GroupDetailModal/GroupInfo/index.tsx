@@ -4,7 +4,6 @@ import React from "react";
 import styles from "./styles.module.css";
 import type { GroupResult, AbilityCheck } from "@/utils/solver";
 
-// ✅ QA checker
 function checkGroupQA(
   group: GroupResult,
   conflictLevel: number,
@@ -13,12 +12,12 @@ function checkGroupQA(
   const warnings: string[] = [];
   if (!group || !group.characters) return warnings;
 
-  // 1. Healer present?
+  // 🔹 Check healer presence
   if (!group.characters.some((c) => c.role === "Healer")) {
     warnings.push("缺少治疗");
   }
 
-  // 2. Duplicate accounts
+  // 🔹 Check duplicate accounts
   const seen = new Set<string>();
   const dups = new Set<string>();
   for (const c of group.characters) {
@@ -29,7 +28,7 @@ function checkGroupQA(
     warnings.push(`重复账号: ${Array.from(dups).join("、")}`);
   }
 
-  // 3. Ability conflicts
+  // 🔹 Check ability conflicts
   const activeAbilities = checkedAbilities.filter((a) => a.available);
   const abilityCount: Record<string, number> = {};
   for (const c of group.characters) {
@@ -60,7 +59,21 @@ export default function GroupInfo({ group, checkedAbilities, conflictLevel }: Pr
   const qaWarnings = checkGroupQA(group, conflictLevel, checkedAbilities);
 
   return (
-    <>
+    <div className={styles.groupInfoRow}>
+      {/* ⚠️ Warnings on the left */}
+      <div className={styles.warningRow}>
+        {qaWarnings.length > 0 ? (
+          qaWarnings.map((v, idx) => (
+            <span key={idx} className={styles.inlineWarn}>
+              ⚠️ {v}
+            </span>
+          ))
+        ) : (
+          <span className={styles.inlineSafe}>✅ 无警告</span>
+        )}
+      </div>
+
+      {/* 👥 Characters centered on the same line */}
       <div className={styles.memberList}>
         {group.characters.map((c) => (
           <span
@@ -77,17 +90,6 @@ export default function GroupInfo({ group, checkedAbilities, conflictLevel }: Pr
           </span>
         ))}
       </div>
-
-      <h3>警告</h3>
-      {qaWarnings.length > 0 ? (
-        <ul className={styles.warnList}>
-          {qaWarnings.map((v, idx) => (
-            <li key={idx}>⚠️ {v}</li>
-          ))}
-        </ul>
-      ) : (
-        <p>✅ 无</p>
-      )}
-    </>
+    </div>
   );
 }

@@ -28,3 +28,35 @@ export const getCharacterById = async (req: Request, res: Response) => {
     res.status(500).json({ error: err.message });
   }
 };
+// ============================================================
+// 🎒 Get all storage items across all characters
+// GET /api/characters/storage/all
+// ============================================================
+export const getAllStorage = async (req: Request, res: Response) => {
+  try {
+    const characters = await Character.find({}, {
+      name: 1,
+      role: 1,
+      storage: 1
+    });
+
+    // Flatten all storage entries into a single list
+    const result = characters.flatMap((char) =>
+      (char.storage || []).map((item: any) => ({
+        characterId: char._id,
+        characterName: char.name,
+        role: char.role,
+        ability: item.ability,
+        level: item.level,
+        used: item.used ?? false,
+        receivedAt: item.receivedAt || new Date(0),
+        sourceBoss: item.sourceBoss || null,
+      }))
+    );
+
+    res.json(result);
+  } catch (err: any) {
+    console.error("❌ getAllStorage error:", err);
+    res.status(500).json({ error: err.message });
+  }
+};

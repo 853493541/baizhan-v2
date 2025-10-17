@@ -1,0 +1,41 @@
+.solverButtons {
+  display: flex;
+  gap: 12px;
+ margin-top:8px;
+}
+
+.solverBtn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  margin-bottom: 16px;
+  transition: background 0.2s;
+}
+
+.solverBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.coreBtn {
+  background: #0070f3; /* blue */
+}
+.coreBtn:hover {
+  background: #0059c1;
+}
+
+.fullBtn {
+  background: #0070f3; /* green */
+}
+.fullBtn:hover {
+  background: #0059c1;
+}
+
+.lockedBtn {
+  background: #ccc !important;
+  color: #444 !important;
+  cursor: not-allowed !important;
+}
