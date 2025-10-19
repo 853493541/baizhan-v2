@@ -4,9 +4,10 @@ import React, { useEffect, useState } from "react";
 import styles from "./styles.module.css";
 import { runSolver, GroupResult, Character, AbilityCheck } from "@/utils/solver";
 import GroupDetailModal from "../components/GroupDetailModal";
+import AnalyzerSection from "../components/AnalyzerSection";
 
 import BasicInfoSection from "../components/BasicInfo";
-import AbilityCheckingSection from "../components/AbilityChecking";
+
 import MainSection from "../components/Main";
 import { useRouter } from "next/navigation";
 
@@ -141,12 +142,10 @@ export default function ScheduleDetail({ scheduleId }: Props) {
         locked={locked}   // ✅ pass lock status down
       />
 
-      {/* Section 2: Abilities (always render) */}
-      <AbilityCheckingSection
-        groups={groups}
-        checkedAbilities={schedule.checkedAbilities}
-      />
-
+<AnalyzerSection
+  groups={groups}
+  checkedAbilities={schedule.checkedAbilities}
+/>
       {/* Section 3: Main Area */}
       <MainSection
         schedule={schedule}
