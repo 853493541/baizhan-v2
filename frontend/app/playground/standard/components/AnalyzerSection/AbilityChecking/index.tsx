@@ -26,7 +26,7 @@ const CORE_ABILITIES = [
   "飞云回转刀",
   "厄毒爆发",
   "短歌万劫",
-  "乾坤一掷"
+  "乾坤一掷",
 ];
 
 type ViewLevel = 9 | 10;
@@ -42,7 +42,7 @@ interface HoverData {
 }
 
 export default function AbilityCheckingSection({ checkedAbilities, groups }: Props) {
-  const [viewLevel, setViewLevel] = useState<ViewLevel>(9);
+  const [viewLevel, setViewLevel] = useState<ViewLevel>(10);
   const [hover, setHover] = useState<HoverData>({
     x: 0,
     y: 0,
@@ -87,30 +87,33 @@ export default function AbilityCheckingSection({ checkedAbilities, groups }: Pro
     <div
       className={styles.previewBox}
       onMouseMove={(e) => {
-        if (hover.visible)
-          setHover((h) => ({ ...h, x: e.clientX + 16, y: e.clientY + 16 }));
+        if (!hover.visible) return;
+        setHover((h) => ({
+          ...h,
+          x: e.clientX + 12,
+          y: e.clientY + 16,
+        }));
       }}
     >
-      {/* Header */}
+      {/* === Header: level toggle (10重 first) === */}
       <div className={styles.headerRow}>
-        <h4 className={styles.header}>核心技能检查</h4>
         <div className={styles.toggle}>
-          <button
-            className={`${styles.toggleBtn} ${viewLevel === 9 ? styles.active : ""}`}
-            onClick={() => setViewLevel(9)}
-          >
-            9重
-          </button>
           <button
             className={`${styles.toggleBtn} ${viewLevel === 10 ? styles.active : ""}`}
             onClick={() => setViewLevel(10)}
           >
             10重
           </button>
+          <button
+            className={`${styles.toggleBtn} ${viewLevel === 9 ? styles.active : ""}`}
+            onClick={() => setViewLevel(9)}
+          >
+            9重
+          </button>
         </div>
       </div>
 
-      {/* Chart Table */}
+      {/* === Chart Table === */}
       <div className={styles.tableWrapper}>
         <table className={styles.chartTable}>
           <thead>
@@ -142,20 +145,17 @@ export default function AbilityCheckingSection({ checkedAbilities, groups }: Pro
                   let cellClass = styles.ok;
 
                   if (over) {
-                    // 🔴 over limit (no hover)
                     content = `${count}/2`;
                     cellClass = styles.over;
                   } else if (count > 0) {
-                    // 🟢 within limit
                     content = <span className={styles.check}>✅</span>;
                     cellClass = styles.ok;
                   } else {
-                    // 🟡 missing
                     content = "0/2";
                     cellClass = styles.missing;
                   }
 
-                  const showHover = !over; // ❌ no hover for red
+                  const showHover = !over;
 
                   return (
                     <td
@@ -163,10 +163,9 @@ export default function AbilityCheckingSection({ checkedAbilities, groups }: Pro
                       className={`${styles.cell} ${cellClass}`}
                       onMouseEnter={(e) => {
                         if (!showHover) return;
-                        const rect = e.currentTarget.getBoundingClientRect();
                         setHover({
-                          x: rect.left + rect.width / 2,
-                          y: rect.top + window.scrollY - 10,
+                          x: e.clientX + 12,
+                          y: e.clientY + 16,
                           text: missingChars,
                           abilityName: row.name,
                           level: row.level,
@@ -188,11 +187,15 @@ export default function AbilityCheckingSection({ checkedAbilities, groups }: Pro
         </table>
       </div>
 
-      {/* Custom Styled Hover Popup */}
+      {/* Hover Box */}
       {hover.visible && (
         <div
           className={styles.hoverBox}
-          style={{ left: hover.x, top: hover.y }}
+          style={{
+            position: "fixed", // ✅ pinned to viewport, no scroll offset issues
+            left: hover.x,
+            top: hover.y,
+          }}
         >
           <div className={styles.hoverHeader}>
             <Image
@@ -207,7 +210,7 @@ export default function AbilityCheckingSection({ checkedAbilities, groups }: Pro
             </span>
           </div>
           <div className={styles.hoverContent}>
-            <strong>缺失成员：</strong>
+            <strong>缺少：</strong>
             {hover.text.length > 0 ? (
               hover.text.map((m, idx) => (
                 <div
