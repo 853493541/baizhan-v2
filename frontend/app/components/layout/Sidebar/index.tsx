@@ -14,9 +14,8 @@ export default function Sidebar() {
         <NavLink href="/characters">🧩 角色仓库</NavLink>
         <NavLink href="/map">🗺️ 本周地图</NavLink>
         <NavLink href="/playground">📊 排表</NavLink>
+        <NavLink href="/targetedplans">🎯 对单排表</NavLink>
         <NavLink href="/history">📜 历史记录</NavLink>
-
-
         <NavLink href="/backpack">📦 角色背包</NavLink>
       </nav>
     </div>
