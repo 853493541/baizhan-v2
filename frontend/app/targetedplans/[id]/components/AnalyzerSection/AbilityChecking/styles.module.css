@@ -1,0 +1,209 @@
+/* === Main Wrapper === */
+.previewBox {
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  margin-top: 10px;
+  background: transparent;
+}
+
+/* === Header Row === */
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 8px;
+}
+
+.toggle {
+  display: flex;
+  gap: 8px;
+}
+
+.toggleBtn {
+  padding: 6px 13px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #f7f7f7;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+.toggleBtn:hover {
+  background: #eee;
+  border-color: #999;
+}
+.toggleBtn.active {
+  background: #0070f3;
+  color: #fff;
+  border-color: #0070f3;
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(0, 112, 243, 0.3);
+}
+
+/* === Table === */
+.tableWrapper {
+  overflow-x: auto;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+.chartTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+  font-size: 13px;
+}
+
+.chartTable th,
+.chartTable td {
+  border: 1px solid #ddd;
+  padding: 6px 8px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.chartTable th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+}
+
+.chartTable tr:nth-child(even) {
+  background: #fcfcfc;
+}
+
+/* === Ability Cells === */
+.abilityCell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  color: #444;
+}
+
+.icon {
+  border-radius: 4px;
+  background: #fff;
+}
+
+/* === Cell States === */
+.cell {
+  transition: background 0.2s, color 0.2s;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: pre-line;
+}
+
+.ok {
+  color: #28a745;
+  background: #f6fff8;
+}
+.ok:hover {
+  background: #e8fbe8;
+  cursor: help;
+}
+
+.over {
+  color: #d9534f;
+  background: #fff6f6;
+  font-weight: 600;
+}
+
+.missing {
+  color: #b8860b;
+  background: #fffef5;
+  font-weight: 500;
+}
+.missing:hover {
+  background: #fffbe3;
+  cursor: help;
+}
+
+.check {
+  font-size: 16px;
+}
+
+/* === Hover Tooltip === */
+.hoverBox {
+  position: fixed;
+  display: inline-block;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 10px 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  font-size: 13px;
+  color: #333;
+  line-height: 1.5;
+  pointer-events: none;
+  z-index: 2000;
+  width: auto;
+  max-width: none;
+  overflow: visible;
+  white-space: nowrap;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.hoverHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.hoverTitle {
+  font-weight: 600;
+  color: #0070f3;
+}
+
+/* === Hover Content (single-line badges) === */
+.hoverContent {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #444;
+  white-space: nowrap;
+  width: auto;
+}
+
+/* === Role Badges === */
+.roleBadge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+
+.tank {
+  background-color: #fff3cd;
+  color: #8b4513;
+}
+.dps {
+  background-color: #d4edda;
+  color: #155724;
+}
+.healer {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+/* === Animation === */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

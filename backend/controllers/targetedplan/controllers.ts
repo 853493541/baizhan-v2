@@ -3,7 +3,7 @@ import TargetedPlan from "../../models/TargetedPlan";
 
 /* ============================================================================
    🟢 CREATE — Create a new targeted plan
-   ✅ Added duplicate planId protection for React Strict Mode / race conditions
+   ✅ Includes duplicate protection and per-character abilities support
 ============================================================================ */
 export const createTargetedPlan = async (req: Request, res: Response) => {
   try {
@@ -50,7 +50,17 @@ export const createTargetedPlan = async (req: Request, res: Response) => {
       targetedBoss,
       characterCount: characterCount || 0,
       characters: characters || [],
-      groups: groups || [],
+      groups:
+        groups?.map((g: any) => ({
+          index: g.index,
+          characters:
+            g.characters?.map((ch: any) => ({
+              characterId: ch.characterId,
+              abilities: ch.abilities || [],
+            })) || [],
+          status: g.status || "not_started",
+          kills: g.kills || [],
+        })) || [],
     });
 
     await plan.save();
@@ -64,7 +74,7 @@ export const createTargetedPlan = async (req: Request, res: Response) => {
 };
 
 /* ============================================================================
-   🟡 SUMMARY — Get only minimal info for list display (NO populate)
+   🟡 SUMMARY — Get minimal info for list display (no populate)
 ============================================================================ */
 export const getTargetedPlansSummary = async (_: Request, res: Response) => {
   try {
@@ -73,7 +83,7 @@ export const getTargetedPlansSummary = async (_: Request, res: Response) => {
       "planId name server targetedBoss characterCount createdAt"
     )
       .sort({ createdAt: -1 })
-      .lean(); // 🚀 No populate, lightweight query
+      .lean();
 
     console.log(`📤 Returned ${plans.length} targeted plans (summary only)`);
     res.json(plans);
@@ -84,7 +94,7 @@ export const getTargetedPlansSummary = async (_: Request, res: Response) => {
 };
 
 /* ============================================================================
-   🔍 DETAIL — Get full info for one plan (includes groups + characters)
+   🔍 DETAIL — Get full info for one plan (with characters populated)
 ============================================================================ */
 export const getTargetedPlanDetail = async (req: Request, res: Response) => {
   try {
@@ -92,7 +102,7 @@ export const getTargetedPlanDetail = async (req: Request, res: Response) => {
 
     const plan = await TargetedPlan.findOne({ planId })
       .populate("characters")
-      .populate("groups.characters"); // ✅ only populate for detail view
+      .populate("groups.characters.characterId"); // ✅ populate nested characterId
 
     if (!plan) {
       return res.status(404).json({ error: "Targeted plan not found" });
@@ -107,25 +117,48 @@ export const getTargetedPlanDetail = async (req: Request, res: Response) => {
 };
 
 /* ============================================================================
-   ✏️ UPDATE — Update plan (including groups)
+   ✏️ UPDATE — Update plan (including groups + per-character abilities)
 ============================================================================ */
 export const updateTargetedPlan = async (req: Request, res: Response) => {
   try {
     const { planId } = req.params;
     const update = req.body;
 
-    const updated = await TargetedPlan.findOneAndUpdate({ planId }, update, {
-      new: true,
-    })
-      .populate("characters")
-      .populate("groups.characters");
-
-    if (!updated) {
+    const plan = await TargetedPlan.findOne({ planId });
+    if (!plan) {
       return res.status(404).json({ error: "Targeted plan not found" });
     }
 
-    console.log("✏️ Updated targeted plan:", updated.planId);
-    res.json(updated);
+    // ✅ Merge high-level fields
+    if (update.name) plan.name = update.name;
+    if (update.server) plan.server = update.server;
+    if (update.targetedBoss) plan.targetedBoss = update.targetedBoss;
+    if (update.characterCount !== undefined)
+      plan.characterCount = update.characterCount;
+    if (Array.isArray(update.characters)) plan.characters = update.characters;
+
+    // ✅ Replace group data safely
+    if (Array.isArray(update.groups)) {
+      plan.groups = update.groups.map((g: any) => ({
+        index: g.index,
+        characters:
+          g.characters?.map((ch: any) => ({
+            characterId: ch.characterId,
+            abilities: ch.abilities || [],
+          })) || [],
+        status: g.status || "not_started",
+        kills: g.kills || [],
+      }));
+    }
+
+    await plan.save();
+
+    const populated = await TargetedPlan.findOne({ planId })
+      .populate("characters")
+      .populate("groups.characters.characterId");
+
+    console.log("✏️ Updated targeted plan:", planId);
+    res.json(populated);
   } catch (err) {
     console.error("❌ Error updating targeted plan:", err);
     res.status(500).json({ error: "Failed to update targeted plan" });
