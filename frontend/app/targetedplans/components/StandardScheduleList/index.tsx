@@ -82,7 +82,7 @@ export default function StandardScheduleList({
             <div key={p.planId} className={styles.cardWrapper}>
               {/* clickable card */}
               <Link
-                href={`/playground/targeted/${p.planId}`}
+                href={`/targetedplans/${p.planId}`}
                 className={`${styles.card} ${styles.standard} ${
                   disabled ? styles.disabledCard : ""
                 }`}

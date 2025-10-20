@@ -1,5 +1,8 @@
 import mongoose, { Schema, Document } from "mongoose";
 
+/* ---------------------------------------------------------------------------
+   🎯 Sub-schema: Kill Selection
+--------------------------------------------------------------------------- */
 interface KillSelection {
   ability?: string;
   level?: number;
@@ -8,6 +11,9 @@ interface KillSelection {
   status?: "assigned" | "pending" | "used" | "saved";
 }
 
+/* ---------------------------------------------------------------------------
+   ⚔️ Sub-schema: Kill Entry
+--------------------------------------------------------------------------- */
 interface Kill {
   floor: number;
   boss: string;
@@ -16,25 +22,44 @@ interface Kill {
   recordedAt: Date;
 }
 
+/* ---------------------------------------------------------------------------
+   🧩 Sub-schema: Character Entry within a Group
+--------------------------------------------------------------------------- */
+interface GroupCharacter {
+  characterId: mongoose.Types.ObjectId;
+  abilities?: string[]; // ✅ list of abilities assigned to this specific character
+}
+
+/* ---------------------------------------------------------------------------
+   🧱 Group Schema
+--------------------------------------------------------------------------- */
 interface Group {
   index: number;
-  characters: mongoose.Types.ObjectId[];
+  characters: GroupCharacter[]; // ✅ characters with their abilities
   status: "not_started" | "started" | "finished";
   kills: Kill[];
 }
 
+/* ---------------------------------------------------------------------------
+   🗂️ Main TargetedPlan Interface
+--------------------------------------------------------------------------- */
 export interface ITargetedPlan extends Document {
   type: "targeted";
   planId: string;
   name: string;
   server: string;
-  targetedBoss: string; // 🆕 the focused boss or enemy
+  targetedBoss: string;
   createdAt: Date;
   characterCount: number;
-  characters: mongoose.Types.ObjectId[];
+  characters: mongoose.Types.ObjectId[]; // overall pool of available characters
   groups: Group[];
 }
 
+/* ---------------------------------------------------------------------------
+   📜 Schemas
+--------------------------------------------------------------------------- */
+
+// --- Kill ---
 const KillSchema = new Schema<Kill>(
   {
     floor: { type: Number, required: true },
@@ -56,10 +81,20 @@ const KillSchema = new Schema<Kill>(
   { _id: false }
 );
 
+// --- GroupCharacter ---
+const GroupCharacterSchema = new Schema<GroupCharacter>(
+  {
+    characterId: { type: Schema.Types.ObjectId, ref: "Character", required: true },
+    abilities: { type: [String], default: [] }, // ✅ can hold up to 3 abilities
+  },
+  { _id: false }
+);
+
+// --- Group ---
 const GroupSchema = new Schema<Group>(
   {
     index: { type: Number, required: true },
-    characters: [{ type: Schema.Types.ObjectId, ref: "Character" }],
+    characters: { type: [GroupCharacterSchema], default: [] },
     status: {
       type: String,
       enum: ["not_started", "started", "finished"],
@@ -70,19 +105,20 @@ const GroupSchema = new Schema<Group>(
   { _id: false }
 );
 
+// --- Main TargetedPlan ---
 const TargetedPlanSchema = new Schema<ITargetedPlan>({
   type: { type: String, default: "targeted" },
   planId: { type: String, required: true, unique: true },
   name: { type: String, default: "未命名单体计划" },
   server: { type: String, required: true },
-  targetedBoss: { type: String, required: true }, // 🆕 added
+  targetedBoss: { type: String, required: true },
   characterCount: { type: Number, default: 0 },
   characters: [{ type: Schema.Types.ObjectId, ref: "Character" }],
-  groups: [GroupSchema],
+  groups: { type: [GroupSchema], default: [] },
   createdAt: { type: Date, default: Date.now },
 });
 
-export default mongoose.model<ITargetedPlan>(
-  "TargetedPlan",
-  TargetedPlanSchema
-);
+/* ---------------------------------------------------------------------------
+   🚀 Export
+--------------------------------------------------------------------------- */
+export default mongoose.model<ITargetedPlan>("TargetedPlan", TargetedPlanSchema);
