@@ -1,0 +1,196 @@
+.editorSection {
+  margin-top: 25px;
+  background: #f9fafc;
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+}
+
+.title {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+}
+
+.groupsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.groupBox {
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid #ccc;
+}
+
+.groupHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.memberList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.characterCard {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.small {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.smallBtn {
+  background: transparent;
+  border: none;
+  color: #900;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.addGroupBtn,
+.editBtn,
+.saveBtn,
+.removeBtn {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.addGroupBtn {
+  background: #e8f5e9;
+  color: #1b5e20;
+}
+
+.editBtn {
+  background: #fff3cd;
+  color: #8b6f00;
+}
+
+.saveBtn {
+  background: #d4edda;
+  color: #155724;
+}
+
+.removeBtn {
+  background: #f8d7da;
+  color: #721c24;
+}
+.editorSection {
+  margin-top: 25px;
+  background: #f9fafc;
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+}
+
+.title {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+}
+
+.groupsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.groupBox {
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid #ccc;
+}
+
+.groupHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.memberList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.characterCard {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.small {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.smallBtn {
+  background: transparent;
+  border: none;
+  color: #900;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.addGroupBtn,
+.editBtn,
+.saveBtn,
+.removeBtn {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.addGroupBtn {
+  background: #e8f5e9;
+  color: #1b5e20;
+}
+
+.editBtn {
+  background: #fff3cd;
+  color: #8b6f00;
+}
+
+.saveBtn {
+  background: #d4edda;
+  color: #155724;
+}
+
+.removeBtn {
+  background: #f8d7da;
+  color: #721c24;
+}
+.tank {
+  background-color: #fff3cd;
+  color: #8b4513;
+}
+
+.dps {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.healer {
+  background-color: #f8d7da;
+  color: #721c24;
+}
