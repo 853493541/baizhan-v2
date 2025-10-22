@@ -32,6 +32,25 @@ export default function DisplayGroups({
   conflictLevel,
   checkedAbilities,
 }: Props) {
+  // 🧩 [main] Debug: Component mount + props
+  console.log("[main][DisplayGroups] 🧩 Render start:", {
+    title,
+    groupCount: groups?.length,
+    hasCheckGroupQA: typeof checkGroupQA === "function",
+    conflictLevel,
+    abilitiesCount: checkedAbilities?.length,
+  });
+
+  if (!groups || groups.length === 0) {
+    console.warn("[main][DisplayGroups] ⚠️ No groups received — nothing to render");
+    return (
+      <div className={styles.empty}>
+        <h4>{title}</h4>
+        <p>⚠️ 暂无小组数据 (DisplayGroups)</p>
+      </div>
+    );
+  }
+
   const renderStatus = (status?: string) => {
     const s = status || "not_started";
     const dotClass =
@@ -54,22 +73,43 @@ export default function DisplayGroups({
     <>
       <h3 className={styles.sectionSubtitle}>{title}</h3>
       <div className={styles.groupsGrid}>
-        {groups.map(({ g, i }) => {
+        {groups.map(({ g, i }, groupIdx) => {
+          // 🧩 Debug each group
+          console.log("[main][DisplayGroups] 🔍 Rendering group:", {
+            groupIndex: i,
+            charactersCount: g.characters?.length,
+            firstCharacter: g.characters?.[0],
+            status: g.status,
+          });
+
+          // ✅ Flatten nested structure
+          const flatChars = (g.characters || []).map((cRaw: any) =>
+            cRaw.characterId ? { ...cRaw.characterId, ...cRaw } : cRaw
+          );
+
           const qaWarnings = checkGroupQA(g, conflictLevel, checkedAbilities);
+
           return (
             <div
               key={`group-${i}`}
               className={styles.groupCard}
-              onClick={() => setActiveIdx(i)}
+              onClick={() => {
+                console.log("[main][DisplayGroups] 🖱 Clicked group", i);
+                setActiveIdx(i);
+              }}
             >
               <div className={styles.groupHeader}>
                 <h4 className={styles.groupTitle}>组 {i + 1}</h4>
                 {renderStatus(g.status)}
               </div>
 
-              {/* ✅ FIXED KEY ISSUE HERE */}
               <ul className={styles.memberList}>
-                {g.characters.map((c, idx) => (
+                {flatChars.length === 0 && (
+                  <li className={styles.memberItem} style={{ color: "#888" }}>
+                    （暂无成员）
+                  </li>
+                )}
+                {flatChars.map((c, idx) => (
                   <li
                     key={`${c._id || c.name || "char"}-${i}-${idx}`}
                     className={`${styles.memberItem} ${
@@ -81,7 +121,7 @@ export default function DisplayGroups({
                     }`}
                   >
                     {MAIN_CHARACTERS.has(c.name) ? "★ " : ""}
-                    {c.name}
+                    {c.name || "(未命名)"}
                   </li>
                 ))}
               </ul>

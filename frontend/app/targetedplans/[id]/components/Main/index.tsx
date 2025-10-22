@@ -10,8 +10,8 @@ import SolverOptions from "./SolverOptions";
 import SolverButtons from "./SolverButtons";
 import DisplayGroups from "./DisplayGroups";
 import AftermathSummary from "./AftermathSummary";
+import Editor from "./Editor";
 
-// ✅ Main characters are prioritized when reordering
 const MAIN_CHARACTERS = new Set([
   "剑心猫猫糕",
   "东海甜妹",
@@ -40,7 +40,7 @@ interface Props {
     conflictLevel: number,
     checkedAbilities: AbilityCheck[]
   ) => string[];
-  checkedAbilities?: AbilityCheck[]; // optional override for targeted plans
+  checkedAbilities?: AbilityCheck[];
 }
 
 export default function MainSection({
@@ -54,7 +54,28 @@ export default function MainSection({
   const [solving, setSolving] = useState(false);
   const [aftermath, setAftermath] = useState<{ wasted9: number; wasted10: number } | null>(null);
 
-  // ✅ Source of ability list (fallback safe)
+  // 🧩 Normalize groups from backend (flatten nested characterId)
+  const normalizeGroups = (rawGroups: any[]) => {
+    if (!Array.isArray(rawGroups)) return [];
+    return rawGroups.map((g) => ({
+      ...g,
+      characters: Array.isArray(g.characters)
+        ? g.characters.map((c) =>
+            c.characterId ? { ...c.characterId, ...c } : c
+          )
+        : [],
+    }));
+  };
+
+  // 🧩 On mount or refresh, normalize immediately
+  useEffect(() => {
+    if (groups?.length) {
+      const normalized = normalizeGroups(groups);
+      setGroups(normalized);
+    }
+  }, []); // run once on mount
+
+  // ✅ Ability handling
   const allAbilities: AbilityCheck[] =
     checkedAbilities && checkedAbilities.length > 0
       ? checkedAbilities
@@ -62,10 +83,7 @@ export default function MainSection({
       ? schedule.checkedAbilities
       : [];
 
-  // ✅ Helper for ability unique key
   const keyFor = (a: AbilityCheck) => `${a.name}-${a.level ?? 10}`;
-
-  // ✅ Toggle state for ability filtering
   const [enabledAbilities, setEnabledAbilities] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -74,54 +92,42 @@ export default function MainSection({
     }
   }, [allAbilities]);
 
-  // ✅ Auto update aftermath summary on group change
+  // ✅ Update aftermath when groups change
   useEffect(() => {
     if (groups.length > 0) {
       summarizeAftermath(groups)
         .then(setAftermath)
-        .catch((err) => {
-          console.error("❌ Error summarizing aftermath:", err);
-          setAftermath(null);
-        });
-    } else {
-      setAftermath(null);
-    }
+        .catch(() => setAftermath(null));
+    } else setAftermath(null);
   }, [groups]);
 
   // ---------- Run solver safely ----------
   const safeRunSolver = async (abilities: AbilityCheck[], label: string) => {
-    if (solving) return console.log(`[SAFE] Skipping ${label}, already running.`);
+    if (solving) return;
     try {
       setSolving(true);
-      console.log(`🧩 Running solver with ${label}`);
       const results = runAdvancedSolver(schedule.characters, abilities, 3);
       const reordered = reorderGroups(results);
       setGroups(reordered);
       await saveGroups(reordered);
-    } catch (err) {
-      console.error("❌ Solver failed:", err);
     } finally {
       setSolving(false);
     }
   };
 
-  // ---------- Save groups (includes characterId + abilities) ----------
+  // ---------- Save groups ----------
   const saveGroups = async (results: GroupResult[]) => {
     const payload = results.map((g, idx) => ({
       index: idx + 1,
-      // ✅ Each entry must include characterId for backend validation
       characters: g.characters.map((c) => ({
-        characterId: c._id || c.characterId || c.id || null,
+        characterId: c._id || c.characterId || null,
         abilities:
-          Array.isArray(c.abilities) && c.abilities.length > 0
-            ? c.abilities
-            : ["", "", ""], // default placeholder
+          Array.isArray(c.abilities) && c.abilities.length > 0 ? c.abilities : ["", "", ""],
       })),
       status: g.status || "not_started",
       kills: g.kills || [],
     }));
 
-    // 🔹 Filter out any empty/null characterId objects to prevent validation failure
     payload.forEach((group) => {
       group.characters = group.characters.filter((c) => !!c.characterId);
     });
@@ -130,65 +136,39 @@ export default function MainSection({
     const idField = isTargeted ? schedule.planId : schedule._id;
     const endpoint = isTargeted ? "targeted-plans" : "standard-schedules";
 
-    console.log("📤 [DEBUG] Sending payload:", JSON.stringify(payload, null, 2));
-
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/${endpoint}/${idField}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ groups: payload }),
-        }
-      );
-      if (!res.ok) throw new Error(`Failed to update groups (${res.status})`);
-      await res.json();
-      console.log(`💾 Groups saved to ${endpoint} (${idField}) ✅`);
-    } catch (err) {
-      console.error(`❌ Error saving groups to ${endpoint}:`, err);
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/${endpoint}/${idField}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ groups: payload }),
+      });
+    } catch {
+      console.error("❌ Failed to save groups");
     }
   };
 
-  // ---------- Reorder groups so 大号组 first ----------
-  const reorderGroups = (inputGroups: GroupResult[]) => {
-    const mainGroups = inputGroups.filter((g) =>
-      g.characters.some((c) => MAIN_CHARACTERS.has(c.name))
-    );
-    const altGroups = inputGroups.filter(
-      (g) => !g.characters.some((c) => MAIN_CHARACTERS.has(c.name))
-    );
-    return [...mainGroups, ...altGroups].map((g, idx) => ({ ...g, index: idx + 1 }));
-  };
+  // ---------- Reorder (flatten before filtering) ----------
+  const flattenGroups = (input: any[]) =>
+    input.map((g) => ({
+      ...g,
+      characters: g.characters.map((c) =>
+        c.characterId ? { ...c.characterId, ...c } : c
+      ),
+    }));
 
-  // ---------- Auto reorder detection ----------
-  useEffect(() => {
-    if (groups.length > 0) {
-      const reordered = reorderGroups(groups);
-      const isDifferent = reordered.some((g, idx) => g.index !== groups[idx]?.index);
-      if (isDifferent) {
-        setGroups(reordered);
-        saveGroups(reordered);
-      }
-    }
-  }, [groups]);
+  const reorderedGroups = flattenGroups(groups);
 
-  // ---------- Split groups for display ----------
-  const mainPairs = groups
+  const mainPairs = reorderedGroups
     .map((g, i) => ({ g, i }))
     .filter(({ g }) => g.characters.some((c) => MAIN_CHARACTERS.has(c.name)));
 
-  const altPairs = groups
+  const altPairs = reorderedGroups
     .map((g, i) => ({ g, i }))
     .filter(({ g }) => !g.characters.some((c) => MAIN_CHARACTERS.has(c.name)));
 
   const finishedCount = groups.filter((g) => g.status === "finished").length;
-  const shouldLock = groups.some(
-    (g) => g.status === "started" || g.status === "finished"
-  );
-
-  // ✅ Get active (enabled) abilities
-  const getActiveAbilities = () =>
-    allAbilities.filter((a) => enabledAbilities[keyFor(a)] !== false);
+  const shouldLock = groups.some((g) => g.status === "started" || g.status === "finished");
+  const getActiveAbilities = () => allAbilities.filter((a) => enabledAbilities[keyFor(a)] !== false);
 
   // ---------- Render ----------
   return (
@@ -198,7 +178,6 @@ export default function MainSection({
         已完成小组: {finishedCount} / {groups.length}
       </p>
 
-      {/* === Solver control bar === */}
       <div className={styles.solverBar}>
         <SolverOptions
           allAbilities={allAbilities.map((a) => ({ name: a.name, level: a.level }))}
@@ -227,6 +206,7 @@ export default function MainSection({
               checkedAbilities={allAbilities}
             />
           )}
+
           {altPairs.length > 0 && (
             <DisplayGroups
               title="小号组"
@@ -237,11 +217,17 @@ export default function MainSection({
               checkedAbilities={allAbilities}
             />
           )}
+
+          {/* === Manual Editor === */}
+          <Editor
+            scheduleId={schedule.planId ?? schedule._id}
+            groups={groups}
+            setGroups={setGroups}
+            allCharacters={schedule.characters}
+          />
+
           {aftermath && (
-            <AftermathSummary
-              wasted9={aftermath.wasted9}
-              wasted10={aftermath.wasted10}
-            />
+            <AftermathSummary wasted9={aftermath.wasted9} wasted10={aftermath.wasted10} />
           )}
         </>
       )}
