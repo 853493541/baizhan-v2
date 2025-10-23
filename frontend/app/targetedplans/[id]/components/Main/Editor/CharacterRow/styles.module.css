@@ -2,39 +2,63 @@
   display: grid;
   grid-template-columns: minmax(110px, 0.9fr) repeat(3, minmax(130px, 1fr)) auto;
   align-items: center;
-  gap: 10px;
+  gap: 2px; /* 🔹 reduced from 10px */
   width: 100%;
   overflow: visible !important;
   position: relative;
   z-index: 1;
 }
-.memberRow > * { min-width: 0; }
+.memberRow > * {
+  min-width: 0;
+}
 
 /* Character pill */
 .memberItem {
-  text-align: center;          /* 🟢 center name text */
-  padding: 4px 8px;            /* 🟢 slightly tighter padding */
-  border-radius: 6px;
+  text-align: center;
+  padding: 8px 12px;
+  border-radius: 8px;
   border: 1px solid #ccc;
+  font-size: 14px;
   font-weight: 600;
-  font-size: 13.5px;           /* 🟢 a bit smaller font for compactness */
-  min-width: 100px;            /* 🟢 reduced minimum width */
-  max-width: 130px;            /* 🟢 narrower maximum width */
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  width: 70%;
+  min-width: 125px;
+  max-width: 160px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.1s ease;
+}
+.memberItem:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
 }
 
-/* Role colors */
-.tank  { background: #fff4c2; color: #6b4e00; }
-.dps   { background: #d5f5d5; color: #0f5132; }
-.healer{ background: #fddde6; color: #842029; }
+/* Role colors (single version) */
+.tank {
+  background: #fff3cd;
+  color: #8b4513;
+}
+.dps {
+  background: #d4edda;
+  color: #155724;
+}
+.healer {
+  background: #f8d7da;
+  color: #721c24;
+}
 
 /* Ability area */
-.abilityGroup { display: contents; }
-.abilitySlot  { display: flex; align-items: center; justify-content: center; }
+.abilityGroup {
+  display: contents;
+}
+.abilitySlot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px; /* 🔹 reduced from 10px */
+}
 
 /* Dropdown trigger (ability) */
 .customDropdown {
@@ -55,36 +79,31 @@
 .customDropdown:hover {
   border-color: #999;
   background: linear-gradient(to bottom, #fafafa, #f2f2f2);
-  box-shadow: 0 2px 5px rgba(0,0,0,0.12);
-}
-.customDropdown::after {
-  content: "▼";
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%) scale(0.85);
-  font-size: 11px;
-  color: #666;
-  pointer-events: none;
-  transition: transform 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
 }
 
 /* Selected ability and placeholders */
 .selectedOption {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px; /* 🔹 reduced */
   font-size: 13.5px;
   font-weight: 500;
 }
-.abilityIcon { border-radius: 4px; background: #f6f6f6; }
-.placeholder { color: #888; font-size: 13px; }
+.abilityIcon {
+  border-radius: 4px;
+  background: #f6f6f6;
+}
+.placeholder {
+  color: #888;
+  font-size: 13px;
+}
 
 /* Readonly ability pills */
 .abilityPill {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px; /* 🔹 reduced */
   justify-content: flex-start;
   padding: 5px 10px;
   border-radius: 6px;
@@ -108,78 +127,6 @@
 
 /* Delete button */
 .smallBtn {
-  background: #eee;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 2px 6px;
-  cursor: pointer;
-  font-size: 13px;
-  transition: background 0.15s;
-}
-.smallBtn:hover { background: #e8e8e8; }
-
-/* Responsive */
-@media (max-width: 640px) {
-  .memberRow { grid-template-columns: 1fr; }
-  .abilityGroup {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-  }
-}
-.memberItem {
-  font-size: 14px;
-  font-weight: 600;
-  padding: 8px 12px;             /* match the card style */
-  border-radius: 8px;
-  text-align: center;
-  width: 70%;                    /* match card width proportion */
-  min-width: 125px;
-  max-width: 160px;
-  border: 1px solid #ccc;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: box-shadow 0.15s ease, transform 0.1s ease;
-}
-
-/* Hover lift effect (same as card feel) */
-.memberItem:hover {
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
-  transform: translateY(-1px);
-}
-
-/* Role-based colors (matching your global palette) */
-.tank {
-  background: #fff4c2;
-  color: #6b4e00;
-}
-.dps {
-  background: #d5f5d5;
-  color: #0f5132;
-}
-.healer {
-  background: #fddde6;
-  color: #842029;
-}
-.characterOption {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  width: 100%;
-  padding: 6px 12px;
-  font-size: 14px;       /* ✅ unified */
-  font-weight: 500;      /* ✅ unified */
-  cursor: pointer;
-  border: none;
-  border-radius: 0;
-  transition: all 0.1s ease;
-  box-sizing: border-box;
-}
-/* === Character Remove Button === */
-.smallBtn {
   background: #fff7f7;
   border: 1px solid #ffb5b5;
   color: #c62828;
@@ -196,7 +143,6 @@
   line-height: 1;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
-
 .smallBtn:hover {
   background: #ffebeb;
   border-color: #ff8585;
@@ -204,36 +150,36 @@
   transform: translateY(-1px);
   box-shadow: 0 2px 6px rgba(255, 0, 0, 0.1);
 }
-
 .smallBtn:active {
   transform: translateY(0);
   box-shadow: none;
 }
-
 .smallBtn:focus {
   outline: none;
   box-shadow: 0 0 0 2px rgba(255, 150, 150, 0.3);
 }
-.abilityName {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
 
-.abilityLevel {
-  font-size: 0.85rem;
-  color: #555;
-  font-weight: 500;
-}
+/* Ability name + level */
 .abilityName {
   display: flex;
   align-items: center;
   gap: 4px;
   font-size: 14px;
 }
-
 .abilityLevel {
   font-size: 0.85rem;
   color: #444;
   font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .memberRow {
+    grid-template-columns: 1fr;
+  }
+  .abilityGroup {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+  }
 }

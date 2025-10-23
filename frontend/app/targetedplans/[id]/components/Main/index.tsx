@@ -178,23 +178,7 @@ export default function MainSection({
         已完成小组: {finishedCount} / {groups.length}
       </p>
 
-      {/* {
-        <div className={styles.solverBar}>
-          <SolverOptions
-            allAbilities={allAbilities.map((a) => ({ name: a.name, level: a.level }))}
-            enabledAbilities={enabledAbilities}
-            setEnabledAbilities={setEnabledAbilities}
-          />
-          <SolverButtons
-            solving={solving}
-            disabled={shouldLock}
-            onCore={() => safeRunSolver(getActiveAbilities(), "Custom (Selected)")}
-            onFull={() => safeRunSolver(allAbilities, "Full Pool")}
-          />
-        </div>
-      } */}
-
-      {/* === Always render Editor, even when no groups exist === */}
+  
       <Editor
         scheduleId={schedule.planId ?? schedule._id}
         groups={groups}
@@ -206,32 +190,6 @@ export default function MainSection({
         <p className={styles.empty}>暂无排表结果（请创建一个小组）</p>
       )}
 
-      {/* === Aftermath Summary === */}
-
-      {/* === Old Display (kept commented for reference) === */}
-      {/* 
-      {mainPairs.length > 0 && (
-        <DisplayGroups
-          title="大号组"
-          groups={mainPairs}
-          setActiveIdx={setActiveIdx}
-          checkGroupQA={checkGroupQA}
-          conflictLevel={schedule.conflictLevel ?? 0}
-          checkedAbilities={allAbilities}
-        />
-      )}
-
-      {altPairs.length > 0 && (
-        <DisplayGroups
-          title="小号组"
-          groups={altPairs}
-          setActiveIdx={setActiveIdx}
-          checkGroupQA={checkGroupQA}
-          conflictLevel={schedule.conflictLevel ?? 0}
-          checkedAbilities={allAbilities}
-        />
-      )}
-      */}
     </div>
   );
 }
