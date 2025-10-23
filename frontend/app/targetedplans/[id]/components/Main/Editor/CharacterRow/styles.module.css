@@ -1,6 +1,6 @@
 .memberRow {
   display: grid;
-  grid-template-columns: minmax(140px, 1.2fr) repeat(3, minmax(140px, 1fr)) auto;
+  grid-template-columns: minmax(110px, 0.9fr) repeat(3, minmax(130px, 1fr)) auto;
   align-items: center;
   gap: 10px;
   width: 100%;
@@ -12,13 +12,15 @@
 
 /* Character pill */
 .memberItem {
-  text-align: left;
-  padding: 6px 10px;
+  text-align: center;          /* 🟢 center name text */
+  padding: 4px 8px;            /* 🟢 slightly tighter padding */
   border-radius: 6px;
   border: 1px solid #ccc;
   font-weight: 600;
-  font-size: 14px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  font-size: 13.5px;           /* 🟢 a bit smaller font for compactness */
+  min-width: 100px;            /* 🟢 reduced minimum width */
+  max-width: 130px;            /* 🟢 narrower maximum width */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -26,13 +28,13 @@
 }
 
 /* Role colors */
-.tank { background: #fff4c2; color: #6b4e00; }
-.dps { background: #d5f5d5; color: #0f5132; }
-.healer { background: #fddde6; color: #842029; }
+.tank  { background: #fff4c2; color: #6b4e00; }
+.dps   { background: #d5f5d5; color: #0f5132; }
+.healer{ background: #fddde6; color: #842029; }
 
 /* Ability area */
 .abilityGroup { display: contents; }
-.abilitySlot { display: flex; align-items: center; justify-content: center; }
+.abilitySlot  { display: flex; align-items: center; justify-content: center; }
 
 /* Dropdown trigger (ability) */
 .customDropdown {
@@ -68,11 +70,17 @@
 }
 
 /* Selected ability and placeholders */
-.selectedOption { display: flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 500; }
+.selectedOption {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 500;
+}
 .abilityIcon { border-radius: 4px; background: #f6f6f6; }
 .placeholder { color: #888; font-size: 13px; }
 
-/* Readonly pills */
+/* Readonly ability pills */
 .abilityPill {
   display: flex;
   align-items: center;
@@ -118,4 +126,55 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 6px;
   }
+}
+.memberItem {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 12px;             /* match the card style */
+  border-radius: 8px;
+  text-align: center;
+  width: 70%;                    /* match card width proportion */
+  min-width: 125px;
+  max-width: 160px;
+  border: 1px solid #ccc;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: box-shadow 0.15s ease, transform 0.1s ease;
+}
+
+/* Hover lift effect (same as card feel) */
+.memberItem:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+}
+
+/* Role-based colors (matching your global palette) */
+.tank {
+  background: #fff4c2;
+  color: #6b4e00;
+}
+.dps {
+  background: #d5f5d5;
+  color: #0f5132;
+}
+.healer {
+  background: #fddde6;
+  color: #842029;
+}
+.characterOption {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  padding: 6px 12px;
+  font-size: 14px;       /* ✅ unified */
+  font-weight: 500;      /* ✅ unified */
+  cursor: pointer;
+  border: none;
+  border-radius: 0;
+  transition: all 0.1s ease;
+  box-sizing: border-box;
 }
