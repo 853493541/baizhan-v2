@@ -58,27 +58,12 @@ export default function Editor({
         const full = realId ? allCharacters.find((ac) => ac._id === realId) : undefined;
 
         let mergedChar: any = {
-          _id: realId,
-          name: full?.name || c.name || "未知角色",
-          account: full?.account || c.account,
-          role: full?.role || c.role,
-          server: full?.server || c.server,
+          ...full, // get all from full character
+          ...c,    // overlay DB data
+          _id: realId ?? c._id,
         };
 
-        // merge ability map (for levels)
-        if (full?.abilities && typeof full.abilities === "object" && !Array.isArray(full.abilities)) {
-          mergedChar.abilities = full.abilities;
-        }
-
-        // ✅ restore selected abilities from DB if available
-        if (Array.isArray(c.abilities)) {
-          mergedChar.selectedAbilities = c.abilities.map((a) => ({
-            name: a.name,
-            level: a.level ?? 0,
-          }));
-        } else if (Array.isArray(c.selectedAbilities)) {
-          mergedChar.selectedAbilities = c.selectedAbilities;
-        } else {
+        if (!Array.isArray(mergedChar.selectedAbilities)) {
           mergedChar.selectedAbilities = [
             { name: "", level: 0 },
             { name: "", level: 0 },
@@ -87,7 +72,6 @@ export default function Editor({
         }
 
         console.groupCollapsed(`[trace][Editor] Group ${gi + 1}, Character ${ci + 1}`);
-        console.log("raw c:", c);
         console.log("mergedChar:", mergedChar);
         console.groupEnd();
 
@@ -97,9 +81,8 @@ export default function Editor({
       return { ...g, characters: mappedChars };
     });
 
-    console.log("=> merged localGroups (restored levels):", merged);
+    console.log("✅ merged localGroups:", merged);
     console.groupEnd();
-
     setLocalGroups(merged);
   }, [groups, allCharacters]);
 
@@ -178,8 +161,6 @@ export default function Editor({
     if (left < minLeft) left = minLeft;
     if (left > maxLeft) left = maxLeft;
 
-    console.log("[trace][Editor] openAbilityDropdown ctx:", { groupIdx, charId, slot, dropdownId });
-
     setAbilityOpenId(dropdownId);
     setAbilityPos({ top, left });
     setAbilityCtx({ groupIdx, charId, slot });
@@ -198,10 +179,25 @@ export default function Editor({
     setEditing(false);
   };
 
-  const silentSave = async () => {
-    await saveChanges(scheduleId, localGroups, setGroups, setEditing);
-    setEditing(false);
+  // ✅ unified save function
+  const manualSave = async (close = true) => {
+    console.log("💾 [Editor] Saving groups to backend...");
+    await saveChanges(scheduleId, localGroups, setGroups, close ? setEditing : (() => {}));
+    if (close) setEditing(false);
   };
+
+  /* ---------- 🧠 Auto press Save (keeps editing mode open) ---------- */
+  useEffect(() => {
+    if (!editing) return;
+    if (!localGroups.length) return;
+
+    const timer = setTimeout(() => {
+      console.log("💾 Auto-pressing save (editing stays active)");
+      manualSave(false); // 🟢 keeps editing mode open
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [localGroups, editing]);
 
   /* ---------- Render ---------- */
   return (
@@ -214,7 +210,7 @@ export default function Editor({
           </button>
         ) : (
           <div className={styles.editingButtons}>
-            <button onClick={silentSave} className={styles.saveBtn}>
+            <button onClick={() => manualSave(true)} className={styles.saveBtn}>
               💾 保存
             </button>
             <button onClick={cancelEditing} className={styles.cancelBtn}>
@@ -257,14 +253,6 @@ export default function Editor({
               )
             : undefined;
 
-        console.groupCollapsed(
-          "%c[trace][Editor] Opening CharacterDropdown",
-          "color:#9b59b6;font-weight:bold;"
-        );
-        console.log("type:", charDrop.type, "groupIdx:", charDrop.groupIdx, "charId:", charDrop.charId);
-        console.log("selectedCharacter (from localGroups):", selectedCharacter);
-        console.groupEnd();
-
         return (
           <CharacterDropdown
             x={charDrop.pos.x}
@@ -300,15 +288,6 @@ export default function Editor({
           allCharacters.find((c) => c._id === abilityCtx.charId) || groupChar;
         const selectedCharacter = { ...groupChar, ...fullChar };
 
-        console.groupCollapsed(
-          "%c[trace][Editor] Opening AbilityDropdown",
-          "color:#2ecc71;font-weight:bold;"
-        );
-        console.log("abilityCtx:", abilityCtx);
-        console.log("groupChar:", groupChar);
-        console.log("fullChar:", fullChar);
-        console.groupEnd();
-
         return (
           <AbilityDropdown
             x={abilityPos.left}
@@ -327,7 +306,7 @@ export default function Editor({
                 abilityCtx.charId,
                 abilityCtx.slot,
                 a,
-                selectedCharacter // 🔴 keep levels
+                selectedCharacter
               )
             }
           />
