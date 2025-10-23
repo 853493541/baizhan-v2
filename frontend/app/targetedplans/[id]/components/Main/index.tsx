@@ -5,11 +5,7 @@ import styles from "./styles.module.css";
 import { runAdvancedSolver } from "@/utils/advancedSolver";
 import { summarizeAftermath } from "@/utils/aftermathSummary";
 import type { GroupResult, Character, AbilityCheck } from "@/utils/solver";
-
-import SolverOptions from "./SolverOptions";
-import SolverButtons from "./SolverButtons";
-import DisplayGroups from "./DisplayGroups";
-
+import AbilityChecking from "./AbilityChecking";
 import Editor from "./Editor";
 
 const MAIN_CHARACTERS = new Set([
@@ -54,15 +50,15 @@ export default function MainSection({
   const [solving, setSolving] = useState(false);
   const [aftermath, setAftermath] = useState<{ wasted9: number; wasted10: number } | null>(null);
 
-  // 🧩 Normalize groups from backend (flatten nested characterId)
+  /* ----------------------------------------------------------------------
+     🧩 Normalize groups from backend (flatten nested characterId)
+  ---------------------------------------------------------------------- */
   const normalizeGroups = (rawGroups: any[]) => {
     if (!Array.isArray(rawGroups)) return [];
     return rawGroups.map((g) => ({
       ...g,
       characters: Array.isArray(g.characters)
-        ? g.characters.map((c) =>
-            c.characterId ? { ...c.characterId, ...c } : c
-          )
+        ? g.characters.map((c) => (c.characterId ? { ...c.characterId, ...c } : c))
         : [],
     }));
   };
@@ -75,7 +71,9 @@ export default function MainSection({
     }
   }, []); // run once on mount
 
-  // ✅ Ability handling
+  /* ----------------------------------------------------------------------
+     ✅ Manage ability list
+  ---------------------------------------------------------------------- */
   const allAbilities: AbilityCheck[] =
     checkedAbilities && checkedAbilities.length > 0
       ? checkedAbilities
@@ -92,30 +90,33 @@ export default function MainSection({
     }
   }, [allAbilities]);
 
-  // ✅ Update aftermath when groups change
+  /* ----------------------------------------------------------------------
+     ✅ Local editable copy of groups (live updates)
+     - Editor modifies localGroups
+     - AbilityChecking observes localGroups directly
+     - Only Save button commits to backend
+  ---------------------------------------------------------------------- */
+  const [localGroups, setLocalGroups] = useState(groups);
+
+  // Keep local copy synced when backend groups reload
   useEffect(() => {
-    if (groups.length > 0) {
-      summarizeAftermath(groups)
+    setLocalGroups(groups);
+  }, [groups]);
+
+  /* ----------------------------------------------------------------------
+     ✅ Aftermath calculation (not critical for live update)
+  ---------------------------------------------------------------------- */
+  useEffect(() => {
+    if (localGroups.length > 0) {
+      summarizeAftermath(localGroups)
         .then(setAftermath)
         .catch(() => setAftermath(null));
     } else setAftermath(null);
-  }, [groups]);
+  }, [localGroups]);
 
-  // ---------- Run solver safely ----------
-  const safeRunSolver = async (abilities: AbilityCheck[], label: string) => {
-    if (solving) return;
-    try {
-      setSolving(true);
-      const results = runAdvancedSolver(schedule.characters, abilities, 3);
-      const reordered = reorderGroups(results);
-      setGroups(reordered);
-      await saveGroups(reordered);
-    } finally {
-      setSolving(false);
-    }
-  };
-
-  // ---------- Save groups ----------
+  /* ----------------------------------------------------------------------
+     🧩 Save logic (still uses backend groups)
+  ---------------------------------------------------------------------- */
   const saveGroups = async (results: GroupResult[]) => {
     const payload = results.map((g, idx) => ({
       index: idx + 1,
@@ -147,49 +148,57 @@ export default function MainSection({
     }
   };
 
-  // ---------- Reorder (flatten before filtering) ----------
-  const flattenGroups = (input: any[]) =>
-    input.map((g) => ({
-      ...g,
-      characters: g.characters.map((c) =>
-        c.characterId ? { ...c.characterId, ...c } : c
-      ),
-    }));
+  /* ----------------------------------------------------------------------
+     🧠 Optional Solver Runner
+  ---------------------------------------------------------------------- */
+  const safeRunSolver = async (abilities: AbilityCheck[], label: string) => {
+    if (solving) return;
+    try {
+      setSolving(true);
+      const results = runAdvancedSolver(schedule.characters, abilities, 3);
+      const reordered = reorderGroups(results);
+      setGroups(reordered);
+      await saveGroups(reordered);
+    } finally {
+      setSolving(false);
+    }
+  };
 
-  const reorderedGroups = flattenGroups(groups);
+  /* ----------------------------------------------------------------------
+     🧩 Layout
+  ---------------------------------------------------------------------- */
+  const finishedCount = localGroups.filter((g) => g.status === "finished").length;
 
-  const mainPairs = reorderedGroups
-    .map((g, i) => ({ g, i }))
-    .filter(({ g }) => g.characters.some((c) => MAIN_CHARACTERS.has(c.name)));
-
-  const altPairs = reorderedGroups
-    .map((g, i) => ({ g, i }))
-    .filter(({ g }) => !g.characters.some((c) => MAIN_CHARACTERS.has(c.name)));
-
-  const finishedCount = groups.filter((g) => g.status === "finished").length;
-  const shouldLock = groups.some((g) => g.status === "started" || g.status === "finished");
-  const getActiveAbilities = () => allAbilities.filter((a) => enabledAbilities[keyFor(a)] !== false);
-
-  // ---------- Render ----------
   return (
     <div className={styles.section}>
       <h3 className={styles.sectionTitle}>排表区域</h3>
       <p className={styles.finishedCount}>
-        已完成小组: {finishedCount} / {groups.length}
+        已完成小组: {finishedCount} / {localGroups.length}
       </p>
 
-  
-      <Editor
-        scheduleId={schedule.planId ?? schedule._id}
-        groups={groups}
-        setGroups={setGroups}
-        allCharacters={schedule.characters}
-      />
+      {/* === Editor + Ability Checking Side by Side === */}
+      <div className={styles.editorRow}>
+        <div className={styles.editorPane}>
+          <Editor
+            scheduleId={schedule.planId ?? schedule._id}
+            groups={localGroups}         
+            setGroups={setLocalGroups}      
+            allCharacters={schedule.characters}
+          />
+        </div>
 
-      {groups.length === 0 && (
+        <div className={styles.checkingPane}>
+          <AbilityChecking
+            groups={localGroups}          
+            characters={schedule.characters}
+            checkedAbilities={allAbilities}
+          />
+        </div>
+      </div>
+
+      {localGroups.length === 0 && (
         <p className={styles.empty}>暂无排表结果（请创建一个小组）</p>
       )}
-
     </div>
   );
 }
