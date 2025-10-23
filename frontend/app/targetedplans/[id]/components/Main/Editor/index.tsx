@@ -35,7 +35,21 @@ export default function Editor({
   const [abilityPos, setAbilityPos] = useState<{ top: number; left: number } | null>(null);
   const [abilityCtx, setAbilityCtx] = useState<{ groupIdx: number; charId: string; slot: number } | null>(null);
 
-  useEffect(() => setLocalGroups(groups), [groups]);
+  useEffect(() => {
+    // 🧠 If no groups exist, auto-generate based on character count
+    if (!groups?.length && allCharacters?.length) {
+      const groupCount = Math.ceil(allCharacters.length / 3);
+      const newGroups = Array.from({ length: groupCount }, () => ({
+        characters: [],
+        missingAbilities: [],
+        violations: [],
+      }));
+      setLocalGroups(newGroups);
+      setGroups(newGroups);
+    } else {
+      setLocalGroups(groups);
+    }
+  }, [groups, allCharacters, setGroups]);
 
   /* ---------- Group ops ---------- */
   const handleAddGroup = () => {
@@ -61,7 +75,7 @@ export default function Editor({
     setLocalGroups((prev) => {
       const updated = prev.map((g) => ({
         ...g,
-        characters: g.characters.filter((c) => c._id !== newChar._id), // remove newChar elsewhere
+        characters: g.characters.filter((c) => c._id !== newChar._id),
       }));
       const group = updated[groupIdx];
       const i = group.characters.findIndex((c) => c._id === oldCharId);
@@ -127,7 +141,7 @@ export default function Editor({
     setEditing(false);
   };
 
-  /* ---------- Openers (compute viewport coords) ---------- */
+  /* ---------- Popup Logic ---------- */
   const openCharacterDropdown = (
     type: "replace" | "add",
     groupIdx: number,
@@ -135,11 +149,24 @@ export default function Editor({
     e: React.MouseEvent
   ) => {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const dropdownWidth = 200; // match CSS
+    const spacing = 6;
+
+    // ✅ Center dropdown below trigger
+    let left = rect.left + rect.width / 2 - dropdownWidth / 2 + window.scrollX;
+    const top = rect.bottom + window.scrollY + spacing;
+
+    // ✅ Clamp horizontally
+    const minLeft = window.scrollX + 8;
+    const maxLeft = window.scrollX + window.innerWidth - dropdownWidth - 8;
+    if (left < minLeft) left = minLeft;
+    if (left > maxLeft) left = maxLeft;
+
     setCharDrop({
       type,
       groupIdx,
       charId,
-      pos: { x: rect.left + window.scrollX, y: rect.bottom + window.scrollY + 6 },
+      pos: { x: left, y: top },
     });
   };
 
@@ -151,13 +178,18 @@ export default function Editor({
     e: React.MouseEvent
   ) => {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const width = 360;
-    let left = rect.left + window.scrollX;
+    const width = 280; // 🟢 smaller dropdown
+    let left = rect.left + rect.width / 2 - width / 2 + window.scrollX;
+    const top = rect.bottom + window.scrollY + 6;
+
+    // ✅ Clamp to viewport
+    const minLeft = window.scrollX + 8;
     const maxLeft = window.scrollX + window.innerWidth - width - 8;
-    if (left > maxLeft) left = Math.max(window.scrollX + 8, maxLeft);
+    if (left < minLeft) left = minLeft;
+    if (left > maxLeft) left = maxLeft;
 
     setAbilityOpenId(dropdownId);
-    setAbilityPos({ top: rect.bottom + window.scrollY + 6, left });
+    setAbilityPos({ top, left });
     setAbilityCtx({ groupIdx, charId, slot });
   };
 
@@ -227,7 +259,9 @@ export default function Editor({
           abilities={abilities}
           abilityColorMap={abilityColorMap}
           onClose={closeAbilityDropdown}
-          onSelect={(a) => handleAbilityChange(abilityCtx.groupIdx, abilityCtx.charId, abilityCtx.slot, a)}
+          onSelect={(a) =>
+            handleAbilityChange(abilityCtx.groupIdx, abilityCtx.charId, abilityCtx.slot, a)
+          }
         />
       )}
     </div>
