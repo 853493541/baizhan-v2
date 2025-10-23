@@ -13,7 +13,7 @@ export default function GroupEditor({
   onRemoveCharacter,
   onOpenCharacterDropdown,
   onOpenAbilityDropdown,
-  onAddGroup, // ✅ new prop for adding groups
+  onAddGroup,
 }: {
   group: GroupResult;
   groupIndex: number;
@@ -34,8 +34,31 @@ export default function GroupEditor({
     dropdownId: string,
     e: React.MouseEvent
   ) => void;
-  onAddGroup?: () => void; // optional, only used in Editor
+  onAddGroup?: () => void;
 }) {
+  /* 🧩 Debugging: show exactly what GroupEditor received from Editor */
+  if (editing && process.env.NODE_ENV !== "production") {
+    console.groupCollapsed(
+      `%c[GroupEditor] Received props for Group ${groupIndex + 1}`,
+      "color:#0af;font-weight:bold;"
+    );
+    console.log("Raw group object:", group);
+    console.log("Characters count:", group.characters.length);
+    group.characters.forEach((c, i) => {
+      console.group(`[Character ${i + 1}] ${c.name || "(unnamed)"}`);
+      console.log("  _id:", c._id);
+      console.log("  role:", c.role);
+      console.log(
+        "  abilities type:",
+        Array.isArray(c.abilities) ? "Array ❌" : "Map ✅",
+        c.abilities
+      );
+      console.log("  selectedAbilities:", c.selectedAbilities);
+      console.groupEnd();
+    });
+    console.groupEnd();
+  }
+
   return (
     <div className={styles.groupCard}>
       {/* === Header === */}
@@ -55,25 +78,46 @@ export default function GroupEditor({
 
       {/* === Character Rows === */}
       <div className={styles.memberList}>
-        {group.characters.map((c, ci) => (
-          <CharacterRow
-            key={c._id || ci}
-            character={c as Character}
-            groupIndex={groupIndex}
-            editing={editing}
-            abilityColorMap={abilityColorMap}
-            onRemoveCharacter={onRemoveCharacter}
-            onOpenCharacterDropdown={onOpenCharacterDropdown}
-            onOpenAbilityDropdown={onOpenAbilityDropdown}
-          />
-        ))}
+        {group.characters.map((c, ci) => {
+          // 🧩 Defensive fix: always preserve abilities map and 3 selectedAbilities
+          const fixedChar: Character = {
+            ...c,
+            abilities:
+              typeof c.abilities === "object" && !Array.isArray(c.abilities)
+                ? c.abilities
+                : {},
+            selectedAbilities:
+              c.selectedAbilities?.length === 3
+                ? c.selectedAbilities
+                : [
+                    { name: "", level: 0 },
+                    { name: "", level: 0 },
+                    { name: "", level: 0 },
+                  ],
+          };
+
+          return (
+            <CharacterRow
+              key={c._id || ci}
+              character={fixedChar}
+              groupIndex={groupIndex}
+              editing={editing}
+              abilityColorMap={abilityColorMap}
+              onRemoveCharacter={onRemoveCharacter}
+              onOpenCharacterDropdown={onOpenCharacterDropdown}
+              onOpenAbilityDropdown={onOpenAbilityDropdown}
+            />
+          );
+        })}
 
         {/* === Inline Add Character Button === */}
         {editing && group.characters.length < 3 && (
           <div className={styles.addRow}>
             <button
               className={styles.addCharacterBtn}
-              onClick={(e) => onOpenCharacterDropdown("add", groupIndex, undefined, e)}
+              onClick={(e) =>
+                onOpenCharacterDropdown("add", groupIndex, undefined, e)
+              }
             >
               ＋ 添加角色
             </button>

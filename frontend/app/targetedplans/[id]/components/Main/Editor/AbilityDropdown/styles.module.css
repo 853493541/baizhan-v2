@@ -1,4 +1,4 @@
-/* Backdrop */
+/* === Backdrop === */
 .portalBackdrop {
   position: fixed;
   inset: 0;
@@ -6,21 +6,51 @@
   background: transparent;
 }
 
-
+/* === Dropdown Container === */
+.abilityDropdownGrid {
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  display: flex;
+  flex-direction: column;
+  width: auto;
+  min-width: 220px;           /* 🟢 wider minimum to fit long names */
+  max-width: 360px;           /* 🔹 prevent overflow */
+  max-height: 280px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0;
+  background: #fff;
+  border: 1px solid #bfbfbf;
+  border-radius: 8px;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.12),
+    0 8px 20px rgba(0, 0, 0, 0.12);
+  white-space: nowrap;
+}
 
 /* Scrollbar */
-.abilityDropdownGrid::-webkit-scrollbar { width: 6px; }
-.abilityDropdownGrid::-webkit-scrollbar-track { background: #f3f3f3; }
-.abilityDropdownGrid::-webkit-scrollbar-thumb { background: #b5b5b5; border-radius: 3px; }
-.abilityDropdownGrid::-webkit-scrollbar-thumb:hover { background: #999; }
+.abilityDropdownGrid::-webkit-scrollbar {
+  width: 6px;
+}
+.abilityDropdownGrid::-webkit-scrollbar-track {
+  background: #f3f3f3;
+}
+.abilityDropdownGrid::-webkit-scrollbar-thumb {
+  background: #b5b5b5;
+  border-radius: 3px;
+}
+.abilityDropdownGrid::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
 
-/* Items */
+/* === Item Rows === */
 .abilityOptionCard {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
-  height: 40px;
-  padding: 0 12px;
+  height: 42px;
+  padding: 6px 14px;
   border-radius: 6px;
   cursor: pointer;
   background: var(--ability-bg, #f7f7f7);
@@ -30,121 +60,56 @@
   font-weight: 500;
   transition: all 0.15s ease;
 }
+
 .abilityOptionCard:hover {
   background: var(--ability-hover, #e5e5e5);
-  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
   transform: translateX(2px);
 }
+
+/* Icon */
 .abilityIconLarge {
   flex-shrink: 0;
   width: 28px;
   height: 28px;
   border-radius: 6px;
   background: #fdfdfd;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
-.abilityOptionCard span {
-  flex: 1;
-  text-align: left;
-  font-size: 14px;
-  color: #333;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.abilityDropdownGrid {
-  position: fixed !important;
-  z-index: 2147483647 !important;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  width: auto;                     /* 🟢 auto width */
-  min-width: 180px;                /* 🔹 prevents being too narrow */
-  max-width: 320px;                /* 🔹 prevents overflow */
-  padding: 0;
-  max-height: 280px;
-  overflow-y: auto;
-  background: #fff;
-  border: 1px solid #bfbfbf;
-  border-radius: 6px;
-  box-shadow:
-    0 2px 4px rgba(0,0,0,0.12),
-    0 8px 20px rgba(0,0,0,0.12);
-  white-space: nowrap;             /* ⚡ keep one line per ability */
-}
-.abilityOptionCard + .abilityOptionCard {
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
-}
-.abilityOptionCard {
-  display: flex;
-  align-items: center;
-  gap: 12px;                     /* 🟢 more space between icon and text */
-  height: 42px;                  /* 🔹 slightly taller row */
-  padding: 6px 16px;             /* 🟢 more horizontal padding */
-  border-radius: 6px;
-  cursor: pointer;
-  background: var(--ability-bg, #f7f7f7);
-  border-left: 5px solid var(--ability-color, #ccc);
-  color: #222;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.15s ease;
-}
-.abilityDropdownGrid {
-  position: fixed !important;
-  z-index: 2147483647 !important;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  width: auto;
-  min-width: 180px;
-  max-width: 320px;
-  padding: 0;
-  max-height: 280px;
 
-  overflow-y: auto;      /* ✅ allow vertical scroll */
-  overflow-x: hidden;    /* 🚫 disable left/right scroll */
-
-  background: #fff;
-  border: 1px solid #bfbfbf;
-  border-radius: 6px;
-  box-shadow:
-    0 2px 4px rgba(0,0,0,0.12),
-    0 8px 20px rgba(0,0,0,0.12);
-  white-space: nowrap;
-}
-.abilityOptionCard {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  height: 40px;
-  padding: 0 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  background: var(--ability-bg, #f7f7f7);
-  border-left: 5px solid var(--ability-color, #ccc);
-  color: #222;
-  font-size: 14px;       /* ✅ unified */
-  font-weight: 500;      /* ✅ unified */
-  transition: all 0.15s ease;
-}
+/* === Text Layout === */
 .abilityText {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-between; /* name left, level right */
   align-items: center;
-  width: 100%;
+  flex: 1;
+  overflow: hidden;
 }
 
 .abilityName {
   font-weight: 500;
+  font-size: 14px;
+  color: #222;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  padding-right: 8px;
 }
 
 .abilityLevel {
-  font-size: 0.85rem;
-  margin-left: 6px;
+  font-size: 14px;
+  min-width: 28px;         /* 🟢 fixed space for right alignment */
+  text-align: right;
+  color: #333;
 }
 
-/* Level indicators */
+/* === Selected Ability Highlight === */
+.selectedAbility {
+  outline: 2px solid var(--ability-color);
+  box-shadow: 0 0 6px var(--ability-color);
+}
+
+/* === Level Border Hints (optional subtle indicator) === */
 .level10 {
   border: 1px solid gold;
 }
@@ -153,9 +118,9 @@
 }
 .levelLearned {
   border: 1px solid #8cd47e;
-  opacity: 0.9;
+  opacity: 0.95;
 }
 .levelMissing {
   border: 1px solid #ccc;
-  opacity: 0.6;
+  opacity: 0.7;
 }

@@ -43,6 +43,66 @@ export default function Editor({
   const [abilityPos, setAbilityPos] = useState<{ top: number; left: number } | null>(null);
   const [abilityCtx, setAbilityCtx] = useState<{ groupIdx: number; charId: string; slot: number } | null>(null);
 
+  /* ---------- 🧠 Merge full abilities (level maps) from allCharacters + restore from DB ---------- */
+  useEffect(() => {
+    if (!groups?.length || !allCharacters?.length) return;
+
+    console.groupCollapsed(
+      "%c[trace][Editor] Merge localGroups from server groups + full characters",
+      "color:#4fa3ff;font-weight:bold;"
+    );
+
+    const merged = groups.map((g, gi) => {
+      const mappedChars = g.characters.map((c: any, ci) => {
+        const realId = (c._id || c.characterId?._id || c.characterId) as string | undefined;
+        const full = realId ? allCharacters.find((ac) => ac._id === realId) : undefined;
+
+        let mergedChar: any = {
+          _id: realId,
+          name: full?.name || c.name || "未知角色",
+          account: full?.account || c.account,
+          role: full?.role || c.role,
+          server: full?.server || c.server,
+        };
+
+        // merge ability map (for levels)
+        if (full?.abilities && typeof full.abilities === "object" && !Array.isArray(full.abilities)) {
+          mergedChar.abilities = full.abilities;
+        }
+
+        // ✅ restore selected abilities from DB if available
+        if (Array.isArray(c.abilities)) {
+          mergedChar.selectedAbilities = c.abilities.map((a) => ({
+            name: a.name,
+            level: a.level ?? 0,
+          }));
+        } else if (Array.isArray(c.selectedAbilities)) {
+          mergedChar.selectedAbilities = c.selectedAbilities;
+        } else {
+          mergedChar.selectedAbilities = [
+            { name: "", level: 0 },
+            { name: "", level: 0 },
+            { name: "", level: 0 },
+          ];
+        }
+
+        console.groupCollapsed(`[trace][Editor] Group ${gi + 1}, Character ${ci + 1}`);
+        console.log("raw c:", c);
+        console.log("mergedChar:", mergedChar);
+        console.groupEnd();
+
+        return mergedChar;
+      });
+
+      return { ...g, characters: mappedChars };
+    });
+
+    console.log("=> merged localGroups (restored levels):", merged);
+    console.groupEnd();
+
+    setLocalGroups(merged);
+  }, [groups, allCharacters]);
+
   /* ---------- Initial Load ---------- */
   useEffect(() => {
     if (!groups?.length && allCharacters?.length) {
@@ -64,8 +124,9 @@ export default function Editor({
     (window as any).__ALL_CHARACTERS__ = allCharacters;
     const usedMap: Record<string, number> = {};
     localGroups.forEach((g, gi) => {
-      g.characters.forEach((c) => {
-        usedMap[c._id] = gi;
+      g.characters.forEach((c: any) => {
+        const realId = c._id || c.characterId?._id || c.characterId;
+        if (realId) usedMap[realId] = gi;
       });
     });
     (window as any).__USED_CHARACTER_MAP__ = usedMap;
@@ -117,6 +178,8 @@ export default function Editor({
     if (left < minLeft) left = minLeft;
     if (left > maxLeft) left = maxLeft;
 
+    console.log("[trace][Editor] openAbilityDropdown ctx:", { groupIdx, charId, slot, dropdownId });
+
     setAbilityOpenId(dropdownId);
     setAbilityPos({ top, left });
     setAbilityCtx({ groupIdx, charId, slot });
@@ -129,13 +192,12 @@ export default function Editor({
     setAbilityCtx(null);
   };
 
-  /* ---------- Cancel changes ---------- */
+  /* ---------- Cancel / Save ---------- */
   const cancelEditing = () => {
     setLocalGroups(groups); // revert to last saved
     setEditing(false);
   };
 
-  /* ---------- Save ---------- */
   const silentSave = async () => {
     await saveChanges(scheduleId, localGroups, setGroups, setEditing);
     setEditing(false);
@@ -187,70 +249,90 @@ export default function Editor({
       )}
 
       {/* Character dropdown */}
-      {charDrop.type && charDrop.pos && (
-        (() => {
-          const selectedCharacter =
-            (charDrop.groupIdx != null && charDrop.charId)
-              ? localGroups[charDrop.groupIdx]?.characters.find(
-                  (c) => c._id === charDrop.charId
-                )
-              : undefined;
+      {charDrop.type && charDrop.pos && (() => {
+        const selectedCharacter =
+          (charDrop.groupIdx != null && charDrop.charId)
+            ? localGroups[charDrop.groupIdx]?.characters.find(
+                (c: any) => (c._id || c.characterId?._id || c.characterId) === charDrop.charId
+              )
+            : undefined;
 
-          return (
-            <CharacterDropdown
-              x={charDrop.pos.x}
-              y={charDrop.pos.y}
-              character={selectedCharacter}
-              excludeId={charDrop.charId}
-              onClose={closeCharDropdown}
-              onSelect={(char) =>
-                charDrop.type === "replace"
-                  ? handleReplaceCharacter(setLocalGroups, charDrop.groupIdx!, charDrop.charId!, char)
-                  : handleAddCharacter(setLocalGroups, charDrop.groupIdx!, char)
+        console.groupCollapsed(
+          "%c[trace][Editor] Opening CharacterDropdown",
+          "color:#9b59b6;font-weight:bold;"
+        );
+        console.log("type:", charDrop.type, "groupIdx:", charDrop.groupIdx, "charId:", charDrop.charId);
+        console.log("selectedCharacter (from localGroups):", selectedCharacter);
+        console.groupEnd();
+
+        return (
+          <CharacterDropdown
+            x={charDrop.pos.x}
+            y={charDrop.pos.y}
+            character={selectedCharacter}
+            excludeId={charDrop.charId}
+            onClose={closeCharDropdown}
+            onSelect={(char) => {
+              const fullChar = allCharacters.find((c) => c._id === char._id) || char;
+              if (charDrop.type === "replace") {
+                handleReplaceCharacter(
+                  setLocalGroups,
+                  charDrop.groupIdx!,
+                  charDrop.charId!,
+                  fullChar,
+                  allCharacters
+                );
+              } else {
+                handleAddCharacter(setLocalGroups, charDrop.groupIdx!, fullChar, allCharacters);
               }
-            />
-          );
-        })()
-      )}
+            }}
+          />
+        );
+      })()}
 
       {/* Ability dropdown */}
-      {abilityOpenId && abilityPos && abilityCtx && (
-        (() => {
-          // 🟢 merge partial character from group with full data from allCharacters
-          const groupChar =
-            localGroups[abilityCtx.groupIdx]?.characters.find(
-              (c) => c._id === abilityCtx.charId
-            );
-
-          const fullChar =
-            allCharacters.find((c) => c._id === abilityCtx.charId) || groupChar;
-
-          const selectedCharacter = { ...groupChar, ...fullChar };
-
-          return (
-            <AbilityDropdown
-              x={abilityPos.left}
-              y={abilityPos.top}
-              abilities={abilities}
-              abilityColorMap={abilityColorMap}
-              character={selectedCharacter} // 🟢 now includes real levels
-              onClose={closeAbilityDropdown}
-              onSelect={(a) =>
-                handleAbilityChange(
-                  setLocalGroups,
-                  setAbilityOpenId,
-                  setAbilityPos,
-                  setAbilityCtx,
-                  abilityCtx.groupIdx,
-                  abilityCtx.charId,
-                  abilityCtx.slot,
-                  a
-                )
-              }
-            />
+      {abilityOpenId && abilityPos && abilityCtx && (() => {
+        const groupChar =
+          localGroups[abilityCtx.groupIdx]?.characters.find(
+            (c: any) => (c._id || c.characterId?._id || c.characterId) === abilityCtx.charId
           );
-        })()
-      )}
+        const fullChar =
+          allCharacters.find((c) => c._id === abilityCtx.charId) || groupChar;
+        const selectedCharacter = { ...groupChar, ...fullChar };
+
+        console.groupCollapsed(
+          "%c[trace][Editor] Opening AbilityDropdown",
+          "color:#2ecc71;font-weight:bold;"
+        );
+        console.log("abilityCtx:", abilityCtx);
+        console.log("groupChar:", groupChar);
+        console.log("fullChar:", fullChar);
+        console.groupEnd();
+
+        return (
+          <AbilityDropdown
+            x={abilityPos.left}
+            y={abilityPos.top}
+            abilities={abilities}
+            abilityColorMap={abilityColorMap}
+            character={selectedCharacter}
+            onClose={closeAbilityDropdown}
+            onSelect={(a) =>
+              handleAbilityChange(
+                setLocalGroups,
+                setAbilityOpenId,
+                setAbilityPos,
+                setAbilityCtx,
+                abilityCtx.groupIdx,
+                abilityCtx.charId,
+                abilityCtx.slot,
+                a,
+                selectedCharacter // 🔴 keep levels
+              )
+            }
+          />
+        );
+      })()}
     </div>
   );
 }

@@ -3,7 +3,7 @@ import TargetedPlan from "../../models/TargetedPlan";
 
 /* ============================================================================
    🟢 CREATE — Create a new targeted plan
-   ✅ Includes duplicate protection and per-character abilities support
+   ✅ Stores ability name + level
 ============================================================================ */
 export const createTargetedPlan = async (req: Request, res: Response) => {
   try {
@@ -24,7 +24,6 @@ export const createTargetedPlan = async (req: Request, res: Response) => {
         .json({ error: "Missing required fields: server or targetedBoss" });
     }
 
-    // ✅ Prevent duplicate plan creation if same UUID is submitted twice
     const existing = await TargetedPlan.findOne({ planId });
     if (existing) {
       console.warn("⚠️ Duplicate planId detected, returning existing:", planId);
@@ -56,7 +55,9 @@ export const createTargetedPlan = async (req: Request, res: Response) => {
           characters:
             g.characters?.map((ch: any) => ({
               characterId: ch.characterId,
-              abilities: ch.abilities || [],
+              abilities: (ch.abilities || []).map((a: any) =>
+                typeof a === "string" ? { name: a, level: 0 } : a
+              ),
             })) || [],
           status: g.status || "not_started",
           kills: g.kills || [],
@@ -74,7 +75,7 @@ export const createTargetedPlan = async (req: Request, res: Response) => {
 };
 
 /* ============================================================================
-   🟡 SUMMARY — Get minimal info for list display (no populate)
+   🟡 SUMMARY — Get minimal info for list display
 ============================================================================ */
 export const getTargetedPlansSummary = async (_: Request, res: Response) => {
   try {
@@ -95,6 +96,10 @@ export const getTargetedPlansSummary = async (_: Request, res: Response) => {
 
 /* ============================================================================
    🔍 DETAIL — Get full info for one plan (with characters populated)
+   ✅ Converts old string-based abilities to { name, level }
+============================================================================ */
+/* ============================================================================
+   🔍 DETAIL — Get full info for one plan (with merged abilities)
 ============================================================================ */
 export const getTargetedPlanDetail = async (req: Request, res: Response) => {
   try {
@@ -102,14 +107,40 @@ export const getTargetedPlanDetail = async (req: Request, res: Response) => {
 
     const plan = await TargetedPlan.findOne({ planId })
       .populate("characters")
-      .populate("groups.characters.characterId"); // ✅ populate nested characterId
+      .populate("groups.characters.characterId")
+      .lean();
 
     if (!plan) {
       return res.status(404).json({ error: "Targeted plan not found" });
     }
 
-    console.log(`📤 Returned detailed targeted plan for ${planId}`);
-    res.json(plan);
+    // ✅ Merge populated character data + stored ability levels
+    const mergedGroups = plan.groups.map((g: any) => ({
+      ...g,
+      characters: g.characters.map((ch: any) => {
+        const populated = ch.characterId || {};
+        const savedAbilities = Array.isArray(ch.abilities) ? ch.abilities : [];
+
+        // 🧠 Combine everything into one unified object for frontend
+        return {
+          _id: populated._id?.toString() || ch.characterId?.toString(),
+          name: populated.name || "未知角色",
+          account: populated.account || "",
+          role: populated.role || "",
+          server: populated.server || plan.server || "",
+          abilities: populated.abilities || {}, // full level map
+          selectedAbilities: savedAbilities.map((a: any) => ({
+            name: a.name,
+            level: a.level ?? 0,
+          })),
+        };
+      }),
+    }));
+
+    const result = { ...plan, groups: mergedGroups };
+
+    console.log(`📤 [Backend] Returned merged targeted plan for ${planId}`);
+    res.json(result);
   } catch (err) {
     console.error("❌ Error fetching targeted plan detail:", err);
     res.status(500).json({ error: "Failed to fetch targeted plan detail" });
@@ -117,7 +148,7 @@ export const getTargetedPlanDetail = async (req: Request, res: Response) => {
 };
 
 /* ============================================================================
-   ✏️ UPDATE — Update plan (including groups + per-character abilities)
+   ✏️ UPDATE — Update existing plan with new group data
 ============================================================================ */
 export const updateTargetedPlan = async (req: Request, res: Response) => {
   try {
@@ -129,7 +160,6 @@ export const updateTargetedPlan = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Targeted plan not found" });
     }
 
-    // ✅ Merge high-level fields
     if (update.name) plan.name = update.name;
     if (update.server) plan.server = update.server;
     if (update.targetedBoss) plan.targetedBoss = update.targetedBoss;
@@ -137,14 +167,15 @@ export const updateTargetedPlan = async (req: Request, res: Response) => {
       plan.characterCount = update.characterCount;
     if (Array.isArray(update.characters)) plan.characters = update.characters;
 
-    // ✅ Replace group data safely
     if (Array.isArray(update.groups)) {
       plan.groups = update.groups.map((g: any) => ({
         index: g.index,
         characters:
           g.characters?.map((ch: any) => ({
             characterId: ch.characterId,
-            abilities: ch.abilities || [],
+            abilities: (ch.abilities || []).map((a: any) =>
+              typeof a === "string" ? { name: a, level: 0 } : a
+            ),
           })) || [],
         status: g.status || "not_started",
         kills: g.kills || [],
