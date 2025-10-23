@@ -1,11 +1,11 @@
-/* === Section Title === */
+/* Section Title */
 .sectionSubtitle {
   font-size: 16px;
   font-weight: 600;
   margin: 16px 0 8px;
 }
 
-/* === Header (title + buttons) === */
+/* Header */
 .editorHeader {
   display: flex;
   justify-content: space-between;
@@ -13,7 +13,7 @@
   margin-bottom: 12px;
 }
 
-/* === Layout === */
+/* Page layout */
 .groupsGrid {
   display: flex;
   flex-direction: column;
@@ -25,244 +25,8 @@
   z-index: 1;
 }
 
-.groupCard {
-  width: 100%;
-  max-width: 700px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 14px 18px;
-  background: #fff;
-  transition: box-shadow 0.2s ease;
-  overflow: visible !important;
-  position: relative;
-  z-index: 1;
-}
-
-.groupCard:hover {
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-}
-
-/* === Group Header === */
-.groupHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.groupTitle {
-  font-weight: bold;
-  font-size: 15px;
-  color: #2c3e50;
-  margin: 0;
-}
-
-/* === Member List === */
-.memberList {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.memberRow {
-  display: grid;
-  grid-template-columns: minmax(140px, 1.2fr) repeat(3, minmax(140px, 1fr)) auto;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  overflow: visible !important;
-  position: relative;
-  z-index: 1;
-}
-
-/* === Character Tag === */
-.memberItem {
-  text-align: left;
-  padding: 6px 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-weight: 600;
-  font-size: 14px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: pointer;
-}
-
-/* Role Colors */
-.tank { background: #fff4c2; color: #6b4e00; }
-.dps { background: #d5f5d5; color: #0f5132; }
-.healer { background: #fddde6; color: #842029; }
-
-/* === Ability Section === */
-.abilityGroup {
-  display: contents;
-}
-
-.abilitySlot {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* === Dropdown Base === */
-.customDropdown {
-  position: relative;
-  width: 160px;
-  padding: 5px 30px 5px 10px;
-  background: linear-gradient(to bottom, #ffffff, #f8f8f8);
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  cursor: pointer;
-  user-select: none;
-  transition: box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  z-index: 1000;
-}
-
-.customDropdown:hover {
-  border-color: #999;
-  background: linear-gradient(to bottom, #fafafa, #f2f2f2);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
-}
-
-/* ▼ caret indicator */
-.customDropdown::after {
-  content: "▼";
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%) scale(0.85);
-  font-size: 11px;
-  color: #666;
-  pointer-events: none;
-  transition: transform 0.2s ease;
-}
-
-.customDropdown.open::after {
-  transform: translateY(-50%) rotate(180deg) scale(0.85);
-}
-
-.selectedOption {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13.5px;
-  font-weight: 500;
-}
-
-.abilityIcon {
-  border-radius: 4px;
-  background: #f6f6f6;
-}
-
-.placeholder {
-  color: #888;
-  font-size: 13px;
-}
-
-/* === Floating Dropdowns (fixed position) === */
-.characterDropdownWindow,
-.abilityDropdownGrid {
-  position: fixed !important;
-  z-index: 5000 !important;
-  background: #fff;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
-  padding: 8px;
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-/* Character list */
-.characterDropdownWindow {
-  width: 220px;
-}
-
-/* Ability grid */
-.abilityDropdownGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 6px;
-  width: 400px;
-  padding: 10px;
-}
-
-/* Scrollbars */
-.characterDropdownWindow::-webkit-scrollbar,
-.abilityDropdownGrid::-webkit-scrollbar {
-  width: 6px;
-}
-.characterDropdownWindow::-webkit-scrollbar-thumb,
-.abilityDropdownGrid::-webkit-scrollbar-thumb {
-  background: #bbb;
-  border-radius: 3px;
-}
-
-/* Dropdown items */
-.characterOption {
-  padding: 6px 10px;
-  border-radius: 5px;
-  margin-bottom: 4px;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-.characterOption:hover {
-  background: #f1f1f1;
-}
-
-.abilityOptionCard {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  height: 40px;
-  padding: 0 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  background: var(--ability-bg, #f7f7f7);
-  border-left: 5px solid var(--ability-color, #ccc);
-  color: #222;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.15s ease;
-}
-
-.abilityOptionCard:hover {
-  background: var(--ability-hover, #e5e5e5);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
-  transform: translateX(2px);
-}
-
-.abilityIconLarge {
-  flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  background: #fdfdfd;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.abilityOptionCard span {
-  flex: 1;
-  text-align: left;
-  font-size: 14px;
-  color: #333;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.abilityOptionCard + .abilityOptionCard {
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-/* === Buttons === */
-.editBtn,
-.saveBtn {
+/* Top buttons */
+.editBtn, .saveBtn {
   padding: 5px 10px;
   border-radius: 6px;
   border: none;
@@ -270,30 +34,13 @@
   font-size: 14px;
   font-weight: 500;
 }
+.editBtn { background: #6c757d; color: #fff; }
+.saveBtn { background: #007bff; color: #fff; }
 
-.editBtn { background: #6c757d; color: white; }
-.saveBtn { background: #007bff; color: white; }
-
-.removeBtn,
-.smallBtn {
-  background: #eee;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 2px 6px;
-  cursor: pointer;
-  font-size: 13px;
-  transition: background 0.15s;
-}
-
-.removeBtn:hover,
-.smallBtn:hover {
-  background: #e8e8e8;
-}
-
-/* === Add Group Button === */
+/* Add group button */
 .addGroupBtn {
   background: #007bff;
-  color: white;
+  color: #fff;
   border: none;
   border-radius: 8px;
   padding: 6px 14px;
@@ -302,110 +49,4 @@
   transition: background 0.2s ease;
   margin-top: 12px;
 }
-
-.addGroupBtn:hover {
-  background: #0064d0;
-}
-
-/* === Add Character Dropdown === */
-.addCharacterSelect {
-  grid-column: 1 / 2;
-  width: 100%;
-  max-width: 140px;
-  padding: 6px 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  background: #fafafa;
-  font-size: 14px;
-  font-weight: 600;
-  color: #444;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  cursor: pointer;
-  transition: background 0.15s ease, border 0.15s ease;
-  appearance: none;
-}
-
-.addCharacterSelect:hover {
-  background: #f3f3f3;
-  border-color: #aaa;
-}
-
-.addCharacterSelect:focus {
-  outline: none;
-  border-color: #007bff;
-  background: #fff;
-}
-
-.tankOption { background-color: #fff4c2; color: #6b4e00; }
-.dpsOption { background-color: #d5f5d5; color: #0f5132; }
-.healerOption { background-color: #fddde6; color: #842029; }
-
-.addCharacterSelect option {
-  font-weight: 600;
-}
-
-/* === Empty States === */
-.emptyAbility {
-  background: #f7f7f7;
-  border: 1px dashed #ccc;
-  border-radius: 6px;
-  padding: 5px 10px;
-  font-size: 13px;
-  color: #aaa;
-  text-align: center;
-  min-width: 130px;
-}
-
-.abilityPill {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  justify-content: flex-start;
-  padding: 5px 10px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #333;
-  border: 1px solid #ccc;
-  min-width: 130px;
-  text-align: left;
-}
-
-/* === Responsive === */
-@media (max-width: 640px) {
-  .memberRow {
-    grid-template-columns: 1fr;
-  }
-
-  .abilityGroup {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-  }
-
-  .groupCard {
-    max-width: 100%;
-  }
-
-  .addCharacterSelect {
-    max-width: 100%;
-  }
-
-  .abilityDropdownGrid {
-    width: 100%;
-  }
-}
-/* Fullscreen backdrop to capture outside clicks, always below popup but above page */
-.portalBackdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 2147483646; /* one below popup */
-  background: transparent; /* invisible click-catcher */
-}
-
-/* Popups rendered via Portal use these (already present for window styles) */
-.characterDropdownWindow,
-.abilityDropdownGrid {
-  position: fixed !important;
-  z-index: 2147483647 !important; /* top of the world */
-}
+.addGroupBtn:hover { background: #0064d0; }

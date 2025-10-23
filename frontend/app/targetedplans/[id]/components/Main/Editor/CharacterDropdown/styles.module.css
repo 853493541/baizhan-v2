@@ -1,0 +1,64 @@
+/* Backdrop to catch outside clicks */
+.portalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483646;
+  background: transparent;
+}
+
+/* Floating character dropdown */
+.characterDropdownWindow {
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  width: 180px;
+  background: #fff;
+  border: 1px solid #bfbfbf;
+  border-radius: 6px;
+  box-shadow:
+    0 2px 4px rgba(0,0,0,0.12),
+    0 8px 20px rgba(0,0,0,0.12);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  max-height: 260px;
+}
+
+/* Scrollbar */
+.characterDropdownWindow::-webkit-scrollbar { width: 6px; }
+.characterDropdownWindow::-webkit-scrollbar-track { background: #f3f3f3; }
+.characterDropdownWindow::-webkit-scrollbar-thumb { background: #b5b5b5; border-radius: 3px; }
+.characterDropdownWindow::-webkit-scrollbar-thumb:hover { background: #999; }
+
+/* Options */
+.characterOption {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  padding: 5px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  border-radius: 0;
+  transition: all 0.1s ease;
+  box-sizing: border-box;
+}
+.characterOption + .characterOption { border-top: 1px solid rgba(0,0,0,0.04); }
+
+/* Role colors full fill */
+.tankOption { background: #fff4c2; color: #6b4e00; }
+.dpsOption { background: #d5f5d5; color: #0f5132; }
+.healerOption { background: #fddde6; color: #842029; }
+
+/* Hover → native blue */
+.characterOption:hover {
+  background: linear-gradient(to bottom, #0d6efd, #0b5ed7);
+  color: #fff !important;
+}
+
+/* Round top/bottom only */
+.characterOption:first-child { border-top-left-radius: 6px; border-top-right-radius: 6px; }
+.characterOption:last-child  { border-bottom-left-radius: 6px; border-bottom-right-radius: 6px; }
