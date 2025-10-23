@@ -23,11 +23,19 @@ interface Kill {
 }
 
 /* ---------------------------------------------------------------------------
+   🧩 Sub-schema: Character Ability
+--------------------------------------------------------------------------- */
+interface CharacterAbility {
+  name: string;
+  level: number;
+}
+
+/* ---------------------------------------------------------------------------
    🧩 Sub-schema: Character Entry within a Group
 --------------------------------------------------------------------------- */
 interface GroupCharacter {
   characterId: mongoose.Types.ObjectId;
-  abilities?: string[]; // ✅ list of abilities assigned to this specific character
+  abilities?: CharacterAbility[]; // ✅ now stores both name + level
 }
 
 /* ---------------------------------------------------------------------------
@@ -35,7 +43,7 @@ interface GroupCharacter {
 --------------------------------------------------------------------------- */
 interface Group {
   index: number;
-  characters: GroupCharacter[]; // ✅ characters with their abilities
+  characters: GroupCharacter[];
   status: "not_started" | "started" | "finished";
   kills: Kill[];
 }
@@ -51,7 +59,7 @@ export interface ITargetedPlan extends Document {
   targetedBoss: string;
   createdAt: Date;
   characterCount: number;
-  characters: mongoose.Types.ObjectId[]; // overall pool of available characters
+  characters: mongoose.Types.ObjectId[];
   groups: Group[];
 }
 
@@ -84,8 +92,20 @@ const KillSchema = new Schema<Kill>(
 // --- GroupCharacter ---
 const GroupCharacterSchema = new Schema<GroupCharacter>(
   {
-    characterId: { type: Schema.Types.ObjectId, ref: "Character", required: true },
-    abilities: { type: [String], default: [] }, // ✅ can hold up to 3 abilities
+    characterId: {
+      type: Schema.Types.ObjectId,
+      ref: "Character",
+      required: true,
+    },
+    abilities: {
+      type: [
+        {
+          name: { type: String },
+          level: { type: Number, default: 0 },
+        },
+      ],
+      default: [],
+    },
   },
   { _id: false }
 );
@@ -121,4 +141,7 @@ const TargetedPlanSchema = new Schema<ITargetedPlan>({
 /* ---------------------------------------------------------------------------
    🚀 Export
 --------------------------------------------------------------------------- */
-export default mongoose.model<ITargetedPlan>("TargetedPlan", TargetedPlanSchema);
+export default mongoose.model<ITargetedPlan>(
+  "TargetedPlan",
+  TargetedPlanSchema
+);
