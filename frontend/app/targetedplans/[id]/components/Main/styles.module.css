@@ -41,3 +41,26 @@
   gap: 10px;               /* space between gear and buttons */
   margin-bottom: 12px;     /* spacing below bar */
 }
+/* === Layout for Editor + Ability Checking === */
+.editorRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;               /* 🟢 space between editor and checking panel */
+  width: 100%;
+  margin-top: 12px;
+}
+
+/* Left side (Editor) */
+.editorPane {
+  flex: 3;                 /* 🟢 main area wider */
+  min-width: 0;            /* prevent overflow */
+}
+
+/* Right side (Ability Checking) */
+.checkingPane {
+  flex: 2;                 /* 🟢 smaller side panel */
+  min-width: 320px;
+  max-width: 420px;
+  position: sticky;
+  top: 80px;               /* 🟢 stays visible while scrolling */
+}
