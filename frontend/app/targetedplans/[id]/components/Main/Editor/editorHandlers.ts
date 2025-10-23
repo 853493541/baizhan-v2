@@ -12,6 +12,7 @@ export const handleRemoveGroup = (setLocalGroups: any, idx: number) => {
   setLocalGroups((prev: GroupResult[]) => prev.filter((_, i) => i !== idx));
 };
 
+/* 🟢 Add Character — keeps full ability map, adds empty selectedAbilities */
 export const handleAddCharacter = (
   setLocalGroups: any,
   groupIdx: number,
@@ -23,11 +24,20 @@ export const handleAddCharacter = (
       characters: g.characters.filter((c) => c._id !== char._id),
     }));
     if (updated[groupIdx].characters.length >= 3) return prev;
-    updated[groupIdx].characters.push({ ...char, abilities: ["", "", ""] });
+
+    updated[groupIdx].characters.push({
+      ...char,
+      selectedAbilities: [
+        { name: "", level: 0 },
+        { name: "", level: 0 },
+        { name: "", level: 0 },
+      ],
+    });
     return updated;
   });
 };
 
+/* 🟢 Replace Character — keeps full ability map, resets selectedAbilities */
 export const handleReplaceCharacter = (
   setLocalGroups: any,
   groupIdx: number,
@@ -41,7 +51,16 @@ export const handleReplaceCharacter = (
     }));
     const group = updated[groupIdx];
     const i = group.characters.findIndex((c) => c._id === oldCharId);
-    if (i !== -1) group.characters[i] = { ...newChar, abilities: ["", "", ""] };
+    if (i !== -1) {
+      group.characters[i] = {
+        ...newChar,
+        selectedAbilities: [
+          { name: "", level: 0 },
+          { name: "", level: 0 },
+          { name: "", level: 0 },
+        ],
+      };
+    }
     return updated;
   });
 };
@@ -61,6 +80,10 @@ export const handleRemoveCharacter = (
 };
 
 /* ---------------- Ability Operations ---------------- */
+/**
+ * Updates one of the three selected abilities for a character.
+ * Also copies the real level from the full abilities map if available.
+ */
 export const handleAbilityChange = (
   setLocalGroups: any,
   setAbilityOpenId: any,
@@ -73,24 +96,53 @@ export const handleAbilityChange = (
 ) => {
   setLocalGroups((prev: GroupResult[]) => {
     const updated = [...prev];
+
     updated[groupIdx].characters = updated[groupIdx].characters.map((c) => {
       if (c._id === charId) {
-        const arr = [...(c.abilities || ["", "", ""])];
-        const dup = arr.findIndex((a, i) => a === ability && i !== slot);
-        if (dup !== -1) arr[dup] = "";
-        arr[slot] = ability;
-        return { ...c, abilities: arr };
+        // Get the real level from the full ability map if available
+        const level =
+          typeof c.abilities === "object" && !Array.isArray(c.abilities)
+            ? c.abilities[ability] || 0
+            : 0;
+
+        // Clone or initialize selectedAbilities
+        const arr = [
+          ...(c.selectedAbilities || [
+            { name: "", level: 0 },
+            { name: "", level: 0 },
+            { name: "", level: 0 },
+          ]),
+        ];
+
+        // Prevent duplicate selection
+        const dup = arr.findIndex((a, i) => a.name === ability && i !== slot);
+        if (dup !== -1) arr[dup] = { name: "", level: 0 };
+
+        // Set the new ability and level
+        arr[slot] = { name: ability, level };
+
+        return { ...c, selectedAbilities: arr };
       }
       return c;
     });
+
     return updated;
   });
+
+  // Close dropdowns
   setAbilityOpenId(null);
   setAbilityPos(null);
   setAbilityCtx(null);
 };
 
 /* ---------------- Save ---------------- */
+/**
+ * Saves all groups to backend.
+ * Converts selectedAbilities into a simplified payload:
+ * [
+ *   { characterId: "...", abilities: ["斗转金移", "漾剑式", "疯狂疾走"] }
+ * ]
+ */
 export const saveChanges = async (
   scheduleId: string,
   localGroups: GroupResult[],
@@ -98,11 +150,15 @@ export const saveChanges = async (
   setEditing: any
 ) => {
   setGroups(localGroups);
+
   const payload = localGroups.map((g, idx) => ({
     index: idx + 1,
     characters: g.characters.map((c) => ({
       characterId: c._id || c.characterId || null,
-      abilities: Array.isArray(c.abilities) ? c.abilities : ["", "", ""],
+      // Only send names (backend can still look up levels if needed)
+      abilities: Array.isArray(c.selectedAbilities)
+        ? c.selectedAbilities.map((a) => a.name || "")
+        : ["", "", ""],
     })),
     status: g.status || "not_started",
     kills: g.kills || [],
@@ -118,10 +174,10 @@ export const saveChanges = async (
       }
     );
     if (!res.ok) throw new Error(`Save failed: ${res.status}`);
-    // alert("✅ 已保存修改！");
   } catch (err) {
     console.error("❌ Save failed:", err);
     alert("保存失败，请查看控制台日志。");
   }
+
   setEditing(false);
 };
