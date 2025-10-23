@@ -1,0 +1,71 @@
+/* Backdrop */
+.portalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483646;
+  background: transparent;
+}
+
+/* Floating grid */
+.abilityDropdownGrid {
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 5px;
+  width: 360px;
+  padding: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #bfbfbf;
+  border-radius: 6px;
+  box-shadow:
+    0 2px 4px rgba(0,0,0,0.12),
+    0 8px 20px rgba(0,0,0,0.12);
+}
+
+/* Scrollbar */
+.abilityDropdownGrid::-webkit-scrollbar { width: 6px; }
+.abilityDropdownGrid::-webkit-scrollbar-track { background: #f3f3f3; }
+.abilityDropdownGrid::-webkit-scrollbar-thumb { background: #b5b5b5; border-radius: 3px; }
+.abilityDropdownGrid::-webkit-scrollbar-thumb:hover { background: #999; }
+
+/* Items */
+.abilityOptionCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  background: var(--ability-bg, #f7f7f7);
+  border-left: 5px solid var(--ability-color, #ccc);
+  color: #222;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+.abilityOptionCard:hover {
+  background: var(--ability-hover, #e5e5e5);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  transform: translateX(2px);
+}
+.abilityIconLarge {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: #fdfdfd;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.abilityOptionCard span {
+  flex: 1;
+  text-align: left;
+  font-size: 14px;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
