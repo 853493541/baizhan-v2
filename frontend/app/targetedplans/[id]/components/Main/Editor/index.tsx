@@ -7,6 +7,15 @@ import CharacterDropdown from "./CharacterDropdown";
 import AbilityDropdown from "./AbilityDropdown";
 import { abilities, abilityColorMap } from "./config";
 import type { GroupResult, Character } from "@/utils/solver";
+import {
+  handleAddGroup,
+  handleRemoveGroup,
+  handleAddCharacter,
+  handleReplaceCharacter,
+  handleRemoveCharacter,
+  handleAbilityChange,
+  saveChanges,
+} from "./editorHandlers";
 
 export default function Editor({
   scheduleId,
@@ -22,7 +31,7 @@ export default function Editor({
   const [editing, setEditing] = useState(false);
   const [localGroups, setLocalGroups] = useState<GroupResult[]>(groups);
 
-  // floating character dropdown
+  // floating dropdowns
   const [charDrop, setCharDrop] = useState<{
     type: "replace" | "add" | null;
     groupIdx: number | null;
@@ -30,13 +39,12 @@ export default function Editor({
     pos: { x: number; y: number } | null;
   }>({ type: null, groupIdx: null, pos: null });
 
-  // floating ability dropdown
   const [abilityOpenId, setAbilityOpenId] = useState<string | null>(null);
   const [abilityPos, setAbilityPos] = useState<{ top: number; left: number } | null>(null);
   const [abilityCtx, setAbilityCtx] = useState<{ groupIdx: number; charId: string; slot: number } | null>(null);
 
+  /* ---------- Initial Load ---------- */
   useEffect(() => {
-    // 🧠 If no groups exist, auto-generate based on character count
     if (!groups?.length && allCharacters?.length) {
       const groupCount = Math.ceil(allCharacters.length / 3);
       const newGroups = Array.from({ length: groupCount }, () => ({
@@ -51,97 +59,19 @@ export default function Editor({
     }
   }, [groups, allCharacters, setGroups]);
 
-  /* ---------- Group ops ---------- */
-  const handleAddGroup = () => {
-    setLocalGroups((prev) => [...prev, { characters: [], missingAbilities: [], violations: [] }]);
-  };
-
-  const handleRemoveGroup = (idx: number) =>
-    setLocalGroups((prev) => prev.filter((_, i) => i !== idx));
-
-  const handleAddCharacter = (groupIdx: number, char: Character) => {
-    setLocalGroups((prev) => {
-      const updated = prev.map((g) => ({
-        ...g,
-        characters: g.characters.filter((c) => c._id !== char._id), // unique across groups
-      }));
-      if (updated[groupIdx].characters.length >= 3) return prev;
-      updated[groupIdx].characters.push({ ...char, abilities: ["", "", ""] });
-      return updated;
-    });
-  };
-
-  const handleReplaceCharacter = (groupIdx: number, oldCharId: string, newChar: Character) => {
-    setLocalGroups((prev) => {
-      const updated = prev.map((g) => ({
-        ...g,
-        characters: g.characters.filter((c) => c._id !== newChar._id),
-      }));
-      const group = updated[groupIdx];
-      const i = group.characters.findIndex((c) => c._id === oldCharId);
-      if (i !== -1) group.characters[i] = { ...newChar, abilities: ["", "", ""] };
-      return updated;
-    });
-  };
-
-  const handleRemoveCharacter = (groupIdx: number, charId: string) => {
-    setLocalGroups((prev) => {
-      const updated = [...prev];
-      updated[groupIdx].characters = updated[groupIdx].characters.filter((c) => c._id !== charId);
-      return updated;
-    });
-  };
-
-  /* ---------- Ability ops ---------- */
-  const handleAbilityChange = (groupIdx: number, charId: string, slot: number, ability: string) => {
-    setLocalGroups((prev) => {
-      const updated = [...prev];
-      updated[groupIdx].characters = updated[groupIdx].characters.map((c) => {
-        if (c._id === charId) {
-          const arr = [...(c.abilities || ["", "", ""])];
-          const dup = arr.findIndex((a, i) => a === ability && i !== slot);
-          if (dup !== -1) arr[dup] = "";
-          arr[slot] = ability;
-          return { ...c, abilities: arr };
-        }
-        return c;
+  /* ---------- Expose global state for dropdown ---------- */
+  useEffect(() => {
+    (window as any).__ALL_CHARACTERS__ = allCharacters;
+    const usedMap: Record<string, number> = {};
+    localGroups.forEach((g, gi) => {
+      g.characters.forEach((c) => {
+        usedMap[c._id] = gi;
       });
-      return updated;
     });
-    setAbilityOpenId(null);
-    setAbilityPos(null);
-    setAbilityCtx(null);
-  };
+    (window as any).__USED_CHARACTER_MAP__ = usedMap;
+  }, [allCharacters, localGroups]);
 
-  /* ---------- Save ---------- */
-  const saveChanges = async () => {
-    setGroups(localGroups);
-    const payload = localGroups.map((g, idx) => ({
-      index: idx + 1,
-      characters: g.characters.map((c) => ({
-        characterId: c._id || c.characterId || null,
-        abilities: Array.isArray(c.abilities) ? c.abilities : ["", "", ""],
-      })),
-      status: g.status || "not_started",
-      kills: g.kills || [],
-    }));
-
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/targeted-plans/${scheduleId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ groups: payload }),
-      });
-      if (!res.ok) throw new Error(`Save failed: ${res.status}`);
-      alert("✅ 已保存修改！");
-    } catch (err) {
-      console.error("❌ Save failed:", err);
-      alert("保存失败，请查看控制台日志。");
-    }
-    setEditing(false);
-  };
-
-  /* ---------- Popup Logic ---------- */
+  /* ---------- Popup logic ---------- */
   const openCharacterDropdown = (
     type: "replace" | "add",
     groupIdx: number,
@@ -149,18 +79,18 @@ export default function Editor({
     e: React.MouseEvent
   ) => {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const dropdownWidth = 200; // match CSS
+    const dropdownWidth = 200;
     const spacing = 6;
 
-    // ✅ Center dropdown below trigger
     let left = rect.left + rect.width / 2 - dropdownWidth / 2 + window.scrollX;
     const top = rect.bottom + window.scrollY + spacing;
 
-    // ✅ Clamp horizontally
     const minLeft = window.scrollX + 8;
     const maxLeft = window.scrollX + window.innerWidth - dropdownWidth - 8;
     if (left < minLeft) left = minLeft;
     if (left > maxLeft) left = maxLeft;
+
+    (window as any).__CURRENT_GROUP_INDEX__ = groupIdx;
 
     setCharDrop({
       type,
@@ -178,11 +108,10 @@ export default function Editor({
     e: React.MouseEvent
   ) => {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const width = 280; // 🟢 smaller dropdown
+    const width = 280;
     let left = rect.left + rect.width / 2 - width / 2 + window.scrollX;
     const top = rect.bottom + window.scrollY + 6;
 
-    // ✅ Clamp to viewport
     const minLeft = window.scrollX + 8;
     const maxLeft = window.scrollX + window.innerWidth - width - 8;
     if (left < minLeft) left = minLeft;
@@ -200,21 +129,40 @@ export default function Editor({
     setAbilityCtx(null);
   };
 
+  /* ---------- Cancel changes ---------- */
+  const cancelEditing = () => {
+    setLocalGroups(groups); // revert to last saved
+    setEditing(false);
+  };
+
+  /* ---------- Save ---------- */
+  const silentSave = async () => {
+    await saveChanges(scheduleId, localGroups, setGroups, setEditing);
+    setEditing(false);
+  };
+
+  /* ---------- Render ---------- */
   return (
     <div className={styles.groupsGrid}>
-      <div className={styles.editorHeader}>
-        <h3 className={styles.sectionSubtitle}>🛠 手动编辑排表</h3>
+      {/* Top Controls */}
+      <div className={styles.toolbar}>
         {!editing ? (
           <button onClick={() => setEditing(true)} className={styles.editBtn}>
-            ✏️ 开始编辑
+            ✏️ 编辑
           </button>
         ) : (
-          <button onClick={saveChanges} className={styles.saveBtn}>
-            💾 保存修改
-          </button>
+          <div className={styles.editingButtons}>
+            <button onClick={silentSave} className={styles.saveBtn}>
+              💾 保存
+            </button>
+            <button onClick={cancelEditing} className={styles.cancelBtn}>
+              取消
+            </button>
+          </div>
         )}
       </div>
 
+      {/* Groups */}
       {localGroups.map((group, gi) => (
         <GroupEditor
           key={gi}
@@ -222,31 +170,33 @@ export default function Editor({
           groupIndex={gi}
           editing={editing}
           abilityColorMap={abilityColorMap}
-          onRemoveGroup={handleRemoveGroup}
-          onRemoveCharacter={handleRemoveCharacter}
+          onRemoveGroup={(i) => handleRemoveGroup(setLocalGroups, i)}
+          onRemoveCharacter={(gi, cid) => handleRemoveCharacter(setLocalGroups, gi, cid)}
           onOpenCharacterDropdown={openCharacterDropdown}
           onOpenAbilityDropdown={openAbilityDropdown}
         />
       ))}
 
-      {editing && (
-        <button onClick={handleAddGroup} className={styles.addGroupBtn}>
-          ➕ 新增小组
-        </button>
-      )}
+      {/* Add new group button */}
+{editing && (
+  <div className={styles.addGroupWrapper}>
+    <button onClick={() => handleAddGroup(setLocalGroups)} className={styles.addGroupBtn}>
+      <span className={styles.addGroupIcon}>+</span> 新增小组
+    </button>
+  </div>
+)}
 
-      {/* Character dropdown (add/replace) */}
+      {/* Character dropdown */}
       {charDrop.type && charDrop.pos && (
         <CharacterDropdown
           x={charDrop.pos.x}
           y={charDrop.pos.y}
           excludeId={charDrop.charId}
-          allCharacters={allCharacters}
           onClose={closeCharDropdown}
           onSelect={(char) =>
             charDrop.type === "replace"
-              ? handleReplaceCharacter(charDrop.groupIdx!, charDrop.charId!, char)
-              : handleAddCharacter(charDrop.groupIdx!, char)
+              ? handleReplaceCharacter(setLocalGroups, charDrop.groupIdx!, charDrop.charId!, char)
+              : handleAddCharacter(setLocalGroups, charDrop.groupIdx!, char)
           }
         />
       )}
@@ -260,7 +210,16 @@ export default function Editor({
           abilityColorMap={abilityColorMap}
           onClose={closeAbilityDropdown}
           onSelect={(a) =>
-            handleAbilityChange(abilityCtx.groupIdx, abilityCtx.charId, abilityCtx.slot, a)
+            handleAbilityChange(
+              setLocalGroups,
+              setAbilityOpenId,
+              setAbilityPos,
+              setAbilityCtx,
+              abilityCtx.groupIdx,
+              abilityCtx.charId,
+              abilityCtx.slot,
+              a
+            )
           }
         />
       )}

@@ -6,7 +6,7 @@
   background: transparent;
 }
 
-/* Floating character dropdown */
+/* Floating dropdown container */
 .characterDropdownWindow {
   position: fixed !important;
   z-index: 2147483647 !important;
@@ -15,8 +15,8 @@
   border: 1px solid #bfbfbf;
   border-radius: 6px;
   box-shadow:
-    0 2px 4px rgba(0,0,0,0.12),
-    0 8px 20px rgba(0,0,0,0.12);
+    0 2px 4px rgba(0, 0, 0, 0.12),
+    0 8px 20px rgba(0, 0, 0, 0.12);
   overflow-y: auto;
   overflow-x: hidden;
   padding: 0;
@@ -26,39 +26,88 @@
 }
 
 /* Scrollbar */
-.characterDropdownWindow::-webkit-scrollbar { width: 6px; }
-.characterDropdownWindow::-webkit-scrollbar-track { background: #f3f3f3; }
-.characterDropdownWindow::-webkit-scrollbar-thumb { background: #b5b5b5; border-radius: 3px; }
-.characterDropdownWindow::-webkit-scrollbar-thumb:hover { background: #999; }
+.characterDropdownWindow::-webkit-scrollbar {
+  width: 6px;
+}
+.characterDropdownWindow::-webkit-scrollbar-track {
+  background: #f3f3f3;
+}
+.characterDropdownWindow::-webkit-scrollbar-thumb {
+  background: #b5b5b5;
+  border-radius: 3px;
+}
+.characterDropdownWindow::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
 
-/* Options */
+/* Option rows */
 .characterOption {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: flex-start;
   width: 100%;
-  padding: 5px 10px;
+  padding: 6px 10px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   border: none;
-  border-radius: 0;
-  transition: all 0.1s ease;
+  border-radius: 0; /* 🧊 flat edges */
   box-sizing: border-box;
+  transition: background 0.12s ease, color 0.12s ease;
 }
-.characterOption + .characterOption { border-top: 1px solid rgba(0,0,0,0.04); }
 
-/* Role colors full fill */
-.tankOption { background: #fff4c2; color: #6b4e00; }
-.dpsOption { background: #d5f5d5; color: #0f5132; }
-.healerOption { background: #fddde6; color: #842029; }
+/* Thin separator line between rows */
+.characterOption + .characterOption {
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
 
-/* Hover → native blue */
+/* Role color backgrounds */
+.tankOption {
+  background: #fff4c2;
+  color: #6b4e00;
+}
+.dpsOption {
+  background: #d5f5d5;
+  color: #0f5132;
+}
+.healerOption {
+  background: #fddde6;
+  color: #842029;
+}
+
+/* Hover: subtle blue-gray instead of white */
 .characterOption:hover {
-  background: linear-gradient(to bottom, #0d6efd, #0b5ed7);
-  color: #fff !important;
+  background: #e6eefc; /* 🩵 soft bluish highlight */
+  color: #000 !important;
 }
 
-/* Round top/bottom only */
-.characterOption:first-child { border-top-left-radius: 6px; border-top-right-radius: 6px; }
-.characterOption:last-child  { border-bottom-left-radius: 6px; border-bottom-right-radius: 6px; }
+/* Name + right tag */
+.charName {
+  flex: 1;
+}
+
+.groupTagRight {
+  font-size: 0.8rem;
+  color: #555;
+  margin-left: 10px;
+  text-align: right;
+  min-width: 40px;
+}
+
+/* Remove per-item corner rounding */
+.characterOption:first-child,
+.characterOption:last-child {
+  border-radius: 0 !important;
+}
+/* Gray-out already selected (current group) */
+.usedInCurrent {
+  opacity: 0.5;
+  pointer-events: none; /* 🧱 disable click */
+  background: #e9e9e9 !important; /* soft neutral gray */
+  color: #666 !important;
+}
+
+.usedInCurrent:hover {
+  background: #e9e9e9 !important;
+  color: #666 !important;
+}
