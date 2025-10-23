@@ -128,3 +128,34 @@
   font-weight: 500;      /* ✅ unified */
   transition: all 0.15s ease;
 }
+.abilityText {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.abilityName {
+  font-weight: 500;
+}
+
+.abilityLevel {
+  font-size: 0.85rem;
+  margin-left: 6px;
+}
+
+/* Level indicators */
+.level10 {
+  border: 1px solid gold;
+}
+.level9 {
+  border: 1px solid #ffcc66;
+}
+.levelLearned {
+  border: 1px solid #8cd47e;
+  opacity: 0.9;
+}
+.levelMissing {
+  border: 1px solid #ccc;
+  opacity: 0.6;
+}

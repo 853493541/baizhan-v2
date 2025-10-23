@@ -178,50 +178,78 @@ export default function Editor({
       ))}
 
       {/* Add new group button */}
-{editing && (
-  <div className={styles.addGroupWrapper}>
-    <button onClick={() => handleAddGroup(setLocalGroups)} className={styles.addGroupBtn}>
-      <span className={styles.addGroupIcon}>+</span> 新增小组
-    </button>
-  </div>
-)}
+      {editing && (
+        <div className={styles.addGroupWrapper}>
+          <button onClick={() => handleAddGroup(setLocalGroups)} className={styles.addGroupBtn}>
+            <span className={styles.addGroupIcon}>+</span> 新增小组
+          </button>
+        </div>
+      )}
 
       {/* Character dropdown */}
       {charDrop.type && charDrop.pos && (
-        <CharacterDropdown
-          x={charDrop.pos.x}
-          y={charDrop.pos.y}
-          excludeId={charDrop.charId}
-          onClose={closeCharDropdown}
-          onSelect={(char) =>
-            charDrop.type === "replace"
-              ? handleReplaceCharacter(setLocalGroups, charDrop.groupIdx!, charDrop.charId!, char)
-              : handleAddCharacter(setLocalGroups, charDrop.groupIdx!, char)
-          }
-        />
+        (() => {
+          const selectedCharacter =
+            (charDrop.groupIdx != null && charDrop.charId)
+              ? localGroups[charDrop.groupIdx]?.characters.find(
+                  (c) => c._id === charDrop.charId
+                )
+              : undefined;
+
+          return (
+            <CharacterDropdown
+              x={charDrop.pos.x}
+              y={charDrop.pos.y}
+              character={selectedCharacter}
+              excludeId={charDrop.charId}
+              onClose={closeCharDropdown}
+              onSelect={(char) =>
+                charDrop.type === "replace"
+                  ? handleReplaceCharacter(setLocalGroups, charDrop.groupIdx!, charDrop.charId!, char)
+                  : handleAddCharacter(setLocalGroups, charDrop.groupIdx!, char)
+              }
+            />
+          );
+        })()
       )}
 
       {/* Ability dropdown */}
       {abilityOpenId && abilityPos && abilityCtx && (
-        <AbilityDropdown
-          x={abilityPos.left}
-          y={abilityPos.top}
-          abilities={abilities}
-          abilityColorMap={abilityColorMap}
-          onClose={closeAbilityDropdown}
-          onSelect={(a) =>
-            handleAbilityChange(
-              setLocalGroups,
-              setAbilityOpenId,
-              setAbilityPos,
-              setAbilityCtx,
-              abilityCtx.groupIdx,
-              abilityCtx.charId,
-              abilityCtx.slot,
-              a
-            )
-          }
-        />
+        (() => {
+          // 🟢 merge partial character from group with full data from allCharacters
+          const groupChar =
+            localGroups[abilityCtx.groupIdx]?.characters.find(
+              (c) => c._id === abilityCtx.charId
+            );
+
+          const fullChar =
+            allCharacters.find((c) => c._id === abilityCtx.charId) || groupChar;
+
+          const selectedCharacter = { ...groupChar, ...fullChar };
+
+          return (
+            <AbilityDropdown
+              x={abilityPos.left}
+              y={abilityPos.top}
+              abilities={abilities}
+              abilityColorMap={abilityColorMap}
+              character={selectedCharacter} // 🟢 now includes real levels
+              onClose={closeAbilityDropdown}
+              onSelect={(a) =>
+                handleAbilityChange(
+                  setLocalGroups,
+                  setAbilityOpenId,
+                  setAbilityPos,
+                  setAbilityCtx,
+                  abilityCtx.groupIdx,
+                  abilityCtx.charId,
+                  abilityCtx.slot,
+                  a
+                )
+              }
+            />
+          );
+        })()
       )}
     </div>
   );
