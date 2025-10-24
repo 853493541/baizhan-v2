@@ -6,7 +6,7 @@ import GroupEditor from "./GroupEditor";
 import CharacterDropdown from "./CharacterDropdown";
 import AbilityDropdown from "./AbilityDropdown";
 import { abilities, abilityColorMap } from "./config";
-import type { GroupResult, Character } from "@/utils/solver";
+import type { GroupResult, Character, AbilityCheck } from "@/utils/solver";
 import {
   handleAddGroup,
   handleRemoveGroup,
@@ -22,11 +22,13 @@ export default function Editor({
   groups,
   setGroups,
   allCharacters,
+  checkedAbilities, // ✅ new prop
 }: {
   scheduleId: string;
   groups: GroupResult[];
   setGroups: (groups: GroupResult[]) => void;
   allCharacters: Character[];
+  checkedAbilities: AbilityCheck[]; // ✅ added type
 }) {
   const [editing, setEditing] = useState(false);
   const [localGroups, setLocalGroups] = useState<GroupResult[]>(groups);
@@ -179,30 +181,26 @@ export default function Editor({
     setEditing(false);
   };
 
-  // ✅ unified save function
   const manualSave = async (close = true) => {
     console.log("💾 [Editor] Saving groups to backend...");
     await saveChanges(scheduleId, localGroups, setGroups, close ? setEditing : (() => {}));
     if (close) setEditing(false);
   };
 
-  /* ---------- 🧠 Auto press Save (keeps editing mode open) ---------- */
+  /* ---------- Auto-save while editing ---------- */
   useEffect(() => {
-    if (!editing) return;
-    if (!localGroups.length) return;
-
+    if (!editing || !localGroups.length) return;
     const timer = setTimeout(() => {
-      console.log("💾 Auto-pressing save (editing stays active)");
+      console.log("💾 Auto-saving changes...");
       manualSave(false);
     }, 1000);
-
     return () => clearTimeout(timer);
   }, [localGroups, editing]);
 
   /* ---------- Render ---------- */
   return (
     <div className={styles.groupsGrid}>
-      {/* Top Controls */}
+      {/* Toolbar */}
       <div className={styles.toolbar}>
         {!editing ? (
           <button onClick={() => setEditing(true)} className={styles.editBtn}>
@@ -228,36 +226,31 @@ export default function Editor({
           groupIndex={gi}
           editing={editing}
           abilityColorMap={abilityColorMap}
+          checkedAbilities={checkedAbilities} // ✅ pass schedule-level abilities
           onRemoveGroup={(i) => {
             console.log("🗑 Removing group", i);
             handleRemoveGroup(setLocalGroups, i);
-            setTimeout(() => {
-              console.log("💾 Auto-saving after group deletion");
-              manualSave(false);
-            }, 300);
+            setTimeout(() => manualSave(false), 300);
           }}
           onRemoveCharacter={(gi, cid) => {
             handleRemoveCharacter(setLocalGroups, gi, cid);
-            setTimeout(() => {
-              console.log("💾 Auto-saving after character deletion");
-              manualSave(false);
-            }, 300);
+            setTimeout(() => manualSave(false), 300);
           }}
           onOpenCharacterDropdown={openCharacterDropdown}
           onOpenAbilityDropdown={openAbilityDropdown}
+          API_URL={process.env.NEXT_PUBLIC_API_URL || ""}
+          planId={scheduleId}
+          refreshPlan={() => manualSave(false)}
         />
       ))}
 
-      {/* Add new group button */}
+      {/* Add Group Button */}
       {editing && (
         <div className={styles.addGroupWrapper}>
           <button
             onClick={() => {
               handleAddGroup(setLocalGroups);
-              setTimeout(() => {
-                console.log("💾 Auto-saving after adding group");
-                manualSave(false);
-              }, 300);
+              setTimeout(() => manualSave(false), 300);
             }}
             className={styles.addGroupBtn}
           >
@@ -266,7 +259,7 @@ export default function Editor({
         </div>
       )}
 
-      {/* Character dropdown */}
+      {/* Character Dropdown */}
       {charDrop.type && charDrop.pos && (() => {
         const selectedCharacter =
           (charDrop.groupIdx != null && charDrop.charId)
@@ -285,26 +278,17 @@ export default function Editor({
             onSelect={(char) => {
               const fullChar = allCharacters.find((c) => c._id === char._id) || char;
               if (charDrop.type === "replace") {
-                handleReplaceCharacter(
-                  setLocalGroups,
-                  charDrop.groupIdx!,
-                  charDrop.charId!,
-                  fullChar,
-                  allCharacters
-                );
+                handleReplaceCharacter(setLocalGroups, charDrop.groupIdx!, charDrop.charId!, fullChar, allCharacters);
               } else {
                 handleAddCharacter(setLocalGroups, charDrop.groupIdx!, fullChar, allCharacters);
               }
-              setTimeout(() => {
-                console.log("💾 Auto-saving after character add/replace");
-                manualSave(false);
-              }, 300);
+              setTimeout(() => manualSave(false), 300);
             }}
           />
         );
       })()}
 
-      {/* Ability dropdown */}
+      {/* Ability Dropdown */}
       {abilityOpenId && abilityPos && abilityCtx && (() => {
         const groupChar =
           localGroups[abilityCtx.groupIdx]?.characters.find(
@@ -334,10 +318,7 @@ export default function Editor({
                 a,
                 selectedCharacter
               );
-              setTimeout(() => {
-                console.log("💾 Auto-saving after ability change");
-                manualSave(false);
-              }, 300);
+              setTimeout(() => manualSave(false), 300);
             }}
           />
         );

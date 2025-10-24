@@ -1,7 +1,17 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 /* ---------------------------------------------------------------------------
-   🎯 Sub-schema: Kill Selection
+   🎯 Sub-schema: Drop Entry (new)
+--------------------------------------------------------------------------- */
+interface DropEntry {
+  characterId?: mongoose.Types.ObjectId;
+  ability: string;
+  level: number;
+  timestamp: Date;
+}
+
+/* ---------------------------------------------------------------------------
+   🎯 Sub-schema: Kill Selection (legacy)
 --------------------------------------------------------------------------- */
 interface KillSelection {
   ability?: string;
@@ -12,7 +22,7 @@ interface KillSelection {
 }
 
 /* ---------------------------------------------------------------------------
-   ⚔️ Sub-schema: Kill Entry
+   ⚔️ Sub-schema: Kill Entry (old, still used)
 --------------------------------------------------------------------------- */
 interface Kill {
   floor: number;
@@ -35,17 +45,18 @@ interface CharacterAbility {
 --------------------------------------------------------------------------- */
 interface GroupCharacter {
   characterId: mongoose.Types.ObjectId;
-  abilities?: CharacterAbility[]; // ✅ now stores both name + level
+  abilities?: CharacterAbility[];
 }
 
 /* ---------------------------------------------------------------------------
-   🧱 Group Schema
+   🧱 Group Schema (core structure)
 --------------------------------------------------------------------------- */
 interface Group {
   index: number;
   characters: GroupCharacter[];
   status: "not_started" | "started" | "finished";
   kills: Kill[];
+  drops: DropEntry[]; // ✅ always exists — new multi-drop system
 }
 
 /* ---------------------------------------------------------------------------
@@ -67,10 +78,21 @@ export interface ITargetedPlan extends Document {
    📜 Schemas
 --------------------------------------------------------------------------- */
 
-// --- Kill ---
+// --- DropEntry (new)
+const DropEntrySchema = new Schema<DropEntry>(
+  {
+    characterId: { type: Schema.Types.ObjectId, ref: "Character" },
+    ability: { type: String },
+    level: { type: Number },
+    timestamp: { type: Date, default: Date.now },
+  },
+  { _id: false }
+);
+
+// --- Kill (old)
 const KillSchema = new Schema<Kill>(
   {
-    floor: { type: Number, required: true },
+    floor: { type: Number, required: false },
     boss: { type: String },
     completed: { type: Boolean, default: false },
     selection: {
@@ -89,28 +111,19 @@ const KillSchema = new Schema<Kill>(
   { _id: false }
 );
 
-// --- GroupCharacter ---
+// --- GroupCharacter
 const GroupCharacterSchema = new Schema<GroupCharacter>(
   {
-    characterId: {
-      type: Schema.Types.ObjectId,
-      ref: "Character",
-      required: true,
-    },
+    characterId: { type: Schema.Types.ObjectId, ref: "Character", required: true },
     abilities: {
-      type: [
-        {
-          name: { type: String },
-          level: { type: Number, default: 0 },
-        },
-      ],
+      type: [{ name: String, level: { type: Number, default: 0 } }],
       default: [],
     },
   },
   { _id: false }
 );
 
-// --- Group ---
+// --- Group
 const GroupSchema = new Schema<Group>(
   {
     index: { type: Number, required: true },
@@ -120,12 +133,13 @@ const GroupSchema = new Schema<Group>(
       enum: ["not_started", "started", "finished"],
       default: "not_started",
     },
-    kills: { type: [KillSchema], default: [] },
+    kills: { type: [KillSchema], default: [] },     // legacy support
+    drops: { type: [DropEntrySchema], default: [] }, // ✅ always defined, new system
   },
   { _id: false }
 );
 
-// --- Main TargetedPlan ---
+// --- TargetedPlan
 const TargetedPlanSchema = new Schema<ITargetedPlan>({
   type: { type: String, default: "targeted" },
   planId: { type: String, required: true, unique: true },
@@ -141,7 +155,4 @@ const TargetedPlanSchema = new Schema<ITargetedPlan>({
 /* ---------------------------------------------------------------------------
    🚀 Export
 --------------------------------------------------------------------------- */
-export default mongoose.model<ITargetedPlan>(
-  "TargetedPlan",
-  TargetedPlanSchema
-);
+export default mongoose.model<ITargetedPlan>("TargetedPlan", TargetedPlanSchema);

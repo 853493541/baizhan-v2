@@ -5,6 +5,9 @@ import styles from "./styles.module.css";
 import { MAIN_CHARACTERS } from "../config";
 import type { Character } from "@/utils/solver";
 
+/* ============================================================
+   🧱 CharacterRow — renders one character row with abilities
+============================================================ */
 export default function CharacterRow({
   character,
   groupIndex,
@@ -35,23 +38,16 @@ export default function CharacterRow({
 }) {
   const c = character;
 
-  // 🧩 Ensure we always have three ability slots
+  // 🟢 Always ensure 3 ability slots
   const selectedAbilities = c.selectedAbilities || [
     { name: "", level: 0 },
     { name: "", level: 0 },
     { name: "", level: 0 },
   ];
 
-  // 🧠 Debug output
-  // console.group(`[CharacterRow] ${c.name}`);
-  // console.log("character._id:", c._id);
-  // console.log("selectedAbilities:", selectedAbilities);
-  // console.log("full abilities map:", c.abilities);
-  // console.groupEnd();
-
   return (
     <div className={styles.memberRow}>
-      {/* Character pill (click to replace) */}
+      {/* === Character Pill === */}
       <div
         className={`${styles.memberItem} ${
           c.role === "Tank"
@@ -68,7 +64,7 @@ export default function CharacterRow({
         {c.name}
       </div>
 
-      {/* Ability slots */}
+      {/* === Ability Slots === */}
       <div className={styles.abilityGroup}>
         {[0, 1, 2].map((ai) => {
           const dropdownId = `${c._id}-${ai}`;
@@ -76,12 +72,6 @@ export default function CharacterRow({
           const current = slot?.name || "";
           const level = slot?.level || 0;
           const currentColor = abilityColorMap[current] || "#ccc";
-
-          // 🔎 Inline debug for missing level
-          if (current && level === 0)
-            console.warn(
-              `[CharacterRow] Missing level for ${current} (slot ${ai}) on ${c.name}`
-            );
 
           return (
             <div key={ai} className={styles.abilitySlot}>
@@ -156,13 +146,17 @@ export default function CharacterRow({
         })}
       </div>
 
+      {/* === Remove Button === */}
       {editing && (
-        <button
-          onClick={() => onRemoveCharacter(groupIndex, c._id)}
-          className={styles.smallBtn}
-        >
-          ×
-        </button>
+        <div className={styles.actionGroup}>
+          <button
+            onClick={() => onRemoveCharacter(groupIndex, c._id)}
+            className={styles.smallBtn}
+            title="移除此角色"
+          >
+            ×
+          </button>
+        </div>
       )}
     </div>
   );

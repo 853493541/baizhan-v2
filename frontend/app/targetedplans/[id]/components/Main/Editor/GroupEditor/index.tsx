@@ -1,24 +1,31 @@
 "use client";
 
+import { useState } from "react";
 import styles from "./styles.module.css";
 import CharacterRow from "../CharacterRow";
-import type { GroupResult, Character } from "@/utils/solver";
+import GroupDrops from "./Drops"; // ✅ new flow entry point
+import type { GroupResult, Character, AbilityCheck } from "@/utils/solver";
 
 export default function GroupEditor({
   group,
   groupIndex,
   editing,
   abilityColorMap,
+  checkedAbilities,
   onRemoveGroup,
   onRemoveCharacter,
   onOpenCharacterDropdown,
   onOpenAbilityDropdown,
   onAddGroup,
+  API_URL,
+  planId,
+  refreshPlan,
 }: {
   group: GroupResult;
   groupIndex: number;
   editing: boolean;
   abilityColorMap: Record<string, string>;
+  checkedAbilities: AbilityCheck[];
   onRemoveGroup: (idx: number) => void;
   onRemoveCharacter: (groupIdx: number, charId: string) => void;
   onOpenCharacterDropdown: (
@@ -35,43 +42,39 @@ export default function GroupEditor({
     e: React.MouseEvent
   ) => void;
   onAddGroup?: () => void;
+  API_URL: string;
+  planId: string;
+  refreshPlan: () => void;
 }) {
-  /* 🧩 Debugging: show exactly what GroupEditor received from Editor */
-  if (editing && process.env.NODE_ENV !== "production") {
-    console.groupCollapsed(
-      `%c[GroupEditor] Received props for Group ${groupIndex + 1}`,
-      "color:#0af;font-weight:bold;"
-    );
-    console.log("Raw group object:", group);
-    console.log("Characters count:", group.characters.length);
-    group.characters.forEach((c, i) => {
-      console.group(`[Character ${i + 1}] ${c.name || "(unnamed)"}`);
-      console.log("  _id:", c._id);
-      console.log("  role:", c.role);
-      console.log(
-        "  abilities type:",
-        Array.isArray(c.abilities) ? "Array ❌" : "Map ✅",
-        c.abilities
-      );
-      console.log("  selectedAbilities:", c.selectedAbilities);
-      console.groupEnd();
-    });
-    console.groupEnd();
-  }
+  /* ----------------------------------------------------------
+     🧩 Local state for GroupDrops Modal
+  ---------------------------------------------------------- */
+  const [showDropModal, setShowDropModal] = useState(false);
 
+  /* ----------------------------------------------------------
+     🧱 Render
+  ---------------------------------------------------------- */
   return (
     <div className={styles.groupCard}>
       {/* === Header === */}
       <div className={styles.groupHeader}>
         <h4 className={styles.groupTitle}>第 {groupIndex + 1} 组</h4>
 
-        {editing && (
+        {editing ? (
           <button
             onClick={() => onRemoveGroup(groupIndex)}
             className={styles.removeBtn}
             title="删除整个小组"
           >
-            <span className={styles.removeIcon}>✖</span> 删除
+            <span className={styles.removeIcon}>✖</span> 删除小组
+          </button>
+        ) : (
+          <button
+            onClick={() => setShowDropModal(true)}
+            className={styles.addDropBtn}
+            title="为此组添加掉落"
+          >
+            ＋ 添加掉落
           </button>
         )}
       </div>
@@ -79,7 +82,6 @@ export default function GroupEditor({
       {/* === Character Rows === */}
       <div className={styles.memberList}>
         {group.characters.map((c, ci) => {
-          // 🧩 Defensive fix: always preserve abilities map and 3 selectedAbilities
           const fixedChar: Character = {
             ...c,
             abilities:
@@ -125,13 +127,25 @@ export default function GroupEditor({
         )}
       </div>
 
-      {/* === Add Group Button at Bottom === */}
+      {/* === Add Group Button === */}
       {editing && onAddGroup && (
         <div className={styles.addGroupWrapper}>
           <button onClick={onAddGroup} className={styles.addGroupBtn}>
             <span className={styles.addGroupIcon}>➕</span> 添加小组
           </button>
         </div>
+      )}
+
+      {/* === GroupDrops Modal === */}
+      {showDropModal && (
+        <GroupDrops
+          API_URL={API_URL}
+          planId={planId}
+          group={group}
+          checkedAbilities={checkedAbilities}
+          onClose={() => setShowDropModal(false)}
+          onSaved={refreshPlan}
+        />
       )}
     </div>
   );

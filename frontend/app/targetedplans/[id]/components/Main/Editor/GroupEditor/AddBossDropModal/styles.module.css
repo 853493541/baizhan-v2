@@ -1,0 +1,376 @@
+/* === Overlay === */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+/* === Modal box === */
+.modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  width: 420px;
+  height: 640px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* === Search === */
+.search {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 14px;
+  transition: border 0.2s;
+}
+.search:focus {
+  outline: none;
+  border-color: #28a745;
+}
+
+/* === List === */
+.list {
+  flex: 1;
+  overflow-y: auto;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 200px;
+  max-height: 360px;
+}
+
+/* === Ability Items === */
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #fafafa;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+.item:hover {
+  background: #f1f8ff;
+}
+.item.selected {
+  background: #e6f4ea;
+  border: 1px solid #28a745;
+}
+
+/* === Icon + Name === */
+.left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+.iconWrapper {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background: #fff;
+  object-fit: contain;
+}
+.name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+/* === Add (+) Button === */
+.addBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: linear-gradient(180deg, #ffffff 0%, #f4f5f6 100%);
+  color: #28a745;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transition: all 0.2s ease;
+}
+.addBtn:hover {
+  color: #fff;
+  border-color: #28a745;
+  background: linear-gradient(180deg, #2ecc71 0%, #28a745 100%);
+  box-shadow: 0 2px 4px rgba(40, 167, 69, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+.addBtn:active {
+  transform: scale(0.96);
+  background: linear-gradient(180deg, #27ae60 0%, #1e8a3a 100%);
+}
+
+/* === Level Buttons === */
+.levelRow {
+  display: flex;
+  gap: 8px;
+}
+.levelBtn {
+  flex: 1;
+  border: 1px solid #bbb;
+  border-radius: 6px;
+  padding: 6px 0;
+  cursor: pointer;
+  background: #f0f2f5;
+  transition: all 0.15s;
+}
+.levelBtn:hover {
+  background: #e2e6ea;
+}
+.levelBtn.active {
+  background: #28a745;
+  color: #fff;
+  border-color: #28a745;
+}
+
+/* === Footer Buttons === */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.cancel,
+.confirm {
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.cancel {
+  background: #eee;
+}
+.cancel:hover {
+  background: #e0e0e0;
+}
+.confirm {
+  background: #28a745;
+  color: #fff;
+}
+.confirm:hover {
+  background: #22963a;
+}
+.confirm:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+/* === Secondary Layer (Final Confirm) === */
+.finalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 4000;
+}
+
+/* === Final Confirm Box === */
+.finalBox {
+  background: #fff;
+  border-radius: 12px;
+  padding: 28px 28px 30px;
+  width: 360px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  text-align: center;
+  position: relative;
+  animation: fadeIn 0.2s ease;
+}
+
+/* Close Button (Top-right) */
+.closeBtn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.closeBtn:hover {
+  color: #000;
+}
+
+/* Confirm Line (Icon + Text) */
+.finalLine {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-weight: 600;
+  color: #222;
+  font-size: 15px;
+}
+.finalIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  background: #fff;
+  object-fit: contain;
+}
+.levelTag {
+  color: #28a745;
+  font-weight: 700;
+}
+.arrow {
+  font-size: 16px;
+  font-weight: 700;
+  color: #555;
+}
+.characterName {
+  font-weight: 700;
+  color: #007bff;
+}
+
+/* === Final Buttons === */
+.finalActions {
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+.useBtn,
+.saveBtn {
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  padding: 10px 18px;
+  cursor: pointer;
+  color: #fff;
+  transition: background 0.2s ease;
+  font-size: 15px;
+}
+.useBtn {
+  background: #28a745;
+}
+.useBtn:hover {
+  background: #218838;
+}
+.saveBtn {
+  background: #007bff;
+}
+.saveBtn:hover {
+  background: #0069d9;
+}
+
+/* === Dim background of main modal === */
+.blurred {
+  opacity: 0.7;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+/* === Animations === */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* === Mobile Optimization === */
+@media (max-width: 600px) {
+  .modal {
+    width: 92%;
+    height: auto;
+    max-height: 85dvh;
+    padding: 16px;
+    border-radius: 10px;
+    overflow-y: auto;
+  }
+
+  .overlay {
+    align-items: center;
+    justify-content: center;
+    padding: 20px 0;
+  }
+
+  .search {
+    font-size: 15px;
+    padding: 8px 10px;
+  }
+
+  .list {
+    max-height: none;
+    min-height: 160px;
+  }
+
+  .item {
+    padding: 10px 12px;
+  }
+
+  .levelBtn {
+    padding: 8px 0;
+    font-size: 15px;
+  }
+
+  .actions {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .cancel,
+  .confirm {
+    flex: 1;
+    padding: 10px 0;
+    font-size: 15px;
+  }
+
+  .finalBox {
+    width: 90%;
+    padding: 22px 20px;
+  }
+
+  .finalActions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .useBtn,
+  .saveBtn {
+    width: 100%;
+    padding: 12px 0;
+    font-size: 16px;
+  }
+}

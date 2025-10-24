@@ -183,3 +183,44 @@
     gap: 4px;
   }
 }
+.actionGroup {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.addDropBtn {
+  border: none;
+  background: #e8f4ff;
+  color: #007bff;
+  padding: 4px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.addDropBtn:hover {
+  background: #d6ecff;
+}
+.actionGroup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.addDropBtn {
+  border: none;
+  background: #e8f4ff;
+  color: #007bff;
+  padding: 4px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.addDropBtn:hover {
+  background: #d6ecff;
+}

@@ -5,19 +5,25 @@ import {
   getTargetedPlanDetail,
   updateTargetedPlan,
   deleteTargetedPlan,
+  addDropRecord,
+  getGroupDrops,
+  deleteGroupDrop,
+  updateGroupStatus,
 } from "../controllers/targetedplan/controllers";
 
 const router = express.Router();
 
-// Summary (list view)
+// === Plan CRUD ===
 router.get("/", getTargetedPlansSummary);
-
-// Detail (full view)
 router.get("/:planId", getTargetedPlanDetail);
-
-// Create / Update / Delete
 router.post("/", createTargetedPlan);
 router.put("/:planId", updateTargetedPlan);
 router.delete("/:planId", deleteTargetedPlan);
+
+// === Group-level Drop Routes ===
+router.post("/:planId/groups/:index/drops", addDropRecord);       // ✅ add drop
+router.get("/:planId/groups/:index/drops", getGroupDrops);        // ✅ list drops
+router.delete("/:planId/groups/:index/drops", deleteGroupDrop);   // ✅ delete drop
+router.put("/:planId/groups/:index/status", updateGroupStatus);   // ✅ update status
 
 export default router;
