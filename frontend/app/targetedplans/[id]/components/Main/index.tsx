@@ -199,6 +199,7 @@ const saveGroups = async (results: GroupResult[]) => {
             setGroups={setLocalGroups}      
             allCharacters={schedule.characters}
             checkedAbilities={allAbilities}
+            
           />
         </div>
 
