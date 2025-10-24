@@ -58,8 +58,8 @@ export default function Editor({
         const full = realId ? allCharacters.find((ac) => ac._id === realId) : undefined;
 
         let mergedChar: any = {
-          ...full, // get all from full character
-          ...c,    // overlay DB data
+          ...full,
+          ...c,
           _id: realId ?? c._id,
         };
 
@@ -175,7 +175,7 @@ export default function Editor({
 
   /* ---------- Cancel / Save ---------- */
   const cancelEditing = () => {
-    setLocalGroups(groups); // revert to last saved
+    setLocalGroups(groups);
     setEditing(false);
   };
 
@@ -193,7 +193,7 @@ export default function Editor({
 
     const timer = setTimeout(() => {
       console.log("💾 Auto-pressing save (editing stays active)");
-      manualSave(false); // 🟢 keeps editing mode open
+      manualSave(false);
     }, 1000);
 
     return () => clearTimeout(timer);
@@ -228,8 +228,21 @@ export default function Editor({
           groupIndex={gi}
           editing={editing}
           abilityColorMap={abilityColorMap}
-          onRemoveGroup={(i) => handleRemoveGroup(setLocalGroups, i)}
-          onRemoveCharacter={(gi, cid) => handleRemoveCharacter(setLocalGroups, gi, cid)}
+          onRemoveGroup={(i) => {
+            console.log("🗑 Removing group", i);
+            handleRemoveGroup(setLocalGroups, i);
+            setTimeout(() => {
+              console.log("💾 Auto-saving after group deletion");
+              manualSave(false);
+            }, 300);
+          }}
+          onRemoveCharacter={(gi, cid) => {
+            handleRemoveCharacter(setLocalGroups, gi, cid);
+            setTimeout(() => {
+              console.log("💾 Auto-saving after character deletion");
+              manualSave(false);
+            }, 300);
+          }}
           onOpenCharacterDropdown={openCharacterDropdown}
           onOpenAbilityDropdown={openAbilityDropdown}
         />
@@ -238,7 +251,16 @@ export default function Editor({
       {/* Add new group button */}
       {editing && (
         <div className={styles.addGroupWrapper}>
-          <button onClick={() => handleAddGroup(setLocalGroups)} className={styles.addGroupBtn}>
+          <button
+            onClick={() => {
+              handleAddGroup(setLocalGroups);
+              setTimeout(() => {
+                console.log("💾 Auto-saving after adding group");
+                manualSave(false);
+              }, 300);
+            }}
+            className={styles.addGroupBtn}
+          >
             <span className={styles.addGroupIcon}>+</span> 新增小组
           </button>
         </div>
@@ -273,6 +295,10 @@ export default function Editor({
               } else {
                 handleAddCharacter(setLocalGroups, charDrop.groupIdx!, fullChar, allCharacters);
               }
+              setTimeout(() => {
+                console.log("💾 Auto-saving after character add/replace");
+                manualSave(false);
+              }, 300);
             }}
           />
         );
@@ -296,7 +322,7 @@ export default function Editor({
             abilityColorMap={abilityColorMap}
             character={selectedCharacter}
             onClose={closeAbilityDropdown}
-            onSelect={(a) =>
+            onSelect={(a) => {
               handleAbilityChange(
                 setLocalGroups,
                 setAbilityOpenId,
@@ -307,8 +333,12 @@ export default function Editor({
                 abilityCtx.slot,
                 a,
                 selectedCharacter
-              )
-            }
+              );
+              setTimeout(() => {
+                console.log("💾 Auto-saving after ability change");
+                manualSave(false);
+              }, 300);
+            }}
           />
         );
       })()}
