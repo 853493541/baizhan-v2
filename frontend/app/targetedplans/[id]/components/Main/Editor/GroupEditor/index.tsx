@@ -13,6 +13,7 @@ export default function GroupEditor({
   editing,
   abilityColorMap,
   checkedAbilities,
+  allCharacters,
   onRemoveGroup,
   onRemoveCharacter,
   onOpenCharacterDropdown,
@@ -154,6 +155,7 @@ export default function GroupEditor({
           checkedAbilities={checkedAbilities}
           onClose={() => setShowDropModal(false)}
           onSaved={refreshPlan}
+          allCharacters={allCharacters}
         />
       )}
     </div>

@@ -225,6 +225,7 @@ export default function Editor({
           group={group}
           groupIndex={gi}
           editing={editing}
+          allCharacters={allCharacters}
           abilityColorMap={abilityColorMap}
           checkedAbilities={checkedAbilities} // ✅ pass schedule-level abilities
           onRemoveGroup={(i) => {
