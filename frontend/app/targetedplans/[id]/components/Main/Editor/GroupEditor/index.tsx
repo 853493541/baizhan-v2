@@ -3,7 +3,8 @@
 import { useState } from "react";
 import styles from "./styles.module.css";
 import CharacterRow from "../CharacterRow";
-import GroupDrops from "./Drops"; // ✅ new flow entry point
+import GroupDrops from "./Drops";
+import AssignedDrops from "./Assigned";
 import type { GroupResult, Character, AbilityCheck } from "@/utils/solver";
 
 export default function GroupEditor({
@@ -46,20 +47,28 @@ export default function GroupEditor({
   planId: string;
   refreshPlan: () => void;
 }) {
-  /* ----------------------------------------------------------
-     🧩 Local state for GroupDrops Modal
-  ---------------------------------------------------------- */
   const [showDropModal, setShowDropModal] = useState(false);
 
-  /* ----------------------------------------------------------
-     🧱 Render
-  ---------------------------------------------------------- */
   return (
     <div className={styles.groupCard}>
       {/* === Header === */}
       <div className={styles.groupHeader}>
-        <h4 className={styles.groupTitle}>第 {groupIndex + 1} 组</h4>
+        {/* === Left side: title + assigned drops inline === */}
+        <div className={styles.groupHeaderLeft}>
+          <h4 className={styles.groupTitle}>组{groupIndex + 1} </h4>
 
+          {/* ✅ AssignedDrops inline beside the title */}
+          <div className={styles.assignedInline}>
+            <AssignedDrops
+              API_URL={API_URL}
+              planId={planId}
+              groupIndex={groupIndex}
+              groupCharacters={group.characters}
+            />
+          </div>
+        </div>
+
+        {/* === Right side: header button === */}
         {editing ? (
           <button
             onClick={() => onRemoveGroup(groupIndex)}

@@ -72,7 +72,8 @@ export default function GroupDrops({
         alert("❌ Backend did not confirm success (no DB change)");
       } else {
         console.log(`✅ Drop saved for ${char.name}: ${ability} (${level})`);
-        onSaved?.();
+        onSaved?.();   // 🔁 Refresh parent data
+        onClose?.();   // 🔒 Close modal immediately ✅
       }
     } catch (err: any) {
       console.error("❌ [saveDropRecord] Network/logic error:", err);

@@ -175,3 +175,26 @@
   font-size: 16px;
   color: #2e7d32;
 }
+.groupHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.groupHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* keep inline AssignedDrops compact in header */
+.assignedInline {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 4px;
+  flex-wrap: wrap;
+  max-width: 600px;
+}

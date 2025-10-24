@@ -1,0 +1,204 @@
+/* ===============================
+   🧩 Assigned Drops (Main Layout)
+   =============================== */
+.assignedDrops {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  margin-left: 10px;
+  margin-top: 4px;
+}
+
+.dropItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.dropItem:hover {
+  background: #f1f1f1;
+}
+
+/* === Icon === */
+.iconWrapper {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon {
+  border-radius: 3px;
+}
+
+/* === Text and labels === */
+.abilityName {
+  font-weight: 600;
+  color: #333;
+  white-space: nowrap;
+}
+
+.level {
+  color: #888;
+  margin-left: 2px;
+  font-weight: normal;
+}
+
+.arrow {
+  color: #999;
+  font-size: 13px;
+}
+
+/* === Character bubble === */
+.characterBubble {
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 12.5px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+/* === Role colors === */
+.tank {
+  background-color: #fff3cd;
+  color: #8b4513;
+}
+
+.dps {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.healer {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+/* === States === */
+.empty {
+  color: #aaa;
+  font-size: 13px;
+  margin-left: 8px;
+}
+
+.loading {
+  color: #999;
+  font-size: 13px;
+  margin-left: 8px;
+}
+
+/* ===============================
+   🪟 Modal Styling (Compact One-Liner)
+   =============================== */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 200;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 8px;
+  padding: 14px 16px;
+  width: 320px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  animation: popIn 0.2s ease;
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* === One-line content === */
+.modalLine {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12px;
+}
+
+.modalIcon {
+  border-radius: 4px;
+}
+
+/* Inline ability + level */
+.abilityFullName {
+  font-weight: 600;
+}
+
+.levelInline {
+  color: #777;
+  font-size: 13px;
+}
+
+/* === Footer Buttons (Right-aligned) === */
+.modalFooterRight {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.closeBtn {
+  background: #ddd;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.closeBtn:hover {
+  background: #ccc;
+}
+
+.deleteBtn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.deleteBtn:hover {
+  background: #c82333;
+}
+
+/* ===============================
+   📱 Responsive
+   =============================== */
+@media (max-width: 500px) {
+  .assignedDrops {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
