@@ -8,8 +8,8 @@ import GroupDetailModal from "./components/GroupDetailModal";
 import BasicInfoSection from "./components/BasicInfo";
 import MainSection from "./components/Main";
 
-// 🧩 Import boss abilities mapping
-import SingleBossDrops from "@/app/data/Single_Boss_Drops.json";
+// 🧩 Import combined challenge boss drops
+import ChallengeBossDrops from "@/app/data/Challenge_Boss_Drops.json";
 
 interface AbilityCheck {
   name: string;
@@ -66,15 +66,33 @@ export default function TargetedPlanDetail({ planId }: Props) {
 
       // 🧠 Build checkedAbilities from boss name
       const bossName = data.targetedBoss;
-      const abilities = (SingleBossDrops as Record<string, string[]>)[bossName] || [];
+      const bossEntry =
+        (ChallengeBossDrops as any).bosses[bossName] || [];
+      const commonPool = (ChallengeBossDrops as any).common || [];
 
-      const abilityChecks: AbilityCheck[] = abilities.map((a) => ({
-        name: a,
-        available: true,
-        level: 10, // default level
-      }));
+      const abilityChecks: AbilityCheck[] = [];
 
-      console.log(`🧩 Loaded ${abilityChecks.length} abilities for ${bossName}:`, abilityChecks);
+      // 🟢 Boss-specific (always level 10)
+      bossEntry.forEach((a: string) => {
+        abilityChecks.push({ name: a, available: true, level: 10 });
+      });
+
+      // 🟡 Common pool (both level 9 and 10)
+      commonPool.forEach((a: string) => {
+        abilityChecks.push({ name: a, available: true, level: 9 });
+        abilityChecks.push({ name: a, available: true, level: 10 });
+      });
+
+      console.groupCollapsed(
+        `🧩 Built ability checklist for boss: ${bossName} (total ${abilityChecks.length})`
+      );
+      abilityChecks.forEach((a, i) =>
+        console.log(
+          `${String(i + 1).padStart(2, "0")}. ${a.name} — Lv${a.level} (${a.available ? "✓" : "✗"})`
+        )
+      );
+      console.groupEnd();
+
       setCheckedAbilities(abilityChecks);
     } catch (err) {
       console.error("❌ Error fetching targeted plan:", err);
@@ -108,7 +126,8 @@ export default function TargetedPlanDetail({ planId }: Props) {
   if (!plan) return <p className={styles.error}>未找到计划</p>;
 
   const locked =
-    groups?.some((g) => g.status === "started" || g.status === "finished") ?? false;
+    groups?.some((g) => g.status === "started" || g.status === "finished") ??
+    false;
 
   return (
     <div className={styles.container}>
@@ -129,7 +148,7 @@ export default function TargetedPlanDetail({ planId }: Props) {
         activeIdx={activeIdx}
         setActiveIdx={setActiveIdx}
         checkGroupQA={() => []}
-        checkedAbilities={checkedAbilities} // ✅ now connected to boss abilities
+        checkedAbilities={checkedAbilities} // ✅ connected to combined boss+common abilities
       />
 
       {/* === Group Modal === */}
