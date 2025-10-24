@@ -1,0 +1,52 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.search {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 6px 8px;
+  margin-bottom: 10px;
+}
+
+.list {
+  flex: 1;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 6px;
+  cursor: pointer;
+  background: #fafafa;
+  transition: 0.2s;
+}
+
+.item:hover {
+  background: #eaf8ee;
+}
+
+.icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+}
+
+.closeBtn {
+  margin-top: 10px;
+  align-self: flex-end;
+  background: #eee;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+}

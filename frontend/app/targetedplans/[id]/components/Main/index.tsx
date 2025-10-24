@@ -117,36 +117,50 @@ export default function MainSection({
   /* ----------------------------------------------------------------------
      🧩 Save logic (still uses backend groups)
   ---------------------------------------------------------------------- */
-  const saveGroups = async (results: GroupResult[]) => {
-    const payload = results.map((g, idx) => ({
-      index: idx + 1,
-      characters: g.characters.map((c) => ({
-        characterId: c._id || c.characterId || null,
-        abilities:
-          Array.isArray(c.abilities) && c.abilities.length > 0 ? c.abilities : ["", "", ""],
-      })),
-      status: g.status || "not_started",
-      kills: g.kills || [],
-    }));
+  /* ----------------------------------------------------------------------
+   🧩 Save logic (preserves kills + drops)
+---------------------------------------------------------------------- */
+const saveGroups = async (results: GroupResult[]) => {
+  const payload = results.map((g, idx) => ({
+    index: idx + 1,
+    characters: g.characters.map((c) => ({
+      characterId: c._id || c.characterId || null,
+      abilities:
+        Array.isArray(c.abilities) && c.abilities.length > 0 ? c.abilities : ["", "", ""],
+    })),
+    status: g.status || "not_started",
+    kills: g.kills || [],            // ✅ keep kills
+    drops: g.drops || [],            // ✅ keep drops
+  }));
 
-    payload.forEach((group) => {
-      group.characters = group.characters.filter((c) => !!c.characterId);
-    });
+  // Filter out empty slots
+  payload.forEach((group) => {
+    group.characters = group.characters.filter((c) => !!c.characterId);
+  });
 
-    const isTargeted = schedule.type === "targeted";
-    const idField = isTargeted ? schedule.planId : schedule._id;
-    const endpoint = isTargeted ? "targeted-plans" : "standard-schedules";
+  const isTargeted = schedule.type === "targeted";
+  const idField = isTargeted ? schedule.planId : schedule._id;
+  const endpoint = isTargeted ? "targeted-plans" : "standard-schedules";
 
-    try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/${endpoint}/${idField}`, {
+  try {
+    console.log("🧭 [trace][saveGroups] Sending payload:", payload);
+
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/${endpoint}/${idField}`,
+      {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ groups: payload }),
-      });
-    } catch {
-      console.error("❌ Failed to save groups");
-    }
-  };
+      }
+    );
+
+    const text = await res.text();
+    console.log("🧭 [trace][saveGroups] Response:", text);
+  } catch (err) {
+    console.error("❌ Failed to save groups:", err);
+  }
+};
+
 
   /* ----------------------------------------------------------------------
      🧠 Optional Solver Runner
@@ -184,6 +198,7 @@ export default function MainSection({
             groups={localGroups}         
             setGroups={setLocalGroups}      
             allCharacters={schedule.characters}
+            checkedAbilities={allAbilities}
           />
         </div>
 
