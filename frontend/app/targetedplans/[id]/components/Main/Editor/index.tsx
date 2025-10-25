@@ -34,6 +34,7 @@ export default function Editor({
 }) {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [localGroups, setLocalGroups] = useState<GroupResult[]>(groups);
 
   // dropdown states
@@ -111,6 +112,61 @@ export default function Editor({
     }
   };
 
+  /* 🔄 Reset plan: set all groups to not_started and clear drops/kills (keep characters/abilities) */
+  const handleResetPlan = async () => {
+    if (!confirm("确定要重置所有小组状态并清空掉落记录吗？（角色与技能不会被更改）")) return;
+
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
+    // Try common route patterns so it works regardless of how the router is mounted.
+    const candidates = [
+      `${API_BASE}/api/targeted-plans/${scheduleId}/reset`,
+      `${API_BASE}/targeted-plans/${scheduleId}/reset`,
+      `${API_BASE}/api/targeted-plans/reset/${scheduleId}`, // fallback if your routes are defined this way
+    ];
+
+    setResetting(true);
+    let ok = false;
+    for (const url of candidates) {
+      try {
+        const res = await fetch(url, { method: "POST" });
+        if (res.ok) {
+          ok = true;
+          break;
+        }
+      } catch {
+        // try next candidate
+      }
+    }
+    setResetting(false);
+
+    if (!ok) {
+      alert("重置失败：找不到重置接口或服务器错误。请检查路由路径。");
+      return;
+    }
+
+    // ✅ Update UI in place (no reload)
+    setLocalGroups((prev) =>
+      prev.map((g: any) => ({
+        ...g,
+        status: "not_started",
+        // Only clear if these fields exist in your frontend shape
+        drops: Array.isArray((g as any).drops) ? [] : (g as any).drops,
+        kills: Array.isArray((g as any).kills) ? [] : (g as any).kills,
+      }))
+    );
+    // Also push up to parent
+    setGroups(
+      localGroups.map((g: any) => ({
+        ...g,
+        status: "not_started",
+        drops: Array.isArray((g as any).drops) ? [] : (g as any).drops,
+        kills: Array.isArray((g as any).kills) ? [] : (g as any).kills,
+      }))
+    );
+
+    alert("✅ 所有小组已重置！");
+  };
+
   /* Dropdown helpers */
   const openCharacterDropdown = (
     type: "replace" | "add",
@@ -173,6 +229,17 @@ export default function Editor({
           }`}
         >
           {saving ? "保存中..." : editing ? "退出编辑" : "编辑全表"}
+        </button>
+
+        {/* 🧹 Reset Button — added here */}
+        <button
+          onClick={handleResetPlan}
+          disabled={resetting}
+          className={styles.resetBtn ?? styles.editToggleBtn}
+          style={{ marginLeft: 8 }}
+          title="重置所有小组状态并清空掉落（保留角色与技能）"
+        >
+          {resetting ? "重置中..." : "重置"}
         </button>
       </div>
 

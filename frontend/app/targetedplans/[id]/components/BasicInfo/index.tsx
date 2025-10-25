@@ -7,6 +7,7 @@ import styles from "./styles.module.css";
 interface Props {
   schedule: {
     _id?: string;
+    planId?: string;
     name: string;
     server: string;
     characterCount: number;
@@ -44,44 +45,81 @@ export default function BasicInfoSection({
     }
   }, [editing]);
 
+  const getPlanIdentifier = () =>
+    localSchedule.planId || localSchedule._id || "";
+
+  /* ✏️ Rename targeted plan */
   const handleRename = async () => {
-    if (!localSchedule._id) return;
+    const id = getPlanIdentifier();
+    if (!id) return;
     try {
-      const res = await fetch(
-        `${API_BASE}/api/standard-schedules/${localSchedule._id}/name`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: tempName }),
-        }
-      );
+      const res = await fetch(`${API_BASE}/api/targeted-plans/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: tempName }),
+      });
       if (!res.ok) throw new Error("Failed to update name");
 
-      // ✅ Update UI only (no success alert)
       setLocalSchedule((prev) => ({ ...prev, name: tempName }));
       setEditing(false);
-    } catch {
+    } catch (err) {
+      console.error("❌ Rename failed:", err);
       alert("更新失败，请稍后再试");
     }
   };
 
+  /* 🗑️ Handle delete click */
   const handleDeleteClick = () => {
     if (locked) {
       setConfirmingDelete(true);
     } else {
-      // ✅ add system confirm for unlocked delete
       if (confirm("确定要删除这个排表吗？")) {
-        onDelete?.();
-        setEditing(false);
+        handleDirectDelete();
       }
     }
   };
 
-  const handleConfirmDelete = () => {
-    if (deleteInput.trim() === "确认删除") {
+  /* 🧹 Direct delete for unlocked plans (tolerant to 404) */
+  const handleDirectDelete = async () => {
+    const id = getPlanIdentifier();
+    if (!id) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/targeted-plans/${id}`, {
+        method: "DELETE",
+      });
+      // ✅ Ignore 404 since it just means "already deleted"
+      if (res.status !== 200 && res.status !== 201 && res.status !== 204) {
+        if (res.status !== 404) throw new Error("Delete failed");
+      }
       onDelete?.();
-      setConfirmingDelete(false);
-      setEditing(false); // ✅ close both modals
+      setEditing(false);
+    } catch (err) {
+      console.error("❌ Delete failed:", err);
+      alert("删除失败，请稍后再试");
+    }
+  };
+
+  /* 🔒 Confirm delete for locked plans (tolerant to 404) */
+  const handleConfirmDelete = async () => {
+    const id = getPlanIdentifier();
+    if (!id) return;
+
+    if (deleteInput.trim() === "确认删除") {
+      try {
+        const res = await fetch(`${API_BASE}/api/targeted-plans/${id}`, {
+          method: "DELETE",
+        });
+        if (res.status !== 200 && res.status !== 201 && res.status !== 204) {
+          if (res.status !== 404) throw new Error("Delete failed");
+        }
+        onDelete?.();
+      } catch (err) {
+        console.error("❌ Confirmed delete failed:", err);
+        alert("删除失败，请稍后再试");
+      } finally {
+        setConfirmingDelete(false);
+        setEditing(false);
+      }
     } else {
       alert("请输入正确的确认文字：确认删除");
     }
@@ -89,7 +127,7 @@ export default function BasicInfoSection({
 
   const handleCancelDelete = () => {
     setConfirmingDelete(false);
-    setEditing(false); // ✅ also close editing modal when canceling
+    setEditing(false);
   };
 
   return (
