@@ -24,6 +24,7 @@ interface Props {
   planId: string;
   groupIndex: number; // 0-based
   groupCharacters: Character[];
+  refreshSignal?: number; // 🔁 optional external refresh trigger
 }
 
 export default function AssignedDrops({
@@ -31,6 +32,7 @@ export default function AssignedDrops({
   planId,
   groupIndex,
   groupCharacters,
+  refreshSignal,
 }: Props) {
   const [drops, setDrops] = useState<DropItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,7 +47,7 @@ export default function AssignedDrops({
     const url = `${base}/targeted-plans/${planId}/groups/${backendIndex}/drops?t=${Date.now()}`;
     try {
       setLoading(true);
-      const res = await fetch(url, { cache: "no-store" }); // ← no cache
+      const res = await fetch(url, { cache: "no-store" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
 
@@ -69,8 +71,8 @@ export default function AssignedDrops({
   useEffect(() => {
     if (groupIndex === undefined || groupIndex === null) return;
     fetchDrops();
-    // Depend on length, not the array object itself.
-  }, [groupIndex, planId, API_URL, groupCharacters.length, fetchDrops]);
+  }, [groupIndex, planId, API_URL, groupCharacters.length, refreshSignal, fetchDrops]);
+  // 🟢 include refreshSignal so it re-fetches when new drop is saved
 
   const handleDelete = async (drop: DropItem) => {
     if (!drop.ability || !drop.characterId) return;
@@ -90,9 +92,7 @@ export default function AssignedDrops({
 
       if (!res.ok) throw new Error(`Delete failed: ${res.status}`);
       setSelectedDrop(null);
-
-      // Re-fetch from server to stay in sync
-      await fetchDrops();
+      await fetchDrops(); // ✅ instantly refresh after deletion
     } catch (err) {
       console.error("❌ 删除失败:", err);
       alert("❌ 删除失败，请稍后再试");
@@ -107,7 +107,7 @@ export default function AssignedDrops({
       <div className={styles.assignedDrops}>
         {drops.map((d, i) => {
           const iconSrc = `/icons/${d.ability || d.name}.png`;
-          const abilityText = (d.ability || d.name || "未知技能").slice(0, 2); // 🟢 show only first 2 chars
+          const abilityText = (d.ability || d.name || "未知技能").slice(0, 2);
 
           return (
             <div

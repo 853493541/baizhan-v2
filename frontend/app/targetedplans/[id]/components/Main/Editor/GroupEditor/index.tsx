@@ -28,6 +28,7 @@ export default function GroupEditor({
   editing: boolean;
   abilityColorMap: Record<string, string>;
   checkedAbilities: AbilityCheck[];
+  allCharacters: Character[];
   onRemoveGroup: (idx: number) => void;
   onRemoveCharacter: (groupIdx: number, charId: string) => void;
   onOpenCharacterDropdown: (
@@ -49,6 +50,7 @@ export default function GroupEditor({
   refreshPlan: () => void;
 }) {
   const [showDropModal, setShowDropModal] = useState(false);
+  const [refreshSignal, setRefreshSignal] = useState(0); // 🔁 triggers AssignedDrops reload
 
   return (
     <div className={styles.groupCard}>
@@ -85,6 +87,7 @@ export default function GroupEditor({
             planId={planId}
             groupIndex={groupIndex}
             groupCharacters={group.characters}
+            refreshSignal={refreshSignal} // ✅ re-fetch when signal changes
           />
         </div>
       </div>
@@ -154,7 +157,10 @@ export default function GroupEditor({
           group={group}
           checkedAbilities={checkedAbilities}
           onClose={() => setShowDropModal(false)}
-          onSaved={refreshPlan}
+          onSaved={() => {
+            refreshPlan(); // keep parent synced
+            setRefreshSignal((v) => v + 1); // 🔁 refresh drops immediately
+          }}
           allCharacters={allCharacters}
         />
       )}
