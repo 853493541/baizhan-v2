@@ -37,6 +37,24 @@ export default function ActionPanel({
     }).catch(() => {});
   };
 
+  const markGroupAsDone = async () => {
+    const groupIndex = Number(group.index ?? 0);
+    try {
+      await fetch(
+        `${API_URL}/api/targeted-plans/${planId}/groups/${groupIndex}/status`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "finished" }),
+        }
+      );
+      group.status = "finished";
+      console.log(`✅ Group ${groupIndex} marked as finished after action.`);
+    } catch (err) {
+      console.error("❌ Failed to mark group as finished:", err);
+    }
+  };
+
   const saveToBackpack = async () => {
     if (!fullChar || !selectedAbility || !selectedLevel) return;
 
@@ -56,6 +74,10 @@ export default function ActionPanel({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ability: selectedAbility, level: selectedLevel }),
       });
+
+      // 🟢 Mark group as finished
+      await markGroupAsDone();
+
       alert("✅ 已保存到背包，并已记录掉落！");
       onSaved();
       onClose();
@@ -96,6 +118,9 @@ export default function ActionPanel({
           alert(`✅ ${fullChar.name} 已成功使用 ${selectedAbility}（10重）`);
         }
       }
+
+      // 🟢 Mark group as finished
+      await markGroupAsDone();
 
       onSaved();
       onClose();

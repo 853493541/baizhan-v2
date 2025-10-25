@@ -114,14 +114,13 @@ export default function Editor({
 
   /* 🔄 Reset plan: set all groups to not_started and clear drops/kills (keep characters/abilities) */
   const handleResetPlan = async () => {
-    if (!confirm("确定要重置所有小组状态并清空掉落记录吗？（角色与技能不会被更改）")) return;
+    if (!confirm("重置所有掉落记录和完成状态？")) return;
 
     const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
-    // Try common route patterns so it works regardless of how the router is mounted.
     const candidates = [
       `${API_BASE}/api/targeted-plans/${scheduleId}/reset`,
       `${API_BASE}/targeted-plans/${scheduleId}/reset`,
-      `${API_BASE}/api/targeted-plans/reset/${scheduleId}`, // fallback if your routes are defined this way
+      `${API_BASE}/api/targeted-plans/reset/${scheduleId}`,
     ];
 
     setResetting(true);
@@ -140,21 +139,19 @@ export default function Editor({
     setResetting(false);
 
     if (!ok) {
-      alert("重置失败：找不到重置接口或服务器错误。请检查路由路径。");
+      alert("重置失败！");
       return;
     }
 
-    // ✅ Update UI in place (no reload)
+    // ✅ Update UI in place (optional)
     setLocalGroups((prev) =>
       prev.map((g: any) => ({
         ...g,
         status: "not_started",
-        // Only clear if these fields exist in your frontend shape
         drops: Array.isArray((g as any).drops) ? [] : (g as any).drops,
         kills: Array.isArray((g as any).kills) ? [] : (g as any).kills,
       }))
     );
-    // Also push up to parent
     setGroups(
       localGroups.map((g: any) => ({
         ...g,
@@ -164,7 +161,8 @@ export default function Editor({
       }))
     );
 
-    alert("✅ 所有小组已重置！");
+    // alert("✅ 所有小组已重置！");
+    window.location.reload(); // ✅ Force full page refresh
   };
 
   /* Dropdown helpers */
@@ -174,7 +172,6 @@ export default function Editor({
     charId: string | undefined,
     e: React.MouseEvent
   ) => {
-    // ✅ Inject global data for CharacterDropdown
     (window as any).__ALL_CHARACTERS__ = allCharacters;
 
     const usedMap: Record<string, number> = {};
@@ -187,7 +184,6 @@ export default function Editor({
     (window as any).__USED_CHARACTER_MAP__ = usedMap;
     (window as any).__CURRENT_GROUP_INDEX__ = groupIdx;
 
-    // ✅ Positioning logic
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const x = rect.left + rect.width / 2 - 100 + window.scrollX;
     const y = rect.bottom + 6 + window.scrollY;
@@ -231,7 +227,7 @@ export default function Editor({
           {saving ? "保存中..." : editing ? "退出编辑" : "编辑全表"}
         </button>
 
-        {/* 🧹 Reset Button — added here */}
+        {/* 🧹 Reset Button */}
         <button
           onClick={handleResetPlan}
           disabled={resetting}
