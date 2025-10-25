@@ -59,7 +59,7 @@
 
 /* === Left: Main Editor Pane === */
 .editorPane {
-  flex: 0 0 60%;           /* 🟢 takes exactly 70% of total width */
+  flex: 0 0 65%;           /* 🟢 takes exactly 70% of total width */
   width: 60%;
   min-width: 600px;        /* 🟢 prevent it from shrinking too much */
   max-width: 1000px;

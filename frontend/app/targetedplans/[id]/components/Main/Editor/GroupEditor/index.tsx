@@ -50,13 +50,31 @@ export default function GroupEditor({
   refreshPlan: () => void;
 }) {
   const [showDropModal, setShowDropModal] = useState(false);
-  const [refreshSignal, setRefreshSignal] = useState(0); // 🔁 triggers AssignedDrops reload
+  const [refreshSignal, setRefreshSignal] = useState(0);
+
+  const hasCharacters = group.characters && group.characters.length > 0;
+
+  // 🟢 Status mapping
+  const status = (group.status ?? "not_started") as
+    | "not_started"
+    | "started"
+    | "finished";
+  const statusLabel = {
+    not_started: "未开始",
+    started: "进行中",
+    finished: "已完成",
+  };
+  const statusCircleClass = {
+    not_started: styles.statusIdleDot,
+    started: styles.statusBusyDot,
+    finished: styles.statusDoneDot,
+  };
 
   return (
     <div className={styles.groupCard}>
       {/* === Header === */}
       <div className={styles.groupHeader}>
-        {/* === Left side: Title or Delete Button === */}
+        {/* === Left side: Title / Delete / Status === */}
         <div className={styles.groupHeaderLeft}>
           {editing ? (
             <button
@@ -68,32 +86,56 @@ export default function GroupEditor({
               删除组 {groupIndex + 1}
             </button>
           ) : (
-            <h4 className={styles.groupTitle}>组{groupIndex + 1}</h4>
+            <div className={styles.groupTitleWrap}>
+              <h4 className={`${styles.groupTitle} ${styles.groupTitleBold}`}>
+                组{groupIndex + 1}
+              </h4>
+
+              {/* ✅ only show status when group has characters */}
+              {hasCharacters && (
+                <div
+                  className={styles.statusWrap}
+                  title={`当前状态：${statusLabel[status]}`}
+                >
+                  <span
+                    className={`${styles.statusDot} ${statusCircleClass[status]}`}
+                  />
+                  <span className={styles.statusText}>
+                    {statusLabel[status]}
+                  </span>
+                </div>
+              )}
+            </div>
           )}
         </div>
 
         {/* === Right side: Assigned Drops + Add Button === */}
-        <div className={styles.groupHeaderRight}>
-          <div className={styles.assignedInlineRight}>
-            <AssignedDrops
-              API_URL={API_URL}
-              planId={planId}
-              groupIndex={groupIndex}
-              groupCharacters={group.characters}
-              refreshSignal={refreshSignal}
-            />
-          </div>
+        {/* ✅ hide entire right side if group has no characters */}
+        {hasCharacters && (
+          <div className={styles.groupHeaderRight}>
+            {!editing && (
+              <div className={styles.assignedInlineRight}>
+                <AssignedDrops
+                  API_URL={API_URL}
+                  planId={planId}
+                  groupIndex={groupIndex}
+                  groupCharacters={group.characters}
+                  refreshSignal={refreshSignal}
+                />
+              </div>
+            )}
 
-          {!editing && (
-            <button
-              onClick={() => setShowDropModal(true)}
-              className={styles.addDropBtn}
-              title="为此组添加掉落"
-            >
-              ＋ 掉落
-            </button>
-          )}
-        </div>
+            {!editing && (
+              <button
+                onClick={() => setShowDropModal(true)}
+                className={styles.addDropBtn}
+                title="为此组添加掉落"
+              >
+                ＋ 掉落
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* === Character Rows === */}

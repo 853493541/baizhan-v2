@@ -59,3 +59,75 @@
   background: #d5d5d5;
   border-color: #999;
 }
+/* ===============================
+   🚫 No Drop Button
+   =============================== */
+.noDropBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #721c24;               /* dark red text */
+  background-color: #f8d7da;    /* soft pink background */
+  border: 1px solid #dc3545;    /* red border */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 100px;
+  height: 38px;
+  box-sizing: border-box;
+}
+
+.noDropBtn:hover {
+  background-color: #f5c6cb;    /* slightly darker red on hover */
+  border-color: #c82333;
+}
+
+.noDropBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+/* ===============================
+   🔘 Compact Status Indicators
+   =============================== */
+.statusWrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;                 /* 🔹 reduced gap between dot and text */
+  margin-left: 4px;         /* 🔹 slightly closer to "组1" */
+}
+
+.statusText {
+  font-size: 13px;          /* 🔹 slightly smaller text */
+  font-weight: 500;
+  color: #444;
+  line-height: 1;
+  user-select: none;
+  white-space: nowrap;
+  min-width: unset;         /* 🔹 allow flexible shrinking */
+}
+
+.statusDot {
+  width: 9px;               /* 🔹 smaller indicator dot */
+  height: 9px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* 🩶 Gray - Not Started */
+.statusIdleDot {
+  background: #e5e7eb;
+}
+
+/* 🟠 Orange - In Progress */
+.statusBusyDot {
+  background: #fb923c;
+}
+
+/* 🟢 Green - Finished */
+.statusDoneDot {
+  background: #34d399;
+}

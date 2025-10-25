@@ -54,11 +54,37 @@ export default function GroupDrops({
       pinyinMap[a]?.startsWith(search.toLowerCase())
   );
 
+  // 🚫 Mark this group as "no drop" and finished
+  const markNoDrop = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(
+        `${API_URL}/api/targeted-plans/${planId}/groups/${group.index}/status`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "finished" }),
+        }
+      );
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      // ✅ Immediately update local state to prevent autosave overwrite
+      group.status = "finished";
+
+      console.log(`✅ Group ${group.index} marked as finished (no drop).`);
+      onSaved();
+      onClose();
+    } catch (err) {
+      console.error("❌ Failed to mark no-drop:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
-        {/* <h3 className={styles.title}>🎯 掉落分配</h3> */}
-
         <div className={styles.columns}>
           {/* 🟢 Step 1: Ability selection */}
           <AbilityList
@@ -69,11 +95,11 @@ export default function GroupDrops({
             setSearch={setSearch}
           />
 
-          {/* 🟡 Step 2: Level selection (disabled until ability selected) */}
+          {/* 🟡 Step 2: Level selection */}
           <LevelPicker
             selectedLevel={selectedLevel}
             setSelectedLevel={setSelectedLevel}
-            disabled={!selectedAbility} // disable if no ability selected
+            disabled={!selectedAbility}
           />
 
           {/* 🔵 Step 3: Character selection */}
@@ -102,7 +128,18 @@ export default function GroupDrops({
           />
         </div>
 
+        {/* === Footer buttons === */}
         <div className={styles.footer}>
+          {/* ⬅️ Left side: No Drop */}
+          <button
+            onClick={markNoDrop}
+            className={styles.noDropBtn}
+            disabled={loading}
+          >
+            无掉落
+          </button>
+
+          {/* ➡️ Right side: Close */}
           <button onClick={onClose} className={styles.closeBtn}>
             关闭
           </button>
