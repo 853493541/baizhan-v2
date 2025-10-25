@@ -294,3 +294,72 @@
   box-shadow: 0 2px 6px rgba(21, 101, 192, 0.18);
   transform: translateY(-1px);
 }
+/* ===============================
+   🔘 Status Indicators
+   =============================== */
+.groupTitleWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.statusWrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.statusText {
+  font-size: 14px;
+  font-weight: 600;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.statusDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.statusIdleDot {
+  background: #e5e7eb;
+  color: #6b7280;
+}
+.statusBusyDot {
+  background: #fb923c;
+  color: #f97316;
+}
+.statusDoneDot {
+  background: #34d399;
+  color: #059669;
+}
+.groupTitleBold {
+  font-weight: 700;  /* makes "组1" bold */
+}
+/* Wrap for title + status */
+.groupTitleWrap {
+  display: flex;
+  align-items: center;     /* ✅ ensures vertical centering */
+  gap: 8px;
+}
+
+/* Status section */
+.statusWrap {
+  display: inline-flex;
+  align-items: center;     /* ✅ vertically center text and dot */
+  gap: 4px;
+  margin-top: 1px;         /* 🧩 small lift for optical alignment with "组1" */
+}
+
+.statusText {
+  font-size: 14px;
+  font-weight: 500;
+  color: #444;
+  line-height: 1;
+  user-select: none;
+  white-space: nowrap;
+  position: relative;
+  top: -0.5px;             /* ✅ slightly raise text to perfect baseline */
+}
