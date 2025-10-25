@@ -52,7 +52,7 @@ export default function CharacterRow({
             className={styles.smallBtn}
             title="移除此角色"
           >
-            ✖
+            x
           </button>
         ) : (
           <div className={styles.placeholderBtn}></div>

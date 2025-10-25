@@ -26,6 +26,7 @@ interface Props {
     conflictLevel?: number;
     characters: Character[];
     checkedAbilities?: AbilityCheck[];
+    targetedBoss: string;
   };
   groups: (GroupResult & { status?: "not_started" | "started" | "finished" })[];
   setGroups: (groups: GroupResult[]) => void;
@@ -43,6 +44,7 @@ export default function MainSection({
   schedule,
   groups,
   setGroups,
+  targetedBoss,
   setActiveIdx,
   checkGroupQA,
   checkedAbilities,
@@ -199,6 +201,7 @@ const saveGroups = async (results: GroupResult[]) => {
             setGroups={setLocalGroups}      
             allCharacters={schedule.characters}
             checkedAbilities={allAbilities}
+            targetedBoss={targetedBoss}
             
           />
         </div>

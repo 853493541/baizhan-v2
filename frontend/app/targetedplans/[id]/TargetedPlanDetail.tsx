@@ -148,7 +148,8 @@ export default function TargetedPlanDetail({ planId }: Props) {
         activeIdx={activeIdx}
         setActiveIdx={setActiveIdx}
         checkGroupQA={() => []}
-        checkedAbilities={checkedAbilities} // ✅ connected to combined boss+common abilities
+        checkedAbilities={checkedAbilities}
+        targetedBoss={plan.targetedBoss}  // ✅ connected to combined boss+common abilities
       />
 
       {/* === Group Modal === */}
