@@ -1,11 +1,11 @@
-/* Section Title */
+/* === Section Title === */
 .sectionSubtitle {
   font-size: 16px;
   font-weight: 600;
   margin: 16px 0 8px;
 }
 
-/* Header */
+/* === Header === */
 .editorHeader {
   display: flex;
   justify-content: space-between;
@@ -13,53 +13,35 @@
   margin-bottom: 12px;
 }
 
-/* Page layout */
+/* === Main Layout (Groups Grid) === */
 .groupsGrid {
   display: flex;
   flex-direction: column;
   gap: 16px;
   margin-top: 10px;
   align-items: flex-start;
-  overflow: visible !important;
+  width: 75%;                 /* 🟢 occupy 75% of screen width */
+  max-width: 1600px;          /* 🟢 prevents excessive stretching */
+  min-width: 700px;           /* 🟢 keeps layout stable */
+  margin-left: auto;          /* 🟢 center horizontally */
+  margin-right: auto;
   position: relative;
+  overflow: visible !important;
   z-index: 1;
+  box-sizing: border-box;
 }
 
-/* Top buttons */
-.editBtn, .saveBtn {
-  padding: 5px 10px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-}
-.editBtn { background: #6c757d; color: #fff; }
-.saveBtn { background: #007bff; color: #fff; }
-
-/* Add group button */
-.addGroupBtn {
-  background: #007bff;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 6px 14px;
-  font-size: 15px;
-  cursor: pointer;
-  transition: background 0.2s ease;
-  margin-top: 12px;
-}
-.addGroupBtn:hover { background: #0064d0; }
-/* Toolbar layout */
+/* === Toolbar === */
 .toolbar {
   display: flex;
   justify-content: flex-end;
   align-items: center;
   margin-bottom: 12px;
   gap: 8px;
+  width: 100%;
 }
 
-/* Buttons */
+/* === Buttons (Edit / Save / Cancel) === */
 .editBtn,
 .saveBtn,
 .cancelBtn {
@@ -69,7 +51,7 @@
   font-weight: 600;
   cursor: pointer;
   border: none;
-  transition: background 0.2s ease;
+  transition: background 0.2s ease, transform 0.1s ease;
 }
 
 .editBtn {
@@ -97,13 +79,7 @@
   background: #ccc;
 }
 
-/* Group layout remains same */
-.groupsGrid {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-/* === Add Group (Centered under all groups) === */
+/* === Add Group (Bottom Centered) === */
 .addGroupWrapper {
   display: flex;
   justify-content: center;
@@ -146,20 +122,25 @@
   font-size: 16px;
   color: #2e7d32;
 }
-/* === Layout === */
-.groupsGrid {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-top: 10px;
-  align-items: flex-start; /* left align everything */
-  width: auto; /* shrink to content width */
-  max-width: 700px; /* match card width */
+
+/* === Responsive === */
+@media (max-width: 1400px) {
+  .groupsGrid {
+    width: 80%;
+    max-width: 1200px;
+  }
 }
-.addGroupWrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 18px;
-  width: 100%; /* keeps it same width as cards */
+
+@media (max-width: 1100px) {
+  .groupsGrid {
+    width: 85%;
+    min-width: 600px;
+  }
+}
+
+@media (max-width: 900px) {
+  .groupsGrid {
+    width: 95%;
+    min-width: auto;
+  }
 }

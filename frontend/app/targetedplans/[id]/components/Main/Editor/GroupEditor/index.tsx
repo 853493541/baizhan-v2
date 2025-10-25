@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import styles from "./styles.module.css";
-import CharacterRow from "../CharacterRow";
+import CharacterRow from "./CharacterRow";
 import GroupDrops from "./Drops";
 import AssignedDrops from "./Assigned";
 import type { GroupResult, Character, AbilityCheck } from "@/utils/solver";
@@ -54,39 +54,39 @@ export default function GroupEditor({
     <div className={styles.groupCard}>
       {/* === Header === */}
       <div className={styles.groupHeader}>
-        {/* === Left side: title + assigned drops inline === */}
+        {/* === Left side: Title + Add Drop button === */}
         <div className={styles.groupHeaderLeft}>
-          <h4 className={styles.groupTitle}>组{groupIndex + 1} </h4>
-
-          {/* ✅ AssignedDrops inline beside the title */}
-          <div className={styles.assignedInline}>
-            <AssignedDrops
-              API_URL={API_URL}
-              planId={planId}
-              groupIndex={groupIndex}
-              groupCharacters={group.characters}
-            />
-          </div>
+          {editing ? (
+            <button
+              onClick={() => onRemoveGroup(groupIndex)}
+              className={styles.deleteHeaderBtn}
+              title="删除整个小组"
+            >
+              ✖ 删除组 {groupIndex + 1}
+            </button>
+          ) : (
+            <>
+              <h4 className={styles.groupTitle}>组{groupIndex + 1}</h4>
+              <button
+                onClick={() => setShowDropModal(true)}
+                className={styles.addDropBtn}
+                title="为此组添加掉落"
+              >
+                ＋ 添加掉落
+              </button>
+            </>
+          )}
         </div>
 
-        {/* === Right side: header button === */}
-        {editing ? (
-          <button
-            onClick={() => onRemoveGroup(groupIndex)}
-            className={styles.removeBtn}
-            title="删除整个小组"
-          >
-            <span className={styles.removeIcon}>✖</span> 删除小组
-          </button>
-        ) : (
-          <button
-            onClick={() => setShowDropModal(true)}
-            className={styles.addDropBtn}
-            title="为此组添加掉落"
-          >
-            ＋ 添加掉落
-          </button>
-        )}
+        {/* === Right side: Assigned Drops === */}
+        <div className={styles.assignedInlineRight}>
+          <AssignedDrops
+            API_URL={API_URL}
+            planId={planId}
+            groupIndex={groupIndex}
+            groupCharacters={group.characters}
+          />
+        </div>
       </div>
 
       {/* === Character Rows === */}
