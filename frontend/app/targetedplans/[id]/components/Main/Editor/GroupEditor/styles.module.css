@@ -8,51 +8,102 @@
   background: #fff;
   transition: box-shadow 0.2s ease;
 }
+
 .groupCard:hover {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 }
 
-/* === Header === */
+/* === Header (fixed height, new layout) === */
 .groupHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
+  min-height: 32px;
+  box-sizing: border-box;
+  gap: 10px;
 }
 
+/* === Left side: title + button === */
+.groupHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+/* === Right side: Assigned Drops === */
+.assignedInlineRight {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  max-width: 60%;
+}
+
+/* === Title (normal mode) === */
 .groupTitle {
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 500;
   color: #2c3e50;
   margin: 0;
+  padding: 0;
+  line-height: 1.2;
 }
 
-/* === 删除组 Button === */
-.removeBtn {
+/* === 删除组 (edit mode title replacement) === */
+.deleteHeaderBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid #ffb5b5;
+  background: #fff7f7;
+  color: #c62828;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.deleteHeaderBtn:hover {
+  background: #ffebeb;
+  border-color: #ff8585;
+  color: #b71c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(255, 0, 0, 0.08);
+}
+
+/* === Add Drop Button === */
+.addDropBtn {
   display: flex;
   align-items: center;
   gap: 5px;
   font-size: 13px;
   padding: 4px 10px;
-  border: 1px solid #ffb5b5;
-  background: #fff7f7;
-  color: #c62828;
+  border: 1px solid #80bfff;
+  background: #e8f4ff;
+  color: #007bff;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.15s ease;
+  height: 32px;
+  box-shadow: none;
+  box-sizing: border-box;
 }
 
-.removeBtn:hover {
-  background: #ffebeb;
-  border-color: #ff8585;
-  color: #b71c1c;
+.addDropBtn:hover {
+  background: #d6ecff;
+  border-color: #66aaff;
+  color: #0056b3;
   transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(255, 0, 0, 0.1);
-}
-
-.removeIcon {
-  font-size: 13px;
-  line-height: 1;
+  box-shadow: 0 2px 6px rgba(0, 102, 255, 0.15);
 }
 
 /* === Member List === */
@@ -75,7 +126,7 @@
   background: #fff;
   border: 1px solid #ccc;
   color: #333;
-  font-weight: 600;
+  font-weight: 500;
   font-size: 14px;
   border-radius: 6px;
   padding: 6px 10px;
@@ -99,46 +150,6 @@
   display: flex;
   justify-content: center;
   margin-top: 14px;
-}
-
-.addGroupBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #1b5e20;
-  background: linear-gradient(to bottom right, #d7f9d7, #b8f0b8);
-  border: 1px solid #a5d6a7;
-  border-radius: 8px;
-  padding: 6px 14px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.addGroupBtn:hover {
-  background: linear-gradient(to bottom right, #c8f4c8, #a9eaa9);
-  transform: translateY(-1px);
-  box-shadow: 0 3px 8px rgba(76, 175, 80, 0.25);
-}
-
-.addGroupBtn:active {
-  transform: translateY(0);
-  box-shadow: none;
-}
-
-.addGroupIcon {
-  font-size: 15px;
-  color: #2e7d32;
-}
-/* === Add Group Button (Centered) === */
-.addGroupWrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 18px;
-  width: 100%;
 }
 
 .addGroupBtn {
@@ -174,27 +185,4 @@
 .addGroupIcon {
   font-size: 16px;
   color: #2e7d32;
-}
-.groupHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.groupHeaderLeft {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-/* keep inline AssignedDrops compact in header */
-.assignedInline {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-left: 4px;
-  flex-wrap: wrap;
-  max-width: 600px;
 }

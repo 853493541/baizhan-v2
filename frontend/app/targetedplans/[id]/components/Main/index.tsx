@@ -204,11 +204,11 @@ const saveGroups = async (results: GroupResult[]) => {
         </div>
 
         <div className={styles.checkingPane}>
-          <AbilityChecking
+          {/* <AbilityChecking
             groups={localGroups}          
             characters={schedule.characters}
             checkedAbilities={allAbilities}
-          />
+          /> */}
         </div>
       </div>
 

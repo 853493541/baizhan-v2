@@ -2,12 +2,9 @@
 
 import Image from "next/image";
 import styles from "./styles.module.css";
-import { MAIN_CHARACTERS } from "../config";
+import { MAIN_CHARACTERS } from "../../config";
 import type { Character } from "@/utils/solver";
 
-/* ============================================================
-   🧱 CharacterRow — renders one character row with abilities
-============================================================ */
 export default function CharacterRow({
   character,
   groupIndex,
@@ -38,7 +35,7 @@ export default function CharacterRow({
 }) {
   const c = character;
 
-  // 🟢 Always ensure 3 ability slots
+  // Always ensure 3 ability slots
   const selectedAbilities = c.selectedAbilities || [
     { name: "", level: 0 },
     { name: "", level: 0 },
@@ -47,6 +44,21 @@ export default function CharacterRow({
 
   return (
     <div className={styles.memberRow}>
+      {/* === Delete Button (Left Side, Always Exists) === */}
+      <div className={styles.actionGroup}>
+        {editing ? (
+          <button
+            onClick={() => onRemoveCharacter(groupIndex, c._id)}
+            className={styles.smallBtn}
+            title="移除此角色"
+          >
+            ✖
+          </button>
+        ) : (
+          <div className={styles.placeholderBtn}></div>
+        )}
+      </div>
+
       {/* === Character Pill === */}
       <div
         className={`${styles.memberItem} ${
@@ -67,43 +79,43 @@ export default function CharacterRow({
       {/* === Ability Slots === */}
       <div className={styles.abilityGroup}>
         {[0, 1, 2].map((ai) => {
-          const dropdownId = `${c._id}-${ai}`;
           const slot = selectedAbilities[ai];
           const current = slot?.name || "";
           const level = slot?.level || 0;
           const currentColor = abilityColorMap[current] || "#ccc";
+          const dropdownId = `${c._id}-${ai}`;
 
           return (
             <div key={ai} className={styles.abilitySlot}>
+              {/* --- Non-editing mode --- */}
               {!editing ? (
                 current ? (
                   <div
                     className={styles.abilityPill}
                     style={{
                       backgroundColor: currentColor + "33",
-                      borderLeft: `4px solid ${currentColor}`,
+                      borderLeft: `5px solid ${currentColor}`,
                     }}
                   >
-                    <Image
-                      src={`/icons/${current}.png`}
-                      alt={current}
-                      width={20}
-                      height={20}
-                      className={styles.abilityIcon}
-                    />
-                    <span className={styles.abilityName}>
-                      {current}
-                      {level > 0 ? (
-                        <span className={styles.abilityLevel}> {level}</span>
-                      ) : (
-                        <span className={styles.abilityLevelEmpty}> —</span>
-                      )}
+                    <div className={styles.abilityContent}>
+                      <Image
+                        src={`/icons/${current}.png`}
+                        alt={current}
+                        width={20}
+                        height={20}
+                        className={styles.abilityIcon}
+                      />
+                      <span className={styles.abilityName}>{current}</span>
+                    </div>
+                    <span className={styles.abilityLevel}>
+                      {level > 0 ? level : "—"}
                     </span>
                   </div>
                 ) : (
                   <div className={styles.emptyAbility}>—</div>
                 )
               ) : (
+                /* --- Editing mode --- */
                 <div
                   className={styles.customDropdown}
                   style={{
@@ -119,7 +131,7 @@ export default function CharacterRow({
                   }
                 >
                   {current ? (
-                    <div className={styles.selectedOption}>
+                    <div className={styles.abilityContent}>
                       <Image
                         src={`/icons/${current}.png`}
                         alt={current}
@@ -127,13 +139,9 @@ export default function CharacterRow({
                         height={20}
                         className={styles.abilityIcon}
                       />
-                      <span className={styles.abilityName}>
-                        {current}
-                        {level > 0 ? (
-                          <span className={styles.abilityLevel}> {level}</span>
-                        ) : (
-                          <span className={styles.abilityLevelEmpty}> —</span>
-                        )}
+                      <span className={styles.abilityName}>{current}</span>
+                      <span className={styles.abilityLevel}>
+                        {level > 0 ? level : "—"}
                       </span>
                     </div>
                   ) : (
@@ -145,19 +153,6 @@ export default function CharacterRow({
           );
         })}
       </div>
-
-      {/* === Remove Button === */}
-      {editing && (
-        <div className={styles.actionGroup}>
-          <button
-            onClick={() => onRemoveCharacter(groupIndex, c._id)}
-            className={styles.smallBtn}
-            title="移除此角色"
-          >
-            ×
-          </button>
-        </div>
-      )}
     </div>
   );
 }
