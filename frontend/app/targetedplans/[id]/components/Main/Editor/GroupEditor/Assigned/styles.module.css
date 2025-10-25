@@ -1,31 +1,39 @@
 /* ===============================
-   🧩 Assigned Drops (Balanced Compact)
+   🧩 Assigned Drops (Single Row, Contained, Compact)
    =============================== */
 .assignedDrops {
-  display: grid;
-  grid-template-columns: repeat(2, auto); /* two per row */
-  justify-content: start;
-  gap: 8px 12px;              /* moderate spacing */
+  display: flex;
+  flex-wrap: nowrap;          /* single line layout */
   align-items: center;
-  margin-left: 10px;
-  margin-top: 3px;
+  gap: 8px;                   /* spacing between items */
+  width: 100%;
+  height: 32px;               /* fixed height inside group box */
+  max-height: 32px;
+  overflow: hidden;           /* prevent vertical overflow */
+  overflow-x: auto;           /* scroll if too many drops */
+  box-sizing: border-box;
+
+  margin-left: 0;   
+  align-items: center;          /* keep aligned with container */
+  /* border: 2px solid blue;  (debug only) */
 }
 
-/* === Drop Item === */
+/* === Drop Item (Chip) === */
 .dropItem {
+  flex: 0 0 auto;             /* no shrinking, keep natural width */
   display: flex;
   align-items: center;
   gap: 7px;
+  height: 32px;               /* fits nicely inside 32px row */
+  padding: 4px 8px;
   font-size: 13px;
+  white-space: nowrap;        /* stay on one line */
   background: #fff;
   border: 1px solid #ddd;
   border-radius: 7px;
-  padding: 5px 10px;          /* balanced height */
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   cursor: pointer;
   transition: all 0.15s ease;
-  width: auto;
-  max-width: 100%;
   box-sizing: border-box;
 }
 
@@ -36,33 +44,24 @@
 }
 
 /* === Icon === */
-.iconWrapper {
-  width: 19px;
-  height: 19px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
+.iconWrapper,
 .icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
   border-radius: 3px;
-  width: 19px;
-  height: 19px;
 }
 
 /* === Text & Labels === */
 .abilityName {
   font-weight: 600;
   color: #333;
-  white-space: nowrap;
 }
 
 .level {
   color: #777;
   margin-left: 2px;
   font-weight: normal;
-  white-space: nowrap;
 }
 
 .arrow {
@@ -71,7 +70,7 @@
   margin: 0 4px;
 }
 
-/* === Character bubble === */
+/* === Character Bubble === */
 .characterBubble {
   padding: 2px 7px;
   border-radius: 9px;
@@ -81,9 +80,10 @@
   background: #e8f5e9;
   color: #2e7d32;
   white-space: nowrap;
+  line-height: 1;
 }
 
-/* === Role colors === */
+/* === Role Colors === */
 .tank {
   background-color: #fff3cd;
   color: #8b4513;
@@ -145,7 +145,7 @@
   }
 }
 
-/* === One-line content === */
+/* === Modal Content === */
 .modalLine {
   display: flex;
   align-items: center;
@@ -163,7 +163,6 @@
   height: 19px;
 }
 
-/* Inline ability + level */
 .abilityFullName {
   font-weight: 600;
 }
@@ -173,7 +172,7 @@
   font-size: 13px;
 }
 
-/* === Footer Buttons (Compact but Balanced) === */
+/* === Footer Buttons === */
 .modalFooterRight {
   display: flex;
   justify-content: flex-end;
@@ -185,7 +184,7 @@
 .saveBtn,
 .closeBtn,
 .deleteBtn {
-  padding: 4px 11px;           /* 🔹 balanced with cards */
+  padding: 4px 11px;
   font-size: 12.5px;
   border-radius: 5px;
   font-weight: 600;
@@ -195,7 +194,7 @@
   transition: all 0.15s ease;
 }
 
-/* === Specific Button Colors === */
+/* === Button Colors === */
 .useBtn {
   background: #1890ff;
   color: #fff;
@@ -215,7 +214,6 @@
   border-color: #91d5ff;
 }
 
-/* Disabled state */
 .disabled,
 .useBtn:disabled,
 .saveBtn:disabled {
@@ -223,7 +221,6 @@
   cursor: not-allowed;
 }
 
-/* === Close/Delete Buttons === */
 .closeBtn {
   background: #ddd;
   color: #333;
@@ -247,7 +244,22 @@
    =============================== */
 @media (max-width: 500px) {
   .assignedDrops {
-    grid-template-columns: 1fr;
-    margin-left: 0;
+    flex-wrap: wrap;
+    height: auto;
+    max-height: none;
+    overflow-x: hidden;
   }
+}
+/* === Text & Labels (Enhanced readability) === */
+.abilityName {
+  font-weight: 700;            /* stronger emphasis */
+  color: #222;                 /* slightly darker for contrast */
+}
+
+.arrow {
+  font-weight: 600;            /* give arrow visual balance */
+  color: #666;                 /* darker gray so it stands out */
+  font-size: 13.5px;
+  margin: 0 5px;
+  letter-spacing: 0.5px;       /* subtle spacing for clarity */
 }

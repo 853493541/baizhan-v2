@@ -56,7 +56,7 @@ export default function GroupEditor({
     <div className={styles.groupCard}>
       {/* === Header === */}
       <div className={styles.groupHeader}>
-        {/* === Left side: Title + Add Drop button === */}
+        {/* === Left side: Title or Delete Button === */}
         <div className={styles.groupHeaderLeft}>
           {editing ? (
             <button
@@ -68,28 +68,31 @@ export default function GroupEditor({
               删除组 {groupIndex + 1}
             </button>
           ) : (
-            <>
-              <h4 className={styles.groupTitle}>组{groupIndex + 1}</h4>
-              <button
-                onClick={() => setShowDropModal(true)}
-                className={styles.addDropBtn}
-                title="为此组添加掉落"
-              >
-                ＋ 掉落
-              </button>
-            </>
+            <h4 className={styles.groupTitle}>组{groupIndex + 1}</h4>
           )}
         </div>
 
-        {/* === Right side: Assigned Drops === */}
-        <div className={styles.assignedInlineRight}>
-          <AssignedDrops
-            API_URL={API_URL}
-            planId={planId}
-            groupIndex={groupIndex}
-            groupCharacters={group.characters}
-            refreshSignal={refreshSignal}
-          />
+        {/* === Right side: Assigned Drops + Add Button === */}
+        <div className={styles.groupHeaderRight}>
+          <div className={styles.assignedInlineRight}>
+            <AssignedDrops
+              API_URL={API_URL}
+              planId={planId}
+              groupIndex={groupIndex}
+              groupCharacters={group.characters}
+              refreshSignal={refreshSignal}
+            />
+          </div>
+
+          {!editing && (
+            <button
+              onClick={() => setShowDropModal(true)}
+              className={styles.addDropBtn}
+              title="为此组添加掉落"
+            >
+              ＋ 掉落
+            </button>
+          )}
         </div>
       </div>
 
