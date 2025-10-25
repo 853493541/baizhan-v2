@@ -1,36 +1,44 @@
 /* ===============================
-   🧩 Assigned Drops (Main Layout)
+   🧩 Assigned Drops (Balanced Compact)
    =============================== */
 .assignedDrops {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 12px;
+  display: grid;
+  grid-template-columns: repeat(2, auto); /* two per row */
+  justify-content: start;
+  gap: 8px 12px;              /* moderate spacing */
   align-items: center;
   margin-left: 10px;
-  margin-top: 4px;
+  margin-top: 3px;
 }
 
+/* === Drop Item === */
 .dropItem {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   font-size: 13px;
-  background: #fafafa;
+  background: #fff;
   border: 1px solid #ddd;
-  border-radius: 6px;
-  padding: 3px 8px;
+  border-radius: 7px;
+  padding: 5px 10px;          /* balanced height */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: all 0.15s ease;
+  width: auto;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .dropItem:hover {
-  background: #f1f1f1;
+  background: #f9fbff;
+  border-color: #bcd6ff;
+  box-shadow: 0 2px 6px rgba(24, 144, 255, 0.12);
 }
 
 /* === Icon === */
 .iconWrapper {
-  width: 20px;
-  height: 20px;
+  width: 19px;
+  height: 19px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -39,9 +47,11 @@
 
 .icon {
   border-radius: 3px;
+  width: 19px;
+  height: 19px;
 }
 
-/* === Text and labels === */
+/* === Text & Labels === */
 .abilityName {
   font-weight: 600;
   color: #333;
@@ -49,23 +59,27 @@
 }
 
 .level {
-  color: #888;
+  color: #777;
   margin-left: 2px;
   font-weight: normal;
+  white-space: nowrap;
 }
 
 .arrow {
   color: #999;
   font-size: 13px;
+  margin: 0 4px;
 }
 
 /* === Character bubble === */
 .characterBubble {
-  padding: 2px 6px;
-  border-radius: 10px;
+  padding: 2px 7px;
+  border-radius: 9px;
   font-weight: 600;
   font-size: 12.5px;
-  border: 1px solid transparent;
+  border: 1px solid #c5dec5;
+  background: #e8f5e9;
+  color: #2e7d32;
   white-space: nowrap;
 }
 
@@ -113,10 +127,10 @@
 
 .modal {
   background: #fff;
-  border-radius: 8px;
-  padding: 14px 16px;
-  width: 320px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  border-radius: 7px;
+  padding: 12px 14px;
+  width: 310px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
   animation: popIn 0.2s ease;
 }
 
@@ -137,14 +151,16 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: #333;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .modalIcon {
-  border-radius: 4px;
+  border-radius: 3px;
+  width: 19px;
+  height: 19px;
 }
 
 /* Inline ability + level */
@@ -157,23 +173,62 @@
   font-size: 13px;
 }
 
-/* === Footer Buttons (Right-aligned) === */
+/* === Footer Buttons (Compact but Balanced) === */
 .modalFooterRight {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  margin-top: 10px;
+  margin-top: 8px;
 }
 
+.useBtn,
+.saveBtn,
+.closeBtn,
+.deleteBtn {
+  padding: 4px 11px;           /* 🔹 balanced with cards */
+  font-size: 12.5px;
+  border-radius: 5px;
+  font-weight: 600;
+  line-height: 1.1;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+
+/* === Specific Button Colors === */
+.useBtn {
+  background: #1890ff;
+  color: #fff;
+  border-color: #1890ff;
+}
+.useBtn:hover {
+  background: #40a9ff;
+}
+
+.saveBtn {
+  background: #f0f0f0;
+  color: #333;
+  border-color: #ccc;
+}
+.saveBtn:hover {
+  background: #e6f7ff;
+  border-color: #91d5ff;
+}
+
+/* Disabled state */
+.disabled,
+.useBtn:disabled,
+.saveBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* === Close/Delete Buttons === */
 .closeBtn {
   background: #ddd;
+  color: #333;
   border: none;
-  border-radius: 4px;
-  padding: 6px 12px;
-  cursor: pointer;
-  font-size: 13px;
 }
-
 .closeBtn:hover {
   background: #ccc;
 }
@@ -182,13 +237,7 @@
   background: #dc3545;
   color: white;
   border: none;
-  border-radius: 4px;
-  padding: 6px 12px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
 }
-
 .deleteBtn:hover {
   background: #c82333;
 }
@@ -198,7 +247,7 @@
    =============================== */
 @media (max-width: 500px) {
   .assignedDrops {
-    flex-direction: column;
-    align-items: flex-start;
+    grid-template-columns: 1fr;
+    margin-left: 0;
   }
 }
