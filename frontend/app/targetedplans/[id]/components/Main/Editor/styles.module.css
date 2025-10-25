@@ -19,14 +19,15 @@
   flex-direction: column;
   gap: 16px;
   margin-top: 10px;
-  align-items: flex-start;
-  width: 75%;                 /* 🟢 occupy 75% of screen width */
-  max-width: 1600px;          /* 🟢 prevents excessive stretching */
-  min-width: 700px;           /* 🟢 keeps layout stable */
-  margin-left: auto;          /* 🟢 center horizontally */
+  align-items: stretch;            /* ✅ ensures cards align evenly */
+  width: 100%;                    /* ✅ take full width of container */
+  max-width: 100%;                /* ✅ never exceed parent */
+  min-width: 0;                   /* ✅ allow shrinking inside flex */
+  margin-left: auto;              /* ✅ centered layout */
   margin-right: auto;
   position: relative;
-  overflow: visible !important;
+  overflow-x: hidden;             /* ✅ prevent horizontal overflow */
+  overflow-y: visible;            /* ✅ keep dropdowns visible */
   z-index: 1;
   box-sizing: border-box;
 }
@@ -126,21 +127,21 @@
 /* === Responsive === */
 @media (max-width: 1400px) {
   .groupsGrid {
-    width: 80%;
-    max-width: 1200px;
+    width: 100%;                /* ✅ now relative to parent, not viewport */
+    max-width: 100%;
   }
 }
 
 @media (max-width: 1100px) {
   .groupsGrid {
-    width: 85%;
-    min-width: 600px;
+    width: 100%;
+    min-width: 0;               /* ✅ allow proper flex shrink */
   }
 }
 
 @media (max-width: 900px) {
   .groupsGrid {
-    width: 95%;
+    width: 100%;
     min-width: auto;
   }
 }

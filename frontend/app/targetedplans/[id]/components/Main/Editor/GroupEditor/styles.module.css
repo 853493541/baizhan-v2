@@ -13,7 +13,7 @@
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 }
 
-/* === Header (fixed height, new layout) === */
+/* === Header === */
 .groupHeader {
   display: flex;
   justify-content: space-between;
@@ -24,7 +24,7 @@
   gap: 10px;
 }
 
-/* === Left side: title + button === */
+/* === Left side === */
 .groupHeaderLeft {
   display: flex;
   align-items: center;
@@ -32,7 +32,7 @@
   flex-wrap: nowrap;
 }
 
-/* === Right side: Assigned Drops === */
+/* === Right side === */
 .assignedInlineRight {
   display: flex;
   justify-content: flex-end;
@@ -52,21 +52,19 @@
   line-height: 1.2;
 }
 
-/* === 删除组 (edit mode title replacement) === */
+/* === 删除组 (edit mode button) === */
 .deleteHeaderBtn {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 5px;
+  gap: 6px;
   height: 32px;
-  padding: 0 10px;
+  padding: 0 10px 0 8px;
   border: 1px solid #ffb5b5;
   background: #fff7f7;
   color: #c62828;
   border-radius: 6px;
   font-size: 0.95rem;
   font-weight: 500;
-  line-height: 1;
   cursor: pointer;
   transition: all 0.15s ease;
   box-sizing: border-box;
@@ -78,6 +76,34 @@
   color: #b71c1c;
   transform: translateY(-1px);
   box-shadow: 0 2px 5px rgba(255, 0, 0, 0.08);
+}
+
+/* === Clean, geometric red X inside header button === */
+.deleteHeaderX {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  display: inline-block;
+}
+
+.deleteHeaderX::before,
+.deleteHeaderX::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 2px;
+  background-color: #d9363e;
+  border-radius: 1px;
+  transform-origin: center;
+}
+
+.deleteHeaderX::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+.deleteHeaderX::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
 }
 
 /* === Add Drop Button === */
@@ -138,6 +164,7 @@
   transition: all 0.15s ease;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
+
 .addCharacterBtn:hover {
   background: #007bff;
   color: #fff;
@@ -185,4 +212,28 @@
 .addGroupIcon {
   font-size: 16px;
   color: #2e7d32;
+}
+.addDropBtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  padding: 4px 10px;
+  border: 1px solid #9cc9ff;
+  background: linear-gradient(to bottom, #f5faff, #e6f2ff);
+  color: #1565c0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  height: 32px;
+  box-shadow: 0 1px 2px rgba(21, 101, 192, 0.08);
+  box-sizing: border-box;
+}
+
+.addDropBtn:hover {
+  background: linear-gradient(to bottom, #eaf4ff, #d8ebff);
+  border-color: #7fb4ff;
+  color: #0d47a1;
+  box-shadow: 0 2px 6px rgba(21, 101, 192, 0.18);
+  transform: translateY(-1px);
 }

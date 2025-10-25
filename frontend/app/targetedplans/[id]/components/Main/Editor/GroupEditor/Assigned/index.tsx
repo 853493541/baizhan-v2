@@ -100,7 +100,7 @@ export default function AssignedDrops({
   };
 
   if (loading) return <span className={styles.loading}>加载中…</span>;
-  if (!drops.length) return <span className={styles.empty}>（无掉落）</span>;
+  if (!drops.length) return <span className={styles.empty}></span>;
 
   return (
     <>
