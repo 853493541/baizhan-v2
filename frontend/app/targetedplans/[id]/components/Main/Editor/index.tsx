@@ -22,13 +22,16 @@ export default function Editor({
   groups,
   setGroups,
   allCharacters,
-  checkedAbilities, // ✅ new prop
+  checkedAbilities, 
+  targetedBoss,
+  // ✅ new prop
 }: {
   scheduleId: string;
   groups: GroupResult[];
   setGroups: (groups: GroupResult[]) => void;
   allCharacters: Character[];
   checkedAbilities: AbilityCheck[]; // ✅ added type
+  
 }) {
   const [editing, setEditing] = useState(false);
   const [localGroups, setLocalGroups] = useState<GroupResult[]>(groups);
@@ -306,6 +309,7 @@ export default function Editor({
             abilities={abilities}
             abilityColorMap={abilityColorMap}
             character={selectedCharacter}
+            targetedBoss={targetedBoss}
             onClose={closeAbilityDropdown}
             onSelect={(a) => {
               handleAbilityChange(

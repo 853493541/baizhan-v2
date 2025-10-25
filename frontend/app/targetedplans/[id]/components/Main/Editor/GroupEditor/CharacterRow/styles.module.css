@@ -151,7 +151,7 @@
   border: 1px solid #ffb5b5;
   color: #c62828;
   border-radius: 6px;
-  width: 20px;   /* 🟢 thin rectangle */
+  width: 34px;   /* 🟢 thin rectangle */
   height: 34px;  /* 🟢 matches pill height */
   font-size: 14px;
   font-weight: 600;
@@ -172,7 +172,7 @@
 
 /* Placeholder for non-edit mode */
 .placeholderBtn {
-  width: 20px;
+  width: 34px;
   height: 34px;
   border-radius: 6px;
   background: transparent;
