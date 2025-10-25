@@ -187,7 +187,7 @@ const saveGroups = async (results: GroupResult[]) => {
 
   return (
     <div className={styles.section}>
-      <h3 className={styles.sectionTitle}>排表区域</h3>
+      {/* <h3 className={styles.sectionTitle}>排表区域</h3> */}
       <p className={styles.finishedCount}>
         已完成小组: {finishedCount} / {localGroups.length}
       </p>
@@ -207,11 +207,11 @@ const saveGroups = async (results: GroupResult[]) => {
         </div>
 
         <div className={styles.checkingPane}>
-          {/* <AbilityChecking
+          <AbilityChecking
             groups={localGroups}          
             characters={schedule.characters}
             checkedAbilities={allAbilities}
-          /> */}
+          />
         </div>
       </div>
 
