@@ -2,277 +2,60 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0,0,0,0.55);
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 3000;
+  justify-content: center;
+  z-index: 2000;
 }
 
-/* === Modal Container (now horizontal layout) === */
-.horizontalModal {
+/* === Modal Box === */
+.modal {
   background: #fff;
   border-radius: 12px;
   padding: 20px;
-  width: 900px; /* wider for 4 sections */
-  height: 600px;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-  overflow: hidden;
+  max-width: 780px;
+  width: auto;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
 }
 
-/* === Header === */
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+/* === Header / Title === */
+.title {
   margin-bottom: 12px;
-}
-
-.header h3 {
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 700;
+  text-align: center;
 }
 
-.closeBtn {
-  background: #eee;
-  border: none;
-  padding: 4px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-}
-.closeBtn:hover {
-  background: #ddd;
-}
-
-/* === Columns Layout === */
+/* === Layout Columns === */
 .columns {
   display: flex;
-  flex: 1;
-  gap: 14px;
-  overflow: hidden;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: center;
 }
 
-/* Each column */
-.column {
-  flex: 1;
-  background: #fafafa;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 10px;
+/* === Footer === */
+.footer {
   display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
 }
 
-.column h4 {
-  font-size: 15px;
-  font-weight: 600;
-  margin-bottom: 8px;
-  text-align: center;
-  color: #333;
-}
-
-/* === Scrollable lists (ability list & members) === */
-.scrollBox {
-  flex: 1;
-  overflow-y: auto;
-  padding-right: 6px;
-}
-
-.scrollBox::-webkit-scrollbar {
-  width: 6px;
-}
-.scrollBox::-webkit-scrollbar-thumb {
-  background-color: #bbb;
-  border-radius: 3px;
-}
-
-/* === Ability list === */
-.abilityItem {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 8px;
-  margin-bottom: 5px;
+/* === Buttons === */
+.closeBtn {
+  padding: 6px 14px;
+  border: 1px solid #ccc;
+  background: #e0e0e0;
   border-radius: 6px;
-  background: #fff;
   cursor: pointer;
-  transition: background 0.15s ease;
-  border: 1px solid transparent;
-}
-
-.abilityItem:hover {
-  background: #f0f8ff;
-}
-
-.abilityItem.selected {
-  border-color: #3399ff;
-  background: #e6f3ff;
-}
-
-.abilityItem img {
-  flex-shrink: 0;
-}
-
-/* === Search === */
-.search {
-  width: 100%;
-  margin-bottom: 6px;
-  padding: 4px 8px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 13px;
-}
-
-/* === Level Buttons === */
-.levelCol {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.levelBtn {
-  padding: 8px 0;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  background: #fff;
   font-size: 14px;
   font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.levelBtn:hover {
-  background: #f3f3f3;
-}
-
-.levelBtn.selected {
-  border-color: #3399ff;
-  background: #e6f3ff;
-  font-weight: 600;
-}
-
-/* === Member List === */
-.memberBtn {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 6px 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  background: #fff;
-  margin-bottom: 6px;
-  font-size: 13px;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.memberBtn:hover {
-  background: #f9f9f9;
-}
-
-.memberBtn.selected {
-  border-color: #3399ff;
-  background: #e6f3ff;
-}
-
-.memberBtn.disabled {
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-.memberBtn .name {
-  font-weight: 600;
   color: #333;
+  transition: background 0.2s, border-color 0.2s;
 }
-
-.memberBtn .level {
-  color: #666;
-  font-size: 12px;
-}
-
-/* === Actions === */
-.actionCol {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.useBtn,
-.saveBtn,
-.recordBtn {
-  padding: 8px 0;
-  border-radius: 6px;
-  border: none;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.useBtn {
-  background: #4caf50;
-  color: #fff;
-}
-.useBtn:hover {
-  background: #43a047;
-}
-
-.saveBtn {
-  background: #ffca28;
-  color: #333;
-}
-.saveBtn:hover {
-  background: #f4b400;
-}
-
-.recordBtn {
-  background: #2196f3;
-  color: #fff;
-}
-.recordBtn:hover {
-  background: #1976d2;
-}
-
-/* Disabled state */
-.useBtn:disabled,
-.saveBtn:disabled,
-.recordBtn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-/* actions */
-.actionCol {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.useBtn,
-.saveBtn {
-  padding: 8px 0;
-  border-radius: 6px;
-  border: none;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.useBtn { background: #4caf50; color: #fff; }
-.useBtn:hover { background: #43a047; }
-
-.saveBtn { background: #ffca28; color: #333; }
-.saveBtn:hover { background: #f4b400; }
-
-.useBtn:disabled,
-.saveBtn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.closeBtn:hover {
+  background: #d5d5d5;
+  border-color: #999;
 }
