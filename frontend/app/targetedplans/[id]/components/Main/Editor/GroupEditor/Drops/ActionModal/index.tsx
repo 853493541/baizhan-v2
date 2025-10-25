@@ -60,27 +60,21 @@ export default function ActionPanel({
     }
   };
 
-  // 🧩 Disable both buttons if not all required steps are selected
-  const disabled =
-    !selectedAbility || !selectedLevel || !selectedCharacter || loading;
-
   return (
     <div className={styles.column}>
-      <div className={styles.sectionDivider}>操作</div>
-
+      <h4>操作</h4>
       <div className={styles.btnCol}>
         <button
           onClick={useImmediately}
-          disabled={disabled}
-          className={`${styles.useBtn} ${disabled ? styles.disabled : ""}`}
+          disabled={!selectedCharacter || !selectedAbility || !selectedLevel || loading}
+          className={styles.useBtn}
         >
           立即使用
         </button>
-
         <button
           onClick={saveToBackpack}
-          disabled={disabled}
-          className={`${styles.saveBtn} ${disabled ? styles.disabled : ""}`}
+          disabled={!selectedCharacter || !selectedAbility || !selectedLevel || loading}
+          className={styles.saveBtn}
         >
           保存到背包
         </button>

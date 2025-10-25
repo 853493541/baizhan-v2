@@ -40,10 +40,3 @@
 .saveBtn:hover {
   background: #d0e3ff;
 }
-.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  background: #f0f0f0 !important;
-  border-color: #ddd !important;
-  color: #999 !important;
-}

@@ -3,29 +3,70 @@
   flex-direction: column;
   align-items: center;
   gap: 10px;
+  width: auto; /* 🟢 only as wide as its content */
+  min-width: 90px; /* prevent text overlap but keep narrow */
 }
 
+/* === Section Divider Line (shared visual style) === */
+.sectionDivider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  margin: 8px 0 4px;
+  width: 100%;
+  white-space: nowrap; /* 🟢 prevent wrapping */
+}
+
+.sectionDivider::before,
+.sectionDivider::after {
+  content: "";
+  display: block;
+  flex: 1 1 0;
+  border-top: 1px solid #ddd;
+  margin: 0 6px;
+  height: 0;
+}
+
+/* === Level Buttons Container === */
 .levelCol {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  align-items: center;
+  width: auto; /* 🟢 shrink to fit buttons */
 }
 
+/* === Level Buttons === */
 .levelBtn {
   width: 70px;
   padding: 6px;
   font-size: 14px;
+  font-weight: 500;
   border-radius: 6px;
   border: 1px solid #ccc;
   background: #f9f9f9;
+  color: #333;
   cursor: pointer;
+  transition: all 0.15s ease;
 }
 
 .levelBtn:hover {
   background: #e6f7ff;
+  border-color: #1890ff;
 }
 
 .active {
   background: #d0ebff;
   border-color: #1890ff;
+  color: #1890ff;
+}
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f0f0f0 !important;
+  border-color: #ddd !important;
+  color: #999 !important;
 }

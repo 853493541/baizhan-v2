@@ -12,17 +12,20 @@ export default function MemberList({
   return (
     <div className={styles.rightColumn}>
       <h4>角色</h4>
+
       <div className={styles.list}>
         {group.characters.map((c: any) => {
           const fullChar = allCharacters.find((fc: any) => fc._id === c._id);
           const learned = c.abilities?.[selectedAbility] ?? 0;
-          const disabled = selectedLevel ? learned >= selectedLevel : false;
+
+          // 🧩 Disable if: no level selected OR character already has that level or higher
+          const disabled = !selectedLevel || learned >= selectedLevel;
 
           return (
             <button
               key={c._id}
               disabled={disabled}
-              onClick={() => setSelectedCharacter(c)}
+              onClick={() => !disabled && setSelectedCharacter(c)}
               className={`${styles.memberBtn} ${
                 selectedCharacter?._id === c._id ? styles.active : ""
               } ${disabled ? styles.disabled : ""}`}
