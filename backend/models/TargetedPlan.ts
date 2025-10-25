@@ -22,7 +22,7 @@ interface KillSelection {
 }
 
 /* ---------------------------------------------------------------------------
-   ⚔️ Sub-schema: Kill Entry (old, still used)
+   ⚔️ Sub-schema: Kill Entry (legacy)
 --------------------------------------------------------------------------- */
 interface Kill {
   floor: number;
@@ -56,7 +56,8 @@ interface Group {
   characters: GroupCharacter[];
   status: "not_started" | "started" | "finished";
   kills: Kill[];
-  drops: DropEntry[]; // ✅ always exists — new multi-drop system
+  drops: DropEntry[];
+  lastResetAt?: Date; // ✅ new: tracks when this group was last reset
 }
 
 /* ---------------------------------------------------------------------------
@@ -69,6 +70,7 @@ export interface ITargetedPlan extends Document {
   server: string;
   targetedBoss: string;
   createdAt: Date;
+  lastResetAt?: Date; // ✅ new: tracks last reset time for entire plan
   characterCount: number;
   characters: mongoose.Types.ObjectId[];
   groups: Group[];
@@ -89,10 +91,10 @@ const DropEntrySchema = new Schema<DropEntry>(
   { _id: false }
 );
 
-// --- Kill (old)
+// --- Kill (legacy)
 const KillSchema = new Schema<Kill>(
   {
-    floor: { type: Number, required: false },
+    floor: { type: Number },
     boss: { type: String },
     completed: { type: Boolean, default: false },
     selection: {
@@ -134,7 +136,8 @@ const GroupSchema = new Schema<Group>(
       default: "not_started",
     },
     kills: { type: [KillSchema], default: [] },     // legacy support
-    drops: { type: [DropEntrySchema], default: [] }, // ✅ always defined, new system
+    drops: { type: [DropEntrySchema], default: [] }, // ✅ always defined
+    lastResetAt: { type: Date },                     // ✅ added
   },
   { _id: false }
 );
@@ -142,7 +145,7 @@ const GroupSchema = new Schema<Group>(
 // --- TargetedPlan
 const TargetedPlanSchema = new Schema<ITargetedPlan>({
   type: { type: String, default: "targeted" },
-  planId: { type: String, required: true, unique: true },
+  planId: { type: String, required: true, unique: true, index: true },
   name: { type: String, default: "未命名单体计划" },
   server: { type: String, required: true },
   targetedBoss: { type: String, required: true },
@@ -150,6 +153,7 @@ const TargetedPlanSchema = new Schema<ITargetedPlan>({
   characters: [{ type: Schema.Types.ObjectId, ref: "Character" }],
   groups: { type: [GroupSchema], default: [] },
   createdAt: { type: Date, default: Date.now },
+  lastResetAt: { type: Date }, // ✅ new
 });
 
 /* ---------------------------------------------------------------------------

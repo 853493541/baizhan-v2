@@ -263,3 +263,32 @@
 .cancelBtn:hover {
   background: #e2e2e2;
 }
+.headerBtns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.resetBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #ffeaea;
+  border: 1px solid #ffb3b3;
+  color: #c82333;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.resetBtn:hover:not(:disabled) {
+  background: #ffd9d9;
+  border-color: #ff9999;
+}
+
+.resetBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

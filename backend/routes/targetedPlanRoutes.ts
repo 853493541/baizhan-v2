@@ -8,6 +8,7 @@ import {
   addDropRecord,
   getGroupDrops,
   deleteGroupDrop,
+  resetTargetedPlan,
   updateGroupStatus,
 } from "../controllers/targetedplan/controllers";
 
@@ -21,9 +22,12 @@ router.put("/:planId", updateTargetedPlan);
 router.delete("/:planId", deleteTargetedPlan);
 
 // === Group-level Drop Routes ===
-router.post("/:planId/groups/:index/drops", addDropRecord);       // ✅ add drop
-router.get("/:planId/groups/:index/drops", getGroupDrops);        // ✅ list drops
-router.delete("/:planId/groups/:index/drops", deleteGroupDrop);   // ✅ delete drop
-router.put("/:planId/groups/:index/status", updateGroupStatus);   // ✅ update status
+router.post("/:planId/groups/:index/drops", addDropRecord);      // ✅ add drop
+router.get("/:planId/groups/:index/drops", getGroupDrops);       // ✅ list drops
+router.delete("/:planId/groups/:index/drops", deleteGroupDrop);  // ✅ delete drop
+router.put("/:planId/groups/:index/status", updateGroupStatus);  // ✅ update status
+
+// === 🔄 Reset entire plan ===
+router.post("/:planId/reset", resetTargetedPlan); // ✅ <-- FIXED
 
 export default router;

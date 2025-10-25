@@ -393,3 +393,43 @@ export const updateGroupStatus = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to update group status" });
   }
 };
+/* ============================================================================
+   🔄 RESET PLAN — Set all groups to not_started and clear drops/kills
+============================================================================ */
+/* ============================================================================
+   🔄 RESET PLAN — Set all groups to not_started and clear drops/kills
+============================================================================ */
+export const resetTargetedPlan = async (req: Request, res: Response) => {
+  try {
+    const { planId } = req.params;
+
+    const plan = await TargetedPlan.findOne({ planId });
+    if (!plan) return res.status(404).json({ error: "Plan not found" });
+
+    const now = new Date();
+
+    // ✅ Reset groups (keep characters/abilities) and track time
+    plan.groups = plan.groups.map((g: any) => ({
+      ...g,
+      status: "not_started",
+      kills: [],
+      drops: [],
+      lastResetAt: now, // new field added per group
+    }));
+
+    plan.lastResetAt = now; // ✅ new global timestamp for this plan
+    plan.markModified("groups");
+
+    await plan.save();
+
+    console.log(`🔄 [Reset] Cleared drops and reset statuses for ${planId} at ${now.toISOString()}`);
+    res.json({
+      success: true,
+      message: "Plan reset successfully",
+      lastResetAt: now,
+    });
+  } catch (err) {
+    console.error("❌ Error resetting targeted plan:", err);
+    res.status(500).json({ error: "Failed to reset targeted plan" });
+  }
+};

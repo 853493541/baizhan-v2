@@ -50,13 +50,15 @@ export default function TargetedPlanDetail({ planId }: Props) {
   const [checkedAbilities, setCheckedAbilities] = useState<AbilityCheck[]>([]);
   const router = useRouter();
 
-  // ✅ Fetch targeted plan
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
+
+  /* =======================================================================
+     🧠 Fetch targeted plan detail
+  ======================================================================= */
   const fetchPlan = async () => {
     if (!planId) return;
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/targeted-plans/${planId}`
-      );
+      const res = await fetch(`${API_BASE}/api/targeted-plans/${planId}`);
       if (!res.ok) throw new Error("Failed to fetch targeted plan");
       const data: TargetedPlan = await res.json();
       console.log("📥 Loaded targeted plan:", data);
@@ -64,27 +66,26 @@ export default function TargetedPlanDetail({ planId }: Props) {
       setPlan(data);
       setGroups(Array.isArray(data.groups) ? data.groups : []);
 
-      // 🧠 Build checkedAbilities from boss name
+      // 🧩 Build checked abilities based on boss
       const bossName = data.targetedBoss;
-      const bossEntry =
-        (ChallengeBossDrops as any).bosses[bossName] || [];
+      const bossEntry = (ChallengeBossDrops as any).bosses[bossName] || [];
       const commonPool = (ChallengeBossDrops as any).common || [];
 
       const abilityChecks: AbilityCheck[] = [];
 
-      // 🟢 Boss-specific (always level 10)
+      // Boss-specific (always level 10)
       bossEntry.forEach((a: string) => {
         abilityChecks.push({ name: a, available: true, level: 10 });
       });
 
-      // 🟡 Common pool (both level 9 and 10)
+      // Common pool (both levels 9 & 10)
       commonPool.forEach((a: string) => {
         abilityChecks.push({ name: a, available: true, level: 9 });
         abilityChecks.push({ name: a, available: true, level: 10 });
       });
 
       console.groupCollapsed(
-        `🧩 Built ability checklist for boss: ${bossName} (total ${abilityChecks.length})`
+        `🧩 Built ability checklist for boss: ${bossName} (${abilityChecks.length})`
       );
       abilityChecks.forEach((a, i) =>
         console.log(
@@ -105,29 +106,42 @@ export default function TargetedPlanDetail({ planId }: Props) {
     if (planId) fetchPlan();
   }, [planId]);
 
+  /* =======================================================================
+     🗑️ Delete targeted plan (404-tolerant)
+  ======================================================================= */
   const handleDelete = async () => {
     if (!planId) return;
+    if (!confirm("确定要删除这个排表吗？")) return;
+
     try {
       setDeleting(true);
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/targeted-plans/${planId}`,
-        { method: "DELETE" }
-      );
-      if (!res.ok) throw new Error("Delete failed");
+      const res = await fetch(`${API_BASE}/api/targeted-plans/${planId}`, {
+        method: "DELETE",
+      });
+
+      // ✅ Ignore 404 (already deleted)
+      if (res.status !== 200 && res.status !== 201 && res.status !== 204) {
+        if (res.status !== 404) throw new Error("Delete failed");
+      }
+
+      console.log("✅ Targeted plan deleted:", planId);
       router.push("/targetedplans");
     } catch (err) {
       console.error("❌ Failed to delete plan:", err);
+      alert("删除失败，请稍后再试");
       setDeleting(false);
     }
   };
 
+  /* =======================================================================
+     🧱 Rendering
+  ======================================================================= */
   if (!planId) return <p className={styles.error}>无效的计划ID</p>;
   if (loading) return <p className={styles.loading}>加载中...</p>;
   if (!plan) return <p className={styles.error}>未找到计划</p>;
 
   const locked =
-    groups?.some((g) => g.status === "started" || g.status === "finished") ??
-    false;
+    groups?.some((g) => g.status === "started" || g.status === "finished") ?? false;
 
   return (
     <div className={styles.container}>
@@ -136,7 +150,6 @@ export default function TargetedPlanDetail({ planId }: Props) {
         schedule={plan}
         onBack={() => router.push("/targetedplans")}
         onDelete={handleDelete}
-        deleting={deleting}
         locked={locked}
       />
 
@@ -149,7 +162,7 @@ export default function TargetedPlanDetail({ planId }: Props) {
         setActiveIdx={setActiveIdx}
         checkGroupQA={() => []}
         checkedAbilities={checkedAbilities}
-        targetedBoss={plan.targetedBoss}  // ✅ connected to combined boss+common abilities
+        targetedBoss={plan.targetedBoss}
       />
 
       {/* === Group Modal === */}
