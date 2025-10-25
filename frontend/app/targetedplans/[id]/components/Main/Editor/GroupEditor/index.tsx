@@ -64,7 +64,8 @@ export default function GroupEditor({
               className={styles.deleteHeaderBtn}
               title="删除整个小组"
             >
-              ✖ 删除组 {groupIndex + 1}
+              <span className={styles.deleteHeaderX}></span>
+              删除组 {groupIndex + 1}
             </button>
           ) : (
             <>
@@ -74,7 +75,7 @@ export default function GroupEditor({
                 className={styles.addDropBtn}
                 title="为此组添加掉落"
               >
-                ＋ 添加掉落
+                ＋ 掉落
               </button>
             </>
           )}
@@ -87,7 +88,7 @@ export default function GroupEditor({
             planId={planId}
             groupIndex={groupIndex}
             groupCharacters={group.characters}
-            refreshSignal={refreshSignal} // ✅ re-fetch when signal changes
+            refreshSignal={refreshSignal}
           />
         </div>
       </div>
@@ -158,8 +159,8 @@ export default function GroupEditor({
           checkedAbilities={checkedAbilities}
           onClose={() => setShowDropModal(false)}
           onSaved={() => {
-            refreshPlan(); // keep parent synced
-            setRefreshSignal((v) => v + 1); // 🔁 refresh drops immediately
+            refreshPlan();
+            setRefreshSignal((v) => v + 1);
           }}
           allCharacters={allCharacters}
         />

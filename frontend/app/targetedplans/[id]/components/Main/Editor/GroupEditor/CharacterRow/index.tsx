@@ -44,21 +44,6 @@ export default function CharacterRow({
 
   return (
     <div className={styles.memberRow}>
-      {/* === Delete Button (Left Side, Always Exists) === */}
-      <div className={styles.actionGroup}>
-        {editing ? (
-          <button
-            onClick={() => onRemoveCharacter(groupIndex, c._id)}
-            className={styles.smallBtn}
-            title="移除此角色"
-          >
-            x
-          </button>
-        ) : (
-          <div className={styles.placeholderBtn}></div>
-        )}
-      </div>
-
       {/* === Character Pill === */}
       <div
         className={`${styles.memberItem} ${
@@ -74,6 +59,18 @@ export default function CharacterRow({
       >
         {MAIN_CHARACTERS.has(c.name) ? "★ " : ""}
         {c.name}
+        {editing && (
+          <button
+            className={styles.deleteCircle}
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemoveCharacter(groupIndex, c._id);
+            }}
+            title="移除此角色"
+          >
+            ×
+          </button>
+        )}
       </div>
 
       {/* === Ability Slots === */}
@@ -87,7 +84,6 @@ export default function CharacterRow({
 
           return (
             <div key={ai} className={styles.abilitySlot}>
-              {/* --- Non-editing mode --- */}
               {!editing ? (
                 current ? (
                   <div
@@ -115,7 +111,6 @@ export default function CharacterRow({
                   <div className={styles.emptyAbility}>—</div>
                 )
               ) : (
-                /* --- Editing mode --- */
                 <div
                   className={styles.customDropdown}
                   style={{
