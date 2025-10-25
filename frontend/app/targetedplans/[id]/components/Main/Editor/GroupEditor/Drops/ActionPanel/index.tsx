@@ -60,9 +60,9 @@ export default function ActionPanel({
 
     // Prevent saving 9 if already has 10 in backpack
     if (selectedLevel === 9 && hasLevel10InStorage(fullChar, selectedAbility)) {
-      alert(
-        `⚠️ ${fullChar.name} 的背包中已存在 ${selectedAbility}（10重）。\n不能再保存 9重。`
-      );
+      // alert(
+      //   `⚠️ ${fullChar.name} 的背包中已存在 ${selectedAbility}（10重）。\n不能再保存 9重。`
+      // );
       return;
     }
 
@@ -78,7 +78,7 @@ export default function ActionPanel({
       // 🟢 Mark group as finished
       await markGroupAsDone();
 
-      alert("✅ 已保存到背包，并已记录掉落！");
+      alert("✅ 已存入背包！");
       onSaved();
       onClose();
     } finally {
@@ -99,7 +99,7 @@ export default function ActionPanel({
         body: JSON.stringify({ ability: selectedAbility, level: selectedLevel }),
       });
 
-      alert(`✅ ${fullChar.name} 已成功使用 ${selectedAbility}（${selectedLevel}重）`);
+      alert(`✅ ${fullChar.name} 已使用${selectedAbility}（${selectedLevel}重）`);
 
       // 🟨 Step 2: if we just used 9重, check if backpack has 10重
       if (
@@ -107,7 +107,7 @@ export default function ActionPanel({
         hasLevel10InStorage(fullChar, selectedAbility)
       ) {
         const useTen = confirm(
-          `💡 ${fullChar.name} 的背包中有 ${selectedAbility}（10重）。\n是否立即使用？`
+          `${fullChar.name} 的背包中有 ${selectedAbility}（十重）, 是否使用？`
         );
         if (useTen) {
           await fetch(`${API_URL}/api/characters/${fullChar._id}/storage/use`, {
@@ -115,7 +115,7 @@ export default function ActionPanel({
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ ability: selectedAbility, level: 10 }),
           });
-          alert(`✅ ${fullChar.name} 已成功使用 ${selectedAbility}（10重）`);
+          // alert(`✅ ${fullChar.name} 已使用 ${selectedAbility}（十重）`);
         }
       }
 
