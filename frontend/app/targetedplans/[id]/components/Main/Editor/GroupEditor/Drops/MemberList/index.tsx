@@ -3,11 +3,12 @@ import styles from "./styles.module.css";
 import SingleBossDrops from "@/app/data/Single_Boss_Drops.json";
 import { MAIN_CHARACTERS, getBossProgressText } from "../drophelpers";
 
+type StorageItem = { ability: string; level: number; used?: boolean };
 type Char = {
   _id: string;
   name: string;
   abilities: Record<string, number>;
-  storage?: { ability: string; level: number; used?: boolean }[];
+  storage?: StorageItem[];
   gender?: "男" | "女";
 };
 
@@ -26,22 +27,23 @@ export default function MemberList({
   selectedCharacter: Char | null;
   setSelectedCharacter: (c: Char) => void;
 }) {
-  /* 🧩 Auto-detect which boss drop list includes the selected ability */
+  /* === 🧩 Find which boss this ability belongs to === */
   const dropList =
     selectedAbility &&
-    Object.entries(SingleBossDrops).find(([boss, list]) =>
+    Object.entries(SingleBossDrops).find(([_, list]) =>
       list.includes(selectedAbility)
     )?.[1] || [];
 
-  /* Helper utilities */
   const fullChar = (c: Char) =>
     allCharacters.find((fc) => fc._id === c._id) || c;
 
-  const hasLevel10InStorage = (ch: Char, ability: string) =>
-    Array.isArray(ch?.storage) &&
-    ch.storage.some(
-      (it) => it.ability === ability && it.level === 10 && it.used === false
+  /* === 🪣 Check backpack for level-10 copy === */
+  const hasLevel10InStorage = (ch: Char, ability: string) => {
+    if (!Array.isArray(ch?.storage)) return false;
+    return ch.storage.some(
+      (item) => item.ability === ability && item.level === 10 && !item.used
     );
+  };
 
   const getProgressColor = (txt: string) => {
     if (!txt) return "";
@@ -58,7 +60,7 @@ export default function MemberList({
   const countLevel10FromBoss = (ch: Char, dl: string[]) =>
     dl.reduce((n, ab) => (ch.abilities?.[ab] >= 10 ? n + 1 : n), 0);
 
-  /* 🧠 Auto pick best candidate for selected ability + level */
+  /* === 🧠 Pick the best candidate automatically === */
   const pickBestCandidate = (ability: string, level: 9 | 10 | null) => {
     if (!ability || !level) return null;
     const assignable = group.characters.filter(
@@ -66,11 +68,9 @@ export default function MemberList({
     );
     if (assignable.length === 0) return null;
 
-    // 1️⃣ Prefer main characters
     const main = assignable.find((c) => MAIN_CHARACTERS.has(c.name));
     if (main) return main;
 
-    // 2️⃣ If assigning 九重, prefer someone who already holds a 10重 copy
     if (level === 9) {
       const withStored10 = assignable.find((c) =>
         hasLevel10InStorage(fullChar(c), ability)
@@ -78,10 +78,8 @@ export default function MemberList({
       if (withStored10) return withStored10;
     }
 
-    // 3️⃣ Highest learned level wins → tie-break by boss progress and 10重 count
     let best = assignable[0];
     let bestLv = best.abilities?.[ability] ?? 0;
-
     for (const c of assignable.slice(1)) {
       const lv = c.abilities?.[ability] ?? 0;
       if (lv > bestLv) {
@@ -121,8 +119,12 @@ export default function MemberList({
           const learned = c.abilities?.[selectedAbility] ?? 0;
           const disabled =
             !selectedAbility || !selectedLevel || learned >= selectedLevel;
+
+          /* 🪣 Show warning if character already has that ability as 10重 in backpack */
           const showStored10 =
-            selectedLevel === 9 && hasLevel10InStorage(fc, selectedAbility);
+            selectedAbility &&
+            hasLevel10InStorage(fc, selectedAbility) &&
+            selectedLevel === 9;
 
           const progressText =
             dropList.length > 0 ? getBossProgressText(dropList, fc) : "";

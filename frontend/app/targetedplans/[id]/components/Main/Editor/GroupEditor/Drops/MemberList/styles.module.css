@@ -182,3 +182,32 @@
 .warningRow { display: flex; align-items: center; gap: 4px; font-size: 13px; color: #1c7c2d; }
 .warningIcon { font-size: 14px; }
 .warningText { font-weight: 600; }
+/* Top row: name + right-aligned progress */
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.name {
+  font-size: 14px;
+  font-weight: 500;
+  color: inherit;
+}
+
+/* 🟢 Neutral progress text — no color */
+.progressText {
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: #555;       /* <-- neutral gray tone */
+  opacity: 0.9;
+}
+
+/* 🗑️ Remove all special coloring */
+.progressGreen,
+.progressYellow,
+.progressPink {
+  color: #555 !important;
+}
