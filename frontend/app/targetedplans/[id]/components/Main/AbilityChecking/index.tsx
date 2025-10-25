@@ -16,8 +16,7 @@ export default function AbilityChecking({ groups, characters, checkedAbilities }
   const [checkLevel, setCheckLevel] = useState<9 | 10>(10);
 
   /* ----------------------------------------------------------------------
-     🧠 Group drop compatibility check (Lv9 / Lv10 switchable)
-     ✅ Shows ❌ with icon + name + level (九重/十重)
+     🧠 Group drop compatibility check
   ---------------------------------------------------------------------- */
   useEffect(() => {
     const relevantAbilities = checkedAbilities.filter(
@@ -27,12 +26,13 @@ export default function AbilityChecking({ groups, characters, checkedAbilities }
     const result: Record<number, string[]> = {};
 
     groups.forEach((g, i) => {
-      const groupWarnings: string[] = [];
-
-      if (!g.characters || g.characters.length === 0) {
-        result[i] = ["✅ 全掉落兼容"];
+      // 🟡 Skip groups with fewer than 2 members
+      if (!g.characters || g.characters.length < 2) {
+        result[i] = []; // empty = no analysis
         return;
       }
+
+      const groupWarnings: string[] = [];
 
       for (const ab of relevantAbilities) {
         const requiredLv = ab.level ?? checkLevel;
@@ -51,10 +51,7 @@ export default function AbilityChecking({ groups, characters, checkedAbilities }
         }
       }
 
-      if (groupWarnings.length === 0) {
-        groupWarnings.push("✅ 无浪费");
-      }
-
+      if (groupWarnings.length === 0) groupWarnings.push("✅ 无浪费");
       result[i] = groupWarnings;
     });
 
@@ -62,14 +59,13 @@ export default function AbilityChecking({ groups, characters, checkedAbilities }
   }, [groups, checkedAbilities, checkLevel]);
 
   /* ----------------------------------------------------------------------
-     🖥️ Render
+     🖥️ Render (no wrapper box)
   ---------------------------------------------------------------------- */
   return (
-    <div className={styles.wrapper}>
-      <div className={styles.headerRow}>
-        <h4 className={styles.title}>小组分析</h4>
-
-        {/* Level toggle */}
+    <div className={styles.container}>
+      {/* Header bar aligned with edit button height */}
+      <div className={styles.headerBar}>
+        <h3 className={styles.headerTitle}>小组分析</h3>
         <div className={styles.levelTabs}>
           <button
             className={`${styles.tabBtn} ${checkLevel === 9 ? styles.active : ""}`}
@@ -86,43 +82,48 @@ export default function AbilityChecking({ groups, characters, checkedAbilities }
         </div>
       </div>
 
-      {groups.map((g, i) => (
-        <div key={i} className={styles.groupBox}>
-          <div className={styles.groupTitle}>小组 {i + 1}</div>
+      {/* Card list */}
+      <div className={styles.cardsArea}>
+        {groups.map((g, i) => {
+          // 🟡 Skip rendering for groups with < 2 characters
+          if (!g.characters || g.characters.length < 2) return null;
 
-          {groupAnalysis[i]?.map((msg, idx) => {
-            // ✅ Compatible
-            if (msg.startsWith("✅")) {
-              return (
-                <div key={idx} className={styles.ok}>
-                  ✅ 无浪费
-                </div>
-              );
-            }
+          return (
+            <div key={i} className={styles.groupBox}>
+              <div className={styles.groupTitle}>小组 {i + 1}</div>
+              {groupAnalysis[i]?.map((msg, idx) => {
+                if (msg.startsWith("✅")) {
+                  return (
+                    <div key={idx} className={styles.ok}>
+                      ✅ 无浪费
+                    </div>
+                  );
+                }
 
-            // ❌ Warning
-            const [name, levelLabel] = msg.split("|");
-            const safeName = name.trim();
+                const [name, levelLabel] = msg.split("|");
+                const safeName = name.trim();
 
-            return (
-              <div key={idx} className={styles.warning}>
-                <span className={styles.iconMark}>❌</span>
-                <Image
-                  src={`/icons/${safeName}.png`}
-                  alt={safeName}
-                  width={20}
-                  height={20}
-                  className={styles.abilityIcon}
-                  unoptimized // 🟢 avoids Next.js encoding issues
-                />
-                <span className={styles.abilityText}>
-                  {safeName} · {levelLabel}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      ))}
+                return (
+                  <div key={idx} className={styles.warning}>
+                    <span className={styles.iconMark}>❌</span>
+                    <Image
+                      src={`/icons/${safeName}.png`}
+                      alt={safeName}
+                      width={20}
+                      height={20}
+                      className={styles.abilityIcon}
+                      unoptimized
+                    />
+                    <span className={styles.abilityText}>
+                      {safeName} · {levelLabel}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

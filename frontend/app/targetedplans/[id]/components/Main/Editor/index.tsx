@@ -118,6 +118,20 @@ export default function Editor({
     charId: string | undefined,
     e: React.MouseEvent
   ) => {
+    // ✅ Inject global data for CharacterDropdown
+    (window as any).__ALL_CHARACTERS__ = allCharacters;
+
+    const usedMap: Record<string, number> = {};
+    localGroups.forEach((g, i) => {
+      g.characters.forEach((c: any) => {
+        const id = c._id || c.characterId?._id || c.characterId;
+        if (id) usedMap[id] = i;
+      });
+    });
+    (window as any).__USED_CHARACTER_MAP__ = usedMap;
+    (window as any).__CURRENT_GROUP_INDEX__ = groupIdx;
+
+    // ✅ Positioning logic
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const x = rect.left + rect.width / 2 - 100 + window.scrollX;
     const y = rect.bottom + 6 + window.scrollY;
@@ -185,10 +199,7 @@ export default function Editor({
       {/* Add Group */}
       {editing && (
         <div className={styles.addGroupWrapper}>
-          <button
-            onClick={() => handleAddGroup(setLocalGroups)}
-            className={styles.addGroupBtn}
-          >
+          <button onClick={() => handleAddGroup(setLocalGroups)} className={styles.addGroupBtn}>
             <span className={styles.addGroupIcon}>+</span> 新增小组
           </button>
         </div>
@@ -199,14 +210,6 @@ export default function Editor({
         <CharacterDropdown
           x={charDrop.pos.x}
           y={charDrop.pos.y}
-          character={
-            charDrop.groupIdx != null && charDrop.charId
-              ? localGroups[charDrop.groupIdx]?.characters.find(
-                  (c: any) =>
-                    (c._id || c.characterId?._id || c.characterId) === charDrop.charId
-                )
-              : undefined
-          }
           excludeId={charDrop.charId}
           onClose={closeCharDropdown}
           onSelect={(char) => {
