@@ -1,48 +1,40 @@
 "use client";
-
-import React from "react";
 import styles from "./styles.module.css";
-import type { Character, GroupResult } from "@/utils/solver";
 
 export default function MemberList({
   group,
+  allCharacters,
   selectedAbility,
   selectedLevel,
-  onSelectCharacter,
-  onBack,
-}: {
-  group: GroupResult;
-  selectedAbility: string;
-  selectedLevel: 9 | 10;
-  onSelectCharacter: (char: Character) => void;
-  onBack: () => void;
-}) {
+  selectedCharacter,
+  setSelectedCharacter,
+}: any) {
   return (
-    <div className={styles.container}>
-      <h3>选择角色 - {selectedAbility}（{selectedLevel}重）</h3>
-      <div className={styles.memberGrid}>
-        {group.characters.map((c) => {
-          const level = c.abilities?.[selectedAbility] ?? 0;
-          const disabled = level >= selectedLevel;
+    <div className={styles.rightColumn}>
+      <h4>角色</h4>
+      <div className={styles.list}>
+        {group.characters.map((c: any) => {
+          const fullChar = allCharacters.find((fc: any) => fc._id === c._id);
+          const learned = c.abilities?.[selectedAbility] ?? 0;
+          const disabled = selectedLevel ? learned >= selectedLevel : false;
 
           return (
             <button
               key={c._id}
               disabled={disabled}
-              className={`${styles.memberBtn} ${disabled ? styles.disabled : ""}`}
-              onClick={() => onSelectCharacter(c)}
+              onClick={() => setSelectedCharacter(c)}
+              className={`${styles.memberBtn} ${
+                selectedCharacter?._id === c._id ? styles.active : ""
+              } ${disabled ? styles.disabled : ""}`}
             >
               <span className={styles.name}>{c.name}</span>
               <span className={styles.level}>
-                当前等级: {level > 0 ? `${level}重` : "未习得"}
+                {learned > 0 ? `当前：${learned}重` : "未习得"}
               </span>
             </button>
           );
         })}
       </div>
-      <button onClick={onBack} className={styles.backBtn}>
-        返回
-      </button>
     </div>
   );
 }

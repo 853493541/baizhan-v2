@@ -1,0 +1,44 @@
+.leftColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.search {
+  width: 180px;
+  padding: 4px 6px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: #f9f9f9;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.item:hover {
+  background: #e6f7ff;
+  border-color: #1890ff;
+}
+
+.active {
+  background: #d0ebff;
+  border-color: #1890ff;
+}

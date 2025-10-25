@@ -1,50 +1,53 @@
-.container {
+.rightColumn {
   display: flex;
   flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
 }
 
-.memberGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
-  margin: 16px 0;
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 320px;
+  overflow-y: auto;
 }
 
 .memberBtn {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #f8f8f8;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 10px 14px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 6px 10px;
+  min-width: 220px;
+  border: 1px solid #28a745;
+  background: #eafbea;
+  border-radius: 6px;
   cursor: pointer;
-  transition: 0.2s;
 }
 
 .memberBtn:hover {
-  background: #e6f5ea;
+  background: #d4f5d4;
 }
 
 .disabled {
-  opacity: 0.6;
+  background: #f0f0f0;
+  border-color: #ddd;
+  color: #888;
   cursor: not-allowed;
+}
+
+.active {
+  background: #d0ebff;
+  border-color: #1890ff;
 }
 
 .name {
   font-weight: 600;
+  font-size: 14px;
 }
 
 .level {
   font-size: 13px;
-  color: #666;
-}
-
-.backBtn {
-  align-self: flex-end;
-  background: #eee;
-  border: none;
-  border-radius: 6px;
-  padding: 8px 16px;
-  cursor: pointer;
+  color: #555;
 }
