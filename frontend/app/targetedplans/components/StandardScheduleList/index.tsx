@@ -96,9 +96,6 @@ export default function StandardScheduleList({
       ) : (
         <div className={styles.cardGrid}>
           {schedules.map((p) => {
-            // 🧩 Debug inline per card
-            console.log("🔍 Rendering card for plan:", p.planId, p);
-
             const groups = p.groups || [];
             const finishedCount = groups.filter(
               (g) => g.status === "finished"
@@ -120,13 +117,6 @@ export default function StandardScheduleList({
                   <h4 className={styles.cardTitle}>{p.name}</h4>
                   <div className={styles.cardContent}>
                     <p>
-                      <span className={styles.label}>服务器:</span> {p.server}
-                    </p>
-                    <p>
-                      <span className={styles.label}>目标 Boss:</span>{" "}
-                      {p.targetedBoss || "未知"}
-                    </p>
-                    <p>
                       <span className={styles.label}>角色数量:</span>{" "}
                       {p.characterCount ?? "N/A"}
                     </p>
@@ -141,8 +131,10 @@ export default function StandardScheduleList({
                       {locked ? "🔒 已锁定" : "🔓 未锁定"}
                     </p>
                   </div>
-                  <p className={styles.date}>
-                    创建时间: {new Date(p.createdAt).toLocaleDateString()}
+
+                  {/* 👇 bottom-right corner: server · boss (italic) */}
+                  <p className={styles.footerLine}>
+                    {p.server} · {p.targetedBoss}
                   </p>
                 </Link>
 
@@ -193,6 +185,8 @@ export default function StandardScheduleList({
               {(() => {
                 const plan = schedules.find((p) => p.planId === editingId);
                 const groups = plan?.groups || [];
+
+                // ✅ Exact same lock logic as display
                 const locked = groups.some(
                   (g) => g.status === "started" || g.status === "finished"
                 );

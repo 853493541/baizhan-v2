@@ -267,3 +267,10 @@
   background-color: #ccc; /* no hover color change */
   color: #666;
 }
+.footerLine {
+  text-align: right;
+  font-size: 0.85rem;
+  color: #666666bb;
+  font-style: italic; /* 👈 倾斜样式 */
+  margin-top: 8px;
+}
