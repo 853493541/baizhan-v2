@@ -76,17 +76,33 @@ export const createTargetedPlan = async (req: Request, res: Response) => {
 /* ============================================================================
    🟡 SUMMARY — Get minimal info for list display
 ============================================================================ */
+/* ============================================================================
+   🟡 SUMMARY — Get info for list display (now includes group status)
+============================================================================ */
 export const getTargetedPlansSummary = async (_: Request, res: Response) => {
   try {
+    // ✅ Fetch groups + status only
     const plans = await TargetedPlan.find(
       {},
-      "planId name server targetedBoss characterCount createdAt"
+      "planId name server targetedBoss characterCount createdAt groups.status groups.index"
     )
       .sort({ createdAt: -1 })
       .lean();
 
-    console.log(`📤 Returned ${plans.length} targeted plans (summary only)`);
-    res.json(plans);
+    // ✅ Optional: simplify groups to just index + status
+    const simplified = plans.map((plan: any) => ({
+      ...plan,
+      groups:
+        Array.isArray(plan.groups) && plan.groups.length > 0
+          ? plan.groups.map((g: any) => ({
+              index: g.index,
+              status: g.status || "not_started",
+            }))
+          : [],
+    }));
+
+    console.log(`📤 Returned ${simplified.length} targeted plans (with group status)`);
+    res.json(simplified);
   } catch (err) {
     console.error("❌ Error fetching targeted plans summary:", err);
     res.status(500).json({ error: "Failed to fetch targeted plans summary" });

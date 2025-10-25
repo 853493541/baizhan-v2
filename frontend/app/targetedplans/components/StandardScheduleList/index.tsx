@@ -2,8 +2,12 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Settings, X } from "lucide-react";
+import { Settings, X, Lock } from "lucide-react";
 import styles from "./styles.module.css";
+
+interface Group {
+  status?: "not_started" | "started" | "finished";
+}
 
 interface TargetedPlan {
   _id: string;
@@ -13,6 +17,7 @@ interface TargetedPlan {
   targetedBoss: string;
   createdAt: string;
   characterCount: number;
+  groups?: Group[];
 }
 
 interface Props {
@@ -31,6 +36,16 @@ export default function StandardScheduleList({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [tempName, setTempName] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // ✅ Debug: log every plan object received
+  useEffect(() => {
+    console.group("📦 [Debug] Targeted Plan Objects Received");
+    console.log("Total plans:", schedules.length);
+    schedules.forEach((p, i) => {
+      console.log(`Plan #${i + 1}:`, JSON.parse(JSON.stringify(p)));
+    });
+    console.groupEnd();
+  }, [schedules]);
 
   // ✅ Auto-focus when renaming
   useEffect(() => {
@@ -55,6 +70,7 @@ export default function StandardScheduleList({
         prev.map((p) => (p.planId === planId ? { ...p, name: updated.name } : p))
       );
     } catch (err) {
+      console.error("❌ 更新单体计划名字失败:", err);
       alert("更新单体计划名字失败");
     }
   };
@@ -68,6 +84,7 @@ export default function StandardScheduleList({
       if (!res.ok) throw new Error("Failed to delete plan");
       setSchedules((prev) => prev.filter((p) => p.planId !== planId));
     } catch (err) {
+      console.error("❌ 删除单体计划失败:", err);
       alert("删除单体计划失败");
     }
   };
@@ -78,46 +95,70 @@ export default function StandardScheduleList({
         <p className={styles.empty}>暂无单体计划</p>
       ) : (
         <div className={styles.cardGrid}>
-          {schedules.map((p) => (
-            <div key={p.planId} className={styles.cardWrapper}>
-              {/* clickable card */}
-              <Link
-                href={`/targetedplans/${p.planId}`}
-                className={`${styles.card} ${styles.standard} ${
-                  disabled ? styles.disabledCard : ""
-                }`}
-              >
-                <h4 className={styles.cardTitle}>{p.name}</h4>
-                <div className={styles.cardContent}>
-                  <p>
-                    <span className={styles.label}>服务器:</span> {p.server}
-                  </p>
-                  <p>
-                    <span className={styles.label}>目标 Boss:</span>{" "}
-                    {p.targetedBoss || "未知"}
-                  </p>
-                  <p>
-                    <span className={styles.label}>角色数量:</span>{" "}
-                    {p.characterCount ?? "N/A"}
-                  </p>
-                </div>
-                <p className={styles.date}>
-                  创建时间: {new Date(p.createdAt).toLocaleDateString()}
-                </p>
-              </Link>
+          {schedules.map((p) => {
+            // 🧩 Debug inline per card
+            console.log("🔍 Rendering card for plan:", p.planId, p);
 
-              {/* Gear icon for edit/delete */}
-              <button
-                className={styles.gearBtn}
-                onClick={() => {
-                  setEditingId(p.planId);
-                  setTempName(p.name);
-                }}
-              >
-                <Settings size={22} />
-              </button>
-            </div>
-          ))}
+            const groups = p.groups || [];
+            const finishedCount = groups.filter(
+              (g) => g.status === "finished"
+            ).length;
+            const totalGroups = groups.length;
+            const locked = groups.some(
+              (g) => g.status === "started" || g.status === "finished"
+            );
+
+            return (
+              <div key={p.planId} className={styles.cardWrapper}>
+                {/* clickable card */}
+                <Link
+                  href={`/targetedplans/${p.planId}`}
+                  className={`${styles.card} ${styles.standard} ${
+                    disabled ? styles.disabledCard : ""
+                  }`}
+                >
+                  <h4 className={styles.cardTitle}>{p.name}</h4>
+                  <div className={styles.cardContent}>
+                    <p>
+                      <span className={styles.label}>服务器:</span> {p.server}
+                    </p>
+                    <p>
+                      <span className={styles.label}>目标 Boss:</span>{" "}
+                      {p.targetedBoss || "未知"}
+                    </p>
+                    <p>
+                      <span className={styles.label}>角色数量:</span>{" "}
+                      {p.characterCount ?? "N/A"}
+                    </p>
+                    <p>
+                      <span className={styles.label}>完成进度:</span>{" "}
+                      {totalGroups > 0
+                        ? `${finishedCount} / ${totalGroups}`
+                        : "N/A"}
+                    </p>
+                    <p>
+                      <span className={styles.label}>锁定状态:</span>{" "}
+                      {locked ? "🔒 已锁定" : "🔓 未锁定"}
+                    </p>
+                  </div>
+                  <p className={styles.date}>
+                    创建时间: {new Date(p.createdAt).toLocaleDateString()}
+                  </p>
+                </Link>
+
+                {/* Gear icon for edit/delete */}
+                <button
+                  className={styles.gearBtn}
+                  onClick={() => {
+                    setEditingId(p.planId);
+                    setTempName(p.name);
+                  }}
+                >
+                  <Settings size={22} />
+                </button>
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -149,24 +190,41 @@ export default function StandardScheduleList({
             </label>
 
             <div className={styles.modalActions}>
-              <button
-                className={`${styles.deleteBtn} ${
-                  disabled ? styles.disabledBtn : ""
-                }`}
-                disabled={disabled}
-                onClick={() => {
-                  if (!disabled) {
-                    if (
-                      window.confirm("⚠️ 确认要删除这个单体计划吗？此操作不可撤销")
-                    ) {
-                      handleDelete(editingId);
-                      setEditingId(null);
-                    }
-                  }
-                }}
-              >
-                删除
-              </button>
+              {(() => {
+                const plan = schedules.find((p) => p.planId === editingId);
+                const groups = plan?.groups || [];
+                const locked = groups.some(
+                  (g) => g.status === "started" || g.status === "finished"
+                );
+
+                return (
+                  <button
+                    className={`${styles.deleteBtn} ${
+                      locked || disabled ? styles.disabledBtn : ""
+                    }`}
+                    disabled={locked || disabled}
+                    onClick={() => {
+                      if (!locked && !disabled) {
+                        if (
+                          window.confirm("⚠️ 确认要删除这个单体计划吗？此操作不可撤销")
+                        ) {
+                          handleDelete(editingId);
+                          setEditingId(null);
+                        }
+                      }
+                    }}
+                  >
+                    {locked ? (
+                      <>
+                        <Lock size={14} style={{ marginRight: 4 }} />
+                        删除
+                      </>
+                    ) : (
+                      "删除"
+                    )}
+                  </button>
+                );
+              })()}
 
               <button
                 className={styles.saveBtn}
