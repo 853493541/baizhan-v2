@@ -1,0 +1,217 @@
+/* === Overlay + modal === */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+  width: 95%;
+  max-width: 1500px;
+  max-height: 95vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.closeBtn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* === Mid Section Layout === */
+.midSection {
+  display: flex;
+  justify-content: center;   /* ✅ center the whole row */
+  align-items: stretch;      /* ✅ children match tallest */
+  gap: 24px;
+  margin: 20px 0;
+  width: 100%;
+  min-height: 350px;         /* ✅ baseline height */
+}
+
+/* === Core Ability Table === */
+.tableWrapper {
+  display: flex;
+  justify-content: center;   /* ✅ center table inside box */
+  margin: 16px auto;
+  max-width: 100%;
+  height: auto;
+  overflow-x: auto;
+  flex: 1;                   /* ✅ fill chartBox height */
+}
+
+.abilityTable {
+  border-collapse: collapse;
+  margin-bottom: 16px;
+  width: auto;
+  max-width: 100%;
+}
+
+.abilityTable th,
+.abilityTable td {
+  border: 1px solid #ddd;
+  padding: 6px 12px;
+  text-align: center;
+  vertical-align: middle;
+  min-width: 60px;
+  white-space: nowrap;
+}
+
+/* Ability name + logo */
+.abilityNameCell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.abilityLogo {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+/* highlight below/above requirement */
+.below {
+  background-color: #fff3cd;
+}
+
+.above {
+  background-color: #e8fbe8;
+}
+
+/* Role-based header colors */
+.tank {
+  background: #fff4c2;
+  color: #6b4e00;
+}
+
+.dps {
+  background: #d5f5d5;
+  color: #0f5132;
+}
+
+.healer {
+  background: #fddde6;
+  color: #842029;
+}
+
+.upgrade {
+  background-color: #ffe0b2;
+  color: #c63f17;
+}
+
+.ready {
+  background-color: #c8e6c9;
+  color: #256029;
+}
+
+.canUse {
+  background-color: #5fd463;
+  color: #256029;
+}
+
+/* === Result Window internals (optional split) === */
+.resultContent {
+  display: flex;
+  gap: 16px;
+  flex: 1;                   /* ✅ fill resultBox height */
+}
+
+.resultSubBox {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 12px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.refreshing {
+  color: #999;
+  font-size: 13px;
+  margin-bottom: 4px;
+  text-align: right;
+}
+/* === 📱 Responsive for phone screens === */
+@media (max-width: 768px) {
+  /* Modal adjustments */
+  .modal {
+    padding: 16px;
+    width: 98%;
+    max-width: 100%;
+    max-height: 90vh;
+    border-radius: 6px;
+  }
+
+  .closeBtn {
+    top: 8px;
+    right: 8px;
+    font-size: 18px;
+  }
+
+  /* Stack mid section vertically */
+  .midSection {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    margin: 14px 0;
+    min-height: auto;
+  }
+
+  /* Allow tables to scroll horizontally */
+  .tableWrapper {
+    overflow-x: auto;
+    justify-content: flex-start;
+  }
+
+  .abilityTable th,
+  .abilityTable td {
+    padding: 4px 8px;
+    font-size: 13px;
+    min-width: 50px;
+  }
+
+  .abilityLogo {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Reduce padding and simplify result boxes */
+  .resultContent {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .resultSubBox {
+    padding: 10px;
+  }
+
+  /* Make role colors slightly subtler on mobile */
+  .tank {
+    background-color: #fff9dc;
+  }
+  .dps {
+    background-color: #e6f7e6;
+  }
+  .healer {
+    background-color: #ffe5ea;
+  }
+}

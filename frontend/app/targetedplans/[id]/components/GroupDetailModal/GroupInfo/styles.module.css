@@ -1,0 +1,86 @@
+.groupInfoRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* center characters across full width */
+  margin: 8px 0 12px 0;
+  width: 100%;
+}
+
+/* === Warning section (absolute left) === */
+.warningRow {
+  position: absolute;
+  left: 0;                  /* ✅ lock to the left edge */
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.inlineWarn {
+  color: #b30000;
+  background: #ffe0e0;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 14px;
+}
+
+.inlineSafe {
+  color: #155724;
+  background: #d4edda;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 14px;
+}
+
+/* === Characters centered across full container === */
+.memberList {
+  display: flex;
+  justify-content: center; /* ✅ perfectly center across full width */
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+}
+
+/* === Character pill === */
+.characterBox {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: default;
+}
+
+/* === Role colors === */
+.tank {
+  background-color: #fff4c2;
+  color: #6b4e00;
+}
+
+.dps {
+  background-color: #d5f5d5;
+  color: #0f5132;
+}
+
+.healer {
+  background-color: #fddde6;
+  color: #842029;
+}
+
+/* 📱 Responsive (stack vertically) */
+@media (max-width: 768px) {
+  .groupInfoRow {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .warningRow {
+    position: static;
+    transform: none;
+    justify-content: center;
+    margin-bottom: 6px;
+  }
+}

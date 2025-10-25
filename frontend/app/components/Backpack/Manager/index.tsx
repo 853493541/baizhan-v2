@@ -34,6 +34,9 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  /* ===============================================================
+     🔍 Pinyin filtering
+  =============================================================== */
   const pinyinMap = useMemo(() => {
     const names = (localChar.storage || []).map((s) => s.ability);
     return createPinyinMap(names);
@@ -48,6 +51,9 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
     return list.filter((it) => filteredNames.includes(it.ability));
   }, [search, localChar, pinyinMap]);
 
+  /* ===============================================================
+     🔄 Refresh character after actions
+  =============================================================== */
   const refreshCharacter = async () => {
     try {
       setLoading(true);
@@ -74,20 +80,49 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
     }
   };
 
+  /* ===============================================================
+     ⚔️ Handle Use (with level 10 detection)
+  =============================================================== */
   const handleUse = (item: StorageItem) =>
     runWithRefresh(async () => {
+      // 🧩 Check if this is a level 9 book while a level 10 version exists
+      if (item.level === 9) {
+        const hasLv10 = localChar.storage?.some(
+          (s) =>
+            s.ability === item.ability &&
+            s.level === 10 &&
+            s.used === false
+        );
+
+        if (hasLv10) {
+          const useLv10 = confirm(
+            `检测到该角色背包中已有 ${item.ability} 的 10 重书籍。\n是否改为使用 10 重书籍？`
+          );
+          if (useLv10) {
+            item = { ...item, level: 10 }; // 🟩 switch to 10重
+          }
+        }
+      }
+
       if (!confirm(`确定要使用 ${item.ability}：${item.level}重 吗？`)) return;
+
       const res = await fetch(
         `${API_URL}/api/characters/${char._id}/storage/use`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ability: item.ability, level: item.level }),
+          body: JSON.stringify({
+            ability: item.ability,
+            level: item.level,
+          }),
         }
       );
       if (!res.ok) throw new Error("使用失败");
     });
 
+  /* ===============================================================
+     🗑️ Handle Delete
+  =============================================================== */
   const handleDelete = (item: StorageItem) =>
     runWithRefresh(async () => {
       if (!confirm(`确定要删除 ${item.ability}：${item.level}重 吗？`)) return;
@@ -96,18 +131,26 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
         {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ability: item.ability, level: item.level }),
+          body: JSON.stringify({
+            ability: item.ability,
+            level: item.level,
+          }),
         }
       );
       if (!res.ok) throw new Error("删除失败");
     });
 
+  /* ===============================================================
+     🖼️ Render
+  =============================================================== */
   return (
     <>
       <div className={styles.overlay}>
         <div className={styles.modal}>
           <div className={styles.header}>
-            <h2>全部技能 {loading && <span>加载中...</span>}</h2>
+            <h2>
+              全部技能 {loading && <span>加载中...</span>}
+            </h2>
             <button className={styles.closeBtn} onClick={onClose}>
               <X size={20} />
             </button>
