@@ -15,7 +15,8 @@ interface CharacterDropdownProps {
  * 🔹 Modal-style character selector (catalog by account)
  *  - Groups characters by account
  *  - Colored pills by role
- *  - Shows 已选 for current group, 组X for others
+ *  - Shows 已选 / 组X (both gray-out)
+ *  - Account header shows (已有角色) only if this account has a member in the current group
  */
 export default function CharacterDropdown({
   excludeId,
@@ -63,49 +64,59 @@ export default function CharacterDropdown({
         </div>
 
         <div className={styles.accountGrid}>
-          {Object.entries(groupedByAccount).map(([account, list]) => (
-            <div key={account} className={styles.accountColumn}>
-              <div className={styles.accountHeader}>{account}</div>
+          {Object.entries(groupedByAccount).map(([account, list]) => {
+            // ✅ Only mark when a member is in the current group
+            const hasSelectedInCurrent =
+              typeof currentGroup === "number" &&
+              list.some((c) => usedMap[c._id] === currentGroup);
 
-              <div className={styles.characterList}>
-                {list.map((c) => {
-                  const groupNum = usedMap[c._id];
-                  const isCurrent = groupNum === currentGroup;
-                  const isUsedElsewhere =
-                    groupNum !== undefined && groupNum !== currentGroup;
+            return (
+              <div key={account} className={styles.accountColumn}>
+                <div className={styles.accountHeader}>
+                  {account}
+                  {hasSelectedInCurrent && (
+                    <span className={styles.usedNotice}>(已有角色)</span>
+                  )}
+                </div>
 
-                  return (
-                    <div
-                      key={c._id}
-                      className={`${styles.characterPill} ${
-                        c.role === "Tank"
-                          ? styles.tank
-                          : c.role === "Healer"
-                          ? styles.healer
-                          : styles.dps
-                      } ${isCurrent ? styles.usedInCurrent : ""}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (isCurrent) return;
-                        onSelect(c);
-                        onClose();
-                      }}
-                    >
-                      <span className={styles.charName}>{c.name}</span>
+                <div className={styles.characterList}>
+                  {list.map((c) => {
+                    const groupNum = usedMap[c._id];
+                    const isCurrent = groupNum === currentGroup;
+                    const isUsedElsewhere =
+                      groupNum !== undefined && groupNum !== currentGroup;
 
-                      <span className={styles.groupTag}>
-                        {isCurrent
-                          ? "已选"
-                          : isUsedElsewhere
-                          ? `组${groupNum + 1}`
-                          : ""}
-                      </span>
-                    </div>
-                  );
-                })}
+                    return (
+                      <div
+                        key={c._id}
+                        className={`${styles.characterPill} ${
+                          c.role === "Tank"
+                            ? styles.tank
+                            : c.role === "Healer"
+                            ? styles.healer
+                            : styles.dps
+                        } ${(isCurrent || isUsedElsewhere) ? styles.grayOut : ""}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelect(c);
+                          onClose();
+                        }}
+                      >
+                        <span className={styles.charName}>{c.name}</span>
+                        <span className={styles.groupTag}>
+                          {isCurrent
+                            ? "已选"
+                            : isUsedElsewhere
+                            ? `组${groupNum + 1}`
+                            : ""}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </>,

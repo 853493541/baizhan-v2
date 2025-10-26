@@ -30,13 +30,15 @@ export const CATEGORY_COLORS: Record<string, string> = {
 export const abilityColorMap: Record<string, string> = {};
 export const abilities: string[] = [];
 
-// ✅ Adapted for new nested structure (with abilities + aliases)
+// ✅ Skip bossRecommendations safely
 Object.entries(
   abilityGroups as Record<
     string,
-    { abilities: string[]; aliases?: Record<string, string> }
+    { abilities?: string[]; aliases?: Record<string, string> }
   >
 ).forEach(([group, data]) => {
+  if (group === "bossRecommendations") return; // ⛔ skip this top-level section
+
   const color = CATEGORY_COLORS[group] || "#ddd";
   (data.abilities || []).forEach((name) => {
     abilityColorMap[name] = color;
@@ -52,12 +54,21 @@ export const abilityAliases: Record<string, string> = {};
 Object.entries(
   abilityGroups as Record<
     string,
-    { abilities: string[]; aliases?: Record<string, string> }
+    { abilities?: string[]; aliases?: Record<string, string> }
   >
-).forEach(([_, data]) => {
+).forEach(([group, data]) => {
+  if (group === "bossRecommendations") return; // ⛔ skip again
   if (data.aliases) {
     Object.entries(data.aliases).forEach(([full, alias]) => {
       abilityAliases[full] = alias;
     });
   }
 });
+
+/* ----------------------------------------------------------------------
+   🧠 Optional — Boss Recommendation Accessor
+   ---------------------------------------------------------------------- */
+export const bossRecommendations: Record<
+  string,
+  Record<string, string[]>
+> = (abilityGroups as any).bossRecommendations || {};

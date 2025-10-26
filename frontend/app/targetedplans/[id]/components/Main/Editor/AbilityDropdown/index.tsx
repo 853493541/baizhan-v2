@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import styles from "./styles.module.css";
@@ -35,9 +35,10 @@ const ALIAS_MAP: Record<string, Record<string, string>> = {};
 Object.entries(
   abilityGroups as Record<
     string,
-    { abilities: string[]; aliases?: Record<string, string> }
+    { abilities?: string[]; aliases?: Record<string, string> }
   >
 ).forEach(([color, group]) => {
+  if (color === "bossRecommendations") return;
   if (group.aliases) ALIAS_MAP[color] = group.aliases;
 });
 
@@ -93,7 +94,23 @@ export default function AbilityDropdown({
   onSelect: (ability: string) => void;
   onClose: () => void;
 }) {
+  /* --- Tab persistence --- */
+  const [activeTab, setActiveTab] = useState<"recommended" | "all">("recommended");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("AbilityDropdownTab");
+    if (saved === "all" || saved === "recommended") setActiveTab(saved);
+  }, []);
+
+  const changeTab = (tab: "recommended" | "all") => {
+    setActiveTab(tab);
+    localStorage.setItem("AbilityDropdownTab", tab);
+  };
+
   if (typeof document === "undefined") return null;
+
+  const bossRecommendations =
+    (abilityGroups as any).bossRecommendations?.[targetedBoss] || null;
 
   const getAbilityLevel = (a: string) => {
     if (!character?.abilities) return 0;
@@ -115,16 +132,29 @@ export default function AbilityDropdown({
     (character?.selectedAbilities || []).map((a) => a.name)
   );
 
-  /* --- Group by color --- */
-  const grouped: Record<string, string[]> = {};
-  for (const color of COLOR_ORDER) grouped[color] = [];
-  grouped["other"] = [];
+  /* --- Build grouped lists --- */
+  const groupedAll: Record<string, string[]> = {};
+  const groupedRecommended: Record<string, string[]> = {};
+  for (const color of COLOR_ORDER) {
+    groupedAll[color] = [];
+    groupedRecommended[color] = [];
+  }
+
   for (const a of abilities) {
     const cat = categorize(abilityColorMap[a]);
     if (ALIAS_MAP[cat] && ALIAS_MAP[cat][a]) {
-      (grouped[cat] || grouped["other"]).push(a);
+      groupedAll[cat].push(a);
     }
   }
+
+  if (bossRecommendations) {
+    for (const color of COLOR_ORDER) {
+      groupedRecommended[color] = bossRecommendations[color] || [];
+    }
+  }
+
+  const currentGroups =
+    activeTab === "recommended" ? groupedRecommended : groupedAll;
 
   /* --- Render --- */
   return createPortal(
@@ -134,18 +164,37 @@ export default function AbilityDropdown({
         className={styles.abilityDropdownGrid}
         onMouseDown={(e) => e.stopPropagation()}
       >
+        {/* Header row: [tabs] center title X */}
         <div className={styles.header}>
+          <div className={styles.tabRowLeft}>
+            <button
+              className={`${styles.tabButton} ${
+                activeTab === "recommended" ? styles.activeTab : ""
+              }`}
+              onClick={() => changeTab("recommended")}
+            >
+              推荐
+            </button>
+            <button
+              className={`${styles.tabButton} ${
+                activeTab === "all" ? styles.activeTab : ""
+              }`}
+              onClick={() => changeTab("all")}
+            >
+              更多
+            </button>
+          </div>
+
           <h2 className={styles.centerTitle}>选择技能</h2>
-          <button className={styles.closeBtn} onClick={onClose} title="关闭">
+
+          <button className={styles.closeBtn} onClick={onClose}>
             ✕
           </button>
         </div>
 
         <div className={styles.catalogRow}>
           {COLOR_ORDER.map((color) => {
-            const list = grouped[color];
-            if (!list?.length) return null;
-
+            const list = currentGroups[color] || [];
             return (
               <div
                 key={color}
@@ -153,71 +202,76 @@ export default function AbilityDropdown({
               >
                 <div className={styles.catalogHeader}>{COLOR_LABELS[color]}</div>
 
-                {list.map((a) => {
-                  const level = getAbilityLevel(a);
-                  const isValid = [8, 9, 10].includes(level);
-                  if (!isValid) return null;
+                {/* Always render column even if empty */}
+                {list.length === 0 ? (
+                  <div className={styles.emptySlot}>—</div>
+                ) : (
+                  list.map((a) => {
+                    const level = getAbilityLevel(a);
+                    const isValid = [8, 9, 10].includes(level);
+                    if (!isValid) return null;
 
-                  const isSelected = selectedNames.has(a);
-                  const alias = ALIAS_MAP[color]?.[a] || a;
-                  const isLow = level <= 9 && level > 0;
+                    const isSelected = selectedNames.has(a);
+                    const alias = ALIAS_MAP[color]?.[a] || a;
+                    const isLow = level <= 9 && level > 0;
 
-                  return (
-                    <div
-                      key={a}
-                      className={`${styles.abilityOptionCard} ${
-                        isSelected ? styles.grayedOut : ""
-                      }`}
-                      onClick={(e) => {
-                        if (isSelected) return;
-                        e.stopPropagation();
-                        onSelect(a);
-                        onClose();
-                      }}
-                    >
-                      {isSelected && (
-                        <div className={styles.checkMark}>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 20 20"
-                            fill="white"
-                            width="12"
-                            height="12"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M16.707 5.293a1 1 0 0 1 0 1.414l-7.5 7.5a1 1 0 0 1-1.414 0l-3.5-3.5a1 1 0 0 1 1.414-1.414L8.5 11.086l6.793-6.793a1 1 0 0 1 1.414 0z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        </div>
-                      )}
-
-                      <Image
-                        src={`/icons/${a}.png`}
-                        alt={a}
-                        width={26}
-                        height={26}
-                        className={styles.abilityIconLarge}
-                      />
-
-                      <div className={styles.abilityText}>
-                        <span className={styles.abilityName}>
-                          {alias}
-                          {level > 0 && (
-                            <span
-                              className={
-                                isLow ? styles.lowLevel : styles.highLevel
-                              }
+                    return (
+                      <div
+                        key={a}
+                        className={`${styles.abilityOptionCard} ${
+                          isSelected ? styles.grayedOut : ""
+                        }`}
+                        onClick={(e) => {
+                          if (isSelected) return;
+                          e.stopPropagation();
+                          onSelect(a);
+                          onClose();
+                        }}
+                      >
+                        {isSelected && (
+                          <div className={styles.checkMark}>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 20 20"
+                              fill="white"
+                              width="12"
+                              height="12"
                             >
-                              （{level}）
-                            </span>
-                          )}
-                        </span>
+                              <path
+                                fillRule="evenodd"
+                                d="M16.707 5.293a1 1 0 0 1 0 1.414l-7.5 7.5a1 1 0 0 1-1.414 0l-3.5-3.5a1 1 0 0 1 1.414-1.414L8.5 11.086l6.793-6.793a1 1 0 0 1 1.414 0z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </div>
+                        )}
+
+                        <Image
+                          src={`/icons/${a}.png`}
+                          alt={a}
+                          width={26}
+                          height={26}
+                          className={styles.abilityIconLarge}
+                        />
+
+                        <div className={styles.abilityText}>
+                          <span className={styles.abilityName}>
+                            {alias}
+                            {level > 0 && (
+                              <span
+                                className={
+                                  isLow ? styles.lowLevel : styles.highLevel
+                                }
+                              >
+                                （{level}）
+                              </span>
+                            )}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
               </div>
             );
           })}
