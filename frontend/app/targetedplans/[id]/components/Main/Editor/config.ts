@@ -1,6 +1,8 @@
 import abilityGroups from "../../../../../data/TargetedPlanUseAbilities.json";
 
-// Main characters star
+/* ----------------------------------------------------------------------
+   🌟 Main Character Names
+   ---------------------------------------------------------------------- */
 export const MAIN_CHARACTERS = new Set<string>([
   "剑心猫猫糕",
   "东海甜妹",
@@ -10,7 +12,9 @@ export const MAIN_CHARACTERS = new Set<string>([
   "程老黑",
 ]);
 
-// Ability category colors
+/* ----------------------------------------------------------------------
+   🎨 Category Color Map (consistent across app)
+   ---------------------------------------------------------------------- */
 export const CATEGORY_COLORS: Record<string, string> = {
   purple: "#a678ff",
   yellow: "#ffe066",
@@ -20,14 +24,40 @@ export const CATEGORY_COLORS: Record<string, string> = {
   healer: "#ff9dd6",
 };
 
-// Build flat ability list + color map
+/* ----------------------------------------------------------------------
+   🧩 Flattened Ability Data (built dynamically from JSON)
+   ---------------------------------------------------------------------- */
 export const abilityColorMap: Record<string, string> = {};
 export const abilities: string[] = [];
 
-Object.entries(abilityGroups as Record<string, string[]>).forEach(([group, list]) => {
+// ✅ Adapted for new nested structure (with abilities + aliases)
+Object.entries(
+  abilityGroups as Record<
+    string,
+    { abilities: string[]; aliases?: Record<string, string> }
+  >
+).forEach(([group, data]) => {
   const color = CATEGORY_COLORS[group] || "#ddd";
-  list.forEach((name) => {
+  (data.abilities || []).forEach((name) => {
     abilityColorMap[name] = color;
     abilities.push(name);
   });
+});
+
+/* ----------------------------------------------------------------------
+   🈶 Optional — Alias Accessor (useful if others need aliases globally)
+   ---------------------------------------------------------------------- */
+export const abilityAliases: Record<string, string> = {};
+
+Object.entries(
+  abilityGroups as Record<
+    string,
+    { abilities: string[]; aliases?: Record<string, string> }
+  >
+).forEach(([_, data]) => {
+  if (data.aliases) {
+    Object.entries(data.aliases).forEach(([full, alias]) => {
+      abilityAliases[full] = alias;
+    });
+  }
 });
