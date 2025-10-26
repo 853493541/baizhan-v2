@@ -6,22 +6,18 @@ import styles from "./styles.module.css";
 import type { Character } from "@/utils/solver";
 
 interface CharacterDropdownProps {
-  x: number;
-  y: number;
   excludeId?: string;
   onSelect: (c: Character) => void;
   onClose: () => void;
 }
 
 /**
- * 🔹 Self-contained dropdown that:
- *  - Loads all characters from global store (set by Editor)
- *  - Detects which group they are in
- *  - Marks current group's members as 已选 (shown first, grayed out)
+ * 🔹 Modal-style character selector (catalog by account)
+ *  - Groups characters by account
+ *  - Colored pills by role
+ *  - Shows 已选 for current group, 组X for others
  */
 export default function CharacterDropdown({
-  x,
-  y,
   excludeId,
   onSelect,
   onClose,
@@ -42,105 +38,75 @@ export default function CharacterDropdown({
     if (typeof cur === "number") setCurrentGroup(cur);
   }, []);
 
-  /* ---------- Positioning ---------- */
-  const dropdownWidth = 200;
-  const dropdownHeight = 260;
-  const padding = 8;
-
-  let adjustedLeft = x;
-  let adjustedTop = y;
-
-  if (typeof window !== "undefined") {
-    const winLeft = window.scrollX;
-    const winRight = window.scrollX + window.innerWidth;
-    const winBottom = window.scrollY + window.innerHeight;
-    const minLeft = winLeft + padding;
-    const maxLeft = winRight - dropdownWidth - padding;
-
-    if (adjustedLeft < minLeft) adjustedLeft = minLeft;
-    if (adjustedLeft > maxLeft) adjustedLeft = maxLeft;
-
-    const hasSpaceBelow = adjustedTop + dropdownHeight + 10 < winBottom;
-    adjustedTop = hasSpaceBelow ? adjustedTop + 2 : adjustedTop - dropdownHeight - 10;
-  }
-
-  /* ---------- Sorting ---------- */
-  const sortedChars = useMemo(() => {
-    const list = characters.filter((c) => c && c._id !== excludeId);
-    return list.sort((a, b) => {
-      const aGroup = usedMap[a._id];
-      const bGroup = usedMap[b._id];
-
-      // ✅ sort: current group first, then unassigned, then others
-      const aPriority =
-        aGroup === currentGroup
-          ? 0
-          : aGroup === undefined
-          ? 1
-          : 2;
-      const bPriority =
-        bGroup === currentGroup
-          ? 0
-          : bGroup === undefined
-          ? 1
-          : 2;
-      if (aPriority !== bPriority) return aPriority - bPriority;
-
-      const order = { DPS: 1, Tank: 2, Healer: 3 } as Record<string, number>;
-      return (order[a.role] || 4) - (order[b.role] || 4);
+  /* ---------- Group by Account ---------- */
+  const groupedByAccount = useMemo(() => {
+    const groups: Record<string, Character[]> = {};
+    characters.forEach((c) => {
+      if (c._id === excludeId) return;
+      const account = c.account || "未分配账号";
+      if (!groups[account]) groups[account] = [];
+      groups[account].push(c);
     });
-  }, [characters, usedMap, currentGroup, excludeId]);
+    return groups;
+  }, [characters, excludeId]);
 
   /* ---------- Render ---------- */
   return createPortal(
     <>
       <div className={styles.portalBackdrop} onMouseDown={onClose} />
+      <div className={styles.characterModal} onMouseDown={(e) => e.stopPropagation()}>
+        <div className={styles.header}>
+          <h2 className={styles.centerTitle}>选择角色</h2>
+          <button className={styles.closeBtn} onClick={onClose}>
+            ✕
+          </button>
+        </div>
 
-      <div
-        className={styles.characterDropdownWindow}
-        style={{
-          position: "absolute",
-          top: adjustedTop,
-          left: adjustedLeft,
-        }}
-        onMouseDown={(e) => e.stopPropagation()}
-      >
-        {sortedChars.length === 0 ? (
-          <div className={styles.emptyMessage}>暂无角色数据</div>
-        ) : (
-          sortedChars.map((c) => {
-            const groupNum = usedMap[c._id];
-            const isCurrent = groupNum === currentGroup;
+        <div className={styles.accountGrid}>
+          {Object.entries(groupedByAccount).map(([account, list]) => (
+            <div key={account} className={styles.accountColumn}>
+              <div className={styles.accountHeader}>{account}</div>
 
-            return (
-              <div
-                key={c._id}
-                className={`${styles.characterOption} ${
-                  c.role === "Tank"
-                    ? styles.tankOption
-                    : c.role === "Healer"
-                    ? styles.healerOption
-                    : styles.dpsOption
-                } ${isCurrent ? styles.usedInCurrent : ""}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (isCurrent) return; // disable clicking 已选
-                  onSelect(c);
-                  onClose();
-                }}
-              >
-                <span className={styles.charName}>{c.name}</span>
-                <span className={styles.groupTagRight}>
-                  {isCurrent
-                    ? "已选"
-                    : groupNum !== undefined
-                    ? `组${groupNum + 1}`
-                    : ""}
-                </span>
+              <div className={styles.characterList}>
+                {list.map((c) => {
+                  const groupNum = usedMap[c._id];
+                  const isCurrent = groupNum === currentGroup;
+                  const isUsedElsewhere =
+                    groupNum !== undefined && groupNum !== currentGroup;
+
+                  return (
+                    <div
+                      key={c._id}
+                      className={`${styles.characterPill} ${
+                        c.role === "Tank"
+                          ? styles.tank
+                          : c.role === "Healer"
+                          ? styles.healer
+                          : styles.dps
+                      } ${isCurrent ? styles.usedInCurrent : ""}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (isCurrent) return;
+                        onSelect(c);
+                        onClose();
+                      }}
+                    >
+                      <span className={styles.charName}>{c.name}</span>
+
+                      <span className={styles.groupTag}>
+                        {isCurrent
+                          ? "已选"
+                          : isUsedElsewhere
+                          ? `组${groupNum + 1}`
+                          : ""}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })
-        )}
+            </div>
+          ))}
+        </div>
       </div>
     </>,
     document.body
