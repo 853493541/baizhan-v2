@@ -31,6 +31,11 @@ export default function GroupDrops({
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
 
+  // 🧠 Debug group info
+  console.log("🧩 [GroupDrops] Mounted with group =", group);
+  console.log("🧩 [GroupDrops] group.index =", group?.index);
+  console.log("🧩 [GroupDrops] Plan ID =", planId);
+
   // 🧩 All unique ability names
   const allAbilities = useMemo(() => {
     const names = checkedAbilities.map((a) => a.name).filter(Boolean);
@@ -56,27 +61,35 @@ export default function GroupDrops({
 
   // 🚫 Mark this group as "no drop" and finished
   const markNoDrop = async () => {
+    const endpoint = `${API_URL}/api/targeted-plans/${planId}/groups/${group?.index}/status`;
+    console.log("📡 [markNoDrop] PUT", endpoint);
+
     try {
       setLoading(true);
-      const res = await fetch(
-        `${API_URL}/api/targeted-plans/${planId}/groups/${group.index}/status`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: "finished" }),
-        }
-      );
+      const body = { status: "finished" };
+      console.log("📦 [markNoDrop] Sending body:", body);
 
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const res = await fetch(endpoint, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      console.log("📥 [markNoDrop] Response:", res.status);
+      if (!res.ok) {
+        const text = await res.text();
+        console.warn("❌ [markNoDrop] Error response:", text);
+        throw new Error(`HTTP ${res.status}`);
+      }
 
       // ✅ Immediately update local state to prevent autosave overwrite
       group.status = "finished";
 
-      console.log(`✅ Group ${group.index} marked as finished (no drop).`);
+      console.log(`✅ [markNoDrop] Group ${group?.index} marked as finished (no drop).`);
       onSaved();
       onClose();
     } catch (err) {
-      console.error("❌ Failed to mark no-drop:", err);
+      console.error("❌ [markNoDrop] Failed:", err);
     } finally {
       setLoading(false);
     }
@@ -130,7 +143,6 @@ export default function GroupDrops({
 
         {/* === Footer buttons === */}
         <div className={styles.footer}>
-          {/* ⬅️ Left side: No Drop */}
           <button
             onClick={markNoDrop}
             className={styles.noDropBtn}
@@ -139,7 +151,6 @@ export default function GroupDrops({
             无掉落
           </button>
 
-          {/* ➡️ Right side: Close */}
           <button onClick={onClose} className={styles.closeBtn}>
             关闭
           </button>
