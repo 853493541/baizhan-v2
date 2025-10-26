@@ -215,9 +215,9 @@ const saveGroups = async (results: GroupResult[]) => {
         </div>
       </div>
 
-      {localGroups.length === 0 && (
+      {/* {localGroups.length === 0 && (
         <p className={styles.empty}>暂无排表结果（请创建一个小组）</p>
-      )}
+      )} */}
     </div>
   );
 }

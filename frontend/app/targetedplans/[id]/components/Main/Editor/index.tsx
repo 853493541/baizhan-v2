@@ -75,18 +75,11 @@ export default function Editor({
   }, [groups, allCharacters]);
 
   /* Initialize if no groups yet */
-  useEffect(() => {
-    if (!groups?.length && allCharacters?.length) {
-      const newGroups = Array.from(
-        { length: Math.ceil(allCharacters.length / 3) },
-        () => ({ characters: [], missingAbilities: [], violations: [] })
-      );
-      setLocalGroups(newGroups);
-      setGroups(newGroups);
-    } else {
-      setLocalGroups(groups);
-    }
-  }, [groups, allCharacters, setGroups]);
+
+// ✅ Only mirror groups to local state when groups change
+useEffect(() => {
+  setLocalGroups(groups || []);
+}, [groups]);
 
   /* Auto-save (debounced) */
   useEffect(() => {
