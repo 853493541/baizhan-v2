@@ -161,7 +161,6 @@ export default function Editor({
       }))
     );
 
-    // alert("✅ 所有小组已重置！");
     window.location.reload(); // ✅ Force full page refresh
   };
 
@@ -299,12 +298,13 @@ export default function Editor({
           y={abilityPos.top}
           abilities={abilities}
           abilityColorMap={abilityColorMap}
+          /** 🧩 FIXED: use localGroups first (so selectedAbilities stay up to date) */
           character={
-            allCharacters.find((c) => c._id === abilityCtx.charId) ||
             localGroups[abilityCtx.groupIdx]?.characters.find(
               (c: any) =>
                 (c._id || c.characterId?._id || c.characterId) === abilityCtx.charId
-            )
+            ) ||
+            allCharacters.find((c) => c._id === abilityCtx.charId)
           }
           targetedBoss={targetedBoss}
           onClose={closeAbilityDropdown}
