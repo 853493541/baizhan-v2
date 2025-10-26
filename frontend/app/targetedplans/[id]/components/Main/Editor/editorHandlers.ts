@@ -110,7 +110,7 @@ export const handleRemoveCharacter = (
 };
 
 /* =======================================================================
-   🧠 Ability Change — now correctly detects levels from full map
+   🧠 Ability Change — persistently saves selectedAbilities in localGroups
    ======================================================================= */
 export const handleAbilityChange = (
   setLocalGroups: any,
@@ -121,62 +121,67 @@ export const handleAbilityChange = (
   charId: string,
   slot: number,
   ability: string,
-  fullCharacter?: Character // 🆕 receive full character with levels
+  fullCharacter?: Character
 ) => {
   setLocalGroups((prev: GroupResult[]) => {
     const updated = [...prev];
 
     updated[groupIdx].characters = updated[groupIdx].characters.map((c) => {
-      if (c._id === charId) {
-        let level = 0;
+      const cid = c._id || c.characterId?._id || c.characterId;
+      if (cid !== charId) return c;
 
-        // 1) Prefer levels from the passed-in full character (dropdown had it)
-        if (fullCharacter?.abilities) {
-          if (Array.isArray(fullCharacter.abilities)) {
-            const found = (fullCharacter.abilities as any[]).find(
-              (a) => a?.name === ability && typeof a.level === "number"
-            );
-            level = found ? found.level : 0;
-          } else if (typeof fullCharacter.abilities === "object") {
-            level = (fullCharacter.abilities as Record<string, number>)[ability] ?? 0;
-          }
+      let level = 0;
+
+      // --- 1️⃣ Prefer level from passed fullCharacter (dropdown context)
+      if (fullCharacter?.abilities) {
+        if (Array.isArray(fullCharacter.abilities)) {
+          const found = (fullCharacter.abilities as any[]).find(
+            (a) => a?.name === ability && typeof a.level === "number"
+          );
+          level = found ? found.level : 0;
+        } else if (typeof fullCharacter.abilities === "object") {
+          level = (fullCharacter.abilities as Record<string, number>)[ability] ?? 0;
         }
-
-        // 2) Fallback: try whatever is on the local character state
-        if (level === 0 && c.abilities) {
-          if (Array.isArray(c.abilities)) {
-            const found = (c.abilities as any[]).find(
-              (a) => a?.name === ability && typeof a.level === "number"
-            );
-            level = found ? found.level : 0;
-          } else if (typeof c.abilities === "object") {
-            level = (c.abilities as Record<string, number>)[ability] ?? 0;
-          }
-        }
-
-        console.log(
-          `[trace][handleAbilityChange] ${c.name} selecting ${ability}, detected level: ${level}`,
-          { fromFull: fullCharacter?.abilities, fromLocal: c.abilities }
-        );
-
-        // 3) Update the selected slots
-        const arr = [
-          ...(c.selectedAbilities || [
-            { name: "", level: 0 },
-            { name: "", level: 0 },
-            { name: "", level: 0 },
-          ]),
-        ];
-
-        // Prevent duplicate selection
-        const dup = arr.findIndex((a, i) => a.name === ability && i !== slot);
-        if (dup !== -1) arr[dup] = { name: "", level: 0 };
-
-        arr[slot] = { name: ability, level };
-
-        return { ...c, selectedAbilities: arr };
       }
-      return c;
+
+      // --- 2️⃣ Fallback: use the local character’s own ability map
+      if (level === 0 && c.abilities) {
+        if (Array.isArray(c.abilities)) {
+          const found = (c.abilities as any[]).find(
+            (a) => a?.name === ability && typeof a.level === "number"
+          );
+          level = found ? found.level : 0;
+        } else if (typeof c.abilities === "object") {
+          level = (c.abilities as Record<string, number>)[ability] ?? 0;
+        }
+      }
+
+      console.log(
+        `[trace][handleAbilityChange] ${c.name} selecting ${ability}, level=${level}`
+      );
+
+      // --- 3️⃣ Update selectedAbilities persistently
+      const existing = Array.isArray(c.selectedAbilities)
+        ? [...c.selectedAbilities]
+        : [
+            { name: "", level: 0 },
+            { name: "", level: 0 },
+            { name: "", level: 0 },
+          ];
+
+      // prevent duplicates (replace instead of stacking)
+      const dupIndex = existing.findIndex((x) => x.name === ability);
+      if (dupIndex !== -1) existing[dupIndex] = { name: ability, level };
+      else existing[slot] = { name: ability, level };
+
+      // ensure we never exceed 3 entries
+      while (existing.length < 3) existing.push({ name: "", level: 0 });
+      if (existing.length > 3) existing.length = 3;
+
+      return {
+        ...c,
+        selectedAbilities: existing,
+      };
     });
 
     return updated;
