@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import styles from "./styles.module.css";
+import abilityGroups from "../../../../../../data/TargetedPlanUseAbilities.json";
 
 type Role = "Tank" | "DPS" | "Healer";
 
@@ -17,8 +18,8 @@ const CANONICAL: Record<string, [number, number, number]> = {
   blue: [0x5c, 0xb7, 0xff],
 };
 
-/* === Chinese catalog labels === */
-const COLOR_ORDER = ["yellow", "purple", "blue", "healer", "red", "green"];
+/* === Display Order & Labels === */
+const COLOR_ORDER = ["yellow", "purple", "blue", "red", "green", "healer"];
 const COLOR_LABELS: Record<string, string> = {
   yellow: "黄",
   purple: "紫",
@@ -28,6 +29,17 @@ const COLOR_LABELS: Record<string, string> = {
   green: "绿",
   other: "其他",
 };
+
+/* === Parse aliases from JSON === */
+const ALIAS_MAP: Record<string, Record<string, string>> = {};
+Object.entries(
+  abilityGroups as Record<
+    string,
+    { abilities: string[]; aliases?: Record<string, string> }
+  >
+).forEach(([color, group]) => {
+  if (group.aliases) ALIAS_MAP[color] = group.aliases;
+});
 
 /* === Helpers === */
 function hexToRgb(hex?: string): [number, number, number] | null {
@@ -60,7 +72,7 @@ function categorize(hex?: string): string {
   return best;
 }
 
-/* === Main Component === */
+/* === Component === */
 export default function AbilityDropdown({
   abilities,
   abilityColorMap,
@@ -103,53 +115,28 @@ export default function AbilityDropdown({
     (character?.selectedAbilities || []).map((a) => a.name)
   );
 
-  /* --- Group by color category --- */
+  /* --- Group by color --- */
   const grouped: Record<string, string[]> = {};
   for (const color of COLOR_ORDER) grouped[color] = [];
   grouped["other"] = [];
   for (const a of abilities) {
     const cat = categorize(abilityColorMap[a]);
-    (grouped[cat] || grouped["other"]).push(a);
+    if (ALIAS_MAP[cat] && ALIAS_MAP[cat][a]) {
+      (grouped[cat] || grouped["other"]).push(a);
+    }
   }
-
-  const colorBackground: Record<string, string> = {
-    purple: "#f3e8ff",
-    yellow: "#fff7d1",
-    red: "#ffe6e6",
-    green: "#e8ffde",
-    healer: "#ffe8f0",
-    blue: "#e2f2ff",
-  };
-
-  /* --- Debug trace --- */
-  useEffect(() => {
-    console.groupCollapsed(
-      "%c[trace][AbilityDropdown] Modal render",
-      "color:#4fa3ff;font-weight:bold;"
-    );
-    console.log("Character:", character?.name);
-    console.log("selectedAbilities:", character?.selectedAbilities);
-    console.table(
-      abilities.map((a) => ({
-        name: a,
-        level: getAbilityLevel(a),
-        selected: selectedNames.has(a),
-        category: categorize(abilityColorMap[a]),
-      }))
-    );
-    console.groupEnd();
-  }, [character, abilities, abilityColorMap]);
 
   /* --- Render --- */
   return createPortal(
     <>
       <div className={styles.portalBackdrop} onMouseDown={onClose} />
-      <div className={styles.abilityDropdownGrid} onMouseDown={(e) => e.stopPropagation()}>
+      <div
+        className={styles.abilityDropdownGrid}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
         <div className={styles.header}>
-          <h2>
-            {"选择技能"}
-          </h2>
-          <button className={styles.closeBtn} onClick={onClose}>
+          <h2 className={styles.centerTitle}>选择技能</h2>
+          <button className={styles.closeBtn} onClick={onClose} title="关闭">
             ✕
           </button>
         </div>
@@ -162,55 +149,71 @@ export default function AbilityDropdown({
             return (
               <div
                 key={color}
-                className={styles.catalogColumn}
-                style={{ background: colorBackground[color] }}
+                className={`${styles.catalogColumn} ${styles[color]}`}
               >
-                <div className={styles.catalogHeader}>
-                  {COLOR_LABELS[color] || color}
-                </div>
+                <div className={styles.catalogHeader}>{COLOR_LABELS[color]}</div>
 
                 {list.map((a) => {
                   const level = getAbilityLevel(a);
                   const isValid = [8, 9, 10].includes(level);
+                  if (!isValid) return null;
+
                   const isSelected = selectedNames.has(a);
+                  const alias = ALIAS_MAP[color]?.[a] || a;
                   const isLow = level <= 9 && level > 0;
 
                   return (
                     <div
                       key={a}
                       className={`${styles.abilityOptionCard} ${
-                        !isValid ? styles.invalidLevel : ""
-                      } ${isSelected ? styles.grayedOut : ""}`}
+                        isSelected ? styles.grayedOut : ""
+                      }`}
                       onClick={(e) => {
-                        if (isSelected || !isValid) return;
+                        if (isSelected) return;
                         e.stopPropagation();
                         onSelect(a);
                         onClose();
                       }}
                     >
                       {isSelected && (
-                        <div className={styles.checkMark}>✓</div>
+                        <div className={styles.checkMark}>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 20 20"
+                            fill="white"
+                            width="12"
+                            height="12"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M16.707 5.293a1 1 0 0 1 0 1.414l-7.5 7.5a1 1 0 0 1-1.414 0l-3.5-3.5a1 1 0 0 1 1.414-1.414L8.5 11.086l6.793-6.793a1 1 0 0 1 1.414 0z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </div>
                       )}
 
-                      <div className={styles.iconCenter}>
-                        <Image
-                          src={`/icons/${a}.png`}
-                          alt={a}
-                          width={22}
-                          height={22}
-                          className={styles.abilityIconLarge}
-                        />
-                        <span
-                          className={`${styles.levelNumber} ${
-                            isLow ? styles.lowLevel : styles.highLevel
-                          }`}
-                        >
-                          {level > 0 ? level : ""}
-                        </span>
-                      </div>
+                      <Image
+                        src={`/icons/${a}.png`}
+                        alt={a}
+                        width={26}
+                        height={26}
+                        className={styles.abilityIconLarge}
+                      />
 
                       <div className={styles.abilityText}>
-                        <span className={styles.abilityName}>{a}</span>
+                        <span className={styles.abilityName}>
+                          {alias}
+                          {level > 0 && (
+                            <span
+                              className={
+                                isLow ? styles.lowLevel : styles.highLevel
+                              }
+                            >
+                              （{level}）
+                            </span>
+                          )}
+                        </span>
                       </div>
                     </div>
                   );
