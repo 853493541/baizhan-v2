@@ -28,6 +28,7 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
   padding: 20px;
   z-index: 1000;
+   min-height: 640px;
 }
 
 /* === Header === */
@@ -37,25 +38,66 @@
   align-items: center;
   margin-bottom: 12px;
 }
-.header h2 {
-  font-size: 16px;
-  font-weight: 600;
+
+.centerTitle {
+  font-size: 17px;
+  font-weight: 700;
   margin: 0;
+  text-align: center;
+  flex: 1;
 }
+
+/* === Left Tabs === */
+.tabRowLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tabButton {
+  padding: 4px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #f5f5f5;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.tabButton:hover { background: #eee; }
+
+.activeTab {
+  background: #007bff;
+  color: #fff;
+  border-color: #007bff;
+}
+
+/* === Close Button === */
 .closeBtn {
   background: transparent;
   border: none;
-  font-size: 20px;
-  cursor: pointer;
+  font-size: 22px;
+  font-weight: 600;
   color: #666;
+  cursor: pointer;
+  padding-left: 4px;
+  transition: color 0.2s;
 }
+.closeBtn:hover { color: #000; }
 
-/* === Catalog Layout === */
+/* === Columns layout (fixed size) === */
 .catalogRow {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 10px;
+  gap: 12px;
+  min-height: 640px; /* keeps modal size fixed */
+  height: 100%;      /* 🟢 allows columns to stretch */
+  align-items: stretch;
+  /* border:2px red solid; */
 }
+
+/* === Column === */
 .catalogColumn {
   border-radius: 10px;
   padding: 8px 5px 12px;
@@ -64,12 +106,14 @@
   align-items: center;
   gap: 6px;
   min-width: 0;
+  
 }
+
 .catalogHeader {
   font-weight: 700;
   font-size: 13px;
-  margin-bottom: 6px;
   text-align: center;
+  margin-bottom: 6px;
   color: #333;
   border-bottom: 2px solid rgba(0, 0, 0, 0.1);
   width: 80%;
@@ -128,10 +172,10 @@
   color: #333;
   word-break: keep-all;
 }
-.lowLevel { color: #b22222; }   /* darker red for ≤9 */
+.lowLevel { color: #b22222; }
 .highLevel { color: #333; }
 
-/* === Floating Check Badge === */
+/* === Checkmark Badge === */
 .checkMark {
   position: absolute;
   top: -6px;
@@ -140,9 +184,6 @@
   height: 20px;
   border-radius: 50%;
   background: linear-gradient(135deg, #2ecc71, #27ae60);
-  color: white;
-  font-size: 11px;
-  font-weight: 700;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -152,42 +193,11 @@
   z-index: 5;
 }
 
-/* === No gray-out effect === */
-.grayedOut {
-  opacity: 1 !important;
-  filter: none !important;
-}
-/* === Header === */
-.header {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 14px;
-}
-
-.centerTitle {
-  font-size: 17px;
-  font-weight: 700;
-  margin: 0 auto;
+/* === Empty Column Filler === */
+.emptySlot {
   text-align: center;
-  flex: 1;
-}
-
-.closeBtn {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: transparent;
-  border: none;
-  font-size: 28px; /* 🟢 Larger close icon */
-  font-weight: 500;
-  cursor: pointer;
-  color: #555;
-  transition: color 0.2s;
-}
-
-.closeBtn:hover {
-  color: #000;
+  color: #aaa;
+  padding: 12px 0;
+  font-size: 13px;
+  opacity: 0.6;
 }
