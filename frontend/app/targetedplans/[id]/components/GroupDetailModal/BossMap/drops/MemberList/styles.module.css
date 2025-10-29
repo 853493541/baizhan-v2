@@ -1,0 +1,107 @@
+/* === Character Buttons === */
+.memberBtn {
+  display: flex;
+  flex-direction: column; /* two-line layout */
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  padding: 3px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 450;
+  min-width: 220px;
+  max-width: 220px;
+  height: auto;               /* 🟢 allow height to grow */
+  min-height: 37px;      /* ✅ keep consistent base height */
+  line-height: 1.2;
+  box-sizing: border-box;
+  cursor: pointer;
+  /* margin-bottom: 1px; */
+  border: 1px solid #28a745;
+  background: #eafbea;
+  color: #155724;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+.memberBtn:hover {
+  background: #d4f5d4;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); /* subtle depth */
+}
+
+/* Disabled */
+.memberDisabled {
+  background: #f0f0f0;
+  color: #888;
+  border: 1px solid #ddd;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Section title */
+.sectionDivider {
+  margin: 10px 0;
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #666;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 2px;
+}
+
+/* Grid layout */
+.memberGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* === Highlight colors === */
+.levelGreen {
+  background-color: #e2fbe2 !important;
+  border-color: #1c7c2d !important;
+  color: #1c7c2d !important;
+}
+
+.levelYellow {
+  background-color: #fff6cc !important;
+  border-color: #b89600 !important;
+  color: #4a3f00 !important;
+}
+
+/* === First line: Name + Progress aligned right === */
+.topRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.progressText {
+  font-size: 13px;
+  font-weight: 500;
+  color: inherit;
+  margin-left: 6px;
+  white-space: nowrap;
+  background: none;
+  padding: 0;
+}
+
+/* === Second line: “包里有10” (positive indicator) === */
+.warningRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 1px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1c7c2d;
+}
+
+.warningIcon {
+  font-size: 14px;
+  color: #1c7c2d;
+}
+
+.warningText {
+  color: #1c7c2d;
+  font-weight: 600;
+}
