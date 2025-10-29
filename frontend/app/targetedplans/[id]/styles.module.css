@@ -1,0 +1,13 @@
+.container {
+  padding: 24px;
+}
+
+.loading {
+  color: #666;
+  padding: 20px;
+}
+
+.error {
+  color: red;
+  padding: 20px;
+}

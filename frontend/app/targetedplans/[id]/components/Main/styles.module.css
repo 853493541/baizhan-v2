@@ -1,0 +1,111 @@
+/* === Section Containers === */
+.section {
+  margin-bottom: 24px;
+}
+
+.sectionTitle {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+.sectionSubtitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 16px 0 8px;
+}
+
+.empty {
+  color: #666;
+  font-size: 14px;
+  padding: 10px 0;
+}
+
+.finishedCount {
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #28a745; /* green emphasis */
+}
+
+/* === Group Cards Grid === */
+.groupsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+/* === Solver Control Bar (Gear + Buttons) === */
+.solverBar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;               /* space between gear and buttons */
+  margin-bottom: 12px;     /* spacing below bar */
+}
+
+/* === Layout for Editor + Ability Checking === */
+.editorRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;               /* space between panels */
+  width: 100%;
+  margin-top: 12px;
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* === Left: Main Editor Pane === */
+.editorPane {
+  flex: 0 0 65%;           /* 🟢 takes exactly 70% of total width */
+  width: 60%;
+  min-width: 600px;        /* 🟢 prevent it from shrinking too much */
+  max-width: 1000px;
+  box-sizing: border-box;
+  /* border:red solid 2px; */
+}
+
+/* === Right: Ability Checking Pane === */
+.checkingPane {
+  flex: 0 0 30%;           /* 🟢 takes remaining 30% of total width */
+  min-width: 350px;        /* 🟢 never smaller */
+  max-width: 480px;        /* 🟢 upper limit on large screens */
+  position: sticky;
+  top: 80px;               /* 🟢 stays visible while scrolling */
+  align-self: flex-start;
+  box-sizing: border-box;
+  /* border:2px red solid; */
+}
+
+/* === Responsive: Stack layout on small screens === */
+@media (max-width: 1100px) {
+  .editorPane {
+    flex: 0 0 68%;
+    width: 68%;
+    min-width: 500px;
+  }
+  .checkingPane {
+    flex: 0 0 32%;
+    min-width: 320px;
+  }
+}
+
+@media (max-width: 900px) {
+  .editorRow {
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .editorPane,
+  .checkingPane {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+  }
+
+  .checkingPane {
+    position: static;
+  }
+}

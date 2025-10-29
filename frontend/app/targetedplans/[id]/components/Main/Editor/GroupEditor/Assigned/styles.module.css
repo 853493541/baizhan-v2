@@ -1,0 +1,265 @@
+/* ===============================
+   🧩 Assigned Drops (Single Row, Contained, Compact)
+   =============================== */
+.assignedDrops {
+  display: flex;
+  flex-wrap: nowrap;          /* single line layout */
+  align-items: center;
+  gap: 8px;                   /* spacing between items */
+  width: 100%;
+  height: 32px;               /* fixed height inside group box */
+  max-height: 32px;
+  overflow: hidden;           /* prevent vertical overflow */
+  overflow-x: auto;           /* scroll if too many drops */
+  box-sizing: border-box;
+
+  margin-left: 0;   
+  align-items: center;          /* keep aligned with container */
+  /* border: 2px solid blue;  (debug only) */
+}
+
+/* === Drop Item (Chip) === */
+.dropItem {
+  flex: 0 0 auto;             /* no shrinking, keep natural width */
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 32px;               /* fits nicely inside 32px row */
+  padding: 4px 8px;
+  font-size: 13px;
+  white-space: nowrap;        /* stay on one line */
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 7px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.dropItem:hover {
+  background: #f9fbff;
+  border-color: #bcd6ff;
+  box-shadow: 0 2px 6px rgba(24, 144, 255, 0.12);
+}
+
+/* === Icon === */
+.iconWrapper,
+.icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border-radius: 3px;
+}
+
+/* === Text & Labels === */
+.abilityName {
+  font-weight: 600;
+  color: #333;
+}
+
+.level {
+  color: #777;
+  margin-left: 2px;
+  font-weight: normal;
+}
+
+.arrow {
+  color: #999;
+  font-size: 13px;
+  margin: 0 4px;
+}
+
+/* === Character Bubble === */
+.characterBubble {
+  padding: 2px 7px;
+  border-radius: 9px;
+  font-weight: 600;
+  font-size: 12.5px;
+  border: 1px solid #c5dec5;
+  background: #e8f5e9;
+  color: #2e7d32;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* === Role Colors === */
+.tank {
+  background-color: #fff3cd;
+  color: #8b4513;
+}
+
+.dps {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.healer {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+/* === States === */
+.empty {
+  color: #aaa;
+  font-size: 13px;
+  margin-left: 8px;
+}
+
+.loading {
+  color: #999;
+  font-size: 13px;
+  margin-left: 8px;
+}
+
+/* ===============================
+   🪟 Modal Styling (Compact One-Liner)
+   =============================== */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 200;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 7px;
+  padding: 12px 14px;
+  width: 310px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  animation: popIn 0.2s ease;
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* === Modal Content === */
+.modalLine {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.modalIcon {
+  border-radius: 3px;
+  width: 19px;
+  height: 19px;
+}
+
+.abilityFullName {
+  font-weight: 600;
+}
+
+.levelInline {
+  color: #777;
+  font-size: 13px;
+}
+
+/* === Footer Buttons === */
+.modalFooterRight {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.useBtn,
+.saveBtn,
+.closeBtn,
+.deleteBtn {
+  padding: 4px 11px;
+  font-size: 12.5px;
+  border-radius: 5px;
+  font-weight: 600;
+  line-height: 1.1;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+
+/* === Button Colors === */
+.useBtn {
+  background: #1890ff;
+  color: #fff;
+  border-color: #1890ff;
+}
+.useBtn:hover {
+  background: #40a9ff;
+}
+
+.saveBtn {
+  background: #f0f0f0;
+  color: #333;
+  border-color: #ccc;
+}
+.saveBtn:hover {
+  background: #e6f7ff;
+  border-color: #91d5ff;
+}
+
+.disabled,
+.useBtn:disabled,
+.saveBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.closeBtn {
+  background: #ddd;
+  color: #333;
+  border: none;
+}
+.closeBtn:hover {
+  background: #ccc;
+}
+
+.deleteBtn {
+  background: #dc3545;
+  color: white;
+  border: none;
+}
+.deleteBtn:hover {
+  background: #c82333;
+}
+
+/* ===============================
+   📱 Responsive
+   =============================== */
+@media (max-width: 500px) {
+  .assignedDrops {
+    flex-wrap: wrap;
+    height: auto;
+    max-height: none;
+    overflow-x: hidden;
+  }
+}
+/* === Text & Labels (Enhanced readability) === */
+.abilityName {
+  font-weight: 700;            /* stronger emphasis */
+  color: #222;                 /* slightly darker for contrast */
+}
+
+.arrow {
+  font-weight: 600;            /* give arrow visual balance */
+  color: #666;                 /* darker gray so it stands out */
+  font-size: 13.5px;
+  margin: 0 5px;
+  letter-spacing: 0.5px;       /* subtle spacing for clarity */
+}
