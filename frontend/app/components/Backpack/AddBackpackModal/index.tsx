@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { Plus } from "lucide-react";
 import styles from "./styles.module.css";
 import bossData from "@/app/data/boss_drop.json";
+import { createPinyinMap, pinyinFilter } from "@/utils/pinyinSearch"; // ✅ centralized helper
 
 interface Props {
   API_URL: string;
@@ -32,16 +33,6 @@ const CORE_ABILITIES = [
 
 const getAbilityIcon = (name: string) => `/icons/${name}.png`;
 
-// ✅ Lazy-load pinyin module
-let pinyinModule: any;
-async function getPinyin() {
-  if (!pinyinModule) {
-    const mod = await import("pinyin");
-    pinyinModule = mod.default || mod;
-  }
-  return pinyinModule;
-}
-
 const ALL_ABILITIES: string[] = Array.from(
   new Set(Object.values(bossData).flat() as string[])
 );
@@ -60,37 +51,29 @@ export default function AddBackpackModal({
     Record<string, { full: string; short: string }>
   >({});
 
-  // ✅ Build pinyin map lazily after mount
+  /* ----------------------------------------------------------------------
+     🈶 Build pinyin map lazily after mount (using centralized helper)
+  ---------------------------------------------------------------------- */
   useEffect(() => {
     async function buildMap() {
-      const pinyin = await getPinyin();
-      const map: Record<string, { full: string; short: string }> = {};
-      for (const ability of ALL_ABILITIES) {
-        const pyArr = pinyin(ability, { style: pinyin.STYLE_NORMAL }).flat();
-        const full = pyArr.join("");
-        const short = pyArr.map((p) => p[0]).join("");
-        map[ability] = { full, short };
-      }
+      const map = await createPinyinMap(ALL_ABILITIES);
       setPinyinMap(map);
     }
     buildMap();
   }, []);
 
-  // ✅ Filter list with memoized pinyin map
+  /* ----------------------------------------------------------------------
+     🔍 Filter abilities (supports Chinese + pinyin search)
+  ---------------------------------------------------------------------- */
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
     if (!term) return ALL_ABILITIES;
-    return ALL_ABILITIES.filter((name) => {
-      const py = pinyinMap[name];
-      return (
-        name.includes(term) ||
-        py?.full?.includes(term) ||
-        py?.short?.includes(term)
-      );
-    });
+    return pinyinFilter(ALL_ABILITIES, pinyinMap, term);
   }, [search, pinyinMap]);
 
-  // ✅ Auto close after success
+  /* ----------------------------------------------------------------------
+     ✅ Confirm and send new skill to backend
+  ---------------------------------------------------------------------- */
   const handleConfirm = async () => {
     if (!selected) return alert("请选择技能");
     setLoading(true);
@@ -114,6 +97,9 @@ export default function AddBackpackModal({
     }
   };
 
+  /* ----------------------------------------------------------------------
+     🧱 Render modal UI
+  ---------------------------------------------------------------------- */
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>

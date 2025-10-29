@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import styles from "./styles.module.css";
 import FilterSection from "./Filter";
 import CharacterCard from "./CharacterCard";
-import { createPinyinMap, pinyinFilter } from "../../utils/pinyinSearch";
+import { createPinyinMap, pinyinFilter } from "@/utils/pinyinSearch";
 
 interface StorageItem {
   ability: string;
