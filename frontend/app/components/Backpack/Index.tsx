@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./styles.module.css";
 import Manager from "./Manager";
 import AddBackpackModal from "./AddBackpackModal";
@@ -46,6 +46,11 @@ interface Props {
 export default function BackpackWindow({ char: initialChar, API_URL }: Props) {
   const [char, setChar] = useState<Character>(initialChar);
   const [loading, setLoading] = useState(false);
+
+  // ✅ Fix: keep char in sync when parent updates (no stale data)
+  useEffect(() => {
+    setChar(initialChar);
+  }, [initialChar]);
 
   const refreshCharacter = async () => {
     try {
@@ -110,7 +115,7 @@ export default function BackpackWindow({ char: initialChar, API_URL }: Props) {
 
   return (
     <div className={styles.wrapper}>
-      {loading && <p className={styles.loading}>加载中...</p>}
+      {/* {loading && <p className={styles.loading}>加载中...</p>} */}
       {!limitedItems.length && <p className={styles.empty}>暂无技能记录</p>}
 
       <ul className={styles.itemList}>

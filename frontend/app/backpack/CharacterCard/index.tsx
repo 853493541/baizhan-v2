@@ -7,7 +7,6 @@ import ActionModal from "../../components/characters/ActionModal";
 import { getTradables } from "@/utils/tradables";
 import { getReadableFromStorage } from "@/utils/readables";
 import { updateCharacterAbilities } from "@/lib/characterService";
-
 import Manager from "../../components/Backpack/Manager";
 import AddBackpackModal from "../../components/Backpack/AddBackpackModal";
 
@@ -64,6 +63,7 @@ export default function CharacterCard({
 
   const tradables = getTradables(currentChar);
   const readables = getReadableFromStorage(currentChar);
+  const hasActions = tradables.length > 0 || readables.length > 0;
 
   const updateAbility = async (ability: string, newLevel: number) => {
     if (newLevel < 0) return;
@@ -86,8 +86,6 @@ export default function CharacterCard({
     setShowModal(false);
     refreshCharacter();
   };
-
-  const hasActions = tradables.length > 0 || readables.length > 0;
 
   return (
     <div className={`${styles.card} ${styles[currentChar.role?.toLowerCase()]}`}>
@@ -127,12 +125,11 @@ export default function CharacterCard({
         </div>
       </div>
 
-      {/* === Backpack Section === */}
-      {loading ? (
-        <p className={styles.loading}>刷新中...</p>
-      ) : (
+      {/* === Backpack Section (always visible, no flicker) === */}
+      <div className={styles.backpackWrapper}>
         <BackpackWindow char={currentChar} API_URL={API_URL} />
-      )}
+        {loading && <div className={styles.invisibleLoading}></div>}
+      </div>
 
       {/* === Orange Action Button (Always at Bottom) === */}
       <div className={styles.tradeableWrapper}>
