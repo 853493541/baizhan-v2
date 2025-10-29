@@ -103,7 +103,11 @@ export default function Backpack({
 
       {/* === Backpack Window (always mounted + stable) === */}
 <div className={styles.backpackWrapper}>
-  <BackpackWindow char={currentChar} API_URL={API_URL} />
+  <BackpackWindow
+    char={currentChar}
+    API_URL={API_URL}
+    onChanged={refreshCharacterLocal} // 🔥 new line
+  />
   {loading && <div className={styles.invisibleLoading}></div>}
 </div>
 

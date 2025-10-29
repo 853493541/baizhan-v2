@@ -115,7 +115,11 @@ export default function CharacterCard({
           <button
             className={`${styles.iconBtn} ${styles.managerBtn}`}
             title="查看全部技能"
-            onClick={() => setShowManager(true)}
+            onClick={async () => {
+              // ✅ Always refresh before opening Manager to ensure data is current
+              await refreshCharacter();
+              setShowManager(true);
+            }}
           >
             📂
             {currentChar.storage && currentChar.storage.length > 3 && (
@@ -127,7 +131,11 @@ export default function CharacterCard({
 
       {/* === Backpack Section (always visible, no flicker) === */}
       <div className={styles.backpackWrapper}>
-        <BackpackWindow char={currentChar} API_URL={API_URL} />
+        <BackpackWindow
+          char={currentChar}
+          API_URL={API_URL}
+          onChanged={refreshCharacter}  // ✅ notify parent after delete/use
+        />
         {loading && <div className={styles.invisibleLoading}></div>}
       </div>
 
@@ -176,7 +184,11 @@ export default function CharacterCard({
           char={currentChar}
           API_URL={API_URL}
           onClose={() => setShowManager(false)}
-          onUpdated={setCurrentChar}
+          onUpdated={(updated) => {
+            setCurrentChar(updated);
+            setLocalAbilities(updated.abilities || {});
+            onCharacterUpdate?.(updated);
+          }}
         />
       )}
     </div>

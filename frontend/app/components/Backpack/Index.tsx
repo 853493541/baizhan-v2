@@ -41,13 +41,13 @@ const CORE_ABILITIES = [
 interface Props {
   char: Character;
   API_URL: string;
+  onChanged?: () => void; // ✅ notify parent when data changes
 }
 
-export default function BackpackWindow({ char: initialChar, API_URL }: Props) {
+export default function BackpackWindow({ char: initialChar, API_URL, onChanged }: Props) {
   const [char, setChar] = useState<Character>(initialChar);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Fix: keep char in sync when parent updates (no stale data)
   useEffect(() => {
     setChar(initialChar);
   }, [initialChar]);
@@ -59,6 +59,8 @@ export default function BackpackWindow({ char: initialChar, API_URL }: Props) {
       if (!res.ok) throw new Error("加载角色失败");
       const data = await res.json();
       setChar(data);
+      // ✅ notify parent after fresh fetch
+      if (onChanged) onChanged();
     } catch (e) {
       alert("刷新失败，请稍后再试");
       console.error(e);
@@ -115,7 +117,6 @@ export default function BackpackWindow({ char: initialChar, API_URL }: Props) {
 
   return (
     <div className={styles.wrapper}>
-      {/* {loading && <p className={styles.loading}>加载中...</p>} */}
       {!limitedItems.length && <p className={styles.empty}>暂无技能记录</p>}
 
       <ul className={styles.itemList}>
