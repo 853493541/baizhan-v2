@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import styles from "./styles.module.css";
 import FilterSection from "./Filter";
 import CharacterCard from "./CharacterCard";
-import { createPinyinMap, pinyinFilter } from "../../utils/pinyinSearch"; // ✅ use helper
+import { createPinyinMap, pinyinFilter } from "../../utils/pinyinSearch";
 
 interface StorageItem {
   ability: string;
@@ -25,7 +25,6 @@ interface Character {
   storage?: StorageItem[];
 }
 
-// ✅ Core abilities
 const CORE_ABILITIES = [
   "斗转金移",
   "花钱消灾",
@@ -48,13 +47,23 @@ export default function BackpackPage() {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [pinyinMap, setPinyinMap] = useState<
+    Record<string, { full: string; short: string }>
+  >({});
+  const [pinyinReady, setPinyinReady] = useState(false);
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-  // ===== Initialize filters =====
+  /* ----------------------------------------------------------------------
+     🧭 Load saved filters from localStorage (except name)
+  ---------------------------------------------------------------------- */
   const getSavedFilters = () => {
     try {
       const saved = localStorage.getItem("backpackFilters");
-      return saved ? JSON.parse(saved) : {};
+      if (!saved) return {};
+      const parsed = JSON.parse(saved);
+      // drop the cached name
+      delete parsed.name;
+      return parsed;
     } catch {
       return {};
     }
@@ -69,9 +78,11 @@ export default function BackpackPage() {
     saved.onlyWithStorage ?? true
   );
   const [showCoreOnly, setShowCoreOnly] = useState(saved.showCoreOnly ?? false);
-  const [nameFilter, setNameFilter] = useState(saved.name || ""); // ✅ NEW
+  const [nameFilter, setNameFilter] = useState("");
 
-  // 🧭 Fetch all characters once
+  /* ----------------------------------------------------------------------
+     🧩 Fetch all characters
+  ---------------------------------------------------------------------- */
   useEffect(() => {
     async function fetchAll() {
       try {
@@ -90,7 +101,25 @@ export default function BackpackPage() {
     fetchAll();
   }, [API_URL]);
 
-  // 🔍 Unique lists
+  /* ----------------------------------------------------------------------
+     ⚡ Lazy-load pinyin only when user clicks the search box
+  ---------------------------------------------------------------------- */
+  const handleSearchFocus = useCallback(async () => {
+    if (pinyinReady || characters.length === 0) return;
+    try {
+      const names = characters.map((c) => c.name);
+      const map = await createPinyinMap(names); // triggers lazy import
+      setPinyinMap(map);
+      setPinyinReady(true);
+      console.log("✅ Pinyin map loaded on user interaction");
+    } catch (err) {
+      console.error("❌ pinyin map error:", err);
+    }
+  }, [pinyinReady, characters]);
+
+  /* ----------------------------------------------------------------------
+     🔍 Unique filter options
+  ---------------------------------------------------------------------- */
   const uniqueOwners = useMemo(
     () => Array.from(new Set(characters.map((c) => c.owner).filter(Boolean))),
     [characters]
@@ -101,22 +130,15 @@ export default function BackpackPage() {
     [characters]
   );
 
-  // 🧩 Precompute pinyin map once
-  const pinyinMap = useMemo(() => {
-    const names = characters.map((c) => c.name);
-    return createPinyinMap(names);
-  }, [characters]);
-
-  // 🧩 Apply filters
+  /* ----------------------------------------------------------------------
+     🧩 Apply filters
+  ---------------------------------------------------------------------- */
   const filtered = useMemo(() => {
     let list = characters;
 
-    if (ownerFilter)
-      list = list.filter((char) => char.owner === ownerFilter);
-    if (serverFilter)
-      list = list.filter((char) => char.server === serverFilter);
-    if (roleFilter)
-      list = list.filter((char) => char.role === roleFilter);
+    if (ownerFilter) list = list.filter((char) => char.owner === ownerFilter);
+    if (serverFilter) list = list.filter((char) => char.server === serverFilter);
+    if (roleFilter) list = list.filter((char) => char.role === roleFilter);
     if (onlyWithStorage)
       list = list.filter((char) => char.storage && char.storage.length > 0);
     if (showCoreOnly)
@@ -126,8 +148,7 @@ export default function BackpackPage() {
         )
       );
 
-    // ✅ Name search (supports Chinese, full pinyin, and initials)
-    if (nameFilter.trim()) {
+    if (nameFilter.trim() && Object.keys(pinyinMap).length > 0) {
       const allNames = list.map((c) => c.name);
       const matchedNames = pinyinFilter(allNames, pinyinMap, nameFilter.trim());
       list = list.filter((c) => matchedNames.includes(c.name));
@@ -145,7 +166,9 @@ export default function BackpackPage() {
     pinyinMap,
   ]);
 
-  // ✅ Persist filters
+  /* ----------------------------------------------------------------------
+     💾 Persist filters (except name)
+  ---------------------------------------------------------------------- */
   useEffect(() => {
     localStorage.setItem(
       "backpackFilters",
@@ -155,7 +178,6 @@ export default function BackpackPage() {
         role: roleFilter,
         onlyWithStorage,
         showCoreOnly,
-        name: nameFilter,
       })
     );
   }, [
@@ -164,17 +186,20 @@ export default function BackpackPage() {
     roleFilter,
     onlyWithStorage,
     showCoreOnly,
-    nameFilter,
   ]);
 
-  // ✅ Local patch update
+  /* ----------------------------------------------------------------------
+     🔧 Local character update
+  ---------------------------------------------------------------------- */
   const handleCharacterUpdate = (updated: Character) => {
     setCharacters((prev) =>
       prev.map((c) => (c._id === updated._id ? updated : c))
     );
   };
 
-  // ===== Render =====
+  /* ----------------------------------------------------------------------
+     🧱 Render
+  ---------------------------------------------------------------------- */
   if (loading) return <p>加载中...</p>;
   if (error && !characters.length) return <p>{error}</p>;
 
@@ -188,7 +213,7 @@ export default function BackpackPage() {
         roleFilter={roleFilter}
         onlyWithStorage={onlyWithStorage}
         showCoreOnly={showCoreOnly}
-        nameFilter={nameFilter} // ✅ pass down
+        nameFilter={nameFilter}
         uniqueOwners={uniqueOwners}
         uniqueServers={uniqueServers}
         setOwnerFilter={setOwnerFilter}
@@ -196,7 +221,8 @@ export default function BackpackPage() {
         setRoleFilter={setRoleFilter}
         setOnlyWithStorage={setOnlyWithStorage}
         setShowCoreOnly={setShowCoreOnly}
-        setNameFilter={setNameFilter} // ✅ pass setter
+        setNameFilter={setNameFilter}
+        onSearchFocus={handleSearchFocus}
       />
 
       <div className={styles.grid}>
