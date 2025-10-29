@@ -62,7 +62,7 @@ export default function ActionModal({
   --------------------------------------------------------------- */
   const handleCopy = async (ability: string, requiredLevel: number) => {
     const name = normalize(ability);
-    let copyLevel = requiredLevel + 1;
+    let copyLevel = requiredLevel;
 
     if (FORCE_LV10_ABILITIES.has(name)) {
       copyLevel = 10;
