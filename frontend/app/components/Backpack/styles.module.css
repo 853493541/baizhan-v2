@@ -7,6 +7,7 @@
   padding: 4px 3px; /* 🔽 reduced internal padding */
   background: #fff;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  height:110px;
 }
 .wrapper:hover {
   border-color: rgba(0, 0, 0, 0.15);
