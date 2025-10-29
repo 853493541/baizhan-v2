@@ -1,34 +1,41 @@
 // app/utils/pinyinSearch.ts
-// ✅ Lazy-loads pinyin only when needed, instead of bundling it into every page.
+// ✅ Unified tiny-pinyin helper — lazy-loaded, lightweight, and correct API.
 
-let pinyinModule: any;
+let tinyPinyin: any;
 
 /**
- * Dynamically import the heavy `pinyin` library once and cache it.
+ * Dynamically import the tiny-pinyin library (cached after first load).
+ * This ensures no large code is bundled into the first page load.
  */
-async function getPinyin() {
-  if (!pinyinModule) {
-    const mod = await import("pinyin");
-    pinyinModule = mod.default || mod;
+async function getTiny() {
+  if (!tinyPinyin) {
+    const mod = await import("tiny-pinyin");
+    tinyPinyin = (mod as any).default ?? mod;
   }
-  return pinyinModule;
+  return tinyPinyin;
 }
 
 /**
- * Create a map of full and short pinyin spellings for a list of words.
- * Example output: { 剑网三: { full: "jianwangsan", short: "jws" } }
+ * Build a map of full and short pinyin for a list of words.
+ *
+ * Example:
+ *   createPinyinMap(["剑网三"])
+ *   → { "剑网三": { full: "jianwangsan", short: "jws" } }
  */
 export async function createPinyinMap(words: string[]) {
-  const pinyin = await getPinyin();
+  const tp = await getTiny();
   const map: Record<string, { full: string; short: string }> = {};
 
   for (const w of words) {
-    const full = pinyin(w, { style: pinyin.STYLE_NORMAL })
-      .flat()
-      .join("");
-    const short = pinyin(w, { style: pinyin.STYLE_FIRST_LETTER })
-      .flat()
-      .join("");
+    if (!w) continue;
+
+    // tiny-pinyin uses `convertToPinyin` — separator allows clean syllables
+    const dashed = tp.convertToPinyin(w, "-", true); // e.g. "jian-wang-san"
+    const syllables = dashed.split("-");
+
+    const full = syllables.join("");                      // → "jianwangsan"
+    const short = syllables.map((s) => s[0] ?? "").join(""); // → "jws"
+
     map[w] = { full, short };
   }
 
@@ -36,8 +43,10 @@ export async function createPinyinMap(words: string[]) {
 }
 
 /**
- * Filter a list of names by Chinese characters, full pinyin, or initials.
- * Uses the map produced by createPinyinMap().
+ * Filter a list of names by:
+ *  - raw Chinese substring
+ *  - full pinyin match
+ *  - initials match
  */
 export function pinyinFilter(
   list: string[],
@@ -47,11 +56,20 @@ export function pinyinFilter(
   const q = query.toLowerCase();
   return list.filter((name) => {
     const entry = map[name];
-    if (!entry) return false;
+    if (!entry) return name.includes(q); // fallback if map missing
     return (
       name.includes(q) ||
       entry.full.includes(q) ||
       entry.short.includes(q)
     );
   });
+}
+
+/**
+ * Convert inline Chinese typing (e.g. search bar input)
+ * to plain lowercase pinyin string.
+ */
+export async function hanziToPinyinInline(text: string) {
+  const tp = await getTiny();
+  return tp.convertToPinyin(text, "", true); // no separator, lowercase
 }

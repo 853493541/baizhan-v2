@@ -1,11 +1,12 @@
 "use client";
-import React, { useState, useMemo } from "react";
-import pinyin from "pinyin";
+
+import React, { useState, useMemo, useEffect } from "react";
 import styles from "./styles.module.css";
 import AbilityList from "./AbilityList";
 import LevelPicker from "./LevelPicker";
 import MemberList from "./MemberList";
 import ActionPanel from "./ActionPanel";
+import { createPinyinMap, pinyinFilter } from "@/utils/pinyinSearch"; // ✅ shared helper
 import type { AbilityCheck, Character, GroupResult } from "@/utils/solver";
 
 export default function GroupDrops({
@@ -27,39 +28,51 @@ export default function GroupDrops({
 }) {
   const [selectedAbility, setSelectedAbility] = useState<string>("");
   const [selectedLevel, setSelectedLevel] = useState<9 | 10 | null>(null);
-  const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
+  const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(
+    null
+  );
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
+  const [pinyinMap, setPinyinMap] = useState<
+    Record<string, { full: string; short: string }>
+  >({});
 
-  // 🧠 Debug group info
+  // 🧠 Debug info
   console.log("🧩 [GroupDrops] Mounted with group =", group);
   console.log("🧩 [GroupDrops] group.index =", group?.index);
   console.log("🧩 [GroupDrops] Plan ID =", planId);
 
-  // 🧩 All unique ability names
+  /* ----------------------------------------------------------------------
+     🧩 All unique ability names
+  ---------------------------------------------------------------------- */
   const allAbilities = useMemo(() => {
     const names = checkedAbilities.map((a) => a.name).filter(Boolean);
     return Array.from(new Set(names));
   }, [checkedAbilities]);
 
-  // 🈶 Pinyin map for search matching
-  const pinyinMap = useMemo(() => {
-    const map: Record<string, string> = {};
-    for (const a of allAbilities) {
-      map[a] = pinyin(a, { style: pinyin.STYLE_NORMAL }).flat().join("");
+  /* ----------------------------------------------------------------------
+     🈶 Build pinyin map lazily once after mount (shared helper)
+  ---------------------------------------------------------------------- */
+  useEffect(() => {
+    async function buildMap() {
+      const map = await createPinyinMap(allAbilities);
+      setPinyinMap(map);
     }
-    return map;
+    buildMap();
   }, [allAbilities]);
 
-  // 🔍 Filter abilities by search or pinyin
-  const filtered = allAbilities.filter(
-    (a) =>
-      a.includes(search) ||
-      pinyinMap[a]?.includes(search.toLowerCase()) ||
-      pinyinMap[a]?.startsWith(search.toLowerCase())
-  );
+  /* ----------------------------------------------------------------------
+     🔍 Filter abilities by Chinese or pinyin
+  ---------------------------------------------------------------------- */
+  const filtered = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return allAbilities;
+    return pinyinFilter(allAbilities, pinyinMap, term);
+  }, [search, pinyinMap, allAbilities]);
 
-  // 🚫 Mark this group as "no drop" and finished
+  /* ----------------------------------------------------------------------
+     🚫 Mark this group as "no drop" and finished
+  ---------------------------------------------------------------------- */
   const markNoDrop = async () => {
     const endpoint = `${API_URL}/api/targeted-plans/${planId}/groups/${group?.index}/status`;
     console.log("📡 [markNoDrop] PUT", endpoint);
@@ -82,10 +95,10 @@ export default function GroupDrops({
         throw new Error(`HTTP ${res.status}`);
       }
 
-      // ✅ Immediately update local state to prevent autosave overwrite
       group.status = "finished";
-
-      console.log(`✅ [markNoDrop] Group ${group?.index} marked as finished (no drop).`);
+      console.log(
+        `✅ [markNoDrop] Group ${group?.index} marked as finished (no drop).`
+      );
       onSaved();
       onClose();
     } catch (err) {
@@ -95,6 +108,9 @@ export default function GroupDrops({
     }
   };
 
+  /* ----------------------------------------------------------------------
+     🧱 Render Modal
+  ---------------------------------------------------------------------- */
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
