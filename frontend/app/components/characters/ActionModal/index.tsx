@@ -15,7 +15,7 @@ export interface ActionModalProps {
 
 const getAbilityIcon = (name: string) => `/icons/${name}.png`;
 
-// 🈶 Convert level number to Chinese numerals
+// 🈶 Convert number → Chinese numerals
 const numToChinese = (num: number): string => {
   const map = ["〇", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
   if (num <= 10) return map[num];
@@ -24,6 +24,10 @@ const numToChinese = (num: number): string => {
   const ones = num % 10;
   return `${map[tens]}十${ones ? map[ones] : ""}`;
 };
+
+/* --- Normalize + force level-10 names --- */
+const normalize = (s: string) => (s || "").trim().replace(/\u200B/g, "");
+const FORCE_LV10_ABILITIES = new Set(["立剑势", "玉魄惊鸾", "剑飞惊天"].map(normalize));
 
 export default function ActionModal({
   tradables,
@@ -48,9 +52,32 @@ export default function ActionModal({
       });
       if (!res.ok) throw new Error("使用失败");
       await onRefresh();
-    } catch (err) {
-      console.error("❌ Failed to use ability:", err);
+    } catch {
       alert("使用失败，请稍后再试");
+    }
+  };
+
+  /* ---------------------------------------------------------------
+     📋 Handle Copy (includes +1 rule & force-10 exceptions)
+  --------------------------------------------------------------- */
+  const handleCopy = async (ability: string, requiredLevel: number) => {
+    const name = normalize(ability);
+    let copyLevel = requiredLevel + 1;
+
+    if (FORCE_LV10_ABILITIES.has(name)) {
+      copyLevel = 10;
+    } else if (copyLevel > 10) {
+      copyLevel = 10;
+    }
+
+    const chineseLevel = numToChinese(copyLevel);
+    const text = `《${name}》招式要诀·${chineseLevel}重`;
+
+    try {
+      await navigator.clipboard.writeText(text);
+      // ✅ silent success
+    } catch {
+      alert("复制失败，请手动复制");
     }
   };
 
@@ -109,6 +136,10 @@ export default function ActionModal({
             <h4 className={styles.sectionTitle}>⚡ 可买紫书</h4>
             {tradables.map(({ ability, requiredLevel }) => {
               const current = localAbilities?.[ability] ?? 0;
+              const displayLevel = FORCE_LV10_ABILITIES.has(ability)
+                ? 10
+                : requiredLevel;
+
               return (
                 <div key={ability} className={styles.itemRow}>
                   <div className={styles.itemLeft}>
@@ -123,7 +154,7 @@ export default function ActionModal({
                     <span className={styles.abilityLine}>
                       <span className={styles.abilityName}>{ability}</span>
                       <span className={styles.levelInfo}>
-                        {requiredLevel}重
+                        {displayLevel}重
                         <span className={styles.currentLevel}>
                           {" "} | 当前：{current}重
                         </span>
@@ -143,10 +174,7 @@ export default function ActionModal({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        const chineseLevel = numToChinese(requiredLevel);
-                        navigator.clipboard
-                          .writeText(`《${ability}》招式要诀·${chineseLevel}重`)
-                          .catch(console.error);
+                        handleCopy(ability, requiredLevel);
                       }}
                       className={`${styles.btn} ${styles.copyBtn}`}
                     >
