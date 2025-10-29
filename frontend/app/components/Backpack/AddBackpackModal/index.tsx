@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Plus } from "lucide-react";
 import styles from "./styles.module.css";
-import pinyin from "pinyin";
 import bossData from "@/app/data/boss_drop.json";
 
 interface Props {
@@ -33,17 +32,19 @@ const CORE_ABILITIES = [
 
 const getAbilityIcon = (name: string) => `/icons/${name}.png`;
 
+// ✅ Lazy-load pinyin module
+let pinyinModule: any;
+async function getPinyin() {
+  if (!pinyinModule) {
+    const mod = await import("pinyin");
+    pinyinModule = mod.default || mod;
+  }
+  return pinyinModule;
+}
+
 const ALL_ABILITIES: string[] = Array.from(
   new Set(Object.values(bossData).flat() as string[])
 );
-
-const PINYIN_MAP: Record<string, { full: string; short: string }> = {};
-for (const ability of ALL_ABILITIES) {
-  const pyArr = pinyin(ability, { style: pinyin.STYLE_NORMAL }).flat();
-  const full = pyArr.join("");
-  const short = pyArr.map((p) => p[0]).join("");
-  PINYIN_MAP[ability] = { full, short };
-}
 
 export default function AddBackpackModal({
   API_URL,
@@ -55,21 +56,41 @@ export default function AddBackpackModal({
   const [selected, setSelected] = useState("");
   const [level, setLevel] = useState<9 | 10>(10);
   const [loading, setLoading] = useState(false);
+  const [pinyinMap, setPinyinMap] = useState<
+    Record<string, { full: string; short: string }>
+  >({});
 
+  // ✅ Build pinyin map lazily after mount
+  useEffect(() => {
+    async function buildMap() {
+      const pinyin = await getPinyin();
+      const map: Record<string, { full: string; short: string }> = {};
+      for (const ability of ALL_ABILITIES) {
+        const pyArr = pinyin(ability, { style: pinyin.STYLE_NORMAL }).flat();
+        const full = pyArr.join("");
+        const short = pyArr.map((p) => p[0]).join("");
+        map[ability] = { full, short };
+      }
+      setPinyinMap(map);
+    }
+    buildMap();
+  }, []);
+
+  // ✅ Filter list with memoized pinyin map
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
     if (!term) return ALL_ABILITIES;
     return ALL_ABILITIES.filter((name) => {
-      const py = PINYIN_MAP[name];
+      const py = pinyinMap[name];
       return (
         name.includes(term) ||
-        py.full.includes(term) ||
-        py.short.includes(term)
+        py?.full?.includes(term) ||
+        py?.short?.includes(term)
       );
     });
-  }, [search]);
+  }, [search, pinyinMap]);
 
-  // ✅ auto close after success
+  // ✅ Auto close after success
   const handleConfirm = async () => {
     if (!selected) return alert("请选择技能");
     setLoading(true);
@@ -83,8 +104,8 @@ export default function AddBackpackModal({
         }
       );
       if (!res.ok) throw new Error("添加失败");
-      onAdded();  // refresh parent
-      onClose();  // close modal automatically ✅
+      onAdded();
+      onClose();
     } catch (e) {
       alert("❌ 添加失败");
       console.error(e);

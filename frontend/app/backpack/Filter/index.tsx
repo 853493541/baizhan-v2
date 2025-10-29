@@ -1,9 +1,18 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./styles.module.css";
 import Dropdown from "../../components/layout/dropdown";
-import pinyin from "pinyin";
+
+// ✅ Lazy-load pinyin only if needed for inline Chinese typing conversion
+let pinyinModule: any;
+async function getPinyin() {
+  if (!pinyinModule) {
+    const mod = await import("pinyin");
+    pinyinModule = mod.default || mod;
+  }
+  return pinyinModule;
+}
 
 interface Props {
   ownerFilter: string;
@@ -11,7 +20,7 @@ interface Props {
   roleFilter: string;
   onlyWithStorage: boolean;
   showCoreOnly: boolean;
-  nameFilter: string; // ✅ new
+  nameFilter: string;
   uniqueOwners: string[];
   uniqueServers: string[];
   setOwnerFilter: (v: string) => void;
@@ -19,7 +28,8 @@ interface Props {
   setRoleFilter: (v: string) => void;
   setOnlyWithStorage: (v: boolean) => void;
   setShowCoreOnly: (v: boolean) => void;
-  setNameFilter: (v: string) => void; // ✅ new
+  setNameFilter: (v: string) => void;
+  onSearchFocus?: () => void;
 }
 
 export default function BackpackFilter({
@@ -37,8 +47,11 @@ export default function BackpackFilter({
   setOnlyWithStorage,
   setShowCoreOnly,
   setNameFilter,
+  onSearchFocus,
 }: Props) {
-  // ✅ Load from localStorage
+  /* ----------------------------------------------------------------------
+     ✅ Load saved filters on mount (except search text)
+  ---------------------------------------------------------------------- */
   useEffect(() => {
     const saved = localStorage.getItem("backpackFilters");
     if (saved) {
@@ -48,14 +61,15 @@ export default function BackpackFilter({
       setRoleFilter(parsed.role || "");
       setOnlyWithStorage(parsed.onlyWithStorage ?? false);
       setShowCoreOnly(parsed.showCoreOnly ?? false);
-      setNameFilter(parsed.name || "");
     } else {
       setOnlyWithStorage(false);
       setShowCoreOnly(false);
     }
   }, []);
 
-  // ✅ Save whenever filters change
+  /* ----------------------------------------------------------------------
+     💾 Persist filters whenever they change (no nameFilter)
+  ---------------------------------------------------------------------- */
   useEffect(() => {
     localStorage.setItem(
       "backpackFilters",
@@ -65,12 +79,19 @@ export default function BackpackFilter({
         role: roleFilter,
         onlyWithStorage,
         showCoreOnly,
-        name: nameFilter,
       })
     );
-  }, [ownerFilter, serverFilter, roleFilter, onlyWithStorage, showCoreOnly, nameFilter]);
+  }, [
+    ownerFilter,
+    serverFilter,
+    roleFilter,
+    onlyWithStorage,
+    showCoreOnly,
+  ]);
 
-  // ✅ Reset
+  /* ----------------------------------------------------------------------
+     🔁 Reset filters
+  ---------------------------------------------------------------------- */
   const handleReset = () => {
     setOwnerFilter("");
     setServerFilter("");
@@ -81,6 +102,25 @@ export default function BackpackFilter({
     localStorage.removeItem("backpackFilters");
   };
 
+  /* ----------------------------------------------------------------------
+     🔍 Optional: if user types Chinese, convert on the fly
+  ---------------------------------------------------------------------- */
+  const handleNameChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (/[\u4e00-\u9fa5]/.test(value)) {
+      const pinyin = await getPinyin();
+      const converted = pinyin(value, { style: pinyin.STYLE_NORMAL })
+        .flat()
+        .join("");
+      setNameFilter(converted);
+    } else {
+      setNameFilter(value);
+    }
+  };
+
+  /* ----------------------------------------------------------------------
+     🧱 Render UI
+  ---------------------------------------------------------------------- */
   return (
     <div className={styles.filterSection}>
       <div className={styles.filterRow}>
@@ -108,34 +148,43 @@ export default function BackpackFilter({
           ].map((opt) => (
             <button
               key={opt.value}
-              className={`${styles.filterBtn} ${roleFilter === opt.value ? styles.selected : ""}`}
-              onClick={() => setRoleFilter(roleFilter === opt.value ? "" : opt.value)}
+              className={`${styles.filterBtn} ${
+                roleFilter === opt.value ? styles.selected : ""
+              }`}
+              onClick={() =>
+                setRoleFilter(roleFilter === opt.value ? "" : opt.value)
+              }
             >
               {opt.label}
             </button>
           ))}
 
-          {/* ✅ Move name search bar here */}
+          {/* ✅ Name search bar (no cache) */}
           <input
             type="text"
             placeholder="搜索角色名 / 拼音"
             className={styles.searchInput}
             value={nameFilter}
-            onChange={(e) => setNameFilter(e.target.value)}
+            onChange={handleNameChange}
+            onFocus={onSearchFocus}
           />
         </div>
 
         <div className={styles.rightGroup}>
-          {/* === Toggle buttons on right === */}
+          {/* === Toggle buttons === */}
           <button
-            className={`${styles.toggleBtn} ${onlyWithStorage ? styles.active : ""}`}
+            className={`${styles.toggleBtn} ${
+              onlyWithStorage ? styles.active : ""
+            }`}
             onClick={() => setOnlyWithStorage(!onlyWithStorage)}
           >
             仅有书
           </button>
 
           <button
-            className={`${styles.toggleBtn} ${showCoreOnly ? styles.active : ""}`}
+            className={`${styles.toggleBtn} ${
+              showCoreOnly ? styles.active : ""
+            }`}
             onClick={() => setShowCoreOnly(!showCoreOnly)}
           >
             仅核心技能
