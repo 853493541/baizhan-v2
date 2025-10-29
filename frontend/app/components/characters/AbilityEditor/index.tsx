@@ -20,16 +20,21 @@ export default function AbilityEditor({
   const [query, setQuery] = useState("");
   const [loadingAbility, setLoadingAbility] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [pinyinMap, setPinyinMap] = useState<
+    Record<string, { full: string; short: string }>
+  >({});
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-  /** 🧭 Fetch abilities if not provided */
+  /* ----------------------------------------------------------------------
+     🧭 Fetch abilities if not provided
+  ---------------------------------------------------------------------- */
   useEffect(() => {
     if (externalAbilities) {
       setAbilities(externalAbilities);
       return;
     }
 
-    const fetchAbilities = async () => {
+    async function fetchAbilities() {
       setLoading(true);
       try {
         const res = await fetch(`${API_URL}/api/characters/${characterId}`);
@@ -41,24 +46,41 @@ export default function AbilityEditor({
       } finally {
         setLoading(false);
       }
-    };
+    }
 
     fetchAbilities();
   }, [characterId, externalAbilities, API_URL]);
 
-  /** 🧮 Build Pinyin map */
-  const pinyinMap = useMemo(
-    () => createPinyinMap(Object.keys(abilities)),
-    [abilities]
-  );
+  /* ----------------------------------------------------------------------
+     🧮 Build Pinyin map lazily when abilities load
+  ---------------------------------------------------------------------- */
+  useEffect(() => {
+    async function buildMap() {
+      const abilityNames = Object.keys(abilities);
+      if (abilityNames.length === 0) return;
+      try {
+        const map = await createPinyinMap(abilityNames);
+        setPinyinMap(map);
+      } catch (err) {
+        console.error("⚠️ Error building pinyin map", err);
+      }
+    }
+    buildMap();
+  }, [abilities]);
 
-  /** 🔍 Filter with pinyin support */
+  /* ----------------------------------------------------------------------
+     🔍 Filter abilities with Chinese + Pinyin support
+  ---------------------------------------------------------------------- */
   const allAbilities = Object.keys(abilities);
-  const filtered = query.trim()
-    ? pinyinFilter(allAbilities, pinyinMap, query)
-    : allAbilities.slice(0, 3); // ✅ show only top 3 by default
+  const filtered = useMemo(() => {
+    const term = query.trim().toLowerCase();
+    if (!term) return allAbilities.slice(0, 3); // default show 3
+    return pinyinFilter(allAbilities, pinyinMap, term);
+  }, [query, allAbilities, pinyinMap]);
 
-  /** 🔄 Update ability */
+  /* ----------------------------------------------------------------------
+     🔄 Update ability level
+  ---------------------------------------------------------------------- */
   const updateAbility = async (ability: string, newLevel: number) => {
     if (newLevel < 0) return;
     setLoadingAbility(ability);
@@ -73,7 +95,9 @@ export default function AbilityEditor({
     }
   };
 
-  /** 🧱 UI */
+  /* ----------------------------------------------------------------------
+     🧱 Render
+  ---------------------------------------------------------------------- */
   return (
     <div>
       <h3 style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "6px" }}>
@@ -84,7 +108,7 @@ export default function AbilityEditor({
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="输入技能名..."
+        placeholder="输入技能名 / 拼音..."
         className={styles.searchInput}
       />
 

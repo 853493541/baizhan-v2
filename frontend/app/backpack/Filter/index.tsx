@@ -1,18 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import styles from "./styles.module.css";
 import Dropdown from "../../components/layout/dropdown";
-
-// ✅ Lazy-load pinyin only if needed for inline Chinese typing conversion
-let pinyinModule: any;
-async function getPinyin() {
-  if (!pinyinModule) {
-    const mod = await import("pinyin");
-    pinyinModule = mod.default || mod;
-  }
-  return pinyinModule;
-}
+import { hanziToPinyinInline } from "@/utils/pinyinSearch"; // ✅ centralized lazy pinyin
 
 interface Props {
   ownerFilter: string;
@@ -50,7 +41,7 @@ export default function BackpackFilter({
   onSearchFocus,
 }: Props) {
   /* ----------------------------------------------------------------------
-     ✅ Load saved filters on mount (except search text)
+     ✅ Load saved filters on mount (except name)
   ---------------------------------------------------------------------- */
   useEffect(() => {
     const saved = localStorage.getItem("backpackFilters");
@@ -81,13 +72,7 @@ export default function BackpackFilter({
         showCoreOnly,
       })
     );
-  }, [
-    ownerFilter,
-    serverFilter,
-    roleFilter,
-    onlyWithStorage,
-    showCoreOnly,
-  ]);
+  }, [ownerFilter, serverFilter, roleFilter, onlyWithStorage, showCoreOnly]);
 
   /* ----------------------------------------------------------------------
      🔁 Reset filters
@@ -103,19 +88,12 @@ export default function BackpackFilter({
   };
 
   /* ----------------------------------------------------------------------
-     🔍 Optional: if user types Chinese, convert on the fly
+     🔍 Convert Hanzi → Pinyin using shared helper
   ---------------------------------------------------------------------- */
   const handleNameChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    if (/[\u4e00-\u9fa5]/.test(value)) {
-      const pinyin = await getPinyin();
-      const converted = pinyin(value, { style: pinyin.STYLE_NORMAL })
-        .flat()
-        .join("");
-      setNameFilter(converted);
-    } else {
-      setNameFilter(value);
-    }
+    const converted = await hanziToPinyinInline(value);
+    setNameFilter(converted);
   };
 
   /* ----------------------------------------------------------------------
@@ -159,7 +137,7 @@ export default function BackpackFilter({
             </button>
           ))}
 
-          {/* ✅ Name search bar (no cache) */}
+          {/* ✅ Search input */}
           <input
             type="text"
             placeholder="搜索角色名 / 拼音"

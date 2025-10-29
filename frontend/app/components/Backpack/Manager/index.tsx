@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Plus, X } from "lucide-react";
 import styles from "./styles.module.css";
 import AddBackpackModal from "../AddBackpackModal";
@@ -33,15 +33,25 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
   const [search, setSearch] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [pinyinMap, setPinyinMap] = useState<
+    Record<string, { full: string; short: string }>
+  >({});
 
   /* ===============================================================
-     🔍 Pinyin filtering
+     🔍 Build Pinyin map once after load (async-safe)
   =============================================================== */
-  const pinyinMap = useMemo(() => {
-    const names = (localChar.storage || []).map((s) => s.ability);
-    return createPinyinMap(names);
+  useEffect(() => {
+    async function buildMap() {
+      const names = (localChar.storage || []).map((s) => s.ability);
+      const map = await createPinyinMap(names);
+      setPinyinMap(map);
+    }
+    if (localChar.storage?.length) buildMap();
   }, [localChar]);
 
+  /* ===============================================================
+     🔍 Pinyin-aware filtering
+  =============================================================== */
   const filteredItems = useMemo(() => {
     const q = search.trim().toLowerCase();
     const list = localChar.storage || [];
@@ -81,11 +91,10 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
   };
 
   /* ===============================================================
-     ⚔️ Handle Use (with level 10 detection)
+     ⚔️ Handle Use / Delete
   =============================================================== */
   const handleUse = (item: StorageItem) =>
     runWithRefresh(async () => {
-      // 🧩 Check if this is a level 9 book while a level 10 version exists
       if (item.level === 9) {
         const hasLv10 = localChar.storage?.some(
           (s) =>
@@ -99,7 +108,7 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
             `检测到该角色背包中已有 ${item.ability} 的 10 重书籍。\n是否改为使用 10 重书籍？`
           );
           if (useLv10) {
-            item = { ...item, level: 10 }; // 🟩 switch to 10重
+            item = { ...item, level: 10 };
           }
         }
       }
@@ -120,9 +129,6 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
       if (!res.ok) throw new Error("使用失败");
     });
 
-  /* ===============================================================
-     🗑️ Handle Delete
-  =============================================================== */
   const handleDelete = (item: StorageItem) =>
     runWithRefresh(async () => {
       if (!confirm(`确定要删除 ${item.ability}：${item.level}重 吗？`)) return;
