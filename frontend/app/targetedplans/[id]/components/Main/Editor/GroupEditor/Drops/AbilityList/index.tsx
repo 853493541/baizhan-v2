@@ -1,6 +1,9 @@
 "use client";
+
+import React, { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import styles from "./styles.module.css";
+import { createPinyinMap, pinyinFilter } from "@/utils/pinyinSearch"; // ✅ centralized helper
 
 const COMMON_ABILITIES = [
   "流霞点绛",
@@ -27,19 +30,41 @@ export default function AbilityList({
   search: string;
   setSearch: (v: string) => void;
 }) {
-  const availableNames = new Set(abilities);
+  const [pinyinMap, setPinyinMap] = useState<
+    Record<string, { full: string; short: string }>
+  >({});
 
-  // ✅ Common abilities displayed on top
+  /* ----------------------------------------------------------------------
+     🧩 Build pinyin map once for all visible abilities
+  ---------------------------------------------------------------------- */
+  useEffect(() => {
+    async function buildMap() {
+      if (!abilities.length) return;
+      const map = await createPinyinMap(abilities);
+      setPinyinMap(map);
+    }
+    buildMap();
+  }, [abilities]);
+
+  /* ----------------------------------------------------------------------
+     🧮 Compute visible lists
+  ---------------------------------------------------------------------- */
+  const availableNames = new Set(abilities);
   const commonList = COMMON_ABILITIES.filter((a) => availableNames.has(a));
 
   // ✅ Remove common ones from search list
   const filteredList = abilities.filter((a) => !COMMON_ABILITIES.includes(a));
 
-  // ✅ Apply search filtering
-  const visibleList = filteredList.filter((a) =>
-    a.toLowerCase().includes(search.toLowerCase())
-  );
+  // ✅ Apply pinyin-aware search filtering
+  const visibleList = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return filteredList;
+    return pinyinFilter(filteredList, pinyinMap, term);
+  }, [search, filteredList, pinyinMap]);
 
+  /* ----------------------------------------------------------------------
+     🧱 Render
+  ---------------------------------------------------------------------- */
   return (
     <div className={styles.leftColumn}>
       {/* === 🟩 Section: 常见掉落 === */}
@@ -80,7 +105,7 @@ export default function AbilityList({
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="输入技能名..."
+          placeholder="输入技能名 / 拼音..."
           className={styles.searchInput}
         />
 
@@ -106,6 +131,10 @@ export default function AbilityList({
               <span className={styles.abilityName}>{a}</span>
             </button>
           ))}
+
+          {visibleList.length === 0 && (
+            <p className={styles.noResult}>未找到匹配技能</p>
+          )}
         </div>
       </div>
     </div>
