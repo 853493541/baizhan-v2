@@ -7,20 +7,61 @@ import { updateCharacterAbilities } from "@/lib/characterService";
 interface AbilityHighlightsProps {
   characterId: string;
   abilities: Record<string, number>;
+  characterGender?: "male" | "female";
+  characterClass?: string;
   onAbilityUpdate?: (ability: string, newLevel: number) => void;
 }
 
-const coreAbilities = ["斗转金移", "花钱消灾", "黑煞落贪狼", "兔死狐悲", "引燃", "一闪天诛"];
-const supportingAbilities = [
-  "漾剑式",
-  "火焰之种",
-  "阴雷之种",
-  "阴阳术退散",
-  "剑心通明",
-  "尸鬼封烬",
-  "水遁水流闪",
+/* === Ability definitions with aliases === */
+const coreAbilitiesRaw = [
+  "斗转金移=斗转",
+  "花钱消灾=花钱",
+  "黑煞落贪狼=黑煞",
+  "蛮熊碎颅击=蛮熊",
+  "引燃",
+  "一闪天诛=天诛",
+  "漾剑式=漾剑",
 ];
-const tradeableAbilities = ["五行术雷震", "疯狂疾走", "蚀骨之花", "帝骖龙翔", "剑飞惊天"];
+
+const healerAbilitiesRaw = [
+  "万花金创药=万花",
+  "特制金创药=特制",
+  "短歌垂链=垂链",
+  "云海听弦=云海",
+  "霞月长针=霞月",
+  "皓莲望月=皓莲",
+];
+
+/* === 辅助技能 & 可交易技能 === */
+const supportAbilitiesRaw = [
+  "兔死狐悲=兔死",
+  "火焰之种=火焰",
+  "阴雷之种=阴雷",
+  "阴阳术退散=阴阳",
+  "剑心通明=剑心",
+  "尸鬼封烬=尸鬼",
+];
+
+const tradeAbilitiesRaw = [
+  "五行术雷震=雷震",
+  "疯狂疾走=疾走",
+  "蚀骨之花=蚀骨",
+  "帝骖龙翔=帝骖",
+  "剑飞惊天=剑飞",
+];
+
+/* === Parser for "full=alias" === */
+function parseAbilities(rawList: string[]) {
+  return rawList.map((entry) => {
+    const [full, alias] = entry.split("=");
+    return { full, alias: alias || full };
+  });
+}
+
+const coreAbilities = parseAbilities(coreAbilitiesRaw);
+const healerAbilities = parseAbilities(healerAbilitiesRaw);
+const supportAbilities = parseAbilities(supportAbilitiesRaw);
+const tradeAbilities = parseAbilities(tradeAbilitiesRaw);
 
 function AbilitySection({
   title,
@@ -30,7 +71,7 @@ function AbilitySection({
   onAbilityUpdate,
 }: {
   title: string;
-  abilityList: string[];
+  abilityList: { full: string; alias: string }[];
   abilities: Record<string, number>;
   characterId: string;
   onAbilityUpdate?: (ability: string, newLevel: number) => void;
@@ -50,7 +91,7 @@ function AbilitySection({
     }
   };
 
-  const visible = abilityList.filter((name) => (abilities[name] || 0) > 1);
+  const visible = abilityList.filter((a) => (abilities[a.full] || 0) > 1);
   if (visible.length === 0) return null;
 
   return (
@@ -58,26 +99,27 @@ function AbilitySection({
       <h3 className={styles.sectionTitle}>{title}</h3>
 
       <div className={styles.abilityGrid}>
-        {visible.map((name) => {
-          const level = abilities[name] || 0;
+        {visible.map(({ full, alias }) => {
+          const level = abilities[full] || 0;
           return (
-            <div key={name} className={styles.abilityCard}>
+            <div key={full} className={styles.abilityCard}>
               <img
-                src={`/icons/${name}.png`}
-                alt={name}
+                src={`/icons/${full}.png`}
+                alt={alias}
                 className={styles.abilityIcon}
                 onError={(e) => {
                   (e.currentTarget as HTMLImageElement).src = "/icons/default.png";
                 }}
               />
-
-              <span className={styles.abilityName}>{name}</span>
+              <span className={styles.abilityName} title={full}>
+                {alias}
+              </span>
 
               <div className={styles.abilityControls}>
                 <button
                   className={`${styles.controlButton} ${styles.minus}`}
-                  disabled={loadingAbility === name}
-                  onClick={() => updateAbility(name, level - 1)}
+                  disabled={loadingAbility === full}
+                  onClick={() => updateAbility(full, level - 1)}
                 >
                   -
                 </button>
@@ -86,8 +128,8 @@ function AbilitySection({
 
                 <button
                   className={`${styles.controlButton} ${styles.plus}`}
-                  disabled={loadingAbility === name}
-                  onClick={() => updateAbility(name, level + 1)}
+                  disabled={loadingAbility === full}
+                  onClick={() => updateAbility(full, level + 1)}
                 >
                   +
                 </button>
@@ -103,8 +145,24 @@ function AbilitySection({
 export default function AbilityHighlights({
   characterId,
   abilities,
+  characterGender = "male",
+  characterClass,
   onAbilityUpdate,
 }: AbilityHighlightsProps) {
+  /* === 性别过滤 === */
+  const filteredSupport = supportAbilities.filter((a) => {
+    if (characterGender === "male" && a.full === "剑心通明") return false;
+    if (characterGender === "female" && a.full === "尸鬼封烬") return false;
+    return true;
+  });
+
+  /* === 判断是否治疗门派 === */
+  const healerClasses = ["七秀", "万花", "药宗", "五毒", "长歌"];
+  const isHealerClass = characterClass && healerClasses.includes(characterClass);
+
+  /* === 如果是治疗门派 → 合并辅助 + 可交易 === */
+  const mergedOthers = [...filteredSupport, ...tradeAbilities];
+
   return (
     <div>
       <AbilitySection
@@ -114,20 +172,42 @@ export default function AbilityHighlights({
         characterId={characterId}
         onAbilityUpdate={onAbilityUpdate}
       />
-      <AbilitySection
-        title="辅助技能"
-        abilityList={supportingAbilities}
-        abilities={abilities}
-        characterId={characterId}
-        onAbilityUpdate={onAbilityUpdate}
-      />
-      <AbilitySection
-        title="可交易技能"
-        abilityList={tradeableAbilities}
-        abilities={abilities}
-        characterId={characterId}
-        onAbilityUpdate={onAbilityUpdate}
-      />
+
+      {isHealerClass ? (
+        <>
+          <AbilitySection
+            title="治疗技能"
+            abilityList={healerAbilities}
+            abilities={abilities}
+            characterId={characterId}
+            onAbilityUpdate={onAbilityUpdate}
+          />
+          <AbilitySection
+            title="其他技能"
+            abilityList={mergedOthers}
+            abilities={abilities}
+            characterId={characterId}
+            onAbilityUpdate={onAbilityUpdate}
+          />
+        </>
+      ) : (
+        <>
+          <AbilitySection
+            title="辅助技能"
+            abilityList={filteredSupport}
+            abilities={abilities}
+            characterId={characterId}
+            onAbilityUpdate={onAbilityUpdate}
+          />
+          <AbilitySection
+            title="可交易技能"
+            abilityList={tradeAbilities}
+            abilities={abilities}
+            characterId={characterId}
+            onAbilityUpdate={onAbilityUpdate}
+          />
+        </>
+      )}
     </div>
   );
 }

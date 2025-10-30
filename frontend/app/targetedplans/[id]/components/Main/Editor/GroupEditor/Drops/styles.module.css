@@ -131,3 +131,29 @@
 .statusDoneDot {
   background: #34d399;
 }
+/* === Ability section (top-left column) === */
+.abilitySection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* === Selected display summary === */
+.selectedDisplay {
+  margin-top: 4px;
+  background: #f5faff;
+  border: 1px solid #cce0ff;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.9rem;
+  color: #004085;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.selectedLevel {
+  font-weight: 600;
+  color: #005ad0;
+}

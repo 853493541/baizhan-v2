@@ -1,12 +1,90 @@
 .leftColumn {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  align-items: flex-start;
-  width: 260px;
+  width: 100%;
 }
 
-/* === Section Divider Line === */
+.sectionDivider {
+  font-weight: 600;
+  margin: 6px 0 10px;
+  font-size: 1rem;
+  color: #333;
+}
+
+.abilityList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.abilityRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+
+.abilityRow:hover {
+  background: #e9f2ff;
+  border-color: #0070f3;
+}
+
+.active {
+  border-color: #0070f3;
+  background: #edf5ff;
+}
+
+.iconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+}
+
+.icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+}
+
+.textWrap {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.abilityLabel {
+  font-size: 0.9rem;
+  color: #222;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.addAbilityBtn {
+  background: #0070f3;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 6px;
+}
+
+.addAbilityBtn:hover {
+  background: #0059c9;
+}
+/* === Section Divider Line (matches MemberList) === */
 .sectionDivider {
   display: flex;
   align-items: center;
@@ -16,140 +94,14 @@
   color: #666;
   margin: 8px 0 4px;
   width: 100%;
-  position: relative;
 }
 
 .sectionDivider::before,
 .sectionDivider::after {
   content: "";
-  flex: 1;
-  height: 1px;
-  background-color: #ddd;
+  display: block;
+  flex: 1 1 0;
+  border-top: 1px solid #ddd;
   margin: 0 8px;
-}
-
-/* === Common Abilities === */
-.commonList {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  width: 100%;
-}
-
-/* === Search Area === */
-
-.searchInput {
-  width: 100%;
-  padding: 7px 10px;
-  font-size: 14px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  outline: none;
-  background: #fafafa;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.searchInput:focus {
-  border-color: #1890ff;
-  background: #fff;
-  box-shadow: 0 0 3px rgba(24, 144, 255, 0.4);
-}
-
-
-
-/* === Ability Card === */
-.abilityCard {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 6px 10px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  width: 100%;
-}
-
-.abilityCard:hover {
-  background: #f5faff;
-  border-color: #1890ff;
-}
-
-.active {
-  border-color: #1890ff;
-  background: #e6f4ff;
-}
-
-.icon {
-  border-radius: 4px;
-  width: 28px;
-  height: 28px;
-}
-
-.abilityName {
-  font-size: 14px;
-  font-weight: 500;
-  color: #333;
-  flex: 1;
-  text-align: left;
-}
-/* === Search Area === */
-.searchArea {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  gap: 6px;
-  background: #fff;
-  /* 🟢 Fixed overall height for search section */
-  max-height: 210px;   /* ~3 cards visible + input */
-  overflow: hidden;
-  border-radius: 8px;
-  box-sizing: border-box;
-}
-
-/* === Search Area === */
-/* === Search Area (with visible border box) === */
-.searchArea {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  gap: 6px;
-
-  background: #fafafa;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-
-  box-sizing: border-box;
-  padding: 8px 10px;
-
-  /* Fixed total height: input + 3 cards */
-  max-height: 240px;
-  overflow: hidden;
-}
-
-/* === Scrollable ability list === */
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  width: 100%;
-  flex: 1;
-  overflow-y: auto;
-  padding-top: 2px;
-  padding-right: 4px;
-  scrollbar-width: thin;
-  scrollbar-color: #ccc transparent;
-}
-
-/* 🪄 WebKit scrollbar */
-.list::-webkit-scrollbar {
-  width: 6px;
-}
-.list::-webkit-scrollbar-track {
-  background: transparent;
-}
-.list::-webkit-scrollbar-thumb {
-  background-color: #ccc;
-  border-radius: 4px;
+  height: 0;
 }

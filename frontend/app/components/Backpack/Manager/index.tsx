@@ -28,6 +28,16 @@ interface Props {
 
 const getAbilityIcon = (name: string) => `/icons/${name}.png`;
 
+// 🈶 Convert number → Chinese numerals
+const numToChinese = (num: number): string => {
+  const map = ["〇", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
+  if (num <= 10) return map[num];
+  if (num < 20) return "十" + map[num - 10];
+  const tens = Math.floor(num / 10);
+  const ones = num % 10;
+  return `${map[tens]}十${ones ? map[ones] : ""}`;
+};
+
 export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
   const [localChar, setLocalChar] = useState<Character>(char);
   const [search, setSearch] = useState("");
@@ -182,43 +192,53 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
           )}
 
           <ul className={styles.itemList}>
-            {filteredItems.map((item, idx) => (
-              <li
-                key={`${item.ability}-${idx}`}
-                className={`${styles.itemRow} ${
-                  item.used ? styles.itemUsed : ""
-                }`}
-              >
-                <div className={styles.itemLeft}>
-                  <img
-                    src={getAbilityIcon(item.ability)}
-                    alt={item.ability}
-                    className={styles.abilityIcon}
-                    onError={(e) => (e.currentTarget.style.display = "none")}
-                  />
-                  <span className={styles.abilityText}>
-                    {item.ability}：{item.level}重
-                  </span>
-                </div>
+            {filteredItems.map((item, idx) => {
+              const currentLevel = localChar.abilities?.[item.ability] ?? 0;
+              return (
+                <li
+                  key={`${item.ability}-${idx}`}
+                  className={`${styles.itemRow} ${
+                    item.used ? styles.itemUsed : ""
+                  }`}
+                >
+                  <div className={styles.itemLeft}>
+                    <img
+                      src={getAbilityIcon(item.ability)}
+                      alt={item.ability}
+                      className={styles.abilityIcon}
+                      onError={(e) =>
+                        (e.currentTarget.style.display = "none")
+                      }
+                    />
+                    <div className={styles.abilityText}>
+                      <span className={styles.abilityName}>
+                        {numToChinese(item.level)}重 • {item.ability}
+                      </span>
+                      <span className={styles.currentLevelRight}>
+                        当前：{numToChinese(currentLevel)}重
+                      </span>
+                    </div>
+                  </div>
 
-                <div className={styles.buttons}>
-                  {!item.used && (
+                  <div className={styles.buttons}>
+                    {!item.used && (
+                      <button
+                        onClick={() => handleUse(item)}
+                        className={`${styles.btn} ${styles.useBtn}`}
+                      >
+                        使用
+                      </button>
+                    )}
                     <button
-                      onClick={() => handleUse(item)}
-                      className={`${styles.btn} ${styles.useBtn}`}
+                      onClick={() => handleDelete(item)}
+                      className={`${styles.btn} ${styles.deleteBtn}`}
                     >
-                      使用
+                      删除
                     </button>
-                  )}
-                  <button
-                    onClick={() => handleDelete(item)}
-                    className={`${styles.btn} ${styles.deleteBtn}`}
-                  >
-                    删除
-                  </button>
-                </div>
-              </li>
-            ))}
+                  </div>
+                </li>
+              );
+            })}
           </ul>
 
           <div className={styles.footer}>

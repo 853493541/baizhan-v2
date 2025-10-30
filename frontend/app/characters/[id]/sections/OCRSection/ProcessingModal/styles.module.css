@@ -1,0 +1,89 @@
+/* === Overlay === */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* === Modal Box === */
+.box {
+  background: #fff;
+  border-radius: 10px;
+  padding: 24px;
+  width: 380px;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* === Title === */
+.title {
+  margin-bottom: 16px;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: #111;
+}
+
+/* === Preview Image === */
+.previewImage {
+  width: 100%;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+/* === Scanning Text === */
+.text {
+  color: #444;
+  font-size: 1rem;
+  margin-bottom: 12px;
+}
+
+/* === Progress Bar === */
+.progressBarWrapper {
+  background: #eee;
+  border-radius: 6px;
+  height: 8px;
+  width: 100%;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.progressBar {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #0070f3, #00b4d8, #0070f3);
+  background-size: 200% 100%;
+  animation: progressAnim 2s linear infinite;
+}
+
+@keyframes progressAnim {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* === Footer / Cancel Button === */
+.footer {
+  margin-top: 8px;
+}
+
+.cancelButton {
+  background: #f3f4f6;
+  color: #111;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.cancelButton:hover {
+  background: #e5e7eb;
+}

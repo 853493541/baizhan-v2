@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./styles.module.css";
 import AbilityFilterModal from "./AbilityFilterModal";
 import Dropdown from "../../../components/layout/dropdown";
@@ -14,6 +14,7 @@ interface Props {
   ownerFilter: string;
   serverFilter: string;
   roleFilter: string;
+  activeOnly: boolean;
   uniqueOwners: string[];
   uniqueServers: string[];
   abilityFilters: AbilityFilter[];
@@ -23,6 +24,7 @@ interface Props {
   setOwnerFilter: (v: string) => void;
   setServerFilter: (v: string) => void;
   setRoleFilter: (v: string) => void;
+  setActiveOnly: (v: boolean) => void;
 
   onAddAbility: (ability: string, level: number) => void;
   onRemoveAbility: (i: number) => void;
@@ -47,6 +49,7 @@ export default function CharacterFilters({
   ownerFilter,
   serverFilter,
   roleFilter,
+  activeOnly,
   uniqueOwners,
   uniqueServers,
   abilityFilters,
@@ -55,6 +58,7 @@ export default function CharacterFilters({
   setOwnerFilter,
   setServerFilter,
   setRoleFilter,
+  setActiveOnly,
   onAddAbility,
   onRemoveAbility,
   setAbilityFilters,
@@ -65,6 +69,39 @@ export default function CharacterFilters({
   const [extraAbilities, setExtraAbilities] = useState<{ name: string; icon: string }[]>([]);
 
   const DISPLAY_ABILITIES = [...CORE_ABILITIES, ...extraAbilities];
+
+  // 🧩 Load filters from sessionStorage on first mount
+  useEffect(() => {
+    const saved = sessionStorage.getItem("characterFilters");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.ownerFilter) setOwnerFilter(parsed.ownerFilter);
+        if (parsed.serverFilter) setServerFilter(parsed.serverFilter);
+        if (parsed.roleFilter) setRoleFilter(parsed.roleFilter);
+        if (typeof parsed.activeOnly === "boolean") setActiveOnly(parsed.activeOnly);
+        if (parsed.globalLevel !== undefined) onChangeGlobalLevel(parsed.globalLevel);
+        if (Array.isArray(parsed.selectedAbilities)) setSelectedAbilities(parsed.selectedAbilities);
+        if (Array.isArray(parsed.abilityFilters)) setAbilityFilters(parsed.abilityFilters);
+      } catch (err) {
+        console.error("Failed to parse session filters:", err);
+      }
+    }
+  }, []);
+
+  // 💾 Save filters to sessionStorage whenever they change
+  useEffect(() => {
+    const toSave = {
+      ownerFilter,
+      serverFilter,
+      roleFilter,
+      activeOnly,
+      globalLevel,
+      selectedAbilities,
+      abilityFilters,
+    };
+    sessionStorage.setItem("characterFilters", JSON.stringify(toSave));
+  }, [ownerFilter, serverFilter, roleFilter, activeOnly, globalLevel, selectedAbilities, abilityFilters]);
 
   const handleAbilityToggle = (ability: string) => {
     const idx = selectedAbilities.indexOf(ability);
@@ -111,14 +148,14 @@ export default function CharacterFilters({
     setRoleFilter("");
     setSelectedAbilities([]);
     setAbilityFilters([]);
+    setActiveOnly(true);
     onChangeGlobalLevel(null);
-    localStorage.removeItem("characterFilters");
+    sessionStorage.removeItem("characterFilters");
   };
 
   return (
     <div className={styles.filterSection}>
       <div className={styles.filterRow}>
-        {/* ✅ Dropdown with 全部角色 */}
         <Dropdown
           label="角色"
           options={["全部", ...uniqueOwners]}
@@ -126,7 +163,6 @@ export default function CharacterFilters({
           onChange={(val) => setOwnerFilter(val === "全部" ? "" : val)}
         />
 
-        {/* ✅ Dropdown with 全部服务器 */}
         <Dropdown
           label="服务器"
           options={["全部", ...uniqueServers]}
@@ -134,28 +170,44 @@ export default function CharacterFilters({
           onChange={(val) => setServerFilter(val === "全部" ? "" : val)}
         />
 
-        {/* ✅ Role buttons */}
-        {[
-          { label: "防御", value: "Tank" },
+        {[{ label: "防御", value: "Tank" },
           { label: "输出", value: "DPS" },
           { label: "治疗", value: "Healer" },
         ].map((opt) => (
           <button
             key={opt.value}
-            className={`${styles.filterBtn} ${
-              roleFilter === opt.value ? styles.selected : ""
-            }`}
+            className={`${styles.filterBtn} ${roleFilter === opt.value ? styles.selected : ""}`}
             onClick={() => setRoleFilter(roleFilter === opt.value ? "" : opt.value)}
           >
             {opt.label}
           </button>
         ))}
 
+        {/* === Box Toggle for 激活 / 未激活 === */}
+        <div className={styles.boxToggle} onClick={() => setActiveOnly(!activeOnly)}>
+          <div className={`${styles.boxSlider} ${!activeOnly ? styles.slideRight : ""}`} />
+          <span
+            className={`${styles.boxOptionLeft} ${
+              activeOnly ? styles.boxTextActive : ""
+            }`}
+          >
+            激活
+          </span>
+          <span
+            className={`${styles.boxOptionRight} ${
+              !activeOnly ? styles.boxTextActive : ""
+            }`}
+          >
+            未激活
+          </span>
+        </div>
+
         <button className={styles.resetBtn} onClick={handleReset}>
           重置
         </button>
       </div>
 
+      {/* === Abilities === */}
       <div className={styles.abilitiesRow}>
         {DISPLAY_ABILITIES.map((a) => {
           const active = selectedAbilities.includes(a.name);
@@ -176,6 +228,7 @@ export default function CharacterFilters({
         </button>
       </div>
 
+      {/* === Level Buttons === */}
       <div className={styles.levelRow}>
         {[8, 9, 10].map((lvl) => (
           <button

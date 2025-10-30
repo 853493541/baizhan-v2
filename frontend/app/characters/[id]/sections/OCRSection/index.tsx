@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import ComparisonModal from "../ComparisonModal";
 import { runOCR } from "@/lib/ocrService";
+import OCRHeader from "./Header";
+import ProcessingModal from "./ProcessingModal"; // ✅ new component
 import styles from "./styles.module.css";
 
 interface Props {
@@ -21,12 +23,12 @@ export default function CharacterOCRSection({
   const [compareResult, setCompareResult] = useState<any | null>(null);
   const [processing, setProcessing] = useState(false);
 
-  // Run OCR when file selected
+  // 🧠 Run OCR when a file is selected or pasted
   useEffect(() => {
     if (ocrFile && characterId) {
       setPreviewImage(URL.createObjectURL(ocrFile));
-
       setProcessing(true);
+
       runOCR(ocrFile, characterId)
         .then((result) => setCompareResult(result))
         .catch((err) => {
@@ -39,7 +41,10 @@ export default function CharacterOCRSection({
 
   return (
     <div className={styles.wrapper}>
-      {/* ✅ Always visible upload area */}
+      {/* 🔹 OCR Header (title + last update) */}
+      <OCRHeader characterId={characterId} />
+
+      {/* 🔹 Upload area */}
       <div
         className={styles.uploadArea}
         onPaste={(e) => {
@@ -68,7 +73,7 @@ export default function CharacterOCRSection({
           }}
         />
 
-        {/* Custom Chinese button */}
+        {/* Custom button */}
         <label htmlFor="ocr-upload" className={styles.uploadButton}>
           选择文件
         </label>
@@ -77,46 +82,24 @@ export default function CharacterOCRSection({
         </span>
       </div>
 
-      {/* Processing modal */}
+      {/* 🔹 Processing modal (moved to its own component) */}
       {processing && (
-        <div className={styles.processingOverlay}>
-          <div className={styles.processingBox}>
-            <h3 className={styles.modalTitle}>图片处理</h3>
-
-            {/* Preview of uploaded image */}
-            {previewImage && (
-              <img
-                src={previewImage}
-                alt="预览"
-                className={styles.previewImage}
-              />
-            )}
-
-            {/* Simplified scanning text */}
-            <p className={styles.scanningText}>正在扫描...</p>
-
-            {/* Animated progress bar */}
-            <div className={styles.progressBarWrapper}>
-              <div className={styles.progressBar} />
-            </div>
-
-            <div style={{ marginTop: 20 }}>
-              <button onClick={() => setProcessing(false)}>取消</button>
-            </div>
-          </div>
-        </div>
+        <ProcessingModal
+          previewImage={previewImage}
+          onCancel={() => setProcessing(false)}
+        />
       )}
 
-      {/* Comparison results */}
+      {/* 🔹 Comparison modal (after OCR finished) */}
       {compareResult && (
         <ComparisonModal
-          characterId={characterId} // ✅ always pass ID
+          characterId={characterId}
           toUpdate={compareResult.toUpdate || []}
           ocrOnly={compareResult.ocrOnly || []}
           dbOnly={compareResult.dbOnly || []}
           previewImage={previewImage}
           currentAbilities={currentAbilities}
-          onAbilitiesUpdated={onAbilitiesUpdated} // ✅ match new prop
+          onAbilitiesUpdated={onAbilitiesUpdated}
           onClose={() => setCompareResult(null)}
         />
       )}
