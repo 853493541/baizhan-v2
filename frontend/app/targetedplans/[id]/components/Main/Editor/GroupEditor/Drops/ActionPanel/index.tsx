@@ -57,12 +57,7 @@ export default function ActionPanel({
 
   const saveToBackpack = async () => {
     if (!fullChar || !selectedAbility || !selectedLevel) return;
-
-    // Prevent saving 9 if already has 10 in backpack
     if (selectedLevel === 9 && hasLevel10InStorage(fullChar, selectedAbility)) {
-      // alert(
-      //   `⚠️ ${fullChar.name} 的背包中已存在 ${selectedAbility}（10重）。\n不能再保存 9重。`
-      // );
       return;
     }
 
@@ -74,8 +69,6 @@ export default function ActionPanel({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ability: selectedAbility, level: selectedLevel }),
       });
-
-      // 🟢 Mark group as finished
       await markGroupAsDone();
 
       alert("✅ 已存入背包！");
@@ -91,7 +84,6 @@ export default function ActionPanel({
 
     setLoading(true);
     try {
-      // 🟩 Step 1: record and apply the chosen level (usually 9)
       await recordDrop(fullChar, selectedAbility, selectedLevel);
       await fetch(`${API_URL}/api/characters/${fullChar._id}/storage/use`, {
         method: "PUT",
@@ -101,7 +93,6 @@ export default function ActionPanel({
 
       alert(`✅ ${fullChar.name} 已使用${selectedAbility}（${selectedLevel}重）`);
 
-      // 🟨 Step 2: if we just used 9重, check if backpack has 10重
       if (
         selectedLevel === 9 &&
         hasLevel10InStorage(fullChar, selectedAbility)
@@ -115,11 +106,9 @@ export default function ActionPanel({
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ ability: selectedAbility, level: 10 }),
           });
-          // alert(`✅ ${fullChar.name} 已使用 ${selectedAbility}（十重）`);
         }
       }
 
-      // 🟢 Mark group as finished
       await markGroupAsDone();
 
       onSaved();
@@ -134,6 +123,7 @@ export default function ActionPanel({
 
   return (
     <div className={styles.column}>
+      {/* === Section Divider Header === */}
       <div className={styles.sectionDivider}>操作</div>
 
       <div className={styles.btnCol}>

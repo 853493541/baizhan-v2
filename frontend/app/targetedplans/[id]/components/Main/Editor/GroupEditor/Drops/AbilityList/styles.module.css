@@ -1,276 +1,74 @@
-/* ================================
-   🧱 Modal Layout - Compact Version
-   ================================ */
-.modal {
-  background: #fff;
-  border-radius: 8px;
-  width: 90%;
-  max-width: 640px;
-  max-height: 82vh;
+.leftColumn {
   display: flex;
   flex-direction: column;
-  padding: 10px 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  width: 100%;
 }
 
-.modalHeader {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 10px;
-}
-
-.searchInput {
-  flex: 1;
-  height: 30px;
-  padding: 4px 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 0.9rem;
-}
-
-.closeBtn {
-  background: #eee;
-  border: none;
-  border-radius: 6px;
-  padding: 4px 8px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.closeBtn:hover {
-  background: #ddd;
-}
-
-/* ================================
-   🪟 Modal Overlay
-   ================================ */
-.modalOverlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-/* ================================
-   🧩 Boss Sections
-   ================================ */
-.bossSection {
-  margin-bottom: 10px;
-}
-
-.bossName {
+.sectionDivider {
   font-weight: 600;
-  font-size: 0.9rem;
-  margin-bottom: 4px;
+  margin: 6px 0 10px;
+  font-size: 1rem;
   color: #333;
-  border-left: 3px solid #0070f3;
-  padding-left: 6px;
 }
 
-/* Compact grid – more items per line */
-.skillGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-  gap: 5px;
+.abilityList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
 }
 
-/* ================================
-   🧿 Ability Buttons
-   ================================ */
-.abilityCard {
-  background: #f8f9fa;
+.abilityRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fafafa;
   border: 1px solid #ddd;
   border-radius: 6px;
-  padding: 4px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.8rem;
+  padding: 6px 10px;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  transition: all 0.15s ease;
+  text-align: left;
 }
 
-.abilityCard:hover {
+.abilityRow:hover {
   background: #e9f2ff;
   border-color: #0070f3;
 }
 
 .active {
-  background: #0070f3;
-  color: #fff;
-  border-color: #005ad0;
+  border-color: #0070f3;
+  background: #edf5ff;
+}
+
+.iconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
 }
 
 .icon {
-  flex-shrink: 0;
-  width: 22px;
-  height: 22px;
-}
-
-.abilityName {
-  font-size: 0.8rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* ================================
-   🟦 Open Button + Common Section
-   ================================ */
-.openModalBtn {
-  background: #0070f3;
-  color: #fff;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.openModalBtn:hover {
-  background: #0059c9;
-}
-
-.commonList {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-
-/* ================================
-   📏 Section Divider + Text
-   ================================ */
-.sectionDivider {
-  font-weight: 600;
-  margin: 8px 0 4px;
-  font-size: 0.9rem;
-  color: #444;
-}
-/* === Modal two-panel layout === */
-.modalBody {
-  display: flex;
-  gap: 12px;
-  height: 70vh;
-}
-
-/* Left ability list */
-.abilityPanel {
-  flex: 1;
-  overflow-y: auto;
-  padding-right: 4px;
-}
-
-/* Right bottom level picker */
-.levelPanel {
-  width: 120px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: center;
-  padding: 8px 0;
-  border-left: 1px solid #ddd;
-}
-
-.levelLabel {
-  font-weight: 600;
-  font-size: 0.9rem;
-  margin-bottom: 6px;
-  color: #333;
-}
-
-.levelButtons {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.levelBtn {
-  background: #fafafa;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  padding: 6px 10px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.levelBtn:hover {
-  background: #0070f3;
-  color: #fff;
-  border-color: #005ad0;
-}
-/* Common abilities now toggle */
-.abilityCard {
-  transition: background 0.2s, border-color 0.2s, transform 0.1s;
-}
-
-.abilityCard:active {
-  transform: scale(0.96);
-}
-
-.active {
-  background: #0070f3;
-  color: #fff;
-  border-color: #005ad0;
-}
-
-/* Optional subtle active highlight for common abilities */
-.commonList .active {
-  background: #cfe4ff;
-  border-color: #0070f3;
-  color: #004085;
-}
-.selectedList {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 4px;
-}
-
-.selectedItem {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: #f3f4f6;
-  border: 1px solid #d0d7e2;
-  border-radius: 6px;
-  padding: 4px 8px;
-  cursor: pointer;
-  font-size: 0.8rem;
-}
-
-.selectedItemActive {
-  background: #0070f3;
-  color: #fff;
-  border-color: #005ad0;
-}
-
-.selectedName {
-  max-width: 70px;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.selectedLvl {
-  font-weight: 600;
-}
-
-.badge {
-  background: #ffefc5;
-  color: #7a4b00;
+  width: 26px;
+  height: 26px;
   border-radius: 4px;
-  padding: 0 4px;
-  font-size: 0.65rem;
 }
+
+.textWrap {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.abilityLabel {
+  font-size: 0.9rem;
+  color: #222;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .addAbilityBtn {
   background: #0070f3;
   color: white;
@@ -280,8 +78,30 @@
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
+  margin-top: 6px;
 }
 
 .addAbilityBtn:hover {
   background: #0059c9;
+}
+/* === Section Divider Line (matches MemberList) === */
+.sectionDivider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  margin: 8px 0 4px;
+  width: 100%;
+}
+
+.sectionDivider::before,
+.sectionDivider::after {
+  content: "";
+  display: block;
+  flex: 1 1 0;
+  border-top: 1px solid #ddd;
+  margin: 0 8px;
+  height: 0;
 }

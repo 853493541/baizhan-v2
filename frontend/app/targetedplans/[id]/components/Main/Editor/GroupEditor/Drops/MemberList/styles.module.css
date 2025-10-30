@@ -1,7 +1,7 @@
 .rightColumn {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
   align-items: flex-start;
 }
 
@@ -211,3 +211,93 @@
 .progressPink {
   color: #555 !important;
 }
+/* Character Button */
+.memberBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 10px; /* 🔼 increased from 5–6px to make height ≈30px */
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #333;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.memberBtn:hover {
+  background: #f5faff;
+  border-color: #1890ff;
+}
+
+.memberDisabled {
+  background: #f0f0f0;
+  color: #888;
+  border-color: #ddd;
+  cursor: not-allowed;
+}
+
+.active {
+  background: #e6f4ff;
+  border-color: #1890ff;
+  color: #1890ff;
+}
+.sectionDivider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  margin: 6px 0 0; /* 🔧 reduced bottom margin from 4px to 0 */
+  width: 100%;
+}
+.rightColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 240px;
+  gap: 4px; /* ✅ consistent with other columns */
+}
+
+/* === Section Divider Line (matches all panels) === */
+.sectionDivider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  margin: 6px 0 0; /* ✅ unified tighter alignment */
+  width: 100%;
+}
+.sectionDivider::before,
+.sectionDivider::after {
+  content: "";
+  display: block;
+  flex: 1 1 0;
+  border-top: 1px solid #ddd;
+  margin: 0 8px;
+  height: 0;
+}
+
+/* === Character Button === */
+.memberBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 10px; /* ✅ ≈30px total height */
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #333;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.memberBtn:hover { background: #f5faff; border-color: #1890ff; }
+.memberDisabled { background: #f0f0f0; color: #888; border-color: #ddd; cursor: not-allowed; }
+.active { background: #e6f4ff; border-color: #1890ff; color: #1890ff; }
