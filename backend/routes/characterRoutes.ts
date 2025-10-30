@@ -1,4 +1,8 @@
 import express from "express";
+
+// ─────────────────────────────────────────────
+// Controllers
+// ─────────────────────────────────────────────
 import { createCharacter } from "../controllers/characters/createController";
 import {
   getCharacters,
@@ -9,14 +13,17 @@ import {
   updateCharacter,
   updateCharacterAbilities,
   deleteCharacter,
-  getAbilityHistory,
-  revertAbilityHistory,
-  deleteAbilityHistory,
   addToStorage,
   getStorage,
   useStoredAbility,
-  deleteFromStorage, // ✅ new import
+  deleteFromStorage, // ✅ storage management
 } from "../controllers/characters/updateController";
+import {
+  getAbilityHistory,
+  revertAbilityHistory,
+  deleteAbilityHistory,
+  revertMultipleHistory, // ✅ new batch revert route
+} from "../controllers/characters/history"; // ✅ history controller
 import { compareCharacterAbilities } from "../controllers/characters/compareController";
 
 const router = express.Router();
@@ -33,14 +40,15 @@ router.delete("/:id", deleteCharacter);
 router.post("/:id/compare-abilities", compareCharacterAbilities);
 
 // ─────────────────────────────────────────────
-// Ability History
+// 🧾 Ability History
 // ─────────────────────────────────────────────
-router.get("/abilities/history", getAbilityHistory);
-router.post("/abilities/history/:id/revert", revertAbilityHistory);
-router.delete("/abilities/history/:id", deleteAbilityHistory);
+router.get("/abilities/history", getAbilityHistory); // 获取技能历史
+router.post("/abilities/history/batch/revert", revertMultipleHistory); // ✅ 批量撤回（must come before :id）
+router.post("/abilities/history/:id/revert", revertAbilityHistory); // 单条撤回
+router.delete("/abilities/history/:id", deleteAbilityHistory); // 删除历史记录
 
 // ─────────────────────────────────────────────
-// ✅ Storage System (per-character endpoints)
+// 🎒 Storage System (per-character endpoints)
 // ─────────────────────────────────────────────
 // POST /api/characters/:id/storage → add ability to storage
 router.post("/:id/storage", addToStorage);
