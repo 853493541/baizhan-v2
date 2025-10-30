@@ -125,11 +125,12 @@ export default function GroupDrops({
           />
 
           {/* 🟡 Step 2: Level selection */}
-          <LevelPicker
-            selectedLevel={selectedLevel}
-            setSelectedLevel={setSelectedLevel}
-            disabled={!selectedAbility}
-          />
+        <LevelPicker
+          selectedAbility={selectedAbility}
+          selectedLevel={selectedLevel}
+          setSelectedLevel={setSelectedLevel}
+        />
+
 
           {/* 🔵 Step 3: Character selection */}
           <MemberList
