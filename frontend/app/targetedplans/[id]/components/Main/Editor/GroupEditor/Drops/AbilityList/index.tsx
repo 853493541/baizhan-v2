@@ -3,7 +3,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import styles from "./styles.module.css";
-import { createPinyinMap, pinyinFilter } from "@/utils/pinyinSearch"; // ✅ centralized helper
+import ExtraModal from "./ExtraModal";
+import bossData from "../../../../../../../../data/boss_skills_collection_reward.json";
+import { createPinyinMap, pinyinFilter } from "@/utils/pinyinSearch";
 
 const COMMON_ABILITIES = [
   "流霞点绛",
@@ -20,23 +22,26 @@ const COMMON_ABILITIES = [
 export default function AbilityList({
   abilities,
   selectedAbility,
-  setSelectedAbility,
-  search,
-  setSearch,
+  selectedLevel,
+  onAbilitySelect,
+  onAddOption,
 }: {
   abilities: string[];
   selectedAbility: string;
-  setSelectedAbility: (a: string) => void;
-  search: string;
-  setSearch: (v: string) => void;
+  selectedLevel: 9 | 10 | null;
+  onAbilitySelect: (name: string, level: 9 | 10) => void;
+  onAddOption: (name: string, level: 9 | 10) => void;
 }) {
   const [pinyinMap, setPinyinMap] = useState<
     Record<string, { full: string; short: string }>
   >({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  /* ----------------------------------------------------------------------
-     🧩 Build pinyin map once for all visible abilities
-  ---------------------------------------------------------------------- */
+  const [displayedAbilities, setDisplayedAbilities] = useState<
+    { name: string; level: 9 | 10 }[]
+  >([]);
+
+  /* Build pinyin map */
   useEffect(() => {
     async function buildMap() {
       if (!abilities.length) return;
@@ -46,97 +51,83 @@ export default function AbilityList({
     buildMap();
   }, [abilities]);
 
-  /* ----------------------------------------------------------------------
-     🧮 Compute visible lists
-  ---------------------------------------------------------------------- */
-  const availableNames = new Set(abilities);
-  const commonList = COMMON_ABILITIES.filter((a) => availableNames.has(a));
+  /* Initialize with common abilities */
+  useEffect(() => {
+    const commons = COMMON_ABILITIES.filter((a) =>
+      abilities.includes(a)
+    ).map((name) => ({
+      name,
+      level: 10 as 9 | 10,
+    }));
+    setDisplayedAbilities(commons);
+  }, [abilities]);
 
-  // ✅ Remove common ones from search list
-  const filteredList = abilities.filter((a) => !COMMON_ABILITIES.includes(a));
+  const handleAddAbility = (name: string, level: 9 | 10) => {
+    setDisplayedAbilities((prev) => {
+      if (prev.some((a) => a.name === name && a.level === level)) return prev;
+      return [...prev, { name, level }];
+    });
+    onAddOption(name, level);
+  };
 
-  // ✅ Apply pinyin-aware search filtering
-  const visibleList = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    if (!term) return filteredList;
-    return pinyinFilter(filteredList, pinyinMap, term);
-  }, [search, filteredList, pinyinMap]);
-
-  /* ----------------------------------------------------------------------
-     🧱 Render
-  ---------------------------------------------------------------------- */
   return (
     <div className={styles.leftColumn}>
-      {/* === 🟩 Section: 常见掉落 === */}
-      {commonList.length > 0 && (
-        <>
-          <div className={styles.sectionDivider}>常见掉落</div>
-          <div className={styles.commonList}>
-            {commonList.map((a) => (
-              <button
-                key={a}
-                onClick={() => setSelectedAbility(a)}
-                className={`${styles.abilityCard} ${
-                  selectedAbility === a ? styles.active : ""
-                }`}
-              >
+      {/* === Section Divider Header === */}
+      <div className={styles.sectionDivider}>掉落技能</div>
+
+      {/* === Ability List === */}
+      <div className={styles.abilityList}>
+        {displayedAbilities.map((a) => {
+          const isSelected =
+            selectedAbility === a.name && selectedLevel === a.level;
+          return (
+            <button
+              key={`${a.name}-${a.level}`}
+              className={`${styles.abilityRow} ${
+                isSelected ? styles.active : ""
+              }`}
+              onClick={() => onAbilitySelect(a.name, a.level)}
+            >
+              <div className={styles.iconWrap}>
                 <Image
-                  src={`/icons/${a}.png`}
-                  alt={a}
-                  width={28}
-                  height={28}
+                  src={`/icons/${a.name}.png`}
+                  alt={a.name}
+                  width={26}
+                  height={26}
                   onError={(e) =>
                     ((e.target as HTMLImageElement).style.display = "none")
                   }
                   className={styles.icon}
                 />
-                <span className={styles.abilityName}>{a}</span>
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-
-      {/* === 🟦 Section: 搜索技能 === */}
-      <div className={styles.sectionDivider}>搜索技能</div>
-
-      <div className={styles.searchArea}>
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="输入技能名 / 拼音..."
-          className={styles.searchInput}
-        />
-
-        <div className={styles.list}>
-          {visibleList.map((a) => (
-            <button
-              key={a}
-              onClick={() => setSelectedAbility(a)}
-              className={`${styles.abilityCard} ${
-                selectedAbility === a ? styles.active : ""
-              }`}
-            >
-              <Image
-                src={`/icons/${a}.png`}
-                alt={a}
-                width={28}
-                height={28}
-                onError={(e) =>
-                  ((e.target as HTMLImageElement).style.display = "none")
-                }
-                className={styles.icon}
-              />
-              <span className={styles.abilityName}>{a}</span>
+              </div>
+              <div className={styles.textWrap}>
+                <div className={styles.abilityLabel}>
+                  {COMMON_ABILITIES.includes(a.name)
+                    ? a.name
+                    : `${a.level === 10 ? "十重" : "九重"}·${a.name}`}
+                </div>
+              </div>
             </button>
-          ))}
+          );
+        })}
 
-          {visibleList.length === 0 && (
-            <p className={styles.noResult}>未找到匹配技能</p>
-          )}
-        </div>
+        <button
+          className={styles.addAbilityBtn}
+          onClick={() => setIsModalOpen(true)}
+        >
+          ＋ 添加技能
+        </button>
       </div>
+
+      {/* === Extra Modal === */}
+      {isModalOpen && (
+        <ExtraModal
+          abilities={abilities}
+          pinyinMap={pinyinMap}
+          onAdd={handleAddAbility}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
     </div>
   );
 }

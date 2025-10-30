@@ -3,10 +3,9 @@
 import React, { useState, useMemo, useEffect } from "react";
 import styles from "./styles.module.css";
 import AbilityList from "./AbilityList";
-import LevelPicker from "./LevelPicker";
 import MemberList from "./MemberList";
 import ActionPanel from "./ActionPanel";
-import { createPinyinMap, pinyinFilter } from "@/utils/pinyinSearch"; // ✅ shared helper
+import { createPinyinMap, pinyinFilter } from "@/utils/pinyinSearch";
 import type { AbilityCheck, Character, GroupResult } from "@/utils/solver";
 
 export default function GroupDrops({
@@ -26,33 +25,36 @@ export default function GroupDrops({
   onSaved: () => void;
   allCharacters: Character[];
 }) {
+  /* -----------------------------------------------
+     🧠 Local states
+  ----------------------------------------------- */
+  const [abilitiesAdded, setAbilitiesAdded] = useState<
+    { name: string; level: 9 | 10 }[]
+  >([]);
+
   const [selectedAbility, setSelectedAbility] = useState<string>("");
   const [selectedLevel, setSelectedLevel] = useState<9 | 10 | null>(null);
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(
     null
   );
+
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [pinyinMap, setPinyinMap] = useState<
     Record<string, { full: string; short: string }>
   >({});
 
-  // 🧠 Debug info
-  console.log("🧩 [GroupDrops] Mounted with group =", group);
-  console.log("🧩 [GroupDrops] group.index =", group?.index);
-  console.log("🧩 [GroupDrops] Plan ID =", planId);
-
-  /* ----------------------------------------------------------------------
-     🧩 All unique ability names
-  ---------------------------------------------------------------------- */
+  /* -----------------------------------------------
+     🔍 All available abilities
+  ----------------------------------------------- */
   const allAbilities = useMemo(() => {
     const names = checkedAbilities.map((a) => a.name).filter(Boolean);
     return Array.from(new Set(names));
   }, [checkedAbilities]);
 
-  /* ----------------------------------------------------------------------
-     🈶 Build pinyin map lazily once after mount (shared helper)
-  ---------------------------------------------------------------------- */
+  /* -----------------------------------------------
+     🔠 Build pinyin map once
+  ----------------------------------------------- */
   useEffect(() => {
     async function buildMap() {
       const map = await createPinyinMap(allAbilities);
@@ -61,44 +63,49 @@ export default function GroupDrops({
     buildMap();
   }, [allAbilities]);
 
-  /* ----------------------------------------------------------------------
-     🔍 Filter abilities by Chinese or pinyin
-  ---------------------------------------------------------------------- */
+  /* -----------------------------------------------
+     🔎 Filter abilities by name/pinyin
+  ----------------------------------------------- */
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
     if (!term) return allAbilities;
     return pinyinFilter(allAbilities, pinyinMap, term);
   }, [search, pinyinMap, allAbilities]);
 
-  /* ----------------------------------------------------------------------
-     🚫 Mark this group as "no drop" and finished
-  ---------------------------------------------------------------------- */
+  /* -----------------------------------------------
+     ➕ Add new ability (from modal)
+  ----------------------------------------------- */
+  const handleAddAbility = (name: string, level: 9 | 10) => {
+    setAbilitiesAdded((prev) => {
+      if (prev.some((a) => a.name === name && a.level === level)) return prev;
+      return [...prev, { name, level }];
+    });
+    setSelectedAbility(name);
+    setSelectedLevel(level);
+  };
+
+  /* -----------------------------------------------
+     🟢 Handle ability select from list
+  ----------------------------------------------- */
+  const handleAbilitySelect = (name: string, level: 9 | 10) => {
+    setSelectedAbility(name);
+    setSelectedLevel(level);
+  };
+
+  /* -----------------------------------------------
+     🚫 Mark this group as "no drop"
+  ----------------------------------------------- */
   const markNoDrop = async () => {
     const endpoint = `${API_URL}/api/targeted-plans/${planId}/groups/${group?.index}/status`;
-    console.log("📡 [markNoDrop] PUT", endpoint);
-
     try {
       setLoading(true);
-      const body = { status: "finished" };
-      console.log("📦 [markNoDrop] Sending body:", body);
-
       const res = await fetch(endpoint, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ status: "finished" }),
       });
-
-      console.log("📥 [markNoDrop] Response:", res.status);
-      if (!res.ok) {
-        const text = await res.text();
-        console.warn("❌ [markNoDrop] Error response:", text);
-        throw new Error(`HTTP ${res.status}`);
-      }
-
+      if (!res.ok) throw new Error(await res.text());
       group.status = "finished";
-      console.log(
-        `✅ [markNoDrop] Group ${group?.index} marked as finished (no drop).`
-      );
       onSaved();
       onClose();
     } catch (err) {
@@ -108,30 +115,23 @@ export default function GroupDrops({
     }
   };
 
-  /* ----------------------------------------------------------------------
-     🧱 Render Modal
-  ---------------------------------------------------------------------- */
+  /* -----------------------------------------------
+     🧱 Render modal structure
+  ----------------------------------------------- */
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
         <div className={styles.columns}>
-          {/* 🟢 Step 1: Ability selection */}
+          {/* 🟩 Step 1: Ability selection */}
           <AbilityList
             abilities={filtered}
             selectedAbility={selectedAbility}
-            setSelectedAbility={setSelectedAbility}
-            search={search}
-            setSearch={setSearch}
-          />
-
-          {/* 🟡 Step 2: Level selection */}
-          <LevelPicker
             selectedLevel={selectedLevel}
-            setSelectedLevel={setSelectedLevel}
-            disabled={!selectedAbility}
+            onAbilitySelect={handleAbilitySelect}
+            onAddOption={handleAddAbility}
           />
 
-          {/* 🔵 Step 3: Character selection */}
+          {/* 🔵 Step 2: Character selection */}
           <MemberList
             group={group}
             allCharacters={allCharacters}
@@ -141,7 +141,7 @@ export default function GroupDrops({
             setSelectedCharacter={setSelectedCharacter}
           />
 
-          {/* 🟣 Step 4: Actions */}
+          {/* 🟣 Step 3: Confirm / Save */}
           <ActionPanel
             API_URL={API_URL}
             planId={planId}
@@ -166,7 +166,6 @@ export default function GroupDrops({
           >
             无掉落
           </button>
-
           <button onClick={onClose} className={styles.closeBtn}>
             关闭
           </button>

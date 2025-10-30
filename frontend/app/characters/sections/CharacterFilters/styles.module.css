@@ -1,20 +1,20 @@
-/* Filter card */
+/* === Filter card container === */
 .filterSection {
   background: #fafafa;
   border: 1px solid #ddd;
   border-radius: 10px;
-  padding: 14px;         /* ✅ uniform padding so it respects container */
+  padding: 14px;
   margin-bottom: 20px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
   gap: 14px;
   align-items: flex-start;
-  width: 100%;           /* fills container width */
+  width: 100%;
   box-sizing: border-box;
 }
 
-/* Row 1 */
+/* === Top row: dropdowns + buttons === */
 .filterRow {
   display: flex;
   align-items: center;
@@ -22,10 +22,10 @@
   width: 100%;
 }
 
-/* Dropdowns */
+/* === Dropdowns === */
 .select {
-  height: 30px;                  /* ✅ match button height */
-   padding: 0 28px 0 10px;
+  height: 30px;
+  padding: 0 28px 0 10px;
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 14px;
@@ -38,14 +38,14 @@
   background: #f8fff9;
 }
 
-/* Reset button */
+/* === Reset button === */
 .resetBtn {
   margin-left: auto;
   background: #fff0f0;
   border: 1px solid #e0b4b4;
   border-radius: 6px;
-  padding: 0 12px;                /* adjusted for consistent height */
-  height: 30px;                   /* ✅ match dropdowns/buttons */
+  padding: 0 12px;
+  height: 30px;
   font-size: 14px;
   cursor: pointer;
   color: #b94a48;
@@ -57,10 +57,10 @@
   color: #a94442;
 }
 
-/* Shared filter buttons (role + level) */
+/* === Role / Level buttons === */
 .filterBtn {
   min-width: 40px;
-  height: 30px;                   /* ✅ match dropdowns */
+  height: 30px;
   border: 1px solid #bbb;
   border-radius: 6px;
   background: #f0f2f5;
@@ -86,7 +86,62 @@
   box-shadow: 0 0 4px rgba(40, 167, 69, 0.4);
 }
 
-/* Abilities row */
+/* === Box-style toggle for 激活 / 未激活 === */
+.boxToggle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100px;
+  height: 30px;
+  border: 1px solid #bbb;
+  border-radius: 6px;
+  background-color: #f0f2f5;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  user-select: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.boxSlider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background-color: #28a745;
+  border-radius: 4px;
+  transition: all 0.25s ease;
+  z-index: 0;
+}
+.slideRight {
+  left: 50%;
+  background-color: #28a745;
+}
+
+.boxOptionLeft,
+.boxOptionRight {
+  flex: 1;
+  text-align: center;
+  z-index: 1;
+  position: relative;
+  transition: color 0.25s ease;
+  color: #333;
+}
+
+.boxTextActive {
+  color: #fff;
+}
+
+.boxToggle:hover {
+  border-color: #28a745;
+  box-shadow: 0 0 4px rgba(40, 167, 69, 0.3);
+}
+
+/* === Ability icons === */
 .abilitiesRow {
   display: flex;
   align-items: center;
@@ -108,7 +163,6 @@
   height: 100%;
   border-radius: 5px;
 }
-
 .active {
   border-color: #28a745;
   box-shadow: 0 0 5px rgba(40, 167, 69, 0.6);
@@ -125,7 +179,7 @@
   border-radius: 50%;
 }
 
-/* + button */
+/* === Add (+) button === */
 .addButton {
   width: 40px;
   height: 40px;
@@ -146,7 +200,7 @@
   color: #333;
 }
 
-/* Level row */
+/* === Level buttons row === */
 .levelRow {
   display: flex;
   gap: 8px;

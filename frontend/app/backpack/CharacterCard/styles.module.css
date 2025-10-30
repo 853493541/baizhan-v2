@@ -236,3 +236,15 @@
 .tradableButton:active {
   transform: scale(0.98);
 }
+.backpackWrapper {
+  position: relative;
+  min-height: 110px; /* keep consistent space for ability list */
+}
+
+/* invisible overlay during refresh — layout stays stable, no flash */
+.invisibleLoading {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}

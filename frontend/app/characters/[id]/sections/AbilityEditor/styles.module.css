@@ -38,17 +38,16 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 6px; /* tighter row gap */
+  gap: 6px;
   border: 1px solid #ddd;
   border-radius: 8px;
   background: #fafafa;
-  padding: 4px 6px; /* compact padding */
+  padding: 4px 6px;
 
-  /* 🎯 exact fit for 3 rows (no scrollbar when 3 abilities) */
-  height: calc(3 * 40px + 2 * 6px + 8px);
-  max-height: calc(3 * 40px + 2 * 6px + 8px);
+  /* 🎯 exact fit for 5 rows (no scrollbar when 5 abilities) */
+  height: calc(11 * 40px + 4 * 6px + 8px);
+
 }
-
 /* Scrollbar styling */
 .wrapper::-webkit-scrollbar {
   width: 6px;

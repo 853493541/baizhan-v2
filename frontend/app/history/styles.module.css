@@ -64,17 +64,13 @@
 .table tr:hover {
   background-color: #f7f7f7;
 }
-.revertBtn,
-.deleteBtn {
+
+.revertBtn {
   padding: 4px 8px;
   border: none;
   border-radius: 4px;
   font-size: 0.85rem;
   cursor: pointer;
-  margin-right: 6px;
-}
-
-.revertBtn {
   background-color: #ffe58f;
   color: #614700;
 }
@@ -82,12 +78,143 @@
 .revertBtn:hover {
   background-color: #ffd666;
 }
-
-.deleteBtn {
-  background-color: #ffccc7;
-  color: #a8071a;
+.groupRow:hover {
+  background: #f5f5f5;
+  cursor: pointer;
 }
 
-.deleteBtn:hover {
-  background-color: #ffa39e;
+/* === Modal Backdrop === */
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+/* === Modal Box === */
+.modal {
+  background: #fff;
+  border-radius: 8px;
+  padding: 16px;
+  width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+/* === Header Row === */
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.modalTitle {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.modalHeaderButtons {
+  display: flex;
+  gap: 6px;
+}
+
+/* === Buttons === */
+.revertBtn {
+  background-color: #ffe58f;
+  color: #614700;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.revertBtn:hover {
+  background-color: #ffd666;
+}
+
+.cancelBtn {
+  background: #fafafa;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+/* === Modal List === */
+.modalList {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* two per row */
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* === Modal Items === */
+.modalItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 6px 8px;
+  background: #fafafa;
+}
+
+/* Icon + name */
+.skillInfo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.skillIcon {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.skillName {
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+.changeText {
+  color: #333;
+  font-size: 0.8rem;
+  width: 90px;
+  text-align: right;
+}
+.skillCell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.skillIcon {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.skillCell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.skillIcon {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
 }

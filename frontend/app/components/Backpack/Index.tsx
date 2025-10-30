@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./styles.module.css";
 import Manager from "./Manager";
 import AddBackpackModal from "./AddBackpackModal";
@@ -19,6 +19,16 @@ interface Character {
 }
 
 const getAbilityIcon = (name: string) => `/icons/${name}.png`;
+
+// 🈶 Convert number → Chinese numerals
+const numToChinese = (num: number): string => {
+  const map = ["〇", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
+  if (num <= 10) return map[num];
+  if (num < 20) return "十" + map[num - 10];
+  const tens = Math.floor(num / 10);
+  const ones = num % 10;
+  return `${map[tens]}十${ones ? map[ones] : ""}`;
+};
 
 const CORE_ABILITIES = [
   "斗转金移",
@@ -41,11 +51,16 @@ const CORE_ABILITIES = [
 interface Props {
   char: Character;
   API_URL: string;
+  onChanged?: () => void;
 }
 
-export default function BackpackWindow({ char: initialChar, API_URL }: Props) {
+export default function BackpackWindow({ char: initialChar, API_URL, onChanged }: Props) {
   const [char, setChar] = useState<Character>(initialChar);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setChar(initialChar);
+  }, [initialChar]);
 
   const refreshCharacter = async () => {
     try {
@@ -54,6 +69,7 @@ export default function BackpackWindow({ char: initialChar, API_URL }: Props) {
       if (!res.ok) throw new Error("加载角色失败");
       const data = await res.json();
       setChar(data);
+      if (onChanged) onChanged();
     } catch (e) {
       alert("刷新失败，请稍后再试");
       console.error(e);
@@ -75,28 +91,22 @@ export default function BackpackWindow({ char: initialChar, API_URL }: Props) {
   const handleUse = (item: StorageItem) =>
     runWithRefresh(async () => {
       if (!confirm(`确定要使用 ${item.ability}${item.level}重 吗？`)) return;
-      const res = await fetch(
-        `${API_URL}/api/characters/${char._id}/storage/use`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ability: item.ability, level: item.level }),
-        }
-      );
+      const res = await fetch(`${API_URL}/api/characters/${char._id}/storage/use`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ability: item.ability, level: item.level }),
+      });
       if (!res.ok) throw new Error("使用失败");
     });
 
   const handleDelete = (item: StorageItem) =>
     runWithRefresh(async () => {
       if (!confirm(`确定要删除 ${item.ability}${item.level}重 吗？`)) return;
-      const res = await fetch(
-        `${API_URL}/api/characters/${char._id}/storage/delete`,
-        {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ability: item.ability, level: item.level }),
-        }
-      );
+      const res = await fetch(`${API_URL}/api/characters/${char._id}/storage/delete`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ability: item.ability, level: item.level }),
+      });
       if (!res.ok) throw new Error("删除失败");
     });
 
@@ -110,19 +120,19 @@ export default function BackpackWindow({ char: initialChar, API_URL }: Props) {
 
   return (
     <div className={styles.wrapper}>
-      {loading && <p className={styles.loading}>加载中...</p>}
-      {!limitedItems.length && <p className={styles.empty}>暂无技能记录</p>}
+      {!limitedItems.length && <p className={styles.empty}>暂无背包记录</p>}
 
       <ul className={styles.itemList}>
         {limitedItems.map((item, idx) => {
-          const currentLevel = char.abilities?.[item.ability] ?? null;
-          const shortName =
-            item.ability.length > 4 ? item.ability.slice(0, 4) : item.ability;
+          const currentLevel = char.abilities?.[item.ability] ?? 0;
+          // ✅ show only first 4 characters, no ellipsis
+          const shortName = item.ability.slice(0, 4);
           return (
             <li
               key={`${item.ability}-${idx}`}
               className={`${styles.itemRow} ${item.used ? styles.itemUsed : ""}`}
             >
+              {/* Left side */}
               <div className={styles.itemLeft}>
                 <img
                   src={getAbilityIcon(item.ability)}
@@ -130,20 +140,18 @@ export default function BackpackWindow({ char: initialChar, API_URL }: Props) {
                   className={styles.abilityIcon}
                   onError={(e) => (e.currentTarget.style.display = "none")}
                 />
-                <span className={styles.abilityLine} title={item.ability}>
-                  <span className={styles.abilityName}>{shortName}</span>
-                  <span className={styles.levelInfo}>
-                    {item.level}重
-                    {currentLevel !== null && (
-                      <span className={styles.currentLevel}>
-                        {" "}
-                        | 当前：{currentLevel}重
-                      </span>
-                    )}
+
+                <div className={styles.abilityText} title={item.ability}>
+                  <span className={styles.abilityName}>
+                    {numToChinese(item.level)}重 • {shortName}
                   </span>
-                </span>
+                  <span className={styles.currentLevelRight}>
+                    当前：{numToChinese(currentLevel)}重
+                  </span>
+                </div>
               </div>
 
+              {/* Right buttons */}
               <div className={styles.buttons}>
                 {!item.used && (
                   <button

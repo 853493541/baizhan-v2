@@ -1,14 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
+import styles from "./styles.module.css";
 import BackpackWindow from "../../../../components/Backpack/Index";
-import Manager from "../../../../components/Backpack/Manager";
-import AddBackpackModal from "../../../../components/Backpack/AddBackpackModal";
 import ActionModal from "../../../../components/characters/ActionModal";
 import { getTradables } from "@/utils/tradables";
 import { getReadableFromStorage } from "@/utils/readables";
 import { updateCharacterAbilities } from "@/lib/characterService";
-import styles from "./styles.module.css";
+import Manager from "../../../../components/Backpack/Manager";
+import AddBackpackModal from "../../../../components/Backpack/AddBackpackModal";
 
 interface BackpackProps {
   character: any;
@@ -21,6 +21,8 @@ export default function Backpack({
   API_URL,
   refreshCharacter,
 }: BackpackProps) {
+  const [currentChar, setCurrentChar] = useState<any>(character);
+  const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showManager, setShowManager] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -28,18 +30,46 @@ export default function Backpack({
     character?.abilities || {}
   );
 
-  const tradables = character ? getTradables(character) : [];
-  const readables = character ? getReadableFromStorage(character) : [];
+  useEffect(() => {
+    setCurrentChar(character);
+    setLocalAbilities(character?.abilities || {});
+  }, [character]);
+
+  const refreshCharacterLocal = async (): Promise<any | null> => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/api/characters/${currentChar._id}`);
+      if (!res.ok) throw new Error("刷新失败");
+      const updated = await res.json();
+      // force fresh reference so child updates
+      setCurrentChar({ ...updated });
+      setLocalAbilities({ ...(updated.abilities || {}) });
+      await refreshCharacter()?.catch(() => {});
+      return updated;
+    } catch (err) {
+      console.error("❌ refreshCharacterLocal error:", err);
+      alert("刷新角色失败，请稍后再试");
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const tradables = currentChar ? getTradables(currentChar) : [];
+  const readables = currentChar ? getReadableFromStorage(currentChar) : [];
   const hasActions = tradables.length > 0 || readables.length > 0;
 
   const updateAbility = async (ability: string, newLevel: number) => {
     if (newLevel < 0) return;
     setLocalAbilities((prev) => ({ ...prev, [ability]: newLevel }));
     try {
-      const updatedChar = await updateCharacterAbilities(character._id, {
+      const updatedChar = await updateCharacterAbilities(currentChar._id, {
         [ability]: newLevel,
       });
-      if (updatedChar.abilities) setLocalAbilities(updatedChar.abilities);
+      if (updatedChar?.abilities) {
+        setLocalAbilities({ ...updatedChar.abilities });
+        setCurrentChar((prev: any) => ({ ...prev, ...updatedChar }));
+      }
     } catch (err) {
       console.error("⚠️ Error updating ability", err);
     }
@@ -64,17 +94,24 @@ export default function Backpack({
             onClick={() => setShowManager(true)}
           >
             📂
-            {character.storage && character.storage.length > 3 && (
-              <span className={styles.badge}>{character.storage.length}</span>
+            {currentChar?.storage && currentChar.storage.length > 3 && (
+              <span className={styles.badge}>{currentChar.storage.length}</span>
             )}
           </button>
         </div>
       </div>
 
-      {/* === Backpack Window === */}
-      <BackpackWindow char={character} API_URL={API_URL} />
+      {/* === Backpack Window (always mounted + stable) === */}
+<div className={styles.backpackWrapper}>
+  <BackpackWindow
+    char={currentChar}
+    API_URL={API_URL}
+    onChanged={refreshCharacterLocal} // 🔥 new line
+  />
+  {loading && <div className={styles.invisibleLoading}></div>}
+</div>
 
-      {/* === Tradable / Readable Action === */}
+      {/* === Orange Action Button === */}
       <div className={styles.tradeableWrapper}>
         {hasActions ? (
           <button
@@ -89,37 +126,43 @@ export default function Backpack({
         ) : (
           <div className={styles.tradeablePlaceholder}></div>
         )}
+
+        {showModal && (
+          <ActionModal
+            tradables={tradables}
+            readables={readables}
+            localAbilities={localAbilities}
+            updateAbility={updateAbility}
+            API_URL={API_URL}
+            charId={currentChar._id}
+            onRefresh={refreshCharacterLocal}
+            onClose={() => setShowModal(false)}
+          />
+        )}
       </div>
 
       {/* === Modals === */}
       {showAddModal && (
         <AddBackpackModal
           API_URL={API_URL}
-          characterId={character._id}
+          characterId={currentChar._id}
           onClose={() => setShowAddModal(false)}
-          onAdded={refreshCharacter}
+          onAdded={async () => {
+            await refreshCharacterLocal();
+            setShowAddModal(false);
+          }}
         />
       )}
 
       {showManager && (
         <Manager
-          char={character}
+          char={currentChar}
           API_URL={API_URL}
           onClose={() => setShowManager(false)}
-          onUpdated={refreshCharacter}
-        />
-      )}
-
-      {showModal && (
-        <ActionModal
-          tradables={tradables}
-          readables={readables}
-          localAbilities={localAbilities}
-          updateAbility={updateAbility}
-          API_URL={API_URL}
-          charId={character._id}
-          onRefresh={refreshCharacter}
-          onClose={() => setShowModal(false)}
+          onUpdated={(updated: any) => {
+            setCurrentChar({ ...updated });
+            setLocalAbilities({ ...(updated?.abilities || {}) });
+          }}
         />
       )}
     </div>
