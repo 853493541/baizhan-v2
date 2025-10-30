@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import CharacterAbilities from "./sections/CharacterAbilities";
 import CollectionStatus from "./sections/CollectionStatus";
 import CharacterBasics, { CharacterEditData } from "./sections/CharacterBasics";
 import AbilityHighlights from "./sections/AbilityHighlights";
@@ -138,26 +137,24 @@ export default function CharacterDetailPage() {
 
         <div className={styles.topRight}>
           <div className={styles.card}>
-            <CharacterAbilities abilities={character.abilities} />
-            <div className={styles.ocrWrapper}>
-              <CharacterOCRSection
-                characterId={character._id}
-                currentAbilities={character.abilities}
-                onAbilitiesUpdated={(updatedAbilities) => {
-                  setCharacter((prev) =>
-                    prev
-                      ? {
-                          ...prev,
-                          abilities: {
-                            ...prev.abilities,
-                            ...updatedAbilities,
-                          },
-                        }
-                      : prev
-                  );
-                }}
-              />
-            </div>
+            {/* ✅ OCR now contains scan display + last update */}
+            <CharacterOCRSection
+              characterId={character._id}
+              currentAbilities={character.abilities}
+              onAbilitiesUpdated={(updatedAbilities) => {
+                setCharacter((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        abilities: {
+                          ...prev.abilities,
+                          ...updatedAbilities,
+                        },
+                      }
+                    : prev
+                );
+              }}
+            />
           </div>
         </div>
       </div>
@@ -169,8 +166,8 @@ export default function CharacterDetailPage() {
             <AbilityHighlights
               characterId={character._id}
               abilities={character.abilities}
-              characterGender={character.gender === "男" ? "male" : "female"} // ✅ gender mapping
-              characterClass={character.class} // ✅ pass class
+              characterGender={character.gender === "男" ? "male" : "female"}
+              characterClass={character.class}
               onAbilityUpdate={(ability, newLevel) => {
                 setCharacter((prev) =>
                   prev
@@ -187,7 +184,6 @@ export default function CharacterDetailPage() {
 
         {/* RIGHT → Editor (half height) + Backpack */}
         <div className={styles.rightStack}>
-          {/* Ability Editor */}
           <div className={styles.halfCard}>
             <AbilityEditor
               characterId={character._id}
@@ -205,7 +201,6 @@ export default function CharacterDetailPage() {
             />
           </div>
 
-          {/* ✅ Backpack Section */}
           <Backpack
             character={character}
             API_URL={API_URL}

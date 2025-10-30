@@ -22,7 +22,8 @@ import {
   getAbilityHistory,
   revertAbilityHistory,
   deleteAbilityHistory,
-  revertMultipleHistory, // ✅ new batch revert route
+  revertMultipleHistory,
+  getLatestAbilityUpdate, // ✅ lightweight latest update
 } from "../controllers/characters/history"; // ✅ history controller
 import { compareCharacterAbilities } from "../controllers/characters/compareController";
 
@@ -42,8 +43,10 @@ router.post("/:id/compare-abilities", compareCharacterAbilities);
 // ─────────────────────────────────────────────
 // 🧾 Ability History
 // ─────────────────────────────────────────────
+// ⚠️ More specific routes first
 router.get("/abilities/history", getAbilityHistory); // 获取技能历史
-router.post("/abilities/history/batch/revert", revertMultipleHistory); // ✅ 批量撤回（must come before :id）
+router.get("/abilities/history/latest/:characterId", getLatestAbilityUpdate); // ✅ 最新更新记录
+router.post("/abilities/history/batch/revert", revertMultipleHistory); // ✅ 批量撤回
 router.post("/abilities/history/:id/revert", revertAbilityHistory); // 单条撤回
 router.delete("/abilities/history/:id", deleteAbilityHistory); // 删除历史记录
 
