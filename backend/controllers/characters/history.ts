@@ -142,3 +142,33 @@ export const revertMultipleHistory = async (req: Request, res: Response) => {
     return res.status(500).json({ error: err.message });
   }
 };
+/**
+ * 🔹 Get latest ability update for a specific character
+ *    - Returns last updated ability name + time
+ */
+export const getLatestAbilityUpdate = async (req: Request, res: Response) => {
+  try {
+    const { characterId } = req.params;
+    if (!characterId) {
+      return res.status(400).json({ error: "characterId is required" });
+    }
+
+    const latest = await AbilityHistory.findOne({ characterId })
+      .sort({ updatedAt: -1 })
+      .select("abilityName afterLevel updatedAt")
+      .lean();
+
+    if (!latest) {
+      return res.json({ message: "No update history found" });
+    }
+
+    return res.json({
+      abilityName: latest.abilityName,
+      level: latest.afterLevel,
+      updatedAt: latest.updatedAt,
+    });
+  } catch (err: any) {
+    console.error("❌ getLatestAbilityUpdate error:", err);
+    return res.status(500).json({ error: err.message });
+  }
+};

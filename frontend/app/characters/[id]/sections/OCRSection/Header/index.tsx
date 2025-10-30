@@ -3,9 +3,8 @@
 import { useEffect, useState } from "react";
 import styles from "./styles.module.css";
 
-interface CharacterAbilitiesProps {
+interface OCRHeaderProps {
   characterId: string;
-  abilities: Record<string, number>;
 }
 
 interface LatestUpdate {
@@ -14,7 +13,7 @@ interface LatestUpdate {
   updatedAt: string;
 }
 
-/* 🕒 Helper: format how long ago */
+/* 🕒 Helper: format time ago */
 function formatTimeAgo(dateStr: string): string {
   const now = new Date();
   const past = new Date(dateStr);
@@ -32,9 +31,8 @@ function formatTimeAgo(dateStr: string): string {
   return `${diffWeek}周前`;
 }
 
-export default function CharacterAbilities({ characterId, abilities }: CharacterAbilitiesProps) {
+export default function OCRHeader({ characterId }: OCRHeaderProps) {
   const [latest, setLatest] = useState<LatestUpdate | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const API_BASE = process.env.NEXT_PUBLIC_API_URL?.endsWith("/api")
     ? process.env.NEXT_PUBLIC_API_URL
@@ -48,38 +46,28 @@ export default function CharacterAbilities({ characterId, abilities }: Character
         if (!res.ok) return;
         const data = await res.json();
         if (data.abilityName) setLatest(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err) {
+        console.error("Failed to fetch latest ability update:", err);
       }
     };
     fetchLatest();
   }, [characterId, API_BASE]);
 
-  // 🧮 Determine if it's older than 2 weeks
   const isOld =
     latest &&
-    new Date().getTime() - new Date(latest.updatedAt).getTime() > 14 * 24 * 60 * 60 * 1000;
+    new Date().getTime() - new Date(latest.updatedAt).getTime() >
+      14 * 24 * 60 * 60 * 1000;
 
   return (
-    <div className={styles.scanBox}>
-      <div className={styles.scanHeader}>
-        <div className={styles.scanTitleRow}>
-          <span className={styles.scanIcon}>🔍</span>
-          <h2 className={styles.scanTitle}>OCR扫描</h2>
-        </div>
-
-        {error ? (
-          <p className={styles.lastScan}>❌ 加载失败</p>
-        ) : latest ? (
-          <p
-            className={`${styles.lastScan} ${isOld ? styles.old : ""}`}
-            title={new Date(latest.updatedAt).toLocaleString()}
-          >
-            上次更新：{formatTimeAgo(latest.updatedAt)}
-          </p>
-        ) : (
-          <p className={styles.lastScan}>暂无更新记录</p>
-        )}
+    <div className={styles.ocrHeader}>
+      <div className={styles.headerLeft}>
+        <span className={styles.scanIcon}>🔍</span>
+        <h2 className={styles.headerTitle}>OCR扫描</h2>
+      </div>
+      <div className={`${styles.headerRight} ${isOld ? styles.old : ""}`}>
+        {latest
+          ? `上次更新：${formatTimeAgo(latest.updatedAt)}`
+          : "暂无更新记录"}
       </div>
     </div>
   );
