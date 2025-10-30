@@ -16,7 +16,6 @@ export default function CharactersPageContent() {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   const [isModalOpen, setModalOpen] = useState(false);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -37,9 +36,19 @@ export default function CharactersPageContent() {
       ? selectedAbilities.map((a) => ({ ability: a, level: globalLevel }))
       : [];
 
+  /* -------------------- 🔹 Per-Tab Session Check -------------------- */
+  useEffect(() => {
+    const hasSession = sessionStorage.getItem("session_id");
+    if (!hasSession) {
+      // 🧹 true new tab — clear any restored session data
+      sessionStorage.clear();
+      sessionStorage.setItem("session_id", Date.now().toString());
+    }
+  }, []);
+
   /* -------------------- 🔹 Restore Filters -------------------- */
   useEffect(() => {
-    const saved = localStorage.getItem("characterFilters");
+    const saved = sessionStorage.getItem("characterFilters");
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -48,7 +57,6 @@ export default function CharactersPageContent() {
         setRoleFilter(parsed.roleFilter || "");
         setSelectedAbilities(parsed.selectedAbilities || []);
         setGlobalLevel(parsed.globalLevel ?? null);
-        // Default to true if undefined
         setActiveOnly(typeof parsed.activeOnly === "boolean" ? parsed.activeOnly : true);
       } catch (err) {
         console.error("❌ Failed to parse saved filters", err);
@@ -60,7 +68,6 @@ export default function CharactersPageContent() {
   /* -------------------- 🔹 Save Filters -------------------- */
   useEffect(() => {
     if (!restored) return;
-
     const state = {
       ownerFilter,
       serverFilter,
@@ -69,7 +76,7 @@ export default function CharactersPageContent() {
       globalLevel,
       activeOnly,
     };
-    localStorage.setItem("characterFilters", JSON.stringify(state));
+    sessionStorage.setItem("characterFilters", JSON.stringify(state));
   }, [
     restored,
     ownerFilter,
