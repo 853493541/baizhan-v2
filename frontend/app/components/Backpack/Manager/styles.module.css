@@ -111,11 +111,13 @@
   text-decoration: line-through;
 }
 
-/* === Left Column === */
+/* === Left Column (flex grow) === */
 .itemLeft {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1 1 auto;            /* ✅ grow to take available space */
+  min-width: 0;              /* ✅ allow text to ellipsis */
 }
 
 .abilityIcon {
@@ -127,17 +129,38 @@
   background: #fff;
 }
 
+/* === Ability text: name left, 当前 right === */
 .abilityText {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.abilityName {
+  flex: 1 1 auto;
   font-size: 14px;
   color: #1f2937;
   font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* === Right Buttons === */
+.currentLevelRight {
+  white-space: nowrap;
+  font-size: 13px;
+  color: #555;
+  text-align: right;
+  font-weight: 500;
+}
+
+/* === Right Buttons (fixed) === */
 .buttons {
   display: flex;
   gap: 6px;
+  flex: 0 0 auto;    
+  margin-left: 6px;         
 }
 
 .btn {

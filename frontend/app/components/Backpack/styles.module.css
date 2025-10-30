@@ -1,13 +1,13 @@
 .wrapper {
   display: flex;
   flex-direction: column;
-  gap: 6px; /* 🔽 tighter vertical gap */
+  gap: 6px;
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 10px;
-  padding: 4px 3px; /* 🔽 reduced internal padding */
+  padding: 4px 3px;
   background: #fff;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  height:110px;
+  height: 110px;
 }
 .wrapper:hover {
   border-color: rgba(0, 0, 0, 0.15);
@@ -17,11 +17,12 @@
 /* === Item List === */
 .itemList {
   list-style: none;
-  padding: 0 3px; /* 🔽 slightly narrower sides */
+  padding: 0 3px;
   margin-top: 2px;
   display: flex;
   flex-direction: column;
-  gap: 4px; /* 🔽 reduced gap between items */
+  gap: 4px;
+  min-height: calc((22px + 8px) * 3);
 }
 
 .itemRow {
@@ -29,8 +30,8 @@
   justify-content: space-between;
   align-items: center;
   background: #f8fafc;
-  padding: 4px 6px; /* 🔽 less vertical padding */
-  border-radius: 8px; /* 🔽 smaller radius to match compact look */
+  padding: 4px 6px;
+  border-radius: 8px;
   transition: background 0.15s ease, transform 0.1s ease;
 }
 .itemRow:hover {
@@ -42,14 +43,13 @@
 .itemLeft {
   display: flex;
   align-items: center;
-  gap: 6px; /* 🔽 closer spacing between icon and text */
-  flex: 1;
+  gap: 6px;
+  flex: 1 1 auto;
   min-width: 0;
-  overflow: hidden;
 }
 
 .abilityIcon {
-  width: 22px; /* 🔽 slightly smaller */
+  width: 22px;
   height: 22px;
   border-radius: 4px;
   background: #fff;
@@ -57,31 +57,31 @@
   flex-shrink: 0;
 }
 
-.abilityLine {
+/* === Text block inside left === */
+.abilityText {
   display: flex;
   align-items: center;
-  gap: 3px;
-  font-size: 14px; /* 🔽 slightly smaller font */
-  color: #1f2937;
-  white-space: nowrap;
-  overflow: hidden;
+  justify-content: space-between;
+  width: 100%;
+  gap: 6px;
 }
 
 .abilityName {
-  font-weight: 700;
-  color: #111827;
-  flex-shrink: 0;
-}
-
-.levelInfo {
   font-weight: 500;
-  color: #1f2937;
+  color: #111827;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+   font-size: 14px; 
 }
 
-.currentLevel {
+.currentLevelRight {
+  font-weight: 500; /* ✅ matches left */
+  color: #1f2937;
+  white-space: nowrap;
+  text-align: right;
   font-size: 12px;
-  color: #666;
-  opacity: 0.9;
 }
 
 /* === Buttons === */
@@ -92,16 +92,18 @@
   align-items: center;
   margin-left: 6px;
 }
+
 .btn {
   border: none;
   border-radius: 6px;
-  padding: 2px 6px; /* 🔽 smaller padding for shorter height */
+  padding: 2px 6px;
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   line-height: 1.2;
 }
+
 .useBtn {
   background: #e0ecff;
   color: #1e3a8a;
@@ -110,6 +112,7 @@
   background: #1d4ed8;
   color: #fff;
 }
+
 .deleteBtn {
   background: #ffe4e6;
   color: #b91c1c;
@@ -123,27 +126,18 @@
 .empty,
 .loading {
   color: #555;
-  font-size: 12px; /* 🔽 slightly smaller text */
+  font-size: 12px;
   text-align: center;
-  padding: 4px 0; /* 🔽 less vertical padding */
+  padding: 4px 0;
 }
-/* Reserve height for 3 ability rows (each ~30px + gaps) */
-.itemList {
-  list-style: none;
-  padding: 0 3px;
-  margin-top: 2px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-height: calc((22px + 8px) * 3); /* ✅ reserve height for 3 rows */
-}
-/* === 📱 Phone Layout Adjustments === */
+
+/* === 📱 Phone Layout === */
 @media (max-width: 600px) {
   .abilityName {
-    display: none; /* ✅ hide name on phones */
+    display: none;
   }
 
-  .abilityLine {
+  .abilityText {
     gap: 2px;
   }
 
@@ -152,13 +146,12 @@
     height: 20px;
   }
 
-  .levelInfo,
-  .currentLevel {
+  .currentLevelRight {
     font-size: 11px;
   }
 
   .itemRow {
-    padding: 3px 5px; /* tighter */
+    padding: 3px 5px;
   }
 
   .buttons {
