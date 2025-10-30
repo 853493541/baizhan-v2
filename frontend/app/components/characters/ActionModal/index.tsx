@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import styles from "./styles.module.css";
 
 export interface ActionModalProps {
@@ -38,6 +38,13 @@ export default function ActionModal({
   onRefresh,
   onClose,
 }: ActionModalProps) {
+  // ✅ Auto-close if both lists are empty
+  useEffect(() => {
+    if (tradables.length === 0 && readables.length === 0) {
+      onClose();
+    }
+  }, [tradables, readables, onClose]);
+
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) onClose();
   };
@@ -58,7 +65,7 @@ export default function ActionModal({
   };
 
   /* ---------------------------------------------------------------
-     📋 Handle Copy (includes +1 rule & force-10 exceptions)
+     📋 Handle Copy (force-10 exceptions only)
   --------------------------------------------------------------- */
   const handleCopy = async (ability: string, requiredLevel: number) => {
     const name = normalize(ability);
