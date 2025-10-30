@@ -8,15 +8,29 @@
   margin-bottom: 10px;
 }
 
-/* Responsive grid */
+/* === Grid layout: force ~4 per row on typical screens === */
 .abilityGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); /* ✅ responsive */
-  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); /* ✅ was 220px */
+  gap: 10px;
   width: 100%;
   box-sizing: border-box;
 }
 
+/* Adjust as screen shrinks */
+@media (max-width: 1100px) {
+  .abilityGrid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .abilityGrid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+}
+
+/* === Ability card === */
 .abilityCard {
   display: flex;
   align-items: center;
@@ -25,12 +39,18 @@
   border-radius: 6px;
   background: #fff;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  min-width: 0; /* ✅ prevents card from overflowing */
+  min-width: 0;
+  transition: transform 0.15s ease;
 }
 
+.abilityCard:hover {
+  transform: translateY(-2px);
+}
+
+/* === Smaller icon === */
 .abilityIcon {
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
   border-radius: 4px;
   border: 1px solid #ccc;
   margin-right: 6px;
@@ -38,6 +58,7 @@
   flex-shrink: 0;
 }
 
+/* === Text === */
 .abilityName {
   font-size: 13px;
   font-weight: 500;
@@ -47,6 +68,7 @@
   flex: 1;
 }
 
+/* === Controls === */
 .abilityControls {
   display: flex;
   align-items: center;
@@ -65,6 +87,12 @@
   cursor: pointer;
   line-height: 1;
   text-align: center;
+  background: #eee;
+  transition: background 0.2s ease;
+}
+
+.controlButton:hover {
+  background: #ddd;
 }
 
 .controlButton:disabled {
@@ -72,6 +100,7 @@
   cursor: not-allowed;
 }
 
+/* === Button colors === */
 .minus {
   background: #f8d7da;
   color: #a00;
@@ -82,9 +111,11 @@
   color: #060;
 }
 
+/* === Level text === */
 .abilityLevel {
-  font-family: monospace;
+
   font-size: 13px;
   width: 24px;
   text-align: center;
+  /* font-weight: bold; */
 }

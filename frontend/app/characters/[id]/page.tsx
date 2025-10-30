@@ -8,7 +8,7 @@ import CharacterBasics, { CharacterEditData } from "./sections/CharacterBasics";
 import AbilityHighlights from "./sections/AbilityHighlights";
 import CharacterOCRSection from "./sections/OCRSection";
 import AbilityEditor from "../../components/characters/AbilityEditor";
-import Backpack from "./sections/Backpack"; // ✅ new import
+import Backpack from "./sections/Backpack";
 import styles from "./styles.module.css";
 
 interface Character {
@@ -169,6 +169,8 @@ export default function CharacterDetailPage() {
             <AbilityHighlights
               characterId={character._id}
               abilities={character.abilities}
+              characterGender={character.gender === "男" ? "male" : "female"} // ✅ gender mapping
+              characterClass={character.class} // ✅ pass class
               onAbilityUpdate={(ability, newLevel) => {
                 setCharacter((prev) =>
                   prev
