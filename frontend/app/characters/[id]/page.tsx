@@ -6,7 +6,7 @@ import CollectionStatus from "./sections/CollectionStatus";
 import CharacterBasics, { CharacterEditData } from "./sections/CharacterBasics";
 import AbilityHighlights from "./sections/AbilityHighlights";
 import CharacterOCRSection from "./sections/OCRSection";
-import AbilityEditor from "../../components/characters/AbilityEditor";
+import AbilityEditor from "./sections/AbilityEditor";
 import Backpack from "./sections/Backpack";
 import styles from "./styles.module.css";
 
@@ -137,7 +137,6 @@ export default function CharacterDetailPage() {
 
         <div className={styles.topRight}>
           <div className={styles.card}>
-            {/* ✅ OCR now contains scan display + last update */}
             <CharacterOCRSection
               characterId={character._id}
               currentAbilities={character.abilities}
@@ -182,7 +181,7 @@ export default function CharacterDetailPage() {
           </div>
         </div>
 
-        {/* RIGHT → Editor (half height) + Backpack */}
+        {/* RIGHT → Editor (half height) + Backpack at bottom */}
         <div className={styles.rightStack}>
           <div className={styles.halfCard}>
             <AbilityEditor
@@ -201,11 +200,13 @@ export default function CharacterDetailPage() {
             />
           </div>
 
-          <Backpack
-            character={character}
-            API_URL={API_URL}
-            refreshCharacter={refreshCharacter}
-          />
+          <div className={styles.backpackSection}>
+            <Backpack
+              character={character}
+              API_URL={API_URL}
+              refreshCharacter={refreshCharacter}
+            />
+          </div>
         </div>
       </div>
 
