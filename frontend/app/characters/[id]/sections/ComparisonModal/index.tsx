@@ -34,10 +34,15 @@ export default function ComparisonModal({
   const coreAbilities = ["斗转金移", "花钱消灾", "黑煞落贪狼", "兔死狐悲", "引燃", "一闪天诛"];
   const supportingAbilities = ["漾剑式", "火焰之种", "阴雷之种", "阴阳术退散", "剑心通明", "尸鬼封烬", "水遁水流闪"];
 
-  const coreUpdates = toUpdate.filter((u) => coreAbilities.includes(u.name));
-  const supportingUpdates = toUpdate.filter((u) => supportingAbilities.includes(u.name));
+  // 🔹 Categorize updates
+  const downgradedUpdates = toUpdate.filter((u) => u.new < u.old);
+  const coreUpdates = toUpdate.filter((u) => coreAbilities.includes(u.name) && u.new >= u.old);
+  const supportingUpdates = toUpdate.filter((u) => supportingAbilities.includes(u.name) && u.new >= u.old);
   const otherUpdates = toUpdate.filter(
-    (u) => !coreAbilities.includes(u.name) && !supportingAbilities.includes(u.name)
+    (u) =>
+      !coreAbilities.includes(u.name) &&
+      !supportingAbilities.includes(u.name) &&
+      u.new >= u.old
   );
 
   const [step, setStep] = useState<1 | 2>(1);
@@ -72,7 +77,7 @@ export default function ComparisonModal({
 
     console.log("🟢 Submitting Step 1 updates:", updates);
     try {
-      await updateCharacterAbilities(characterId, updates); // ✅ send raw updates
+      await updateCharacterAbilities(characterId, updates);
       console.log("✅ Step 1 updates submitted successfully");
       onAbilitiesUpdated(updates);
 
@@ -96,7 +101,7 @@ export default function ComparisonModal({
 
     console.log("🟦 Submitting Step 2 manual updates:", dbOnlyValues);
     try {
-      await updateCharacterAbilities(characterId, dbOnlyValues); // ✅ send raw updates
+      await updateCharacterAbilities(characterId, dbOnlyValues);
       console.log("✅ Step 2 manual updates submitted successfully");
       onAbilitiesUpdated(dbOnlyValues);
       onClose();
@@ -182,6 +187,14 @@ export default function ComparisonModal({
                 <button onClick={handleStep1Confirm} className={styles.confirmBtn}>确认</button>
               </div>
             </div>
+
+            {/* 🔻 New Section: Downgraded Skills */}
+            {downgradedUpdates.length > 0 && (
+              <div className={styles.section}>
+                <h3 style={{ color: "#d93025" }}>降级技能</h3>
+                {renderAbilityList(downgradedUpdates)}
+              </div>
+            )}
 
             <div className={styles.section}>
               <h3>核心技能</h3>
