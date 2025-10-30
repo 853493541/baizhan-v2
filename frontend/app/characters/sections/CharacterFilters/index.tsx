@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./styles.module.css";
 import AbilityFilterModal from "./AbilityFilterModal";
 import Dropdown from "../../../components/layout/dropdown";
@@ -70,6 +70,39 @@ export default function CharacterFilters({
 
   const DISPLAY_ABILITIES = [...CORE_ABILITIES, ...extraAbilities];
 
+  // 🧩 Load filters from sessionStorage on first mount
+  useEffect(() => {
+    const saved = sessionStorage.getItem("characterFilters");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.ownerFilter) setOwnerFilter(parsed.ownerFilter);
+        if (parsed.serverFilter) setServerFilter(parsed.serverFilter);
+        if (parsed.roleFilter) setRoleFilter(parsed.roleFilter);
+        if (typeof parsed.activeOnly === "boolean") setActiveOnly(parsed.activeOnly);
+        if (parsed.globalLevel !== undefined) onChangeGlobalLevel(parsed.globalLevel);
+        if (Array.isArray(parsed.selectedAbilities)) setSelectedAbilities(parsed.selectedAbilities);
+        if (Array.isArray(parsed.abilityFilters)) setAbilityFilters(parsed.abilityFilters);
+      } catch (err) {
+        console.error("Failed to parse session filters:", err);
+      }
+    }
+  }, []);
+
+  // 💾 Save filters to sessionStorage whenever they change
+  useEffect(() => {
+    const toSave = {
+      ownerFilter,
+      serverFilter,
+      roleFilter,
+      activeOnly,
+      globalLevel,
+      selectedAbilities,
+      abilityFilters,
+    };
+    sessionStorage.setItem("characterFilters", JSON.stringify(toSave));
+  }, [ownerFilter, serverFilter, roleFilter, activeOnly, globalLevel, selectedAbilities, abilityFilters]);
+
   const handleAbilityToggle = (ability: string) => {
     const idx = selectedAbilities.indexOf(ability);
     if (idx >= 0) {
@@ -117,7 +150,7 @@ export default function CharacterFilters({
     setAbilityFilters([]);
     setActiveOnly(true);
     onChangeGlobalLevel(null);
-    localStorage.removeItem("characterFilters");
+    sessionStorage.removeItem("characterFilters");
   };
 
   return (
