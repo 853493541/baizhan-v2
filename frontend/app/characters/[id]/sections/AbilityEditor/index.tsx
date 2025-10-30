@@ -74,9 +74,27 @@ export default function AbilityEditor({
   const allAbilities = Object.keys(abilities);
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
-    if (!term) return allAbilities.slice(0, 5); // default show 3
+    if (!term) return allAbilities.slice(0, 5);
     return pinyinFilter(allAbilities, pinyinMap, term);
   }, [query, allAbilities, pinyinMap]);
+
+  /* ----------------------------------------------------------------------
+     ⚙️ Special rule abilities
+  ---------------------------------------------------------------------- */
+  const specialAbilities = new Set([
+    "退山凝",
+    "电挈昆吾",
+    "立剑势",
+    "无我无剑式",
+    "剑飞惊天",
+    "三环套月式",
+    "月流斩",
+    "流霞点绛",
+    "霞袖回春",
+    "云海听弦",
+    "玉魄惊鸾",
+    "震岳势",
+  ]);
 
   /* ----------------------------------------------------------------------
      🔄 Update ability level
@@ -119,6 +137,17 @@ export default function AbilityEditor({
           {filtered.map((name) => {
             const level = abilities[name] || 0;
             const iconPath = `/icons/${name}.png`;
+            const isSpecial = specialAbilities.has(name);
+
+            const handlePlus = () =>
+              isSpecial
+                ? updateAbility(name, 10)
+                : updateAbility(name, level + 1);
+
+            const handleMinus = () =>
+              isSpecial
+                ? updateAbility(name, 0)
+                : updateAbility(name, level - 1);
 
             return (
               <div key={name} className={styles.abilityRow}>
@@ -136,7 +165,7 @@ export default function AbilityEditor({
                   <button
                     className={styles.minus}
                     disabled={loadingAbility === name}
-                    onClick={() => updateAbility(name, level - 1)}
+                    onClick={handleMinus}
                   >
                     −
                   </button>
@@ -144,7 +173,7 @@ export default function AbilityEditor({
                   <button
                     className={styles.plus}
                     disabled={loadingAbility === name}
-                    onClick={() => updateAbility(name, level + 1)}
+                    onClick={handlePlus}
                   >
                     +
                   </button>
