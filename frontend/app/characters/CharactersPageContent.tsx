@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation"; // ✅ import router
+import { useRouter } from "next/navigation";
 
 import CreateCharacterModal from "@/app/components/characters/CreateCharacterModal";
 import { Character } from "@/types/Character";
@@ -20,42 +20,44 @@ export default function CharactersPageContent() {
   const [isModalOpen, setModalOpen] = useState(false);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
-  const router = useRouter(); // ✅ initialize router
+  const router = useRouter();
 
-  // ===== Filter state =====
+  /* -------------------- 🔹 Filter State -------------------- */
   const [ownerFilter, setOwnerFilter] = useState("");
   const [serverFilter, setServerFilter] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   const [selectedAbilities, setSelectedAbilities] = useState<string[]>([]);
   const [globalLevel, setGlobalLevel] = useState<number | null>(null);
+  const [activeOnly, setActiveOnly] = useState(true); // ✅ default: show active tab
 
-  const [restored, setRestored] = useState(false); // ✅ safeguard flag
+  const [restored, setRestored] = useState(false);
 
   const abilityFilters: { ability: string; level: number }[] =
     globalLevel != null
       ? selectedAbilities.map((a) => ({ ability: a, level: globalLevel }))
       : [];
 
-  // ===== Restore filters from localStorage =====
+  /* -------------------- 🔹 Restore Filters -------------------- */
   useEffect(() => {
     const saved = localStorage.getItem("characterFilters");
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-
         setOwnerFilter(parsed.ownerFilter || "");
         setServerFilter(parsed.serverFilter || "");
         setRoleFilter(parsed.roleFilter || "");
         setSelectedAbilities(parsed.selectedAbilities || []);
         setGlobalLevel(parsed.globalLevel ?? null);
+        // Default to true if undefined
+        setActiveOnly(typeof parsed.activeOnly === "boolean" ? parsed.activeOnly : true);
       } catch (err) {
         console.error("❌ Failed to parse saved filters", err);
       }
     }
-    setRestored(true); // ✅ mark restore complete
+    setRestored(true);
   }, []);
 
-  // ===== Save filters to localStorage whenever they change =====
+  /* -------------------- 🔹 Save Filters -------------------- */
   useEffect(() => {
     if (!restored) return;
 
@@ -65,11 +67,20 @@ export default function CharactersPageContent() {
       roleFilter,
       selectedAbilities,
       globalLevel,
+      activeOnly,
     };
     localStorage.setItem("characterFilters", JSON.stringify(state));
-  }, [restored, ownerFilter, serverFilter, roleFilter, selectedAbilities, globalLevel]);
+  }, [
+    restored,
+    ownerFilter,
+    serverFilter,
+    roleFilter,
+    selectedAbilities,
+    globalLevel,
+    activeOnly,
+  ]);
 
-  // ===== Handlers =====
+  /* -------------------- 🔹 Handlers -------------------- */
   const handleAddAbilityFilter = (ability: string, level: number) => {
     const exists = selectedAbilities.includes(ability);
     const next = exists
@@ -84,7 +95,7 @@ export default function CharactersPageContent() {
     setSelectedAbilities(next);
   };
 
-  // ===== Fetch characters =====
+  /* -------------------- 🔹 Fetch Characters -------------------- */
   const refreshCharacters = () => {
     fetch(`${API_URL}/api/characters`)
       .then((res) => res.json())
@@ -107,7 +118,7 @@ export default function CharactersPageContent() {
     refreshCharacters();
   }, []);
 
-  // ===== Create handler =====
+  /* -------------------- 🔹 Create Character -------------------- */
   const handleCreate = async (data: any) => {
     try {
       const res = await fetch(`${API_URL}/api/characters`, {
@@ -119,11 +130,7 @@ export default function CharactersPageContent() {
       if (!res.ok) throw new Error("创建失败");
 
       const newChar = await res.json();
-
-      // ✅ update list
       setCharacters((prev) => [...prev, newChar]);
-
-      // ✅ jump to detail page
       router.push(`/characters/${newChar._id}`);
     } catch (err) {
       console.error("❌ Error creating character:", err);
@@ -131,7 +138,7 @@ export default function CharactersPageContent() {
     }
   };
 
-  // ===== Derived values =====
+  /* -------------------- 🔹 Derived Values -------------------- */
   const uniqueOwners = Array.from(
     new Set(characters.map((c) => c.owner || "Unknown"))
   ).sort();
@@ -139,29 +146,37 @@ export default function CharactersPageContent() {
     new Set(characters.map((c) => c.server))
   ).sort();
 
+  /* -------------------- 🔹 Apply Filters -------------------- */
   const filteredCharacters = characters.filter((c) => {
     if (ownerFilter && c.owner !== ownerFilter) return false;
     if (serverFilter && c.server !== serverFilter) return false;
     if (roleFilter && c.role !== roleFilter) return false;
 
+    // 🟢 Activation tab logic — only show one group at a time
+    if (activeOnly && !c.active) return false; // showing only active
+    if (!activeOnly && c.active) return false; // showing only inactive
+
     for (const f of abilityFilters) {
       const level = c.abilities?.[f.ability] || 0;
       if (level !== f.level) return false;
     }
+
     return true;
   });
 
+  /* -------------------- 🔹 UI -------------------- */
   if (loading) return <p className={styles.message}>角色加载中...</p>;
   if (error) return <p className={styles.error}>{error}</p>;
 
   return (
     <div className={styles.container}>
-      {/* Header row with text left + button right */}
+      {/* Header */}
       <div className={styles.headerRow}>
         <span className={styles.headerText}>角色仓库</span>
         <CreateButton onClick={() => setModalOpen(true)} />
       </div>
 
+      {/* Modal */}
       {isModalOpen && (
         <CreateCharacterModal
           isOpen={isModalOpen}
@@ -170,10 +185,12 @@ export default function CharactersPageContent() {
         />
       )}
 
+      {/* Filters */}
       <CharacterFilters
         ownerFilter={ownerFilter}
         serverFilter={serverFilter}
         roleFilter={roleFilter}
+        activeOnly={activeOnly}
         uniqueOwners={uniqueOwners}
         uniqueServers={uniqueServers}
         abilityFilters={abilityFilters}
@@ -182,14 +199,19 @@ export default function CharactersPageContent() {
         setOwnerFilter={setOwnerFilter}
         setServerFilter={setServerFilter}
         setRoleFilter={setRoleFilter}
+        setActiveOnly={setActiveOnly}
         onAddAbility={handleAddAbilityFilter}
         onRemoveAbility={handleRemoveAbilityFilter}
-        setAbilityFilters={() => {}} // no-op, derived locally
+        setAbilityFilters={() => {}}
         setSelectedAbilities={setSelectedAbilities}
         onChangeGlobalLevel={setGlobalLevel}
       />
 
-      <CharacterGrid characters={filteredCharacters} onUpdated={refreshCharacters} />
+      {/* Grid */}
+      <CharacterGrid
+        characters={filteredCharacters}
+        onUpdated={refreshCharacters}
+      />
     </div>
   );
 }
