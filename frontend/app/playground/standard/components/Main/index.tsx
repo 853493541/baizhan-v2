@@ -9,7 +9,6 @@ import type { GroupResult, Character, AbilityCheck } from "@/utils/solver";
 import SolverOptions from "./SolverOptions";
 import SolverButtons from "./SolverButtons";
 import DisplayGroups from "./DisplayGroups";
-import AftermathSummary from "./AftermathSummary";
 
 // ✅ Hardcoded main characters (still used to split main/alt groups)
 const MAIN_CHARACTERS = new Set([
@@ -78,7 +77,7 @@ export default function MainSection({
   // ---------- Safe Solver Wrapper ----------
   const safeRunSolver = async (abilities: AbilityCheck[], label: string) => {
     if (solving) {
-      console.log(`[SAFE] Skipping ${label}, solver already running.`);
+      // console.log(`[SAFE] Skipping ${label}, solver already running.`);
       return;
     }
     try {
@@ -115,7 +114,7 @@ export default function MainSection({
       );
       if (!res.ok) throw new Error("Failed to update groups");
       await res.json();
-      console.log("💾 Groups saved to backend");
+      console.log("Groups saved to backend");
     } catch (err) {
       console.error("❌ Error saving groups:", err);
     }
@@ -136,7 +135,7 @@ export default function MainSection({
     }));
 
     if (mainGroups.length && altGroups.length) {
-      console.log(`🔄 Reordered groups: ${mainGroups.length} main, ${altGroups.length} alt`);
+      // console.log(`🔄 Reordered groups: ${mainGroups.length} main, ${altGroups.length} alt`);
     }
 
     return reordered;
@@ -221,12 +220,7 @@ export default function MainSection({
               checkedAbilities={schedule.checkedAbilities}
             />
           )}
-          {aftermath && (
-            <AftermathSummary
-              wasted9={aftermath.wasted9}
-              wasted10={aftermath.wasted10}
-            />
-          )}
+
         </>
       )}
     </div>

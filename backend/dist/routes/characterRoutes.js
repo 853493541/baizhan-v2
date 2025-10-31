@@ -4,9 +4,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
+// ─────────────────────────────────────────────
+// Controllers
+// ─────────────────────────────────────────────
 const createController_1 = require("../controllers/characters/createController");
 const getController_1 = require("../controllers/characters/getController");
 const updateController_1 = require("../controllers/characters/updateController");
+const history_1 = require("../controllers/characters/history"); // ✅ history controller
 const compareController_1 = require("../controllers/characters/compareController");
 const router = express_1.default.Router();
 // ─────────────────────────────────────────────
@@ -20,13 +24,16 @@ router.put("/:id", updateController_1.updateCharacter);
 router.delete("/:id", updateController_1.deleteCharacter);
 router.post("/:id/compare-abilities", compareController_1.compareCharacterAbilities);
 // ─────────────────────────────────────────────
-// Ability History
+// 🧾 Ability History
 // ─────────────────────────────────────────────
-router.get("/abilities/history", updateController_1.getAbilityHistory);
-router.post("/abilities/history/:id/revert", updateController_1.revertAbilityHistory);
-router.delete("/abilities/history/:id", updateController_1.deleteAbilityHistory);
+// ⚠️ More specific routes first
+router.get("/abilities/history", history_1.getAbilityHistory); // 获取技能历史
+router.get("/abilities/history/latest/:characterId", history_1.getLatestAbilityUpdate); // ✅ 最新更新记录
+router.post("/abilities/history/batch/revert", history_1.revertMultipleHistory); // ✅ 批量撤回
+router.post("/abilities/history/:id/revert", history_1.revertAbilityHistory); // 单条撤回
+router.delete("/abilities/history/:id", history_1.deleteAbilityHistory); // 删除历史记录
 // ─────────────────────────────────────────────
-// ✅ Storage System (per-character endpoints)
+// 🎒 Storage System (per-character endpoints)
 // ─────────────────────────────────────────────
 // POST /api/characters/:id/storage → add ability to storage
 router.post("/:id/storage", updateController_1.addToStorage);

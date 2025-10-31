@@ -4,7 +4,7 @@ import { updateCharacterAbilities } from "./characterService";
 // ✅ Base URLs from env (fallback empty so fetch throws if missing)
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 const OCR_URL = process.env.NEXT_PUBLIC_OCR_URL || "";
-console.log("🌍 OCR_URL in frontend:", OCR_URL);
+// console.log("🌍 OCR_URL in frontend:", OCR_URL);
 
 
 /**
