@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import styles from "./styles.module.css";
 import { useRouter } from "next/navigation";
 
-import GroupDetailModal from "./components/GroupDetailModal";
 import BasicInfoSection from "./components/BasicInfo";
 import MainSection from "./components/Main";
 
