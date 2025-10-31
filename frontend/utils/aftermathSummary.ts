@@ -13,8 +13,8 @@ export async function summarizeAftermath(groups: GroupResult[]) {
     .map((a) => ({ ...a, available: true }));
 
   // 🔍 Debug logs
-  console.log(`[function:aftermath] full pool count = ${pool.length}`);
-  console.log(`[function:aftermath] after removing tradables = ${targeted.length}`);
+  // console.log(`[function:aftermath] full pool count = ${pool.length}`);
+  // console.log(`[function:aftermath] after removing tradables = ${targeted.length}`);
 
   // 3️⃣ Analyze wasted abilities
   const globalWasted9: string[] = [];

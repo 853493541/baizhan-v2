@@ -92,7 +92,7 @@ export default function ScheduleDetail({ scheduleId }: Props) {
       );
       if (!res.ok) throw new Error("Failed to fetch schedule");
       const data: StandardSchedule = await res.json();
-      console.log("📥 Loaded schedule:", data);
+      // console.log("📥 Loaded schedule:", data);
       setSchedule(data);
       if (data.groups) setGroups(data.groups);
     } catch (err) {

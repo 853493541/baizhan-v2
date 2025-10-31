@@ -39,7 +39,7 @@ export async function getCurrentMap(): Promise<{ name: string; level: number }[]
     if (!res.ok) throw new Error("Failed to fetch weekly map");
     const data: WeeklyMapResponse = await res.json();
 
-    console.log("[playgroundHelpers] Raw weekly map response:", data);
+    // console.log("[playgroundHelpers] Raw weekly map response:", data);
 
     const bosses: { name: string; level: number }[] = [];
     for (const [floor, obj] of Object.entries(data.floors)) {
@@ -53,10 +53,10 @@ export async function getCurrentMap(): Promise<{ name: string; level: number }[]
       bosses.push({ name: obj.boss, level });
     }
 
-    console.log("[playgroundHelpers] Parsed bosses with levels:", bosses);
+    // console.log("[playgroundHelpers] Parsed bosses with levels:", bosses);
     return bosses;
   } catch (err) {
-    console.error("[playgroundHelpers] Error fetching weekly map:", err);
+    // console.error("[playgroundHelpers] Error fetching weekly map:", err);
     return [];
   }
 }
@@ -66,7 +66,7 @@ export async function getCurrentMap(): Promise<{ name: string; level: number }[]
  */
 function getBossAbilities(boss: string, level: number): Ability[] {
   if (level === 90) {
-    console.warn(`⚠️ [playgroundHelpers] Level 90 detected for boss "${boss}", forcing to 9`);
+    // console.warn(`⚠️ [playgroundHelpers] Level 90 detected for boss "${boss}", forcing to 9`);
     level = 9;
   }
 
@@ -108,7 +108,7 @@ export async function getDefaultAbilityPool(): Promise<Ability[]> {
   // 🔹 Remove tradables here
   const nonTradables = deduped.filter((a) => !tradableAbilities.includes(a.name));
 
-  console.log("[playgroundHelpers] Final deduped ability pool (no tradables):", nonTradables);
+  // console.log("[playgroundHelpers] Final deduped ability pool (no tradables):", nonTradables);
   return nonTradables;
 }
 
@@ -120,7 +120,7 @@ export async function getDefaultModeChecklist(): Promise<Ability[]> {
 
   // CORE_ABILITIES are guaranteed non-tradable set
   const filtered = pool.filter((a) => CORE_ABILITIES.includes(a.name));
-  console.log("✅ [playgroundHelpers] Default mode checklist (highlight set):", filtered);
+  // console.log("✅ [playgroundHelpers] Default mode checklist (highlight set):", filtered);
 
   return filtered;
 }
