@@ -105,3 +105,82 @@
   color: #1c7c2d;
   font-weight: 600;
 }
+.reasonBox {
+  margin-top: 16px;
+  padding: 10px 12px;
+  background: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.reasonTitle {
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.reasonList {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.passed {
+  color: #155724;
+  background: #d4edda;
+  border-left: 4px solid #28a745;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.failed {
+  color: #721c24;
+  background: #f8d7da;
+  border-left: 4px solid #dc3545;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+.nameAndIcon {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.abilityIconSmall {
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+  border-radius: 3px;
+}
+.nameAndIcon {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.abilityIconSmall {
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+  border-radius: 3px;
+}
+/* 💎 Tied candidates — calm blue tone that fits existing theme */
+.diamond {
+  background: #e8f4ff;                /* soft pastel blue background */
+  border: 1px solid #7cb9ff;          /* medium blue border */
+  color: #003366;                     /* dark navy text for contrast */
+  font-weight: 550;
+  box-shadow: 0 1px 4px rgba(0, 102, 204, 0.15); /* subtle shadow */
+  transition: background 0.2s, border 0.2s;
+}
+
+.diamond:hover {
+  background: #d6ebff;                /* slightly deeper on hover */
+  border-color: #5da8ff;
+}

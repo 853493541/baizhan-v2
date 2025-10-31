@@ -1,7 +1,23 @@
 "use client";
 import React from "react";
 import styles from "./styles.module.css";
-import { MAIN_CHARACTERS, getBossProgressText } from "../drophelpers";
+import { getAbilityIcon, getBossProgressText } from "../drophelpers";
+import { pickBestCharacterWithTrace } from "./RecommandWindow/recommendation";
+
+/** 🔄 Gender-based transferable skill rules */
+function getTransferableAbility(
+  pickedAbility: string,
+  gender: string | undefined
+): string | null {
+  // 双向可转换
+  if (pickedAbility === "剑心通明" && gender === "男") return "巨猿劈山";
+  if (pickedAbility === "巨猿劈山" && gender === "女") return "剑心通明";
+
+  // 单向：female receiving male skill
+  if (pickedAbility === "蛮熊碎颅击" && gender === "女") return "水遁水流闪";
+
+  return null;
+}
 
 export default function MemberList({
   group,
@@ -24,80 +40,7 @@ export default function MemberList({
     return styles.progressPink;
   };
 
-  const hasLevel10InStorage = (character: any, ability: string): boolean => {
-    const storage = character?.storage;
-    if (!Array.isArray(storage)) return false;
-    return storage.some(
-      (item: any) =>
-        item.ability === ability && item.level === 10 && item.used === false
-    );
-  };
-
-  const parseProgress = (text: string): number => {
-    const match = text.match(/(\d+)\s*\/\s*(\d+)/);
-    return match ? Number(match[1]) : 0;
-  };
-
-  const countLevel10FromBoss = (character: any, dropList: string[]): number => {
-    if (!character?.abilities) return 0;
-    return dropList.reduce((count, ab) => {
-      const lv = character.abilities[ab] ?? 0;
-      return lv >= 10 ? count + 1 : count;
-    }, 0);
-  };
-
-  const pickBestCharacter = (ability: string, level: number) => {
-    const assignable = group.characters.filter((c: any) => {
-      const lv = c.abilities?.[ability] ?? 0;
-      return lv < level;
-    });
-    if (assignable.length === 0) return null;
-
-    const main = assignable.find((c: any) => MAIN_CHARACTERS.has(c.name));
-    if (main) return main;
-
-    let withStorage: any = null;
-    if (level === 9) {
-      withStorage = assignable.find((c: any) =>
-        hasLevel10InStorage(c, ability)
-      );
-      if (withStorage) return withStorage;
-    }
-
-    let best = assignable[0];
-    let maxLv = best.abilities?.[ability] ?? 0;
-
-    for (const c of assignable) {
-      const lv = c.abilities?.[ability] ?? 0;
-      if (lv > maxLv) {
-        best = c;
-        maxLv = lv;
-        continue;
-      }
-
-      if (lv === maxLv) {
-        const progBest = parseProgress(getBossProgressText(dropList, best));
-        const progCur = parseProgress(getBossProgressText(dropList, c));
-        if (progCur > progBest) {
-          best = c;
-          maxLv = lv;
-          continue;
-        }
-
-        if (progCur === progBest) {
-          const tenBest = countLevel10FromBoss(best, dropList);
-          const tenCur = countLevel10FromBoss(c, dropList);
-          if (tenCur > tenBest) {
-            best = c;
-            maxLv = lv;
-          }
-        }
-      }
-    }
-
-    return best;
-  };
-
+  /** 🧩 Assign drop, with real transfer substitution */
   const handleAssign = (charId: string) => {
     if (chosenDrop === "noDrop") {
       markStartedIfNeeded();
@@ -105,10 +48,34 @@ export default function MemberList({
       onClose();
       return;
     }
+
     if (chosenDrop) {
+      const char = group.characters.find(
+        (ch: any) => ch._id === charId || ch.id === charId
+      );
+
+      let finalAbility = chosenDrop.ability;
+
+      // 🔄 Check if transferable
+      const transferable = getTransferableAbility(finalAbility, char?.gender);
+      if (transferable) {
+        const transferLevel = char?.abilities?.[transferable] ?? 0;
+        const pickedLevel = char?.abilities?.[finalAbility] ?? 0;
+
+        // ✅ If transfer makes sense, replace the saved ability
+        if (
+          (transferLevel > 0 && pickedLevel === 0) ||
+          (finalAbility === "蛮熊碎颅击" &&
+            char?.gender === "女" &&
+            transferLevel > 0)
+        ) {
+          finalAbility = transferable;
+        }
+      }
+
       markStartedIfNeeded();
       onSave(floor, {
-        ability: chosenDrop.ability,
+        ability: finalAbility, // ✅ save the real transferable ability
         level: chosenDrop.level,
         characterId: charId,
         noDrop: false,
@@ -116,42 +83,82 @@ export default function MemberList({
     }
   };
 
-  const bestCandidate =
+  /** 🧠 Run recommendation logic */
+  const { bestCandidate, steps = [], tiedCandidates = [] } =
     chosenDrop && chosenDrop !== "noDrop"
-      ? pickBestCharacter(chosenDrop.ability, chosenDrop.level)
-      : null;
+      ? pickBestCharacterWithTrace(
+          chosenDrop.ability,
+          chosenDrop.level,
+          group,
+          dropList
+        )
+      : { bestCandidate: null, steps: [], tiedCandidates: [] };
 
   return (
     <div className={styles.rightColumn}>
       <div className={styles.sectionDivider}>角色</div>
+
+      {/* ==== Character selection grid ==== */}
       <div className={styles.memberGrid}>
         {group.characters.map((c: any) => {
-          let levelDisplay: string | null = null;
+          let shownAbility = chosenDrop?.ability || "";
+          let shownLevel = 0;
           let disabled = !chosenDrop;
+          let isTransferred = false;
 
           if (chosenDrop && chosenDrop !== "noDrop") {
-            const currentLevel = c.abilities?.[chosenDrop.ability] ?? 0;
-            levelDisplay = `${currentLevel}重`;
-            if (currentLevel >= chosenDrop.level) disabled = true;
+            const picked = chosenDrop.ability;
+            const transferable = getTransferableAbility(picked, c.gender);
+
+            let hasTransfer = false;
+            if (transferable) {
+              const transferLevel = c.abilities?.[transferable] ?? 0;
+              const pickedLevel = c.abilities?.[picked] ?? 0;
+
+              // 🧩 Determine if transferred display should be used
+              if (
+                (transferLevel > 0 && pickedLevel === 0) ||
+                (picked === "蛮熊碎颅击" &&
+                  c.gender === "女" &&
+                  transferLevel > 0)
+              ) {
+                shownAbility = transferable;
+                shownLevel = transferLevel;
+                isTransferred = true;
+                hasTransfer = true;
+              }
+            }
+
+            if (!hasTransfer) {
+              shownLevel = c.abilities?.[picked] ?? 0;
+            }
+
+            if (shownLevel >= chosenDrop.level) disabled = true;
           }
 
-          const progressText = getBossProgressText(dropList, c);
+          const progressText = getBossProgressText(
+            dropList,
+            c,
+            chosenDrop?.level
+          );
           const progressColor = getProgressColor(progressText);
 
-          const hasStored10 =
-            chosenDrop &&
-            chosenDrop !== "noDrop" &&
-            chosenDrop.level === 9 &&
-            hasLevel10InStorage(c, chosenDrop.ability);
+          const isBest =
+            bestCandidate && bestCandidate.name === c.name && !disabled;
+          const isTied =
+            tiedCandidates && tiedCandidates.includes(c.name) && !disabled;
 
           let colorClass = "";
           if (!disabled && chosenDrop && chosenDrop !== "noDrop") {
-            if (bestCandidate && bestCandidate.name === c.name) {
-              colorClass = styles.levelGreen;
-            } else {
-              colorClass = styles.levelYellow;
-            }
+            if (isTied) colorClass = styles.diamond; // 💎 tie case
+            else if (isBest) colorClass = styles.levelGreen;
+            else colorClass = styles.levelYellow;
           }
+
+          const abilityIcon =
+            isTransferred && shownAbility
+              ? getAbilityIcon(shownAbility)
+              : null;
 
           return (
             <button
@@ -162,28 +169,45 @@ export default function MemberList({
               onClick={() => !disabled && handleAssign(c._id || c.id)}
               disabled={disabled}
             >
-              {/* === First Line: name + progress right-aligned === */}
               <div className={styles.topRow}>
-                <span>
+                <span className={styles.nameAndIcon}>
                   {c.name}
-                  {levelDisplay && <span> ({levelDisplay})</span>}
+                  {abilityIcon && (
+                    <img
+                      src={abilityIcon}
+                      alt={shownAbility}
+                      className={styles.abilityIconSmall}
+                    />
+                  )}
+                  <span>({shownLevel}重)</span>
                 </span>
                 <span className={`${styles.progressText} ${progressColor}`}>
                   {progressText}
                 </span>
               </div>
-
-              {/* === Second Line: warning if has stored 10 === */}
-              {hasStored10 && (
-                <div className={styles.warningRow}>
-                  <span className={styles.warningIcon}>⚠️</span>
-                  <span className={styles.warningText}>包里有10</span>
-                </div>
-              )}
             </button>
           );
         })}
       </div>
+
+      {/* ==== Reasoning / Info Box ==== */}
+      {steps.length > 0 && (
+        <div className={styles.reasonBox}>
+          <div className={styles.reasonTitle}>推荐理由</div>
+          <ul className={styles.reasonList}>
+            {steps.map((s, i) => {
+              let className = styles.failed;
+              if (s.passed === true) className = styles.passed;
+              else if (s.passed === "fallback") className = styles.fallback; // 💎 tie
+              return (
+                <li key={i} className={className}>
+                  {s.reason}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

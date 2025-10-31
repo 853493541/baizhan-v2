@@ -30,18 +30,63 @@ export default function Drops(props: any) {
     if (groupStatus === "not_started" && onMarkStarted) onMarkStarted();
   };
 
+  /** 🧩 Build full drop options for this floor */
   const options = buildOptions(dropList, floor);
 
-  const allHaveAbility = (ability: string, level: 9 | 10) =>
-    group.characters.every((c: any) => (c.abilities?.[ability] ?? 0) >= level);
+  /** Mirror pairs (cross-gender transferable skills) */
+  const MIRROR_MAP: Record<string, string> = {
+    "剑心通明": "巨猿劈山",
+    "巨猿劈山": "剑心通明",
+    "蛮熊碎颅击": "水遁水流闪",
+    "水遁水流闪": "蛮熊碎颅击",
+  };
 
-  const allHave9Options = options.filter(
+  /** 🔧 Helper: get mirror name */
+  const getMirror = (name: string) => MIRROR_MAP[name] || null;
+
+  /** 🧠 Check if all members already have a specific ability or its mirror */
+  const allHaveAbility = (ability: string, level: 9 | 10) =>
+    group.characters.every((c: any) => {
+      const lvMain = c.abilities?.[ability] ?? 0;
+      const mirror = getMirror(ability);
+      const lvMirror = mirror ? c.abilities?.[mirror] ?? 0 : 0;
+      return Math.max(lvMain, lvMirror) >= level;
+    });
+
+  /** 🩵 Build “all have” lists */
+  let allHave9Options = options.filter(
     (opt: any) => opt.level === 9 && allHaveAbility(opt.ability, 9)
   );
-  const allHave10Options = options.filter(
+  let allHave10Options = options.filter(
     (opt: any) => opt.level === 10 && allHaveAbility(opt.ability, 10)
   );
 
+  /** Expand to include mirror equivalents for display convenience */
+  function expandWithMirrors(list: { ability: string; level: number }[]) {
+    const expanded = [...list];
+    for (const item of list) {
+      const mirror = getMirror(item.ability);
+      if (mirror && !expanded.some((x) => x.ability === mirror)) {
+        expanded.push({ ability: mirror, level: item.level });
+      }
+    }
+    return expanded;
+  }
+
+  allHave9Options = expandWithMirrors(allHave9Options);
+  allHave10Options = expandWithMirrors(allHave10Options);
+
+  // 🧾 Debug log
+  console.log(
+    "[Drops][AFTER FIX] allHave9Options =",
+    allHave9Options.map((x) => x.ability)
+  );
+  console.log(
+    "[Drops][AFTER FIX] allHave10Options =",
+    allHave10Options.map((x) => x.ability)
+  );
+
+  /** 🗑️ Reset logic */
   const doReset = async () => {
     try {
       setErrMsg(null);
@@ -84,6 +129,7 @@ export default function Drops(props: any) {
             onSave={onSave}
             onClose={onClose}
           />
+
           <MemberList
             group={group}
             chosenDrop={chosenDrop}
@@ -124,7 +170,11 @@ export default function Drops(props: any) {
             >
               <div className={styles.confirmTitle}>确认删除</div>
               <div className={styles.confirmText}>
-                确定要删除 <b>{floor}层 - {boss}</b> 的掉落记录吗？
+                确定要删除{" "}
+                <b>
+                  {floor}层 - {boss}
+                </b>{" "}
+                的掉落记录吗？
               </div>
               <div className={styles.confirmActions}>
                 <button
