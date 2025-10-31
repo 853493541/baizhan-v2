@@ -35,10 +35,12 @@ export default function BossCard({
   onSelect,
 }: BossCardProps) {
   useEffect(() => {
-    console.log(`[BossCard] floor=${floor}`, {
-      kill,
-      selection: kill?.selection,
-    });
+    // console.log(`[BossCard] floor=${floor}`
+    //   ,
+    //    {
+    //   kill,
+    //   selection: kill?.selection,
+    // });
   }, [floor, kill]);
 
   if (!boss) {
