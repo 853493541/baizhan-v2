@@ -17,7 +17,7 @@ function getTransferableAbility(
   return null;
 }
 
-/* === Always-visible reasoning window === */
+/* === Floating reasoning window === */
 function RecommendationWindow({
   steps,
   parentRef,
@@ -34,11 +34,9 @@ function RecommendationWindow({
 
     const updatePosition = () => {
       const rect = parent.getBoundingClientRect();
-      const windowHeight = windowEl.offsetHeight;
-      const top = rect.height / 2 - windowHeight / 2;
-      windowEl.style.top = `${top}px`;
-      windowEl.style.left = `${rect.width + 24}px`;
-      windowEl.style.position = "absolute";
+      windowEl.style.top = `${rect.top}px`;
+      windowEl.style.left = `${rect.right + 24}px`;
+      windowEl.style.position = "fixed";
     };
 
     updatePosition();
@@ -46,7 +44,7 @@ function RecommendationWindow({
     return () => window.removeEventListener("resize", updatePosition);
   }, [parentRef, steps.length]);
 
-  if (!steps || steps.length === 0) return null;
+  if (!steps?.length) return null;
 
   const getClass = (passed: boolean | "fallback" | undefined) => {
     if (passed === true) return styles.passed;
@@ -84,14 +82,26 @@ export default function MemberList({
   onMarkStarted,
 }: any) {
   const rightColumnRef = useRef<HTMLDivElement>(null);
+  const storageKey = `showReasoningWindow-floor${floor || "global"}`;
 
-  const [showReasoning, setShowReasoning] = useState<boolean>(() => {
+  /* ✅ Persisted reasoning state */
+  const [showReasoning, setShowReasoning] = useState<boolean>(false);
+
+  useEffect(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("showReasoningWindow");
-      return saved ? JSON.parse(saved) : true;
+      const saved = localStorage.getItem(storageKey);
+      if (saved !== null) setShowReasoning(saved === "true");
+      else setShowReasoning(true);
     }
-    return true;
-  });
+  }, [storageKey]);
+
+  const handleToggleReasoning = () => {
+    setShowReasoning((prev) => {
+      const next = !prev;
+      localStorage.setItem(storageKey, String(next));
+      return next;
+    });
+  };
 
   const markStartedIfNeeded = () => {
     if (groupStatus === "not_started" && onMarkStarted) onMarkStarted();
@@ -153,33 +163,6 @@ export default function MemberList({
         )
       : { bestCandidate: null, steps: [], tiedCandidates: [] };
 
-  const handleToggleReasoning = () => {
-    const newState = !showReasoning;
-    setShowReasoning(newState);
-    localStorage.setItem("showReasoningWindow", JSON.stringify(newState));
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const parentEl = rightColumnRef.current;
-      const reasoningEl = document.querySelector(`.${styles.window}`);
-      if (
-        showReasoning &&
-        parentEl &&
-        !parentEl.contains(event.target as Node) &&
-        reasoningEl &&
-        !reasoningEl.contains(event.target as Node)
-      ) {
-        setShowReasoning(false);
-        localStorage.setItem("showReasoningWindow", JSON.stringify(false));
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () =>
-      document.removeEventListener("mousedown", handleClickOutside);
-  }, [showReasoning]);
-
   const showHelpButton =
     chosenDrop && chosenDrop !== "noDrop" && steps.length > 0;
 
@@ -235,7 +218,6 @@ export default function MemberList({
             if (shownLevel >= chosenDrop.level) disabled = true;
           }
 
-          // 📦 Backpack check — level 10 in backpack (including transferred ability)
           let hasLevel10InBackpack = false;
           if (Array.isArray(c.storage)) {
             const abilityToCheck = isTransferred ? shownAbility : chosenDrop?.ability;
@@ -288,7 +270,6 @@ export default function MemberList({
                 </span>
               </div>
 
-              {/* ⚠️ Backpack line */}
               {hasLevel10InBackpack && (
                 <div className={styles.backpackWarning}>⚠️ 背包有10</div>
               )}
