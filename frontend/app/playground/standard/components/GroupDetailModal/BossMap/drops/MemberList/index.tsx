@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styles from "./styles.module.css";
 import { getAbilityIcon, getBossProgressText } from "../drophelpers";
 import { pickBestCharacterWithTrace } from "./RecommandWindow/recommendation";
@@ -86,6 +86,14 @@ export default function MemberList({
 }: any) {
   const rightColumnRef = useRef<HTMLDivElement>(null);
 
+  const [showReasoning, setShowReasoning] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("showReasoningWindow");
+      return saved ? JSON.parse(saved) : true; // default open
+    }
+    return true;
+  });
+
   const markStartedIfNeeded = () => {
     if (groupStatus === "not_started" && onMarkStarted) onMarkStarted();
   };
@@ -148,9 +156,57 @@ export default function MemberList({
         )
       : { bestCandidate: null, steps: [], tiedCandidates: [] };
 
+  /** 🔘 Handle toggle click */
+  const handleToggleReasoning = () => {
+    const newState = !showReasoning;
+    setShowReasoning(newState);
+    localStorage.setItem("showReasoningWindow", JSON.stringify(newState));
+  };
+
+  /** 🖱️ Click outside to close */
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const parentEl = rightColumnRef.current;
+      const reasoningEl = document.querySelector(`.${styles.window}`);
+      if (
+        showReasoning &&
+        parentEl &&
+        !parentEl.contains(event.target as Node) &&
+        reasoningEl &&
+        !reasoningEl.contains(event.target as Node)
+      ) {
+        setShowReasoning(false);
+        localStorage.setItem("showReasoningWindow", JSON.stringify(false));
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside);
+  }, [showReasoning]);
+
+  /** ✅ Show help button only when ability selected */
+  const showHelpButton =
+    chosenDrop && chosenDrop !== "noDrop" && steps.length > 0;
+
   return (
     <div className={styles.rightColumn} ref={rightColumnRef}>
-      <div className={styles.sectionDivider}>角色</div>
+      <div className={styles.sectionDivider}>
+        角色
+        {showHelpButton && (
+          <button
+            className={`${styles.helpCircle} ${
+              showReasoning
+                ? styles.helpCircleActive
+                : styles.helpCircleInactive
+            }`}
+            title={showReasoning ? "隐藏推荐决策" : "显示推荐决策"}
+            onClick={handleToggleReasoning}
+          >
+            ?
+          </button>
+        )}
+      </div>
 
       {/* ==== Character selection grid ==== */}
       <div className={styles.memberGrid}>
@@ -186,11 +242,16 @@ export default function MemberList({
             if (shownLevel >= chosenDrop.level) disabled = true;
           }
 
-          const progressText = getBossProgressText(
-            dropList,
-            c,
-            chosenDrop?.level
-          );
+          // 📦 Backpack check — level 10 in backpack
+          let hasLevel10InBackpack = false;
+          if (Array.isArray(c.storage)) {
+            hasLevel10InBackpack = c.storage.some(
+              (item: any) =>
+                item.ability === chosenDrop?.ability && item.level === 10
+            );
+          }
+
+          const progressText = getBossProgressText(dropList, c, chosenDrop?.level);
           const progressColor = getProgressColor(progressText);
 
           const isBest =
@@ -233,13 +294,17 @@ export default function MemberList({
                   {progressText}
                 </span>
               </div>
+
+              {/* ⚠️ Backpack line */}
+              {hasLevel10InBackpack && (
+                <div className={styles.backpackWarning}>⚠️ 背包有10</div>
+              )}
             </button>
           );
         })}
       </div>
 
-      {/* ==== Always-visible floating reasoning box ==== */}
-      {steps.length > 0 && (
+      {showHelpButton && showReasoning && (
         <RecommendationWindow steps={steps} parentRef={rightColumnRef} />
       )}
     </div>
