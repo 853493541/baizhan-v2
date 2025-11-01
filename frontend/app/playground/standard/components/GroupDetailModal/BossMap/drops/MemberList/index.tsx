@@ -27,7 +27,6 @@ function RecommendationWindow({
 }) {
   const windowRef = useRef<HTMLDivElement>(null);
 
-  // 🔧 Dynamically center relative to parent modal
   useEffect(() => {
     const parent = parentRef.current;
     const windowEl = windowRef.current;
@@ -89,7 +88,7 @@ export default function MemberList({
   const [showReasoning, setShowReasoning] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("showReasoningWindow");
-      return saved ? JSON.parse(saved) : true; // default open
+      return saved ? JSON.parse(saved) : true;
     }
     return true;
   });
@@ -105,7 +104,6 @@ export default function MemberList({
     return styles.progressPink;
   };
 
-  /** 🧩 Assign drop, with real transfer substitution */
   const handleAssign = (charId: string) => {
     if (chosenDrop === "noDrop") {
       markStartedIfNeeded();
@@ -145,7 +143,6 @@ export default function MemberList({
     }
   };
 
-  /** 🧠 Run recommendation logic */
   const { bestCandidate, steps = [], tiedCandidates = [] } =
     chosenDrop && chosenDrop !== "noDrop"
       ? pickBestCharacterWithTrace(
@@ -156,14 +153,12 @@ export default function MemberList({
         )
       : { bestCandidate: null, steps: [], tiedCandidates: [] };
 
-  /** 🔘 Handle toggle click */
   const handleToggleReasoning = () => {
     const newState = !showReasoning;
     setShowReasoning(newState);
     localStorage.setItem("showReasoningWindow", JSON.stringify(newState));
   };
 
-  /** 🖱️ Click outside to close */
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const parentEl = rightColumnRef.current;
@@ -185,7 +180,6 @@ export default function MemberList({
       document.removeEventListener("mousedown", handleClickOutside);
   }, [showReasoning]);
 
-  /** ✅ Show help button only when ability selected */
   const showHelpButton =
     chosenDrop && chosenDrop !== "noDrop" && steps.length > 0;
 
@@ -208,7 +202,6 @@ export default function MemberList({
         )}
       </div>
 
-      {/* ==== Character selection grid ==== */}
       <div className={styles.memberGrid}>
         {group.characters.map((c: any) => {
           let shownAbility = chosenDrop?.ability || "";
@@ -242,12 +235,12 @@ export default function MemberList({
             if (shownLevel >= chosenDrop.level) disabled = true;
           }
 
-          // 📦 Backpack check — level 10 in backpack
+          // 📦 Backpack check — level 10 in backpack (including transferred ability)
           let hasLevel10InBackpack = false;
           if (Array.isArray(c.storage)) {
+            const abilityToCheck = isTransferred ? shownAbility : chosenDrop?.ability;
             hasLevel10InBackpack = c.storage.some(
-              (item: any) =>
-                item.ability === chosenDrop?.ability && item.level === 10
+              (item: any) => item.ability === abilityToCheck && item.level === 10
             );
           }
 
