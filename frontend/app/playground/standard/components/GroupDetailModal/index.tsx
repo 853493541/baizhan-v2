@@ -14,7 +14,7 @@ const bossData: Record<string, string[]> = rawBossData;
 
 interface Props {
   scheduleId: string;
-  groupIndex: number; // 0-based index passed from parent
+  groupIndex: number;
   group: GroupResult;
   checkedAbilities: AbilityCheck[];
   conflictLevel: number;
@@ -36,38 +36,13 @@ export default function GroupDetailModal({
   onRefresh,
 }: Props) {
   const [weeklyMap, setWeeklyMap] = useState<Record<number, string>>({});
-  const [refreshing, setRefreshing] = useState(false);
   const [groupData, setGroupData] = useState<GroupResult>(group);
-  const [loadingCharacters, setLoadingCharacters] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [countdown, setCountdown] = useState(5);
 
-  /* -------------------- Handlers -------------------- */
-  const handleGroupUpdate = useCallback((updatedGroup: GroupResult) => {
-    if (updatedGroup) setGroupData(updatedGroup);
-  }, []);
-
-  const handleRefresh = useCallback(async () => {
-    if (!scheduleId) return;
-    setRefreshing(true);
-    try {
-      const url = `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      const updated = data.groups.find((g: any) => g.index === groupIndex + 1);
-      if (updated) setGroupData(updated);
-      onRefresh?.();
-    } catch (err) {
-      console.error("❌ Failed to refresh group data:", err);
-    } finally {
-      setRefreshing(false);
-    }
-  }, [scheduleId, groupIndex, onRefresh]);
-
-  /* -------------------- Auto refresh every 5s (with guard) -------------------- */
+  /* -------------------- Auto refresh -------------------- */
   const fetchGroupKills = useCallback(async () => {
-    if (isRefreshing) return; // ✅ guard prevents overlapping fetches
-
+    if (isRefreshing) return;
     try {
       setIsRefreshing(true);
       const res = await fetch(
@@ -88,7 +63,21 @@ export default function GroupDetailModal({
     }
   }, [isRefreshing, scheduleId, groupIndex, onRefresh]);
 
-  /* -------------------- Load weekly map once -------------------- */
+  /* -------------------- Countdown Timer -------------------- */
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          fetchGroupKills();
+          return 5;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [fetchGroupKills]);
+
+  /* -------------------- Load weekly map -------------------- */
   useEffect(() => {
     const fetchMap = async () => {
       try {
@@ -108,37 +97,6 @@ export default function GroupDetailModal({
     fetchMap();
   }, []);
 
-  /* -------------------- Fetch characters once -------------------- */
-  useEffect(() => {
-    const fetchCharacters = async () => {
-      if (!groupData?.characters?.length) return;
-      setLoadingCharacters(true);
-      try {
-        const detailedChars = await Promise.all(
-          groupData.characters.map(async (c: any) => {
-            try {
-              const res = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/characters/${c._id}`
-              );
-              if (!res.ok) throw new Error(`Character ${c._id} fetch failed`);
-              return await res.json();
-            } catch (err) {
-              console.warn("⚠️ Failed to fetch one character:", c._id, err);
-              return c;
-            }
-          })
-        );
-        setGroupData((prev) => ({ ...prev, characters: detailedChars }));
-      } catch (err) {
-        console.error("❌ Failed to fetch group characters:", err);
-      } finally {
-        setLoadingCharacters(false);
-      }
-    };
-    fetchCharacters();
-  }, [groupData.index]);
-
-  /* -------------------- Weekly ability pool -------------------- */
   const weeklyAbilities = useMemo(() => {
     const result: { name: string; level: number }[] = [];
     for (const [floorStr, boss] of Object.entries(weeklyMap)) {
@@ -153,23 +111,19 @@ export default function GroupDetailModal({
     return result;
   }, [weeklyMap]);
 
-  /* -------------------- Render -------------------- */
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
-        {/* === Close Button === */}
         <button className={styles.closeBtn} onClick={onClose}>
           ✖
         </button>
 
-        {/* === Top Section: Group Info === */}
         <GroupInfo
           group={groupData}
           checkedAbilities={checkedAbilities}
           conflictLevel={conflictLevel}
         />
 
-        {/* === Mid Section: Chart + Results === */}
         <div className={styles.midSection}>
           <CoreAbilityChart
             group={groupData}
@@ -181,17 +135,18 @@ export default function GroupDetailModal({
           <ResultWindow
             scheduleId={scheduleId}
             group={groupData}
-            onRefresh={handleRefresh}
+            countdown={countdown} // ✅ pass countdown down
+            onRefresh={fetchGroupKills}
           />
         </div>
 
-        {/* === Bottom Section: Boss Map === */}
         <BossMap
           scheduleId={scheduleId}
           group={groupData as any}
           weeklyMap={weeklyMap}
-          onRefresh={handleRefresh}
-          onGroupUpdate={handleGroupUpdate}
+          onRefresh={fetchGroupKills}
+          countdown={countdown} 
+          onGroupUpdate={(updated) => setGroupData(updated)}
         />
       </div>
     </div>
