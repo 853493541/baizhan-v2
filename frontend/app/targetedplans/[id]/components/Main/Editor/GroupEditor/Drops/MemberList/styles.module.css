@@ -1,268 +1,265 @@
+/* === Layout === */
 .rightColumn {
   display: flex;
   flex-direction: column;
-  gap: 4px;
   align-items: flex-start;
+  width: 100%;
+  position: relative;
+  overflow: visible; /* ✅ allow popup to escape */
+  gap: 6px;
 }
 
-.list {
+.sectionDivider {
+  font-weight: 600;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+/* === Character Grid === */
+.memberGrid {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  max-height: 320px;
-  overflow-y: auto;
+  gap: 6px;
+  width: 100%;
 }
 
+/* === Character Buttons === */
 .memberBtn {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  justify-content: center;
   gap: 2px;
-  padding: 6px 10px;
-  min-width: 220px;
+  padding: 3px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 450;
+  min-width: 240px;
+  max-width: 240px;
+  min-height: 37px;
+  box-sizing: border-box;
+  cursor: pointer;
   border: 1px solid #28a745;
   background: #eafbea;
-  border-radius: 6px;
-  cursor: pointer;
+  color: #155724;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 
 .memberBtn:hover {
   background: #d4f5d4;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-.disabled {
-  background: #f0f0f0;
-  border-color: #ddd;
-  color: #888;
-  cursor: not-allowed;
-}
-
-.active {
-  background: #d0ebff;
-  border-color: #1890ff;
-}
-
-.name {
-  font-weight: 600;
-  font-size: 14px;
-}
-
-.level {
-  font-size: 13px;
-  color: #555;
-}
-.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  background: #f0f0f0 !important;
-  border-color: #ddd !important;
-  color: #999 !important;
-}
-.rightColumn {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  width: 240px;
-  gap: 10px;
-}
-
-/* === Section Divider Line (same as AbilityList / LevelPicker / ActionPanel) === */
-.sectionDivider {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  font-weight: 600;
-  color: #666;
-  margin: 8px 0 4px;
-  width: 100%;
-}
-
-.sectionDivider::before,
-.sectionDivider::after {
-  content: "";
-  display: block;
-  flex: 1 1 0;
-  border-top: 1px solid #ddd;
-  margin: 0 8px;
-  height: 0;
-}
-
-/* === Character List === */
-.list {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  gap: 6px;
-}
-
-/* === Character Button === */
-.memberBtn {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #fff;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  padding: 6px 10px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  width: 100%;
-}
-
-.memberBtn:hover {
-  background: #f5faff;
-  border-color: #1890ff;
-}
-
-.active {
-  background: #e6f4ff;
-  border-color: #1890ff;
-  color: #1890ff;
-}
-
-.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  background: #f0f0f0 !important;
-  border-color: #ddd !important;
-  color: #999 !important;
-}
-
-.name {
-  font-size: 14px;
-  font-weight: 500;
-  color: #333;
-  text-align: left;
-}
-
-.level {
-  font-size: 13px;
-  color: #666;
-}
-/* Divider (matches other panels) */
-.sectionDivider {
-  display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 600; color: #666;
-  margin: 8px 0 4px; width: 100%;
-}
-.sectionDivider::before, .sectionDivider::after {
-  content: ""; display: block; flex: 1 1 0;
-  border-top: 1px solid #ddd; margin: 0 8px; height: 0;
-}
-
-/* Layout */
-.rightColumn { display: flex; flex-direction: column; gap: 10px; width: 240px; }
-.memberGrid { display: flex; flex-direction: column; gap: 6px; }
-
-/* Card button */
-.memberBtn {
-  display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
-  gap: 2px; padding: 6px 12px; border-radius: 6px; width: 100%;
-  border: 1px solid #ccc; background: #fff; color: #333;
-  transition: background .15s ease, box-shadow .15s ease, border-color .15s ease;
-}
-.memberBtn:hover { background: #f5faff; border-color: #1890ff; }
-.memberDisabled { background: #f0f0f0; color: #888; border-color: #ddd; cursor: not-allowed; }
-.active { background: #e6f4ff; border-color: #1890ff; color: #1890ff; }
-
-/* Highlights */
-.levelGreen { background: #e2fbe2 !important; border-color: #1c7c2d !important; color: #1c7c2d !important; }
-.levelYellow { background: #fff6cc !important; border-color: #b89600 !important; color: #4a3f00 !important; }
-
-/* Top row: name + right-aligned progress */
-.topRow { display: flex; align-items: center; justify-content: space-between; width: 100%; }
-.name { font-size: 14px; font-weight: 500; color: inherit; }
-.progressText { font-size: 13px; font-weight: 500; white-space: nowrap; }
-.progressGreen { color: #1c7c2d; }
-.progressYellow { color: #b89600; }
-.progressPink { color: #c2185b; }
-
-/* Second row: stored 10 warning */
-.warningRow { display: flex; align-items: center; gap: 4px; font-size: 13px; color: #1c7c2d; }
-.warningIcon { font-size: 14px; }
-.warningText { font-weight: 600; }
-/* Top row: name + right-aligned progress */
-.topRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-}
-
-.name {
-  font-size: 14px;
-  font-weight: 500;
-  color: inherit;
-}
-
-/* 🟢 Neutral progress text — no color */
-.progressText {
-  font-size: 13px;
-  font-weight: 500;
-  white-space: nowrap;
-  color: #555;       /* <-- neutral gray tone */
-  opacity: 0.9;
-}
-
-/* 🗑️ Remove all special coloring */
-.progressGreen,
-.progressYellow,
-.progressPink {
-  color: #555 !important;
-}
-/* Character Button */
-.memberBtn {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 2px;
-  padding: 8px 10px; /* 🔼 increased from 5–6px to make height ≈30px */
-  width: 100%;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  background: #fff;
-  color: #333;
-  transition: background 0.15s ease, border-color 0.15s ease;
-}
-
-.memberBtn:hover {
-  background: #f5faff;
-  border-color: #1890ff;
-}
-
+/* === Disabled === */
 .memberDisabled {
   background: #f0f0f0;
   color: #888;
-  border-color: #ddd;
+  border: 1px solid #ddd;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
-.active {
-  background: #e6f4ff;
-  border-color: #1890ff;
-  color: #1890ff;
+/* === Highlight States === */
+.levelGreen {
+  background-color: #e2fbe2 !important;
+  border-color: #1c7c2d !important;
+  color: #1c7c2d !important;
 }
-.sectionDivider {
+
+.levelYellow {
+  background-color: #fff6cc !important;
+  border-color: #b89600 !important;
+  color: #4a3f00 !important;
+}
+
+/* 💎 Tied candidates */
+.diamond {
+  background: #e8f4ff;
+  border: 1px solid #7cb9ff;
+  color: #003366;
+  font-weight: 550;
+  box-shadow: 0 1px 4px rgba(0, 102, 204, 0.15);
+  transition: background 0.2s, border 0.2s;
+}
+
+.diamond:hover {
+  background: #d6ebff;
+  border-color: #5da8ff;
+}
+
+/* === Top Row: Name + Progress === */
+.topRow {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  font-weight: 600;
-  color: #666;
-  margin: 6px 0 0; /* 🔧 reduced bottom margin from 4px to 0 */
   width: 100%;
+  flex-wrap: nowrap;
+  overflow: hidden;
 }
-.rightColumn {
+
+.name {
+  font-weight: 600;
+  font-size: 14px;
+  color: inherit;
+}
+
+.progressText {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: inherit;
+  margin-left: 6px;
+  white-space: nowrap;
+}
+
+/* === Backpack Warning === */
+.backpackWarning {
+  color: #c10000;
+  font-size: 13px;
+  margin-top: 3px;
+  font-weight: 500;
+}
+
+/* === Floating Recommendation Window (fixed beside modal) === */
+.window {
+  position: fixed;
+  top: 80px;                  /* vertical offset from top */
+  left: calc(50% + 420px);    /* ✅ shift horizontally from modal center */
+  width: 380px;
+  background: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  padding: 14px 16px;
+  z-index: 3000;
+  font-family: "Segoe UI", "PingFang SC", sans-serif;
+
+  /* ✅ expand to fit all content */
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  width: 240px;
-  gap: 4px; /* ✅ consistent with other columns */
+  align-items: stretch;
+  height: auto;
+  overflow: visible;
+  animation: fadeIn 0.25s ease-out;
+  border:2px red solid;
 }
 
-/* === Section Divider Line (matches all panels) === */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* === Header === */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.title {
+  font-size: 14px;
+  color: #222;
+}
+
+/* === Content === */
+.content {
+  display: block;
+  overflow: visible;
+  padding-right: 0;
+  flex: none;
+}
+
+/* === Step List === */
+.stepList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stepList li {
+  font-size: 14px;
+  border-radius: 4px;
+  padding: 4px 6px;
+  line-height: 1.5;
+  word-wrap: break-word;
+  word-break: break-all;
+}
+
+/* === Step result color styles === */
+.passed {
+  color: #155724;
+  background: #d4edda;
+  border-left: 4px solid #28a745;
+}
+
+.failed {
+  color: #721c24;
+  background: #f8d7da;
+  border-left: 4px solid #dc3545;
+}
+
+.fallback {
+  color: #856404;
+  background: #fff3cd;
+  border-left: 4px solid #ffc107;
+}
+
+/* === Compact ? help icon === */
+.helpCircle {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  position: relative;
+  top: -1px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* 🟦 Closed state */
+.helpCircleInactive {
+  border: 1.5px solid #0070f3;
+  color: #0070f3;
+  background: #ffffff;
+}
+
+/* 🟩 Open state */
+.helpCircleActive {
+  background: #0070f3;
+  color: #ffffff;
+  border: 1.5px solid #0070f3;
+  transform: scale(1.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+/* Hover animation */
+.helpCircle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+/* === Section Divider (centered with lines) === */
 .sectionDivider {
   display: flex;
   align-items: center;
@@ -270,34 +267,25 @@
   font-size: 13px;
   font-weight: 600;
   color: #666;
-  margin: 6px 0 0; /* ✅ unified tighter alignment */
+  margin: 6px 0 4px;
   width: 100%;
 }
+
 .sectionDivider::before,
 .sectionDivider::after {
   content: "";
-  display: block;
   flex: 1 1 0;
   border-top: 1px solid #ddd;
   margin: 0 8px;
   height: 0;
 }
 
-/* === Character Button === */
-.memberBtn {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 2px;
-  padding: 8px 10px; /* ✅ ≈30px total height */
-  width: 100%;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  background: #fff;
-  color: #333;
-  transition: background 0.15s ease, border-color 0.15s ease;
+/* === Section Title (text + question icon) === */
+.sectionTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #444;
+  font-size: 13px;
+  font-weight: 600;
 }
-.memberBtn:hover { background: #f5faff; border-color: #1890ff; }
-.memberDisabled { background: #f0f0f0; color: #888; border-color: #ddd; cursor: not-allowed; }
-.active { background: #e6f4ff; border-color: #1890ff; color: #1890ff; }
