@@ -21,8 +21,9 @@ interface Props {
   scheduleId: string;
   group: ExtendedGroup;
   weeklyMap: Record<number, string>;
-  countdownRef?: React.RefObject<HTMLSpanElement>;
+  countdown?: number;                    // ✅ now we accept the number
   onRefresh?: () => void;
+  onGroupUpdate?: (g: ExtendedGroup) => void;
 }
 
 const highlightAbilities = [
@@ -37,8 +38,9 @@ export default function BossMap({
   scheduleId,
   group,
   weeklyMap,
-  countdownRef,
+  countdown,
   onRefresh,
+  onGroupUpdate,
 }: Props) {
   const row1 = [81, 82, 83, 84, 85, 86, 87, 88, 89, 90];
   const row2 = [100, 99, 98, 97, 96, 95, 94, 93, 92, 91];
@@ -46,16 +48,18 @@ export default function BossMap({
   const [localGroup, setLocalGroup] = useState(group);
   const lastLocalUpdate = useRef<number>(Date.now());
 
+  // ✅ keep local in sync but don't overwrite fresher local
   useEffect(() => {
     const parentKillCount = group.kills?.length || 0;
     const localKillCount = localGroup.kills?.length || 0;
+
     if (
       parentKillCount >= localKillCount ||
       Date.now() - lastLocalUpdate.current > 3000
     ) {
       setLocalGroup(group);
     }
-  }, [group]);
+  }, [group, localGroup.kills]);
 
   const [selected, setSelected] = useState<{
     floor: number;
@@ -113,6 +117,7 @@ export default function BossMap({
       );
       setLocalGroup((p) => ({ ...p, status: next }));
       onRefresh?.();
+      onGroupUpdate?.({ ...localGroup, status: next });
     } catch (err) {
       console.error("❌ updateGroupStatus error:", err);
     }
@@ -135,17 +140,20 @@ export default function BossMap({
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const updated = await res.json();
 
-      setLocalGroup((prev) => ({
-        ...prev,
-        kills: updated.updatedGroup?.kills || prev.kills,
-      }));
+      const newGroup = {
+        ...localGroup,
+        kills: updated.updatedGroup?.kills || localGroup.kills,
+      };
+      setLocalGroup(newGroup);
       lastLocalUpdate.current = Date.now();
       onRefresh?.();
+      onGroupUpdate?.(newGroup);
     } catch (err) {
       console.error("❌ updateGroupKill error:", err);
     }
   };
 
+  // ✅ instant fetch on open
   useEffect(() => {
     const instantFetch = async () => {
       try {
@@ -154,12 +162,14 @@ export default function BossMap({
         );
         if (!res.ok) return;
         const data = await res.json();
-        setLocalGroup((prev) => ({
-          ...prev,
-          kills: data.kills || prev.kills,
-          status: data.status || prev.status,
-        }));
+        const newGroup = {
+          ...localGroup,
+          kills: data.kills || localGroup.kills,
+          status: data.status || localGroup.status,
+        };
+        setLocalGroup(newGroup);
         lastLocalUpdate.current = Date.now();
+        onGroupUpdate?.(newGroup);
       } catch (err) {
         console.error("❌ Instant fetch failed:", err);
       }
@@ -199,10 +209,12 @@ export default function BossMap({
         </div>
 
         <div className={styles.rightControls}>
-          {/* ✅ Countdown now sits just left of status */}
-          <span ref={countdownRef} className={styles.countdownText}>
-            （5秒后刷新）
-          </span>
+          {/* ✅ countdown sits left of status */}
+          {typeof countdown === "number" && (
+            <span className={styles.countdownText}>
+              （{countdown}秒后刷新）
+            </span>
+          )}
 
           <div
             className={styles.statusWrap}
@@ -272,18 +284,21 @@ export default function BossMap({
           onSave={async (floor, data) => {
             await updateGroupKill(floor, selected.boss, data);
             setSelected(null);
-            if (status === "not_started")
-              await updateGroupStatus("started");
+            if (status === "not_started") await updateGroupStatus("started");
           }}
           groupStatus={status}
           onMarkStarted={() => updateGroupStatus("started")}
           onAfterReset={() => {
-            setLocalGroup((p) => ({
-              ...p,
+            const newGroup = {
+              ...localGroup,
               kills:
-                p.kills?.filter((k) => k.floor !== selected?.floor) || [],
-            }));
+                localGroup.kills?.filter(
+                  (k: any) => k.floor !== selected?.floor
+                ) || [],
+            };
+            setLocalGroup(newGroup);
             onRefresh?.();
+            onGroupUpdate?.(newGroup);
             setSelected(null);
           }}
         />
