@@ -1,24 +1,79 @@
 "use client";
-import React from "react";
+
+import React, { useEffect, useRef } from "react";
 import styles from "./styles.module.css";
 import { getAbilityIcon, getBossProgressText } from "../drophelpers";
 import { pickBestCharacterWithTrace } from "./RecommandWindow/recommendation";
+import type { RecommendationStep } from "./RecommandWindow/recommendation";
 
 /** 🔄 Gender-based transferable skill rules */
 function getTransferableAbility(
   pickedAbility: string,
   gender: string | undefined
 ): string | null {
-  // 双向可转换
   if (pickedAbility === "剑心通明" && gender === "男") return "巨猿劈山";
   if (pickedAbility === "巨猿劈山" && gender === "女") return "剑心通明";
-
-  // 单向：female receiving male skill
   if (pickedAbility === "蛮熊碎颅击" && gender === "女") return "水遁水流闪";
-
   return null;
 }
 
+/* === Always-visible reasoning window === */
+function RecommendationWindow({
+  steps,
+  parentRef,
+}: {
+  steps: RecommendationStep[];
+  parentRef: React.RefObject<HTMLDivElement>;
+}) {
+  const windowRef = useRef<HTMLDivElement>(null);
+
+  // 🔧 Dynamically center relative to parent modal
+  useEffect(() => {
+    const parent = parentRef.current;
+    const windowEl = windowRef.current;
+    if (!parent || !windowEl) return;
+
+    const updatePosition = () => {
+      const rect = parent.getBoundingClientRect();
+      const windowHeight = windowEl.offsetHeight;
+      const top = rect.height / 2 - windowHeight / 2;
+      windowEl.style.top = `${top}px`;
+      windowEl.style.left = `${rect.width + 24}px`;
+      windowEl.style.position = "absolute";
+    };
+
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    return () => window.removeEventListener("resize", updatePosition);
+  }, [parentRef, steps.length]);
+
+  if (!steps || steps.length === 0) return null;
+
+  const getClass = (passed: boolean | "fallback" | undefined) => {
+    if (passed === true) return styles.passed;
+    if (String(passed).toLowerCase() === "fallback") return styles.fallback;
+    return styles.failed;
+  };
+
+  return (
+    <div ref={windowRef} className={styles.window}>
+      <div className={styles.header}>
+        <span className={styles.title}>推荐决策过程</span>
+      </div>
+      <div className={styles.content}>
+        <ul className={styles.stepList}>
+          {steps.map((step, i) => (
+            <li key={i} className={getClass(step.passed)}>
+              {step.reason}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+/* === Main Component === */
 export default function MemberList({
   group,
   chosenDrop,
@@ -29,6 +84,8 @@ export default function MemberList({
   groupStatus,
   onMarkStarted,
 }: any) {
+  const rightColumnRef = useRef<HTMLDivElement>(null);
+
   const markStartedIfNeeded = () => {
     if (groupStatus === "not_started" && onMarkStarted) onMarkStarted();
   };
@@ -53,16 +110,13 @@ export default function MemberList({
       const char = group.characters.find(
         (ch: any) => ch._id === charId || ch.id === charId
       );
-
       let finalAbility = chosenDrop.ability;
 
-      // 🔄 Check if transferable
       const transferable = getTransferableAbility(finalAbility, char?.gender);
       if (transferable) {
         const transferLevel = char?.abilities?.[transferable] ?? 0;
         const pickedLevel = char?.abilities?.[finalAbility] ?? 0;
 
-        // ✅ If transfer makes sense, replace the saved ability
         if (
           (transferLevel > 0 && pickedLevel === 0) ||
           (finalAbility === "蛮熊碎颅击" &&
@@ -75,7 +129,7 @@ export default function MemberList({
 
       markStartedIfNeeded();
       onSave(floor, {
-        ability: finalAbility, // ✅ save the real transferable ability
+        ability: finalAbility,
         level: chosenDrop.level,
         characterId: charId,
         noDrop: false,
@@ -95,7 +149,7 @@ export default function MemberList({
       : { bestCandidate: null, steps: [], tiedCandidates: [] };
 
   return (
-    <div className={styles.rightColumn}>
+    <div className={styles.rightColumn} ref={rightColumnRef}>
       <div className={styles.sectionDivider}>角色</div>
 
       {/* ==== Character selection grid ==== */}
@@ -109,13 +163,12 @@ export default function MemberList({
           if (chosenDrop && chosenDrop !== "noDrop") {
             const picked = chosenDrop.ability;
             const transferable = getTransferableAbility(picked, c.gender);
-
             let hasTransfer = false;
+
             if (transferable) {
               const transferLevel = c.abilities?.[transferable] ?? 0;
               const pickedLevel = c.abilities?.[picked] ?? 0;
 
-              // 🧩 Determine if transferred display should be used
               if (
                 (transferLevel > 0 && pickedLevel === 0) ||
                 (picked === "蛮熊碎颅击" &&
@@ -129,10 +182,7 @@ export default function MemberList({
               }
             }
 
-            if (!hasTransfer) {
-              shownLevel = c.abilities?.[picked] ?? 0;
-            }
-
+            if (!hasTransfer) shownLevel = c.abilities?.[picked] ?? 0;
             if (shownLevel >= chosenDrop.level) disabled = true;
           }
 
@@ -150,15 +200,13 @@ export default function MemberList({
 
           let colorClass = "";
           if (!disabled && chosenDrop && chosenDrop !== "noDrop") {
-            if (isTied) colorClass = styles.diamond; // 💎 tie case
+            if (isTied) colorClass = styles.diamond;
             else if (isBest) colorClass = styles.levelGreen;
             else colorClass = styles.levelYellow;
           }
 
           const abilityIcon =
-            isTransferred && shownAbility
-              ? getAbilityIcon(shownAbility)
-              : null;
+            isTransferred && shownAbility ? getAbilityIcon(shownAbility) : null;
 
           return (
             <button
@@ -190,23 +238,9 @@ export default function MemberList({
         })}
       </div>
 
-      {/* ==== Reasoning / Info Box ==== */}
+      {/* ==== Always-visible floating reasoning box ==== */}
       {steps.length > 0 && (
-        <div className={styles.reasonBox}>
-          <div className={styles.reasonTitle}>推荐理由</div>
-          <ul className={styles.reasonList}>
-            {steps.map((s, i) => {
-              let className = styles.failed;
-              if (s.passed === true) className = styles.passed;
-              else if (s.passed === "fallback") className = styles.fallback; // 💎 tie
-              return (
-                <li key={i} className={className}>
-                  {s.reason}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
+        <RecommendationWindow steps={steps} parentRef={rightColumnRef} />
       )}
     </div>
   );

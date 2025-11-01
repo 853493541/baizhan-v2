@@ -76,17 +76,9 @@ export default function Drops(props: any) {
   allHave9Options = expandWithMirrors(allHave9Options);
   allHave10Options = expandWithMirrors(allHave10Options);
 
-  // 🧾 Debug log
-  console.log(
-    "[Drops][AFTER FIX] allHave9Options =",
-    allHave9Options.map((x) => x.ability)
-  );
-  console.log(
-    "[Drops][AFTER FIX] allHave10Options =",
-    allHave10Options.map((x) => x.ability)
-  );
 
-  /** 🗑️ Reset logic */
+
+  /** Reset logic */
   const doReset = async () => {
     try {
       setErrMsg(null);
