@@ -33,7 +33,7 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const lastLocalUpdate = useRef<number>(0);
 
-  /* 🟢 Instant lightweight refresh on open (with guard) */
+  /* 🟢 Instant lightweight refresh on open (with guard, runs once per group) */
   useEffect(() => {
     const fetchInstant = async () => {
       if (isRefreshing) {
@@ -65,7 +65,7 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
     };
 
     fetchInstant();
-  }, [scheduleId, group.index, isRefreshing, group, setLocalGroup]);
+  }, [scheduleId, group.index]); // ✅ only run once per group open
 
   /* 🧩 Smart merge – don’t overwrite fresher local data */
   useEffect(() => {
@@ -77,7 +77,7 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
     if (parentKills > localKills || timeSinceLocal > 5000) {
       setLocalGroup(group); // parent likely newer
     } else {
-      console.log("🛡️ Ignoring parent overwrite (local newer)");
+      // console.log("🛡️ Ignoring parent overwrite (local newer)");
     }
   }, [group]);
 
@@ -96,23 +96,22 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
     });
 
     const parsed =
-      localGroup.kills
-        ?.flatMap((k: any) =>
-          k.selection?.ability && k.selection?.characterId
-            ? [
-                {
-                  ability: k.selection.ability,
-                  level: k.selection.level || 0,
-                  char: idToName[k.selection.characterId] || "",
-                  characterId: k.selection.characterId,
-                  floor: k.floor,
-                  role: idToRole[k.selection.characterId],
-                  status: k.selection.status || "assigned",
-                  character: idToChar[k.selection.characterId],
-                },
-              ]
-            : []
-        ) || [];
+      localGroup.kills?.flatMap((k: any) =>
+        k.selection?.ability && k.selection?.characterId
+          ? [
+              {
+                ability: k.selection.ability,
+                level: k.selection.level || 0,
+                char: idToName[k.selection.characterId] || "",
+                characterId: k.selection.characterId,
+                floor: k.floor,
+                role: idToRole[k.selection.characterId],
+                status: k.selection.status || "assigned",
+                character: idToChar[k.selection.characterId],
+              },
+            ]
+          : []
+      ) || [];
 
     parsed.sort(
       (a, b) =>
@@ -121,7 +120,7 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
     setDrops(parsed);
   }, [localGroup]);
 
-  /* 🔧 Safe text reader helper */
+  /* 🔧 Helper for safe text read */
   const readTextSafe = async (res: Response) => {
     try {
       return await res.text();

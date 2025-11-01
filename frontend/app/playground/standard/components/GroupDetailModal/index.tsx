@@ -26,31 +26,6 @@ interface WeeklyMapResponse {
   floors: Record<number, { boss: string }>;
 }
 
-/* -------------------- 🕒 Countdown (lightweight, no re-render storm) -------------------- */
-function CountdownDisplay({
-  seconds,
-  onZero,
-}: {
-  seconds: number;
-  onZero: () => void;
-}) {
-  const [left, setLeft] = useState(seconds);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setLeft((c) => {
-        const next = c <= 1 ? seconds : c - 1;
-        if (next === seconds && c <= 1) onZero();
-        return next;
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [seconds, onZero]);
-
-  return <span className={styles.countdown}>（{left}秒后刷新）</span>;
-}
-
-/* ================================================================== */
 export default function GroupDetailModal({
   scheduleId,
   groupIndex,
@@ -91,7 +66,7 @@ export default function GroupDetailModal({
 
   /* -------------------- Auto refresh every 5s (with guard) -------------------- */
   const fetchGroupKills = useCallback(async () => {
-    if (isRefreshing) return; // ✅ guard: skip if already refreshing
+    if (isRefreshing) return; // ✅ guard prevents overlapping fetches
 
     try {
       setIsRefreshing(true);
@@ -203,15 +178,11 @@ export default function GroupDetailModal({
             weeklyAbilities={weeklyAbilities}
           />
 
-          {/* 🕒 Countdown beside 无警告 button */}
-          <div className={styles.resultRow}>
-            <ResultWindow
-              scheduleId={scheduleId}
-              group={groupData}
-              onRefresh={handleRefresh}
-            />
-            <CountdownDisplay seconds={5} onZero={fetchGroupKills} />
-          </div>
+          <ResultWindow
+            scheduleId={scheduleId}
+            group={groupData}
+            onRefresh={handleRefresh}
+          />
         </div>
 
         {/* === Bottom Section: Boss Map === */}
