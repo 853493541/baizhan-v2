@@ -157,3 +157,10 @@
   font-weight: 600;
   color: #005ad0;
 }
+.columns {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: flex-start; /* instead of center */
+  overflow: visible; /* ✅ allow .window to extend outside the modal */
+}

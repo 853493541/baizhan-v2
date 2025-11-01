@@ -1,17 +1,31 @@
 "use client";
+
+import React, { useRef, useState, useEffect } from "react";
 import styles from "./styles.module.css";
 import SingleBossDrops from "@/app/data/Single_Boss_Drops.json";
-import { MAIN_CHARACTERS, getBossProgressText } from "../drophelpers";
+import { getBossProgressText } from "../drophelpers";
+import { pickBestCharacterWithTrace } from "./RecommandWindow/recommendation";
+import RecommendationWindow, { RecommendationStep } from "./RecommandWindow";
 
+/* ✅ Role color mapping */
+const roleColors: Record<string, { bg: string; text: string }> = {
+  tank: { bg: "#fff3cd", text: "#8b4513" },
+  dps: { bg: "#d4edda", text: "#155724" },
+  healer: { bg: "#f8d7da", text: "#721c24" },
+};
+
+/* === Types === */
 type StorageItem = { ability: string; level: number; used?: boolean };
 type Char = {
   _id: string;
   name: string;
+  gender?: "男" | "女";
+  role?: "tank" | "dps" | "healer";
   abilities: Record<string, number>;
   storage?: StorageItem[];
-  gender?: "男" | "女";
 };
 
+/* === Component === */
 export default function MemberList({
   group,
   allCharacters,
@@ -27,116 +41,107 @@ export default function MemberList({
   selectedCharacter: Char | null;
   setSelectedCharacter: (c: Char) => void;
 }) {
-  /* === 🧩 Find which boss this ability belongs to === */
+  const rightColumnRef = useRef<HTMLDivElement>(null);
+
+  /* === 🧠 Persist showReasoning across reloads === */
+  const [showReasoning, setShowReasoning] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("showReasoning");
+      return stored ? stored === "true" : true; // default true
+    }
+    return true;
+  });
+
+  const toggleReasoning = () => {
+    setShowReasoning((prev) => {
+      const next = !prev;
+      if (typeof window !== "undefined") {
+        localStorage.setItem("showReasoning", String(next));
+      }
+      return next;
+    });
+  };
+
+  /* === Find which boss drop list this ability belongs to === */
   const dropList =
     selectedAbility &&
     Object.entries(SingleBossDrops).find(([_, list]) =>
       list.includes(selectedAbility)
-    )?.[1] || [];
+    )?.[1];
 
-  const fullChar = (c: Char) =>
-    allCharacters.find((fc) => fc._id === c._id) || c;
+  /* === Get recommendation result === */
+  const { bestCandidate, steps = [], tiedCandidates = [] } =
+    selectedAbility && selectedLevel
+      ? pickBestCharacterWithTrace(
+          selectedAbility,
+          selectedLevel,
+          group,
+          dropList || []
+        )
+      : { bestCandidate: null, steps: [], tiedCandidates: [] };
 
-  /* === 🪣 Check backpack for level-10 copy === */
-  const hasLevel10InStorage = (ch: Char, ability: string) => {
-    if (!Array.isArray(ch?.storage)) return false;
-    return ch.storage.some(
-      (item) => item.ability === ability && item.level === 10 && !item.used
-    );
-  };
-
-  const getProgressColor = (txt: string) => {
-    if (!txt) return "";
-    if (txt.includes("十重") || txt.includes("全收集")) return styles.progressGreen;
-    if (txt.includes("九重")) return styles.progressYellow;
+  /* === Helpers === */
+  const getProgressColor = (text: string) => {
+    if (text.includes("十重") || text.includes("全收集")) return styles.progressGreen;
+    if (text.includes("九重")) return styles.progressYellow;
     return styles.progressPink;
   };
 
-  const parseProgress = (txt: string) => {
-    const m = txt?.match(/(\d+)\s*\/\s*(\d+)/);
-    return m ? Number(m[1]) : 0;
-  };
-
-  const countLevel10FromBoss = (ch: Char, dl: string[]) =>
-    dl.reduce((n, ab) => (ch.abilities?.[ab] >= 10 ? n + 1 : n), 0);
-
-  /* === 🧠 Pick the best candidate automatically === */
-  const pickBestCandidate = (ability: string, level: 9 | 10 | null) => {
-    if (!ability || !level) return null;
-    const assignable = group.characters.filter(
-      (c) => (c.abilities?.[ability] ?? 0) < level
-    );
-    if (assignable.length === 0) return null;
-
-    const main = assignable.find((c) => MAIN_CHARACTERS.has(c.name));
-    if (main) return main;
-
-    if (level === 9) {
-      const withStored10 = assignable.find((c) =>
-        hasLevel10InStorage(fullChar(c), ability)
-      );
-      if (withStored10) return withStored10;
-    }
-
-    let best = assignable[0];
-    let bestLv = best.abilities?.[ability] ?? 0;
-    for (const c of assignable.slice(1)) {
-      const lv = c.abilities?.[ability] ?? 0;
-      if (lv > bestLv) {
-        best = c;
-        bestLv = lv;
-        continue;
-      }
-      if (lv === bestLv && dropList.length > 0) {
-        const bpBest = getBossProgressText(dropList, fullChar(best));
-        const bpCur = getBossProgressText(dropList, fullChar(c));
-        const pBest = parseProgress(bpBest);
-        const pCur = parseProgress(bpCur);
-        if (pCur > pBest) {
-          best = c;
-          bestLv = lv;
-          continue;
-        }
-        if (pCur === pBest) {
-          const tBest = countLevel10FromBoss(fullChar(best), dropList);
-          const tCur = countLevel10FromBoss(fullChar(c), dropList);
-          if (tCur > tBest) best = c;
-        }
-      }
-    }
-    return best;
-  };
-
-  const bestCandidate = pickBestCandidate(selectedAbility, selectedLevel);
-
+  /* === Render === */
   return (
-    <div className={styles.rightColumn}>
-      <div className={styles.sectionDivider}>角色</div>
+    <div className={styles.rightColumn} ref={rightColumnRef}>
+      {/* === Centered Header with Divider Lines === */}
+      <div className={styles.sectionDivider}>
+        <span className={styles.sectionTitle}>
+          角色{" "}
+          {steps.length > 0 && (
+            <button
+              className={`${styles.helpCircle} ${
+                showReasoning ? styles.helpCircleActive : styles.helpCircleInactive
+              }`}
+              title={showReasoning ? "隐藏推荐决策" : "显示推荐决策"}
+              onClick={toggleReasoning}
+            >
+              ?
+            </button>
+          )}
+        </span>
+      </div>
 
+      {/* === Character Buttons === */}
       <div className={styles.memberGrid}>
         {group.characters.map((c) => {
-          const fc = fullChar(c);
           const learned = c.abilities?.[selectedAbility] ?? 0;
           const disabled =
             !selectedAbility || !selectedLevel || learned >= selectedLevel;
 
-          /* 🪣 Show warning if character already has that ability as 10重 in backpack */
-          const showStored10 =
-            selectedAbility &&
-            hasLevel10InStorage(fc, selectedAbility) &&
-            selectedLevel === 9;
+          const progressText = dropList?.length
+            ? getBossProgressText(dropList, c, selectedLevel)
+            : "";
+          const progressColor = getProgressColor(progressText);
 
-          const progressText =
-            dropList.length > 0 ? getBossProgressText(dropList, fc) : "";
-          const progressColor = progressText ? getProgressColor(progressText) : "";
+          const isBest = bestCandidate && bestCandidate._id === c._id && !disabled;
+          const isTied = tiedCandidates?.includes(c.name) && !disabled;
+
+          const colorStyle =
+            c.role && roleColors[c.role]
+              ? {
+                  backgroundColor: roleColors[c.role].bg,
+                  color: roleColors[c.role].text,
+                }
+              : {};
 
           let colorClass = "";
           if (!disabled && selectedAbility && selectedLevel) {
-            colorClass =
-              bestCandidate && bestCandidate._id === c._id
-                ? styles.levelGreen
-                : styles.levelYellow;
+            if (isTied) colorClass = styles.diamond;
+            else if (isBest) colorClass = styles.levelGreen;
+            else colorClass = styles.levelYellow;
           }
+
+          const hasStored10 =
+            c.storage?.some(
+              (s) => s.ability === selectedAbility && s.level === 10 && !s.used
+            ) && selectedLevel === 9;
 
           return (
             <button
@@ -146,10 +151,11 @@ export default function MemberList({
               className={`${styles.memberBtn} ${colorClass} ${
                 disabled ? styles.memberDisabled : ""
               } ${selectedCharacter?._id === c._id ? styles.active : ""}`}
+              style={colorStyle}
             >
               <div className={styles.topRow}>
                 <span className={styles.name}>
-                  {c.name}（{learned > 0 ? learned : 0}）
+                  {c.name}（{learned}）
                 </span>
                 {progressText && (
                   <span className={`${styles.progressText} ${progressColor}`}>
@@ -158,16 +164,18 @@ export default function MemberList({
                 )}
               </div>
 
-              {showStored10 && (
-                <div className={styles.warningRow}>
-                  <span className={styles.warningIcon}>⚠️</span>
-                  <span className={styles.warningText}>包里有10</span>
-                </div>
+              {hasStored10 && (
+                <div className={styles.backpackWarning}>⚠️ 背包有10</div>
               )}
             </button>
           );
         })}
       </div>
+
+      {/* === Floating Recommendation Window === */}
+      {showReasoning && steps.length > 0 && (
+        <RecommendationWindow steps={steps} parentRef={rightColumnRef} />
+      )}
     </div>
   );
 }
