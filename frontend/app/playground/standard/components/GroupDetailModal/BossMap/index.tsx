@@ -21,7 +21,7 @@ interface Props {
   scheduleId: string;
   group: ExtendedGroup;
   weeklyMap: Record<number, string>;
-  countdown?: number;
+  countdownRef?: React.RefObject<HTMLSpanElement>;
   onRefresh?: () => void;
 }
 
@@ -33,20 +33,26 @@ const highlightAbilities = [
   "短歌万劫","泉映幻歌",
 ];
 
-export default function BossMap({ scheduleId, group, weeklyMap, countdown, onRefresh }: Props) {
-  const row1 = [81,82,83,84,85,86,87,88,89,90];
-  const row2 = [100,99,98,97,96,95,94,93,92,91];
+export default function BossMap({
+  scheduleId,
+  group,
+  weeklyMap,
+  countdownRef,
+  onRefresh,
+}: Props) {
+  const row1 = [81, 82, 83, 84, 85, 86, 87, 88, 89, 90];
+  const row2 = [100, 99, 98, 97, 96, 95, 94, 93, 92, 91];
 
   const [localGroup, setLocalGroup] = useState(group);
   const lastLocalUpdate = useRef<number>(Date.now());
 
-  // ✅ Only replace local when parent has strictly newer data
   useEffect(() => {
     const parentKillCount = group.kills?.length || 0;
     const localKillCount = localGroup.kills?.length || 0;
-
-    // ignore parent update if local seems newer (has same or more kills recently)
-    if (parentKillCount >= localKillCount || Date.now() - lastLocalUpdate.current > 3000) {
+    if (
+      parentKillCount >= localKillCount ||
+      Date.now() - lastLocalUpdate.current > 3000
+    ) {
       setLocalGroup(group);
     }
   }, [group]);
@@ -58,12 +64,21 @@ export default function BossMap({ scheduleId, group, weeklyMap, countdown, onRef
     dropLevel: 9 | 10;
   } | null>(null);
 
-  const [activeMembers, setActiveMembers] = useState<number[]>([0,1,2]);
+  const [activeMembers, setActiveMembers] = useState<number[]>([0, 1, 2]);
   const toggleMember = (i: number) =>
-    setActiveMembers((p) => (p.includes(i) ? p.filter((x) => x !== i) : [...p, i]));
+    setActiveMembers((p) =>
+      p.includes(i) ? p.filter((x) => x !== i) : [...p, i]
+    );
 
-  const status = (localGroup.status ?? "not_started") as "not_started" | "started" | "finished";
-  const statusLabel = { not_started:"未开始", started:"进行中", finished:"已完成" };
+  const status = (localGroup.status ?? "not_started") as
+    | "not_started"
+    | "started"
+    | "finished";
+  const statusLabel = {
+    not_started: "未开始",
+    started: "进行中",
+    finished: "已完成",
+  };
   const statusCircleClass = {
     not_started: styles.statusIdleDot,
     started: styles.statusBusyDot,
@@ -73,20 +88,29 @@ export default function BossMap({ scheduleId, group, weeklyMap, countdown, onRef
   const getRoleClass = (role: string) => {
     if (!role) return "";
     switch (role.toLowerCase()) {
-      case "tank": return styles.tankBtn;
-      case "dps": return styles.dpsBtn;
-      case "healer": return styles.healerBtn;
-      default: return "";
+      case "tank":
+        return styles.tankBtn;
+      case "dps":
+        return styles.dpsBtn;
+      case "healer":
+        return styles.healerBtn;
+      default:
+        return "";
     }
   };
 
-  const updateGroupStatus = async (next: "not_started" | "started" | "finished") => {
+  const updateGroupStatus = async (
+    next: "not_started" | "started" | "finished"
+  ) => {
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: next }),
-      });
+      await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/status`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: next }),
+        }
+      );
       setLocalGroup((p) => ({ ...p, status: next }));
       onRefresh?.();
     } catch (err) {
@@ -94,7 +118,11 @@ export default function BossMap({ scheduleId, group, weeklyMap, countdown, onRef
     }
   };
 
-  const updateGroupKill = async (floor: number, boss: string, selection: any) => {
+  const updateGroupKill = async (
+    floor: number,
+    boss: string,
+    selection: any
+  ) => {
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/floor/${floor}`,
@@ -118,7 +146,6 @@ export default function BossMap({ scheduleId, group, weeklyMap, countdown, onRef
     }
   };
 
-  // ✅ Instant fetch when opened
   useEffect(() => {
     const instantFetch = async () => {
       try {
@@ -150,14 +177,8 @@ export default function BossMap({ scheduleId, group, weeklyMap, countdown, onRef
     <>
       <div className={styles.headerRow}>
         <div className={styles.leftSection}>
-          <h3 className={styles.title}>
-            本周地图
-            {countdown !== undefined && (
-              <span style={{ marginLeft: 8, fontSize: 13, color: "#6b7280" }}>
-                （{countdown}秒后刷新）
-              </span>
-            )}
-          </h3>
+          <h3 className={styles.title}>本周地图</h3>
+
           <div className={styles.memberButtons}>
             {localGroup.characters?.map((c: any, i: number) => {
               const isActive = activeMembers.includes(i);
@@ -178,8 +199,18 @@ export default function BossMap({ scheduleId, group, weeklyMap, countdown, onRef
         </div>
 
         <div className={styles.rightControls}>
-          <div className={styles.statusWrap} title={`当前状态：${statusLabel[status]}`}>
-            <span className={`${styles.statusDot} ${statusCircleClass[status]}`} />
+          {/* ✅ Countdown now sits just left of status */}
+          <span ref={countdownRef} className={styles.countdownText}>
+            （5秒后刷新）
+          </span>
+
+          <div
+            className={styles.statusWrap}
+            title={`当前状态：${statusLabel[status]}`}
+          >
+            <span
+              className={`${styles.statusDot} ${statusCircleClass[status]}`}
+            />
             <span className={styles.statusText}>{statusLabel[status]}</span>
           </div>
 
@@ -241,14 +272,16 @@ export default function BossMap({ scheduleId, group, weeklyMap, countdown, onRef
           onSave={async (floor, data) => {
             await updateGroupKill(floor, selected.boss, data);
             setSelected(null);
-            if (status === "not_started") await updateGroupStatus("started");
+            if (status === "not_started")
+              await updateGroupStatus("started");
           }}
           groupStatus={status}
           onMarkStarted={() => updateGroupStatus("started")}
           onAfterReset={() => {
             setLocalGroup((p) => ({
               ...p,
-              kills: p.kills?.filter((k) => k.floor !== selected?.floor) || [],
+              kills:
+                p.kills?.filter((k) => k.floor !== selected?.floor) || [],
             }));
             onRefresh?.();
             setSelected(null);
