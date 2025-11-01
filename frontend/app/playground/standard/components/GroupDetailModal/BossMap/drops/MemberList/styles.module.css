@@ -263,3 +263,162 @@
 .content::-webkit-scrollbar-thumb:hover {
   background: #aaa;
 }
+/* Keep character info in one horizontal row */
+.topRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  flex-wrap: nowrap;          /* ✅ prevents breaking into new line */
+  overflow: hidden;
+}
+
+/* Name + icon stay inline and shrink if needed */
+.nameAndIcon {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;               /* ✅ allows flex-shrink inside topRow */
+  flex-shrink: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Progress text shrinks if space is tight */
+.progressText {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: inherit;
+  margin-left: 6px;
+  white-space: nowrap;
+}
+
+/* Optional: give name+icon more room inside the button */
+.memberBtn {
+  min-width: 240px;   /* was 220px */
+  max-width: 240px;
+}
+.helpBtn {
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: #0070f3;
+  margin-left: 6px;
+  cursor: pointer;
+  line-height: 1;
+  transition: color 0.2s ease, transform 0.15s ease;
+}
+
+.helpBtn:hover {
+  color: #0059c9;
+  transform: scale(1.15);
+}
+
+.helpBtnActive {
+  color: #1c7c2d; /* green when active/open */
+}
+/* === Circular ? icon button === */
+.helpCircle {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid #0070f3;
+  color: #0070f3;
+  background: white;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.helpCircle:hover {
+  background: #0070f3;
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.helpCircleActive {
+  background: #0070f3;
+  color: white;
+  border-color: #0070f3;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+/* === Circular ? icon button === */
+.helpCircle {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid #0070f3;
+  color: #0070f3;
+  background: #ffffff;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.helpCircle:hover {
+  background: #0070f3;
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.helpCircleActive {
+  background: #0070f3;
+  color: white;
+  border-color: #0070f3;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+/* === Compact circular ? icon button === */
+.helpCircle {
+  width: 15px;               /* smaller size */
+  height: 15px;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 13px;           /* proportionally smaller ? */
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  position: relative;
+  top: -2px;                 /* ⬆️ move slightly upward */
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+
+/* 🟦 Closed state */
+.helpCircleInactive {
+  border: 1.5px solid #0070f3;
+  color: #0070f3;
+  background: #ffffff;
+}
+
+/* 🟩 Open state */
+.helpCircleActive {
+  background: #0070f3;
+  color: #ffffff;
+  border: 1.5px solid #0070f3;
+  transform: scale(1.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+

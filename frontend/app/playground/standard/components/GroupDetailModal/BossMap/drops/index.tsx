@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styles from "./styles.module.css";
 import { buildOptions } from "./drophelpers";
 import AbilityList from "./AbilityList";
@@ -25,6 +25,19 @@ export default function Drops(props: any) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [errMsg, setErrMsg] = useState<string | null>(null);
   const hasKillRecord = group.kills?.some((k: any) => k.floor === floor);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  /** 🧭 Click outside main modal → close */
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const modalEl = modalRef.current;
+      if (modalEl && !modalEl.contains(event.target as Node)) {
+        onClose();
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [onClose]);
 
   const markStartedIfNeeded = () => {
     if (groupStatus === "not_started" && onMarkStarted) onMarkStarted();
@@ -76,9 +89,7 @@ export default function Drops(props: any) {
   allHave9Options = expandWithMirrors(allHave9Options);
   allHave10Options = expandWithMirrors(allHave10Options);
 
-
-
-  /** Reset logic */
+  /** 🔄 Reset logic */
   const doReset = async () => {
     try {
       setErrMsg(null);
@@ -104,7 +115,7 @@ export default function Drops(props: any) {
 
   return (
     <div className={styles.overlay}>
-      <div className={styles.modal}>
+      <div className={styles.modal} ref={modalRef}>
         <h3>
           {floor}层 - {boss}
         </h3>
