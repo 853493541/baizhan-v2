@@ -30,19 +30,25 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
   const [localGroup, setLocalGroup] = useState<GroupResult>(group);
   const [drops, setDrops] = useState<AssignedDrop[]>([]);
   const [loading, setLoading] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const lastLocalUpdate = useRef<number>(0);
 
-  /* 🟢 Instant lightweight refresh on open */
+  /* 🟢 Instant lightweight refresh on open (with guard) */
   useEffect(() => {
     const fetchInstant = async () => {
+      if (isRefreshing) {
+        console.log("⏳ Skipping instant fetch — already in progress");
+        return;
+      }
+
       try {
+        setIsRefreshing(true);
         const res = await fetch(
           `${API_BASE}/api/standard-schedules/${scheduleId}/groups/${group.index}/kills`
         );
         if (!res.ok) return;
         const data = await res.json();
 
-        // merge with parent to retain characters etc.
         const merged = {
           ...group,
           kills: data.kills || [],
@@ -53,10 +59,13 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
         console.log("⚡ Instant refresh applied in ResultWindow");
       } catch (err) {
         console.error("❌ Instant refresh failed:", err);
+      } finally {
+        setIsRefreshing(false);
       }
     };
+
     fetchInstant();
-  }, [scheduleId, group.index]);
+  }, [scheduleId, group.index, isRefreshing, group, setLocalGroup]);
 
   /* 🧩 Smart merge – don’t overwrite fresher local data */
   useEffect(() => {
@@ -66,10 +75,8 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
     const timeSinceLocal = Date.now() - lastLocalUpdate.current;
 
     if (parentKills > localKills || timeSinceLocal > 5000) {
-      // parent likely newer
-      setLocalGroup(group);
+      setLocalGroup(group); // parent likely newer
     } else {
-      // ignore stale overwrite
       console.log("🛡️ Ignoring parent overwrite (local newer)");
     }
   }, [group]);
@@ -77,6 +84,7 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
   /* 🧮 Rebuild drop list whenever localGroup changes */
   useEffect(() => {
     if (!localGroup.kills) return;
+
     const idToChar: Record<string, any> = {};
     const idToName: Record<string, string> = {};
     const idToRole: Record<string, "DPS" | "Tank" | "Healer"> = {};
@@ -113,7 +121,7 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
     setDrops(parsed);
   }, [localGroup]);
 
-  /* 🔧 Helper for safe text read */
+  /* 🔧 Safe text reader helper */
   const readTextSafe = async (res: Response) => {
     try {
       return await res.text();

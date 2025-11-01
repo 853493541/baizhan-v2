@@ -215,3 +215,18 @@
     background-color: #ffe5ea;
   }
 }
+/* Countdown next to “无警告” button */
+.resultRow {
+  display: flex;
+  align-items: center;       /* vertical centering */
+  justify-content: flex-end; /* align both to the right */
+  gap: 8px;                  /* space between button and countdown */
+  margin-top: 6px;           /* optional small top spacing */
+}
+
+/* Countdown text style */
+.countdown {
+  font-size: 13px;
+  color: #6b7280; /* subtle gray tone */
+  white-space: nowrap; /* keep on same line */
+}

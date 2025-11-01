@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import styles from "./styles.module.css";
 import type { GroupResult, AbilityCheck } from "@/utils/solver";
 
@@ -26,6 +26,31 @@ interface WeeklyMapResponse {
   floors: Record<number, { boss: string }>;
 }
 
+/* -------------------- 🕒 Countdown (lightweight, no re-render storm) -------------------- */
+function CountdownDisplay({
+  seconds,
+  onZero,
+}: {
+  seconds: number;
+  onZero: () => void;
+}) {
+  const [left, setLeft] = useState(seconds);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setLeft((c) => {
+        const next = c <= 1 ? seconds : c - 1;
+        if (next === seconds && c <= 1) onZero();
+        return next;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [seconds, onZero]);
+
+  return <span className={styles.countdown}>（{left}秒后刷新）</span>;
+}
+
+/* ================================================================== */
 export default function GroupDetailModal({
   scheduleId,
   groupIndex,
@@ -39,20 +64,14 @@ export default function GroupDetailModal({
   const [refreshing, setRefreshing] = useState(false);
   const [groupData, setGroupData] = useState<GroupResult>(group);
   const [loadingCharacters, setLoadingCharacters] = useState(false);
-
-  /* 🕒 Auto-refresh countdown */
-  const [countdown, setCountdown] = useState(5);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // ✅ When BossMap updates instantly
-  const handleGroupUpdate = (updatedGroup: GroupResult) => {
-    if (!updatedGroup) return;
-    console.log("[GroupDetailModal] received updated group:", updatedGroup);
-    setGroupData(updatedGroup);
-  };
+  /* -------------------- Handlers -------------------- */
+  const handleGroupUpdate = useCallback((updatedGroup: GroupResult) => {
+    if (updatedGroup) setGroupData(updatedGroup);
+  }, []);
 
-  // 🔄 Full reload (manual or from children)
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     if (!scheduleId) return;
     setRefreshing(true);
     try {
@@ -60,7 +79,6 @@ export default function GroupDetailModal({
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-
       const updated = data.groups.find((g: any) => g.index === groupIndex + 1);
       if (updated) setGroupData(updated);
       onRefresh?.();
@@ -69,47 +87,33 @@ export default function GroupDetailModal({
     } finally {
       setRefreshing(false);
     }
-  };
+  }, [scheduleId, groupIndex, onRefresh]);
 
-  // ✅ Lightweight auto-refresh (kills + status only)
-  useEffect(() => {
-    if (!scheduleId) return;
+  /* -------------------- Auto refresh every 5s (with guard) -------------------- */
+  const fetchGroupKills = useCallback(async () => {
+    if (isRefreshing) return; // ✅ guard: skip if already refreshing
 
-    const fetchGroupKills = async () => {
-      try {
-        setIsRefreshing(true);
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${groupIndex + 1}/kills`
-        );
-        if (!res.ok) return;
-        const data = await res.json();
-        setGroupData((prev) => ({
-          ...prev,
-          kills: data.kills || prev.kills,
-          status: data.status || prev.status,
-        }));
-        onRefresh?.();
-      } catch (err) {
-        console.error("❌ Auto refresh failed:", err);
-      } finally {
-        setIsRefreshing(false);
-      }
-    };
+    try {
+      setIsRefreshing(true);
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${groupIndex + 1}/kills`
+      );
+      if (!res.ok) return;
+      const data = await res.json();
+      setGroupData((prev) => ({
+        ...prev,
+        kills: data.kills || prev.kills,
+        status: data.status || prev.status,
+      }));
+      onRefresh?.();
+    } catch (err) {
+      console.error("❌ Auto refresh failed:", err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [isRefreshing, scheduleId, groupIndex, onRefresh]);
 
-    const timer = setInterval(() => {
-      setCountdown((c) => {
-        if (c <= 1) {
-          fetchGroupKills();
-          return 5; // ⏱️ now every 5 seconds
-        }
-        return c - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [scheduleId, groupIndex]);
-
-  // ✅ Load weekly map once
+  /* -------------------- Load weekly map once -------------------- */
   useEffect(() => {
     const fetchMap = async () => {
       try {
@@ -129,7 +133,7 @@ export default function GroupDetailModal({
     fetchMap();
   }, []);
 
-  // ✅ Fetch character details once
+  /* -------------------- Fetch characters once -------------------- */
   useEffect(() => {
     const fetchCharacters = async () => {
       if (!groupData?.characters?.length) return;
@@ -142,29 +146,24 @@ export default function GroupDetailModal({
                 `${process.env.NEXT_PUBLIC_API_URL}/api/characters/${c._id}`
               );
               if (!res.ok) throw new Error(`Character ${c._id} fetch failed`);
-              const full = await res.json();
-              return full;
+              return await res.json();
             } catch (err) {
               console.warn("⚠️ Failed to fetch one character:", c._id, err);
               return c;
             }
           })
         );
-        setGroupData((prev) => ({
-          ...prev,
-          characters: detailedChars,
-        }));
+        setGroupData((prev) => ({ ...prev, characters: detailedChars }));
       } catch (err) {
         console.error("❌ Failed to fetch group characters:", err);
       } finally {
         setLoadingCharacters(false);
       }
     };
-
     fetchCharacters();
   }, [groupData.index]);
 
-  // ✅ Weekly ability pool
+  /* -------------------- Weekly ability pool -------------------- */
   const weeklyAbilities = useMemo(() => {
     const result: { name: string; level: number }[] = [];
     for (const [floorStr, boss] of Object.entries(weeklyMap)) {
@@ -179,19 +178,14 @@ export default function GroupDetailModal({
     return result;
   }, [weeklyMap]);
 
+  /* -------------------- Render -------------------- */
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
-        {/* === Close button === */}
+        {/* === Close Button === */}
         <button className={styles.closeBtn} onClick={onClose}>
           ✖
         </button>
-
-        {/* <h2>分组 {groupIndex + 1}</h2> */}
-
-        {/* {loadingCharacters && (
-          // <div className={styles.loadingText}>正在加载角色详情...</div>
-        )} */}
 
         {/* === Top Section: Group Info === */}
         <GroupInfo
@@ -208,12 +202,16 @@ export default function GroupDetailModal({
             conflictLevel={conflictLevel}
             weeklyAbilities={weeklyAbilities}
           />
-          <ResultWindow
-            scheduleId={scheduleId}
-            group={groupData}
-            countdown={countdown}
-            onRefresh={handleRefresh}
-          />
+
+          {/* 🕒 Countdown beside 无警告 button */}
+          <div className={styles.resultRow}>
+            <ResultWindow
+              scheduleId={scheduleId}
+              group={groupData}
+              onRefresh={handleRefresh}
+            />
+            <CountdownDisplay seconds={5} onZero={fetchGroupKills} />
+          </div>
         </div>
 
         {/* === Bottom Section: Boss Map === */}
@@ -221,7 +219,6 @@ export default function GroupDetailModal({
           scheduleId={scheduleId}
           group={groupData as any}
           weeklyMap={weeklyMap}
-          countdown={countdown}
           onRefresh={handleRefresh}
           onGroupUpdate={handleGroupUpdate}
         />
