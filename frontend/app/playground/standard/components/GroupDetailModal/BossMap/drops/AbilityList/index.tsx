@@ -14,16 +14,6 @@ export default function AbilityList({
   onSave,
   onClose,
 }: any) {
-  // 🔎 global debug
-  console.log(
-    "[AbilityList][DEBUG] got allHave9Options =",
-    allHave9Options.map((x: any) => x.ability)
-  );
-  console.log(
-    "[AbilityList][DEBUG] got allHave10Options =",
-    allHave10Options.map((x: any) => x.ability)
-  );
-
   return (
     <div className={styles.leftColumn}>
       <div className={styles.dropList}>
@@ -33,15 +23,6 @@ export default function AbilityList({
           .map((opt: any, i: number) => {
             const inAll = allHave9Options.some(
               (a: any) => a.ability === opt.ability
-            );
-
-            console.log(
-              "[AbilityList][CHECK] 9重 ability=",
-              opt.ability,
-              "inAll=",
-              inAll,
-              "allHave9Options=",
-              allHave9Options.map((x: any) => x.ability)
             );
 
             if (inAll) return null;
@@ -74,15 +55,6 @@ export default function AbilityList({
           .map((opt: any, i: number) => {
             const inAll = allHave10Options.some(
               (a: any) => a.ability === opt.ability
-            );
-
-            console.log(
-              "[AbilityList][CHECK] 10重 ability=",
-              opt.ability,
-              "inAll=",
-              inAll,
-              "allHave10Options=",
-              allHave10Options.map((x: any) => x.ability)
             );
 
             if (inAll) return null;

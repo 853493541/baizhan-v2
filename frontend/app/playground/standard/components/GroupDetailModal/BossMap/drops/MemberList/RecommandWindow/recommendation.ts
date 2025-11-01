@@ -2,7 +2,7 @@ import { MAIN_CHARACTERS, tradableSet } from "../../drophelpers";
 
 export interface RecommendationStep {
   reason: string;
-  passed: boolean | "fallback";
+  passed: boolean;
 }
 
 export interface RecommendationResult {
@@ -11,7 +11,7 @@ export interface RecommendationResult {
   tiedCandidates?: string[];
 }
 
-/* === 变招（Variant Skills）: excluded from collection/progress stats === */
+/* === 变招（Variant Skills）=== */
 const variantSet: Set<string> = new Set([
   "冲炎枪",
   "毒指功",
@@ -21,35 +21,48 @@ const variantSet: Set<string> = new Set([
   "阴雷之种",
 ]);
 
-/* === Mirror skill map (cross-gender equivalence, both symmetric and asymmetric) === */
+/* === Mirror skill map === */
 function getLinkedGenderAbility(ability: string, gender?: string): string | null {
-  // 双向 transferable pair
   if (ability === "剑心通明" && gender === "男") return "巨猿劈山";
   if (ability === "巨猿劈山" && gender === "女") return "剑心通明";
-
-  // 单向: female counts 水遁水流闪 as owning 蛮熊碎颅击
   if (ability === "蛮熊碎颅击" && gender === "女") return "水遁水流闪";
-
   return null;
 }
 
-/* === Helper: check if character has an unused level-10 ability in storage === */
-const hasLevel10InStorage = (character: any, ability: string): boolean => {
-  const storage = character?.storage;
-  if (!Array.isArray(storage)) return false;
-  return storage.some(
-    (item: any) =>
-      item.ability === ability && item.level === 10 && item.used === false
+/* === Healer abilities === */
+const healerAbilities = new Set([
+  "万花金创药",
+  "特制金创药",
+  "霞月长针",
+  "毓秀灵药",
+]);
+
+/* Safely get character role no matter where it's stored */
+const getRole = (c: any): string | null => {
+  return (
+    c?.role ||
+    c?.Role ||
+    c?.character?.role ||
+    c?.character?.Role ||
+    c?.data?.role ||
+    null
   );
 };
 
-/* === Helper: count number of valid level-10 abilities from this boss === */
-const countLevel10FromBoss = (character: any, dropList: string[]): number => {
-  if (!character?.abilities) return 0;
+/* === Convert number → Chinese numerals for level display === */
+const numToChinese = (num: number): string => {
+  const map = ["〇", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
+  if (num <= 10) return map[num];
+  if (num < 20) return "十" + map[num - 10];
+  const tens = Math.floor(num / 10);
+  const ones = num % 10;
+  return map[tens] + "十" + (ones > 0 ? map[ones] : "");
+};
 
-  // Filter valid abilities
+/* === Helpers === */
+const countLevel9FromBoss = (character: any, dropList: string[]): number => {
+  if (!character?.abilities) return 0;
   const filtered = dropList.filter((ab) => {
-    // Exclude tradables and variants
     if (tradableSet.has(ab)) return false;
     if (variantSet.has(ab)) return false;
     if (character.gender === "男" && ab === "剑心通明") return false;
@@ -57,7 +70,26 @@ const countLevel10FromBoss = (character: any, dropList: string[]): number => {
     if (character.gender === "女" && ab === "蛮熊碎颅击") return false;
     return true;
   });
+  return filtered.reduce((count, ab) => {
+    const linked = getLinkedGenderAbility(ab, character.gender);
+    const lv =
+      character.abilities?.[ab] ??
+      (linked ? character.abilities?.[linked] : 0) ??
+      0;
+    return lv >= 9 ? count + 1 : count;
+  }, 0);
+};
 
+const countLevel10FromBoss = (character: any, dropList: string[]): number => {
+  if (!character?.abilities) return 0;
+  const filtered = dropList.filter((ab) => {
+    if (tradableSet.has(ab)) return false;
+    if (variantSet.has(ab)) return false;
+    if (character.gender === "男" && ab === "剑心通明") return false;
+    if (character.gender === "女" && ab === "巨猿劈山") return false;
+    if (character.gender === "女" && ab === "蛮熊碎颅击") return false;
+    return true;
+  });
   return filtered.reduce((count, ab) => {
     const linked = getLinkedGenderAbility(ab, character.gender);
     const lv =
@@ -68,7 +100,7 @@ const countLevel10FromBoss = (character: any, dropList: string[]): number => {
   }, 0);
 };
 
-/** 🧠 Main logic with elimination trace */
+/** 🧠 Final version — includes 九重 & 十重进度检查 */
 export function pickBestCharacterWithTrace(
   ability: string,
   level: number,
@@ -77,104 +109,135 @@ export function pickBestCharacterWithTrace(
 ): RecommendationResult {
   const steps: RecommendationStep[] = [];
 
-  /* ---------------- STEP 1: Eligibility ---------------- */
+  const finalize = (candidate: any): RecommendationResult => {
+    steps.push({
+      reason: `ⓘ [最终结果] → ${candidate.name}`,
+      passed: true,
+    });
+    return { bestCandidate: candidate, steps };
+  };
+
+  /* ---------------- ① 资格筛选 ---------------- */
   let candidates: any[] = [];
+  const eliminatedByGender: string[] = [];
+  const eliminatedByOwned: string[] = [];
 
   for (const c of group.characters) {
     const linked = getLinkedGenderAbility(ability, c.gender);
     const abilityLv = c.abilities?.[ability] ?? 0;
     const linkedLv = linked ? c.abilities?.[linked] ?? 0 : 0;
-
     const current = Math.max(abilityLv, linkedLv);
-    const mirrorNote =
-      linked && linkedLv > 0 && linkedLv >= abilityLv
-        ? `（含等价技能 ${linked}）`
-        : "";
-
-    // ❌ female can't learn male-only 蛮熊碎颅击 unless mirrored
     const invalidFemale =
       ability === "蛮熊碎颅击" && c.gender === "女" && linkedLv === 0;
 
     if (invalidFemale) {
-      steps.push({
-        reason: `角色 ${c.name}：性别为女，且无等价技能水遁水流闪 → 不可学习蛮熊碎颅击，淘汰`,
-        passed: false,
-      });
+      eliminatedByGender.push(c.name);
       continue;
     }
-
     if (current >= level) {
-      steps.push({
-        reason: `角色 ${c.name}：当前等级 ${current} ≥ ${level}${mirrorNote} → 已拥有该技能，淘汰`,
-        passed: false,
-      });
+      eliminatedByOwned.push(c.name);
     } else {
-      steps.push({
-        reason: `角色 ${c.name}：当前等级 ${current} < ${level}${mirrorNote} → 可获得，保留`,
-        passed: true,
-      });
       candidates.push(c);
     }
   }
 
-  if (candidates.length === 0) {
-    steps.push({
-      reason: "所有角色均已拥有此技能或其等价技能 → 无可分配对象。",
-      passed: false,
-    });
-    return { bestCandidate: null, steps };
+  let step1Text = "① ";
+  if (eliminatedByOwned.length === 0 && eliminatedByGender.length === 0) {
+    step1Text += "[可用检查] 都能用";
+  } else {
+    const parts: string[] = [];
+    if (eliminatedByOwned.length)
+      parts.push(`[可用检查] ${eliminatedByOwned.join("、")} 已有`);
+    if (eliminatedByGender.length)
+      parts.push(`${eliminatedByGender.join("、")} 性别不符 → 淘汰）`);
+    step1Text += parts.join("，");
   }
+  steps.push({ reason: step1Text, passed: candidates.length > 0 });
 
-  if (candidates.length === 1) {
+  if (candidates.length === 0) return { bestCandidate: null, steps };
+  if (candidates.length === 1) return finalize(candidates[0]);
+
+  /* ---------------- ② 主角色优先 ---------------- */
+  const isMain = (name: string): boolean => {
+    if (!MAIN_CHARACTERS) return false;
+    if (Array.isArray(MAIN_CHARACTERS)) return MAIN_CHARACTERS.includes(name);
+    if (MAIN_CHARACTERS instanceof Set) return MAIN_CHARACTERS.has(name);
+    if (typeof MAIN_CHARACTERS === "object") return !!MAIN_CHARACTERS[name];
+    return false;
+  };
+  const mainCandidates = candidates.filter((c) => isMain(c.name));
+  if (mainCandidates.length > 0) {
     steps.push({
-      reason: `步骤 1 结束：仅剩 1 名候选 → 直接推荐：${candidates[0].name}`,
+      reason: `② [大号检查] → ${mainCandidates.map((c) => c.name).join("、")}`,
       passed: true,
     });
-    return { bestCandidate: candidates[0], steps };
+    candidates = mainCandidates;
+    if (candidates.length === 1) return finalize(candidates[0]);
+  } else {
+    steps.push({ reason: "② [大号检查] 无大号 → 跳过", passed: false });
   }
 
-  steps.push({
-    reason: `步骤 1 结束：剩余 ${candidates.length} 名候选：${candidates
-      .map((c) => c.name)
-      .join("、")}`,
-    passed: true,
-  });
-
-  /* ---------------- STEP 2: Main character (disabled) ---------------- */
-  steps.push({
-    reason: "步骤 2：主角色优先规则已关闭（测试模式）",
-    passed: false,
-  });
-
-  /* ---------------- STEP 3: Storage 10 check (only for 9 drops) ---------------- */
-  if (level === 9) {
-    const withStorage = candidates.filter((c) =>
-      hasLevel10InStorage(c, ability)
+  /* ---------------- ③ 👜 背包检查 ---------------- */
+  const backpack10 = candidates.filter((c) => {
+    if (!Array.isArray(c.storage)) return false;
+    const linked = getLinkedGenderAbility(ability, c.gender);
+    const item = c.storage.find(
+      (it: any) =>
+        it?.ability === ability || (linked && it?.ability === linked)
     );
-    if (withStorage.length > 0) {
-      steps.push({
-        reason: `步骤 3：${withStorage
-          .map((c) => c.name)
-          .join("、")} 包中有 10 重技能 → 优先考虑`,
-        passed: true,
-      });
-      if (withStorage.length === 1) {
+    if (!item) return false;
+    const lv = typeof item.level === "number" ? item.level : 10;
+    return lv >= 10;
+  });
+
+  if (backpack10.length === 1) {
+    const name = backpack10[0].name;
+    steps.push({
+      reason: `③ [背包检查] → ${name}包里有10`,
+      passed: true,
+    });
+    return finalize(backpack10[0]);
+  } else if (backpack10.length > 1) {
+    steps.push({
+      reason: `③ [背包检查] → ${backpack10.map((c) => c.name).join("、")}包里有10`,
+      passed: true,
+    });
+    candidates = backpack10;
+  } else {
+    steps.push({ reason: "③ [背包检查] 无储存 → 跳过", passed: false });
+  }
+
+  /* ---------------- ④ 治疗技能过滤 ---------------- */
+  if (healerAbilities.has(ability)) {
+    const healerOnly = candidates.filter(
+      (c) => (getRole(c)?.toLowerCase?.() ?? "") === "healer"
+    );
+    const eliminated = candidates.filter(
+      (c) => (getRole(c)?.toLowerCase?.() ?? "") !== "healer"
+    );
+
+    if (healerOnly.length > 0) {
+      if (eliminated.length > 0) {
         steps.push({
-          reason: `最终推荐：${withStorage[0].name}（包里有 10 重）`,
+          reason: `④ [治疗检查] 淘汰 ${eliminated.map((c) => c.name).join("、")}`,
           passed: true,
         });
-        return { bestCandidate: withStorage[0], steps };
+      } else {
+        steps.push({ reason: "④ [治疗检查] 无淘汰", passed: true });
       }
-      candidates = withStorage;
+      candidates = healerOnly;
+      if (candidates.length === 1) return finalize(candidates[0]);
     } else {
       steps.push({
-        reason: "步骤 3：无人包中有 10 重 → 跳过。",
+        reason: "④ [治疗检查] 无需求治疗角色 → 跳过",
         passed: false,
       });
     }
+  } else {
+    steps.push({ reason: "④ [治疗检查] 非治疗技 → 跳过", passed: false });
   }
 
-  /* ---------------- STEP 4: Highest current ability level ---------------- */
+  /* ---------------- ⑤ 当前等级最高 ---------------- */
   const maxLv = Math.max(
     ...candidates.map((c) => {
       const linked = getLinkedGenderAbility(ability, c.gender);
@@ -191,132 +254,87 @@ export function pickBestCharacterWithTrace(
     return Math.max(abilityLv, linkedLv) === maxLv;
   });
 
-  if (levelFiltered.length < candidates.length) {
+  if (levelFiltered.length === 1) {
+    const name = levelFiltered[0].name;
     steps.push({
-      reason: `步骤 4：当前技能或等价技能等级最高为 ${maxLv} 重 → 保留 ${levelFiltered
+      reason: `⑤ [重数检查] ${name} 重数最高（${numToChinese(maxLv)}重）→ 结束`,
+      passed: true,
+    });
+    return finalize(levelFiltered[0]);
+  }
+
+  if (levelFiltered.length === candidates.length) {
+    steps.push({
+      reason: `⑤ [重数检查] 都是${numToChinese(maxLv)}重 → 跳过`,
+      passed: false,
+    });
+  } else {
+    steps.push({
+      reason: `⑤ [重数检查] 重数最低 → 淘汰 ${candidates
+        .filter((c) => !levelFiltered.includes(c))
         .map((c) => c.name)
         .join("、")}`,
       passed: true,
     });
-  } else {
-    steps.push({
-      reason: "步骤 4：所有候选等级相同 → 跳过。",
-      passed: false,
-    });
   }
-
   candidates = levelFiltered;
-  if (candidates.length === 1) {
-    steps.push({
-      reason: `最终推荐：${candidates[0].name}（当前等级最高）`,
-      passed: true,
-    });
-    return { bestCandidate: candidates[0], steps };
-  }
 
-  /* ---------------- STEP 5: Tier-aware Boss progress comparison ---------------- */
-  const withProgress = candidates.map((c) => {
-    const filteredDrops = dropList.filter((ab) => {
-      if (tradableSet.has(ab)) return false;
-      if (variantSet.has(ab)) return false;
-      if (c.gender === "男" && ab === "剑心通明") return false;
-      if (c.gender === "女" && ab === "巨猿劈山") return false;
-      if (c.gender === "女" && ab === "蛮熊碎颅击") return false;
-      return true;
-    });
+  /* ---------------- ⑥～⑦ 九重 / 十重 进度检查 ---------------- */
+  const runProgressCheck = (
+    label: string,
+    counter: (c: any, list: string[]) => number
+  ): { top: any[]; maxVal: number } => {
+    const withCount = candidates.map((c) => ({
+      c,
+      count: counter(c, dropList),
+    }));
+    const maxVal = Math.max(...withCount.map((x) => x.count));
+    const top = withCount.filter((x) => x.count === maxVal).map((x) => x.c);
 
-    const total = filteredDrops.length;
-    if (total === 0) return { c, collected: 0, total, skip: true };
-
-    const collected = filteredDrops.reduce((count, ab) => {
-      const linked = getLinkedGenderAbility(ab, c.gender);
-      const abilityLv = c.abilities?.[ab] ?? 0;
-      const linkedLv = linked ? c.abilities?.[linked] ?? 0 : 0;
-      return Math.max(abilityLv, linkedLv) >= level ? count + 1 : count;
-    }, 0);
-
-    return { c, collected, total, skip: false };
-  });
-
-  const allSkipped = withProgress.every((x) => x.skip);
-  if (allSkipped) {
-    steps.push({
-      reason: "步骤 5：Boss 所有掉落均为可交易或变招技能 → 跳过进度比较。",
-      passed: false,
-    });
-  } else {
-    const validProgress = withProgress.filter((x) => !x.skip);
-    const maxCollected = Math.max(...validProgress.map((x) => x.collected));
-    const progFiltered = validProgress
-      .filter((x) => x.collected === maxCollected)
-      .map((x) => x.c);
-
-    const progressSummary = validProgress
-      .map((x) => `${x.c.name} ${x.collected}/${x.total}`)
-      .join("、");
-
-    if (progFiltered.length < candidates.length) {
+    if (top.length === 1) {
+      const winner = top[0];
       steps.push({
-        reason: `步骤 5：Boss 进度（含等价技能，排除可交易、变招与性别限定，统计 ≥${level} 重）→ ${progressSummary} → 最高进度 ${maxCollected}/${validProgress[0].total} （${progFiltered
-          .map((c) => c.name)
-          .join("、")}）`,
+        reason: `${label} ${winner.name}最多（${maxVal}）→ 结束`,
         passed: true,
       });
-      candidates = progFiltered;
+      return { top, maxVal };
     } else {
+      const names = top.map((c) => c.name).join("、");
       steps.push({
-        reason: `步骤 5：Boss 进度相同 （${progressSummary}） → 跳过。`,
+        reason: `${label} 进度相同：${names}`,
         passed: false,
       });
+      return { top, maxVal };
     }
+  };
+
+  // Dynamic ordering depending on ability level
+  let firstLabel, firstCounter, secondLabel, secondCounter;
+  if (level === 9) {
+    firstLabel = "⑥ [九重进度]";
+    firstCounter = countLevel9FromBoss;
+    secondLabel = "⑦ [十重进度]";
+    secondCounter = countLevel10FromBoss;
+  } else {
+    firstLabel = "⑥ [十重进度]";
+    firstCounter = countLevel10FromBoss;
+    secondLabel = "⑦ [九重进度]";
+    secondCounter = countLevel9FromBoss;
   }
 
-  /* ---------------- STEP 6: Most level-10 abilities (final tiebreaker) ---------------- */
-  if (allSkipped) {
-    steps.push({
-      reason: "步骤 6：Boss 无可计入技能 → 跳过十重比较。",
-      passed: false,
-    });
-    return { bestCandidate: null, steps };
-  }
+  const { top: firstTop } = runProgressCheck(firstLabel, firstCounter);
+  if (firstTop.length === 1) return finalize(firstTop[0]);
 
-  const withTen = candidates.map((c) => ({
-    c,
-    count: countLevel10FromBoss(c, dropList),
-  }));
-  const maxTen = Math.max(...withTen.map((x) => x.count));
-  const tenFiltered = withTen
-    .filter((x) => x.count === maxTen)
-    .map((x) => x.c);
-
-  const tie = tenFiltered.length > 1;
+  const { top: secondTop } = runProgressCheck(secondLabel, secondCounter);
+  if (secondTop.length === 1) return finalize(secondTop[0]);
 
   steps.push({
-    reason: `步骤 6：十重技能数量最多为 ${maxTen} → 保留 ${tenFiltered
-      .map((c) => c.name)
-      .join("、")}`,
-    passed: tie ? "fallback" : true,
+    reason: "ⓘ [结果] 进度相同 → 手动选择",
+    passed: false,
   });
-
-  if (tie) {
-    steps.push({
-      reason: `平局 → 建议人工判断（${tenFiltered
-        .map((c) => c.name)
-        .join("、")}）`,
-      passed: "fallback",
-    });
-    return {
-      bestCandidate: null,
-      steps,
-      tiedCandidates: tenFiltered.map((c) => c.name),
-    };
-  }
-
-  const winner = tenFiltered[0];
-  steps.push({
-    reason: `最终推荐：${winner.name}（十重数量最多）`,
-    passed: true,
-  });
-
-  return { bestCandidate: winner, steps };
+  return {
+    bestCandidate: null,
+    steps,
+    tiedCandidates: secondTop.map((c) => c.name),
+  };
 }
