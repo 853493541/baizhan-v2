@@ -12,7 +12,7 @@ interface BossCardProps {
   highlightAbilities: string[];
   tradableSet: Set<string>;
   kill?: any;
-  activeMembers?: number[]; // ✅ new prop
+  activeMembers?: number[];
   onSelect: (
     floor: number,
     boss: string,
@@ -35,12 +35,7 @@ export default function BossCard({
   onSelect,
 }: BossCardProps) {
   useEffect(() => {
-    // console.log(`[BossCard] floor=${floor}`
-    //   ,
-    //    {
-    //   kill,
-    //   selection: kill?.selection,
-    // });
+    // console.log(`[BossCard] floor=${floor}`, { kill, selection: kill?.selection });
   }, [floor, kill]);
 
   if (!boss) {
@@ -60,18 +55,37 @@ export default function BossCard({
     activeMembers.includes(i)
   );
 
+  // ✅ Healer abilities list
+  const healerAbilities = [
+    "万花金创药",
+    "特制金创药",
+    "毓秀灵药",
+    "霞月长针",
+  ];
+
   // ✅ Needs calculation
   let needs = dropList
     .filter((ability) => !tradableSet.has(ability))
     .map((ability) => {
-      const needCount = includedChars.filter((c: any) => {
+      const needers = includedChars.filter((c: any) => {
         const lvl = c.abilities?.[ability] ?? 0;
         const usable = canUseAbility(c, ability);
         return usable && lvl < dropLevel;
-      }).length;
+      });
 
+      const needCount = needers.length;
       if (needCount > 0) {
-        const isHighlight = highlightAbilities.includes(ability);
+        const isHighlightBase = highlightAbilities.includes(ability);
+
+        // 🔍 Healer-specific highlight rule
+        let isHighlight = isHighlightBase;
+        if (isHighlightBase && healerAbilities.includes(ability)) {
+          const healerNeed = needers.some(
+            (c: any) => c.role?.toLowerCase() === "healer"
+          );
+          isHighlight = healerNeed;
+        }
+
         return { ability, needCount, isHighlight };
       }
       return null;
@@ -82,6 +96,7 @@ export default function BossCard({
     isHighlight: boolean;
   }[];
 
+  // ✅ Sort core highlights first
   needs.sort((a, b) => {
     if (a.isHighlight && !b.isHighlight) return -1;
     if (!a.isHighlight && b.isHighlight) return 1;
@@ -165,7 +180,7 @@ export default function BossCard({
         kill?.selection?.ability && kill?.selection?.characterId
           ? styles.cardNormal
           : (kill?.selection?.noDrop ||
-            (kill?.selection?.ability && !kill?.selection?.characterId))
+              (kill?.selection?.ability && !kill?.selection?.characterId))
           ? styles.cardHealer
           : ""
       }`}
