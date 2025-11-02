@@ -2,60 +2,57 @@
  * 📅 Returns the current "game week" code aligned to JX3 reset time.
  * Reset = Monday 07:00 China time (UTC+8) = Sunday 23:00 UTC.
  * Example output: "2025-W44"
+ *
+ * Logic uses pure UTC math so results are identical in all locales.
  */
+
 export function getCurrentGameWeek(): string {
   const now = new Date();
+  const utcMillis = now.getTime();
 
-  // Convert to UTC+8 (China Standard Time)
-  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
-  const cst = new Date(utc + 8 * 3600 * 1000);
+  // Convert to China time (UTC +8 hours)
+  const shiftedMillis = utcMillis + 8 * 3600 * 1000;
+  const shiftedUTC = new Date(shiftedMillis);
 
-  // ✅ Shift forward 1 hour to align global boundaries (CN & California)
-  const shifted = new Date(cst.getTime() + 1 * 3600 * 1000);
-
-  // --- ISO week calculation (Monday-based, UTC-safe) ---
-  const year = shifted.getUTCFullYear();
+  // --- ISO week calculation (UTC-safe) ---
+  const year = shiftedUTC.getUTCFullYear();
   const jan4 = new Date(Date.UTC(year, 0, 4));
   const jan4Day = (jan4.getUTCDay() + 6) % 7; // Monday = 0
   const week1 = new Date(jan4);
   week1.setUTCDate(jan4.getUTCDate() - jan4Day);
 
-  const diff = shifted.getTime() - week1.getTime();
+  const diff = shiftedUTC.getTime() - week1.getTime();
   const weekNo = 1 + Math.floor(diff / (7 * 24 * 3600 * 1000));
-
   return `${year}-W${weekNo}`;
 }
 
 /**
- * 🎯 Given a date (ISO string), return its game-week code.
+ * 🎯 Given a date (ISO string with timezone), return its game-week code.
  * Used to classify schedules by creation time.
  */
 export function getGameWeekFromDate(dateString: string): string {
   const date = new Date(dateString);
+  const utcMillis = date.getTime();
 
-  // Convert to UTC+8 (China Standard Time)
-  const utc8 = new Date(date.getTime() + 8 * 3600 * 1000);
+  // Convert to China time (UTC +8 hours)
+  const shiftedMillis = utcMillis + 8 * 3600 * 1000;
+  const shiftedUTC = new Date(shiftedMillis);
 
-  // ✅ Shift forward 1 hour for same alignment as getCurrentGameWeek
-  const shifted = new Date(utc8.getTime() + 1 * 3600 * 1000);
-
-  // --- ISO week logic (UTC-safe) ---
-  const year = shifted.getUTCFullYear();
+  const year = shiftedUTC.getUTCFullYear();
   const jan4 = new Date(Date.UTC(year, 0, 4));
   const jan4Day = (jan4.getUTCDay() + 6) % 7;
   const week1 = new Date(jan4);
   week1.setUTCDate(jan4.getUTCDate() - jan4Day);
 
-  const diff = shifted.getTime() - week1.getTime();
+  const diff = shiftedUTC.getTime() - week1.getTime();
   const weekNo = 1 + Math.floor(diff / (7 * 24 * 3600 * 1000));
-
   return `${year}-W${weekNo}`;
 }
 
 /**
  * 🕒 Returns UTC start/end boundaries for a specific game week.
  * Start = Sunday 23:00 UTC (Monday 07:00 CN)
- * End   = +7 days later (Sunday 23:00 UTC next week)
+ * End    = +7 days later (Sunday 23:00 UTC next week)
  */
 export function getGameWeekRange(weekCode?: string) {
   const [yearStr, weekStr] = (weekCode || getCurrentGameWeek()).split("-W");
