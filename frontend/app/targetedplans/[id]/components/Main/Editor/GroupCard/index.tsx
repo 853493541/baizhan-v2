@@ -7,7 +7,12 @@ import GroupDrops from "./Drops";
 import AssignedDrops from "./Assigned";
 import type { GroupResult, Character, AbilityCheck } from "@/utils/solver";
 
-export default function GroupEditor({
+/**
+ * 🧩 GroupCard
+ * Represents a single group block within a targeted plan.
+ * Displays header (title, status, +掉落), member list, and optional editing buttons.
+ */
+export default function GroupCard({
   group,
   groupIndex,
   editing,
@@ -110,7 +115,6 @@ export default function GroupEditor({
         </div>
 
         {/* === Right side: Assigned Drops + Add Button === */}
-        {/* ✅ hide entire right side if group has no characters */}
         {hasCharacters && (
           <div className={styles.groupHeaderRight}>
             {!editing && (

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import styles from "./styles.module.css";
-import GroupEditor from "./GroupEditor";
+import GroupCard from "./GroupCard";
 import CharacterDropdown from "./CharacterDropdown";
 import AbilityDropdown from "./AbilityDropdown";
 import { abilities, abilityColorMap } from "./config";
@@ -233,7 +233,7 @@ useEffect(() => {
 
       {/* Groups */}
       {localGroups.map((group, gi) => (
-        <GroupEditor
+        <GroupCard
           key={gi}
           group={group}
           groupIndex={gi}
