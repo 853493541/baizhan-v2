@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import styles from "./styles.module.css";
-import abilityGroups from "../../../../../../data/TargetedPlanUseAbilities.json";
+import abilityGroups from "../../../../../../../../data/TargetedPlanUseAbilities.json";
 
 type Role = "Tank" | "DPS" | "Healer";
 
@@ -84,7 +84,7 @@ export default function EditAbility({
   onSelect,
   onClose,
 }: {
-  abilities: string[];
+  abilities?: string[]; // ✅ make optional-safe
   abilityColorMap: Record<string, string>;
   character?: {
     name: string;
@@ -110,6 +110,11 @@ export default function EditAbility({
   };
 
   if (typeof document === "undefined") return null;
+
+  /* === Safety: ensure we always have an iterable list === */
+  const abilityList: string[] = Array.isArray(abilities)
+    ? abilities
+    : Object.keys(abilityColorMap || {});
 
   const bossRecommendations =
     (abilityGroups as any).bossRecommendations?.[targetedBoss] || null;
@@ -142,7 +147,8 @@ export default function EditAbility({
     groupedRecommended[color] = [];
   }
 
-  for (const a of abilities) {
+  // ✅ now always safe to iterate
+  for (const a of abilityList) {
     const cat = categorize(abilityColorMap[a]);
     if (ALIAS_MAP[cat] && ALIAS_MAP[cat][a]) {
       groupedAll[cat].push(a);

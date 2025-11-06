@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import styles from "./styles.module.css";
 import GroupCard from "./GroupCard";
-import CharacterDropdown from "./EditCharacter";
-import EditAbility from "./EditAbility";
 import { abilities, abilityColorMap } from "./config";
 import type { GroupResult, Character, AbilityCheck } from "@/utils/solver";
 import {
@@ -17,6 +15,12 @@ import {
   saveChanges,
 } from "./editorHandlers";
 
+/**
+ * 🧩 Editor
+ * Root manager for all groups within a targeted plan.
+ * Handles global edit toggles, reset, and auto-save.
+ * Each GroupCard handles its own modals (EditCharacter / EditAbility).
+ */
 export default function Editor({
   scheduleId,
   groups,
@@ -36,18 +40,6 @@ export default function Editor({
   const [saving, setSaving] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [localGroups, setLocalGroups] = useState<GroupResult[]>(groups);
-
-  // dropdown states
-  const [charDrop, setCharDrop] = useState<{
-    type: "replace" | "add" | null;
-    groupIdx: number | null;
-    charId?: string;
-    pos: { x: number; y: number } | null;
-  }>({ type: null, groupIdx: null, pos: null });
-
-  const [abilityOpenId, setAbilityOpenId] = useState<string | null>(null);
-  const [abilityPos, setAbilityPos] = useState<{ top: number; left: number } | null>(null);
-  const [abilityCtx, setAbilityCtx] = useState<{ groupIdx: number; charId: string; slot: number } | null>(null);
 
   /* 🧠 Merge characters with DB data */
   useEffect(() => {
@@ -74,14 +66,12 @@ export default function Editor({
     setLocalGroups(merged);
   }, [groups, allCharacters]);
 
-  /* Initialize if no groups yet */
+  // ✅ Mirror groups to local state whenever props change
+  useEffect(() => {
+    setLocalGroups(groups || []);
+  }, [groups]);
 
-// ✅ Only mirror groups to local state when groups change
-useEffect(() => {
-  setLocalGroups(groups || []);
-}, [groups]);
-
-  /* Auto-save (debounced) */
+  /* 💾 Auto-save (debounced) */
   useEffect(() => {
     if (!editing || !localGroups.length) return;
     const timer = setTimeout(async () => {
@@ -94,18 +84,12 @@ useEffect(() => {
     return () => clearTimeout(timer);
   }, [localGroups, editing]);
 
-  /* Toggle edit mode */
+  /* ✏️ Toggle edit mode */
   const toggleEditing = () => {
-    if (editing) {
-      console.log("🚪 Exiting edit mode (auto-saved)");
-      setEditing(false);
-    } else {
-      console.log("✏️ Entering edit mode");
-      setEditing(true);
-    }
+    setEditing((prev) => !prev);
   };
 
-  /* 🔄 Reset plan: set all groups to not_started and clear drops/kills (keep characters/abilities) */
+  /* 🔄 Reset all groups (clears kills/drops but keeps characters + skills) */
   const handleResetPlan = async () => {
     if (!confirm("重置所有掉落记录和完成状态？")) return;
 
@@ -136,72 +120,18 @@ useEffect(() => {
       return;
     }
 
-    // ✅ Update UI in place (optional)
-    setLocalGroups((prev) =>
-      prev.map((g: any) => ({
-        ...g,
-        status: "not_started",
-        drops: Array.isArray((g as any).drops) ? [] : (g as any).drops,
-        kills: Array.isArray((g as any).kills) ? [] : (g as any).kills,
-      }))
-    );
-    setGroups(
-      localGroups.map((g: any) => ({
-        ...g,
-        status: "not_started",
-        drops: Array.isArray((g as any).drops) ? [] : (g as any).drops,
-        kills: Array.isArray((g as any).kills) ? [] : (g as any).kills,
-      }))
-    );
+    // ✅ Update UI immediately
+    const resetGroups = localGroups.map((g: any) => ({
+      ...g,
+      status: "not_started",
+      drops: [],
+      kills: [],
+    }));
 
-    window.location.reload(); // ✅ Force full page refresh
-  };
+    setLocalGroups(resetGroups);
+    setGroups(resetGroups);
 
-  /* Dropdown helpers */
-  const openCharacterDropdown = (
-    type: "replace" | "add",
-    groupIdx: number,
-    charId: string | undefined,
-    e: React.MouseEvent
-  ) => {
-    (window as any).__ALL_CHARACTERS__ = allCharacters;
-
-    const usedMap: Record<string, number> = {};
-    localGroups.forEach((g, i) => {
-      g.characters.forEach((c: any) => {
-        const id = c._id || c.characterId?._id || c.characterId;
-        if (id) usedMap[id] = i;
-      });
-    });
-    (window as any).__USED_CHARACTER_MAP__ = usedMap;
-    (window as any).__CURRENT_GROUP_INDEX__ = groupIdx;
-
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const x = rect.left + rect.width / 2 - 100 + window.scrollX;
-    const y = rect.bottom + 6 + window.scrollY;
-    setCharDrop({ type, groupIdx, charId, pos: { x, y } });
-  };
-
-  const openAbilityDropdown = (
-    groupIdx: number,
-    charId: string,
-    slot: number,
-    dropdownId: string,
-    e: React.MouseEvent
-  ) => {
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const left = rect.left + rect.width / 2 - 140 + window.scrollX;
-    const top = rect.bottom + 6 + window.scrollY;
-    setAbilityOpenId(dropdownId);
-    setAbilityPos({ top, left });
-    setAbilityCtx({ groupIdx, charId, slot });
-  };
-
-  const closeCharDropdown = () => setCharDrop({ type: null, groupIdx: null, pos: null });
-  const closeAbilityDropdown = () => {
-    setAbilityOpenId(null);
-    setAbilityPos(null);
-    setAbilityCtx(null);
+    window.location.reload(); // optional refresh
   };
 
   /* ---------- Render ---------- */
@@ -241,79 +171,39 @@ useEffect(() => {
           allCharacters={allCharacters}
           abilityColorMap={abilityColorMap}
           checkedAbilities={checkedAbilities}
+          targetedBoss={targetedBoss}
           onRemoveGroup={(i) => handleRemoveGroup(setLocalGroups, i)}
           onRemoveCharacter={(gi, cid) => handleRemoveCharacter(setLocalGroups, gi, cid)}
-          onOpenCharacterDropdown={openCharacterDropdown}
-          onOpenAbilityDropdown={openAbilityDropdown}
+          onAddCharacter={(gi, c) => handleAddCharacter(setLocalGroups, gi, c, allCharacters)}
+          onReplaceCharacter={(gi, oldId, c) =>
+            handleReplaceCharacter(setLocalGroups, gi, oldId, c, allCharacters)
+          }
+          onAbilityChange={(gi, charId, slot, ability) =>
+            handleAbilityChange(
+              setLocalGroups,
+              () => {},
+              () => {},
+              () => {},
+              gi,
+              charId,
+              slot,
+              ability
+            )
+          }
+          onAddGroup={() => handleAddGroup(setLocalGroups)}
           API_URL={process.env.NEXT_PUBLIC_API_URL || ""}
           planId={scheduleId}
           refreshPlan={() => saveChanges(scheduleId, localGroups, setGroups, () => {})}
         />
       ))}
 
-      {/* Add Group */}
+      {/* Add Group Button */}
       {editing && (
         <div className={styles.addGroupWrapper}>
           <button onClick={() => handleAddGroup(setLocalGroups)} className={styles.addGroupBtn}>
             <span className={styles.addGroupIcon}>+</span> 新增小组
           </button>
         </div>
-      )}
-
-      {/* Character Dropdown */}
-      {charDrop.type && charDrop.pos && (
-        <CharacterDropdown
-          x={charDrop.pos.x}
-          y={charDrop.pos.y}
-          excludeId={charDrop.charId}
-          onClose={closeCharDropdown}
-          onSelect={(char) => {
-            const full = allCharacters.find((c) => c._id === char._id) || char;
-            if (charDrop.type === "replace") {
-              handleReplaceCharacter(
-                setLocalGroups,
-                charDrop.groupIdx!,
-                charDrop.charId!,
-                full,
-                allCharacters
-              );
-            } else {
-              handleAddCharacter(setLocalGroups, charDrop.groupIdx!, full, allCharacters);
-            }
-          }}
-        />
-      )}
-
-      {/* Ability Dropdown */}
-      {abilityOpenId && abilityPos && abilityCtx && (
-        <EditAbility
-          x={abilityPos.left}
-          y={abilityPos.top}
-          abilities={abilities}
-          abilityColorMap={abilityColorMap}
-          /** 🧩 FIXED: use localGroups first (so selectedAbilities stay up to date) */
-          character={
-            localGroups[abilityCtx.groupIdx]?.characters.find(
-              (c: any) =>
-                (c._id || c.characterId?._id || c.characterId) === abilityCtx.charId
-            ) ||
-            allCharacters.find((c) => c._id === abilityCtx.charId)
-          }
-          targetedBoss={targetedBoss}
-          onClose={closeAbilityDropdown}
-          onSelect={(a) =>
-            handleAbilityChange(
-              setLocalGroups,
-              setAbilityOpenId,
-              setAbilityPos,
-              setAbilityCtx,
-              abilityCtx.groupIdx,
-              abilityCtx.charId,
-              abilityCtx.slot,
-              a
-            )
-          }
-        />
       )}
     </div>
   );

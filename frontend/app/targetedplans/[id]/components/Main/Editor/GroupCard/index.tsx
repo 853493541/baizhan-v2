@@ -5,12 +5,16 @@ import styles from "./styles.module.css";
 import CharacterRow from "./CharacterRow";
 import GroupDrops from "./Drops";
 import AssignedDrops from "./Assigned";
+import EditCharacter from "./CharacterRow/EditCharacter";
 import type { GroupResult, Character, AbilityCheck } from "@/utils/solver";
 
 /**
  * 🧩 GroupCard
  * Represents a single group block within a targeted plan.
  * Displays header (title, status, +掉落), member list, and optional editing buttons.
+ *
+ * ✅ “Add Character” modal is handled here (GroupCard).
+ * ✅ “Replace Character” and “Edit Ability” modals are handled in CharacterRow.
  */
 export default function GroupCard({
   group,
@@ -21,12 +25,14 @@ export default function GroupCard({
   allCharacters,
   onRemoveGroup,
   onRemoveCharacter,
-  onOpenCharacterDropdown,
-  onOpenAbilityDropdown,
+  onAddCharacter,
+  onReplaceCharacter,
+  onAbilityChange,
   onAddGroup,
   API_URL,
   planId,
   refreshPlan,
+  targetedBoss,
 }: {
   group: GroupResult;
   groupIndex: number;
@@ -36,50 +42,66 @@ export default function GroupCard({
   allCharacters: Character[];
   onRemoveGroup: (idx: number) => void;
   onRemoveCharacter: (groupIdx: number, charId: string) => void;
-  onOpenCharacterDropdown: (
-    type: "replace" | "add",
+
+  onAddCharacter?: (groupIdx: number, character: Character) => void;
+  onReplaceCharacter?: (
     groupIdx: number,
-    charId: string | undefined,
-    e: React.MouseEvent
+    oldCharId: string,
+    newCharacter: Character
   ) => void;
-  onOpenAbilityDropdown: (
+  onAbilityChange?: (
     groupIdx: number,
     charId: string,
     slot: number,
-    dropdownId: string,
-    e: React.MouseEvent
+    abilityName: string
   ) => void;
+
   onAddGroup?: () => void;
   API_URL: string;
   planId: string;
   refreshPlan: () => void;
+  targetedBoss?: string;
 }) {
   const [showDropModal, setShowDropModal] = useState(false);
+  const [showCharacterModal, setShowCharacterModal] = useState(false);
   const [refreshSignal, setRefreshSignal] = useState(0);
 
-  const hasCharacters = group.characters && group.characters.length > 0;
+  const hasCharacters = group.characters?.length > 0;
 
   // 🟢 Status mapping
   const status = (group.status ?? "not_started") as
     | "not_started"
     | "started"
     | "finished";
+
   const statusLabel = {
     not_started: "未开始",
     started: "进行中",
     finished: "已完成",
   };
+
   const statusCircleClass = {
     not_started: styles.statusIdleDot,
     started: styles.statusBusyDot,
     finished: styles.statusDoneDot,
   };
 
+  /** 🧩 Build usedMap (which group each character belongs to) */
+  const usedMap: Record<string, number> = {};
+  allCharacters.forEach((ac) => {
+    group.characters.forEach((gc) => {
+      const id = gc._id || (gc.characterId as string);
+      if (id === ac._id) {
+        usedMap[id] = groupIndex;
+      }
+    });
+  });
+
   return (
     <div className={styles.groupCard}>
       {/* === Header === */}
       <div className={styles.groupHeader}>
-        {/* === Left side: Title / Delete / Status === */}
+        {/* === Left: Title / Delete / Status === */}
         <div className={styles.groupHeaderLeft}>
           {editing ? (
             <button
@@ -96,7 +118,6 @@ export default function GroupCard({
                 组{groupIndex + 1}
               </h4>
 
-              {/* ✅ only show status when group has characters */}
               {hasCharacters && (
                 <div
                   className={styles.statusWrap}
@@ -114,29 +135,28 @@ export default function GroupCard({
           )}
         </div>
 
-        {/* === Right side: Assigned Drops + Add Button === */}
+        {/* === Right: Assigned Drops + Add Button === */}
         {hasCharacters && (
           <div className={styles.groupHeaderRight}>
             {!editing && (
-              <div className={styles.assignedInlineRight}>
-                <AssignedDrops
-                  API_URL={API_URL}
-                  planId={planId}
-                  groupIndex={groupIndex}
-                  groupCharacters={group.characters}
-                  refreshSignal={refreshSignal}
-                />
-              </div>
-            )}
-
-            {!editing && (
-              <button
-                onClick={() => setShowDropModal(true)}
-                className={styles.addDropBtn}
-                title="为此组添加掉落"
-              >
-                ＋ 掉落
-              </button>
+              <>
+                <div className={styles.assignedInlineRight}>
+                  <AssignedDrops
+                    API_URL={API_URL}
+                    planId={planId}
+                    groupIndex={groupIndex}
+                    groupCharacters={group.characters}
+                    refreshSignal={refreshSignal}
+                  />
+                </div>
+                <button
+                  onClick={() => setShowDropModal(true)}
+                  className={styles.addDropBtn}
+                  title="为此组添加掉落"
+                >
+                  ＋ 掉落
+                </button>
+              </>
             )}
           </div>
         )}
@@ -152,7 +172,8 @@ export default function GroupCard({
                 ? c.abilities
                 : {},
             selectedAbilities:
-              c.selectedAbilities?.length === 3
+              Array.isArray(c.selectedAbilities) &&
+              c.selectedAbilities.length === 3
                 ? c.selectedAbilities
                 : [
                     { name: "", level: 0 },
@@ -162,16 +183,20 @@ export default function GroupCard({
           };
 
           return (
-            <CharacterRow
-              key={c._id || ci}
-              character={fixedChar}
-              groupIndex={groupIndex}
-              editing={editing}
-              abilityColorMap={abilityColorMap}
-              onRemoveCharacter={onRemoveCharacter}
-              onOpenCharacterDropdown={onOpenCharacterDropdown}
-              onOpenAbilityDropdown={onOpenAbilityDropdown}
-            />
+<CharacterRow
+  key={c._id || ci}
+  character={fixedChar}
+  groupIndex={groupIndex}
+  editing={editing}
+  abilityColorMap={abilityColorMap}
+  targetedBoss={targetedBoss}
+  onRemoveCharacter={onRemoveCharacter}
+  onReplaceCharacter={onReplaceCharacter}
+  onAbilityChange={onAbilityChange}
+  allCharacters={allCharacters}      // ✅ add
+  usedMap={usedMap}                  // ✅ add
+/>
+
           );
         })}
 
@@ -180,9 +205,7 @@ export default function GroupCard({
           <div className={styles.addRow}>
             <button
               className={styles.addCharacterBtn}
-              onClick={(e) =>
-                onOpenCharacterDropdown("add", groupIndex, undefined, e)
-              }
+              onClick={() => setShowCharacterModal(true)}
             >
               ＋ 添加角色
             </button>
@@ -212,6 +235,21 @@ export default function GroupCard({
             setRefreshSignal((v) => v + 1);
           }}
           allCharacters={allCharacters}
+        />
+      )}
+
+      {/* === Add Character Modal (Group-level) === */}
+      {showCharacterModal && (
+        <EditCharacter
+          allCharacters={allCharacters}            // ✅ now properly passed
+          usedMap={usedMap}                        // ✅ mark which chars are used
+          currentGroup={groupIndex}                // ✅ context for gray-out logic
+          excludeId={undefined}
+          onSelect={(picked) => {
+            onAddCharacter?.(groupIndex, picked);
+            setShowCharacterModal(false);
+          }}
+          onClose={() => setShowCharacterModal(false)}
         />
       )}
     </div>

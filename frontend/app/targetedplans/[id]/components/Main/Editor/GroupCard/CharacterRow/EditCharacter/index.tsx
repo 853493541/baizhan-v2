@@ -1,62 +1,67 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import styles from "./styles.module.css"; // ✅ new filename
+import styles from "./styles.module.css";
 import type { Character } from "@/utils/solver";
 
 interface EditCharacterProps {
-  excludeId?: string;
+  allCharacters?: Character[];
+  usedMap?: Record<string, number>;
+  currentGroup?: number;
+  excludeId?: string; // ✅ ID of the character being replaced
   onSelect: (c: Character) => void;
   onClose: () => void;
 }
 
-/**
- * 🧩 EditCharacter
- * Modal-style character selector (catalog by account)
- *  - Groups characters by account
- *  - Colored pills by role
- *  - Shows 已选 / 组X (both gray-out)
- *  - Account header shows (已有角色) only if that account has a member in the current group
- */
 export default function EditCharacter({
+  allCharacters = [],
+  usedMap = {},
+  currentGroup,
   excludeId,
   onSelect,
   onClose,
 }: EditCharacterProps) {
-  const [characters, setCharacters] = useState<Character[]>([]);
-  const [usedMap, setUsedMap] = useState<Record<string, number>>({});
-  const [currentGroup, setCurrentGroup] = useState<number | null>(null);
+  const [search, setSearch] = useState("");
 
-  /* ---------- Load global data ---------- */
-  useEffect(() => {
-    const fromWindow = (window as any).__ALL_CHARACTERS__ as Character[] | undefined;
-    if (Array.isArray(fromWindow)) setCharacters(fromWindow);
-
-    const map = (window as any).__USED_CHARACTER_MAP__ as Record<string, number> | undefined;
-    if (map) setUsedMap(map);
-
-    const cur = (window as any).__CURRENT_GROUP_INDEX__ as number | undefined;
-    if (typeof cur === "number") setCurrentGroup(cur);
-  }, []);
+  /* ---------- Filter by search ---------- */
+  const filteredCharacters = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const list = Array.isArray(allCharacters) ? allCharacters : [];
+    if (!q) return list;
+    return list.filter((c) => c.name?.toLowerCase().includes(q));
+  }, [allCharacters, search]);
 
   /* ---------- Group by Account ---------- */
   const groupedByAccount = useMemo(() => {
     const groups: Record<string, Character[]> = {};
-    characters.forEach((c) => {
-      if (c._id === excludeId) return;
+    const list = Array.isArray(filteredCharacters) ? filteredCharacters : [];
+
+    list.forEach((c) => {
+      if (!c) return;
       const account = c.account || "未分配账号";
       if (!groups[account]) groups[account] = [];
       groups[account].push(c);
     });
+
     return groups;
-  }, [characters, excludeId]);
+  }, [filteredCharacters]);
+
+  /* ---------- Guard: nothing to render ---------- */
+  if (!Array.isArray(allCharacters) || allCharacters.length === 0) {
+    return null;
+  }
 
   /* ---------- Render ---------- */
   return createPortal(
     <>
       <div className={styles.portalBackdrop} onMouseDown={onClose} />
-      <div className={styles.characterModal} onMouseDown={(e) => e.stopPropagation()}>
+
+      <div
+        className={styles.characterModal}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        {/* === Header === */}
         <div className={styles.header}>
           <h2 className={styles.centerTitle}>选择角色</h2>
           <button className={styles.closeBtn} onClick={onClose}>
@@ -64,9 +69,20 @@ export default function EditCharacter({
           </button>
         </div>
 
+        {/* === Search Bar === */}
+        <div className={styles.searchBar}>
+          <input
+            type="text"
+            placeholder="搜索角色名称..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className={styles.searchInput}
+          />
+        </div>
+
+        {/* === Account Grid === */}
         <div className={styles.accountGrid}>
           {Object.entries(groupedByAccount).map(([account, list]) => {
-            // ✅ Mark if an account already has a character in the current group
             const hasSelectedInCurrent =
               typeof currentGroup === "number" &&
               list.some((c) => usedMap[c._id] === currentGroup);
@@ -85,7 +101,13 @@ export default function EditCharacter({
                     const groupNum = usedMap[c._id];
                     const isCurrent = groupNum === currentGroup;
                     const isUsedElsewhere =
-                      groupNum !== undefined && groupNum !== currentGroup;
+                      groupNum !== undefined &&
+                      groupNum !== currentGroup &&
+                      c._id !== excludeId;
+
+                    // ✅ Skip gray-out if this is the one being replaced
+                    const shouldGray =
+                      (isUsedElsewhere || isCurrent) && c._id !== excludeId;
 
                     return (
                       <div
@@ -96,16 +118,18 @@ export default function EditCharacter({
                             : c.role === "Healer"
                             ? styles.healer
                             : styles.dps
-                        } ${(isCurrent || isUsedElsewhere) ? styles.grayOut : ""}`}
+                        } ${shouldGray ? styles.grayOut : ""}`}
                         onClick={(e) => {
                           e.stopPropagation();
+                          if (shouldGray) return; // prevent selecting invalid ones
                           onSelect(c);
-                          onClose();
                         }}
                       >
                         <span className={styles.charName}>{c.name}</span>
                         <span className={styles.groupTag}>
-                          {isCurrent
+                          {c._id === excludeId
+                            ? "当前"
+                            : isCurrent
                             ? "已选"
                             : isUsedElsewhere
                             ? `组${groupNum + 1}`
