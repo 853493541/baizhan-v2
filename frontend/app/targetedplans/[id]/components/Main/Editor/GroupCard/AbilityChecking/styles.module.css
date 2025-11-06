@@ -1,162 +1,82 @@
-/* === Outer container (right card) === */
+/* === Single scrollable card container === */
 .container {
   width: 100%;
-  max-width: 360px;
+  flex: 1;                           /* fill parent height */
   border: 1px solid #ddd;
   border-radius: 8px;
   background: #fff;
-  padding: 14px 18px;
+  padding: 8px 12px;                 /* compact padding */
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  transition: box-shadow 0.2s ease;
-  box-sizing: border-box;
-
+  box-sizing: border-box;            /* padding counted in width */
   display: flex;
   flex-direction: column;
-  justify-content: stretch;
-
-  /* 🟢 scrolls internally if taller than left side */
-  overflow-y: auto;
+  gap: 4px;                          /* small vertical gap between lines */
+  overflow-y: auto;                  /* scroll internally if tall */
   max-height: 100%;
 }
 
-.container:hover {
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-}
-
-/* === Header === */
-.headerBar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.headerTitle {
-  font-size: 15px;
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0;
-}
-
-.levelTabs {
-  display: flex;
-  gap: 6px;
-}
-
-.tabBtn {
-  padding: 3px 8px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background: #f9f9f9;
-  font-size: 13px;
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
-  color: #333;
-}
-
-.tabBtn:hover {
-  background: #eee;
-}
-
-.active {
-  background: #007bff;
-  color: #fff;
-  border-color: #007bff;
-  font-weight: 600;
-}
-
-/* === Scrollable content area === */
-.cardsArea {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 6px;
-  flex: 1; /* stretch inside container */
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #ccc #f9f9f9;
-}
-
-/* WebKit scrollbar styling */
-.cardsArea::-webkit-scrollbar,
-.container::-webkit-scrollbar {
-  width: 6px;
-}
-.cardsArea::-webkit-scrollbar-thumb,
-.container::-webkit-scrollbar-thumb {
-  background-color: #bbb;
-  border-radius: 3px;
-}
-.cardsArea::-webkit-scrollbar-thumb:hover,
-.container::-webkit-scrollbar-thumb:hover {
-  background-color: #999;
-}
-
-/* === Individual group box === */
-.groupBox {
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  padding: 10px 12px;
-  background: #fafafa;
-  transition: 0.2s ease;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-}
-
-.groupBox:hover {
-  background: #fff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-}
-
-.groupTitle {
-  font-weight: 600;
-  margin-bottom: 6px;
-  font-size: 14px;
-  color: #333;
-}
-
-/* === Result states === */
-.warning {
+/* === Each warning or OK line === */
+.warning,
+.ok {
   display: flex;
   align-items: center;
-  gap: 6px;
-  color: #e74c3c;
-  font-weight: 500;
+  gap: 4px;                          /* tighter icon–text spacing */
   font-size: 13.5px;
-  margin: 2px 0;
+  line-height: 1.25;
+  margin: 0;
+  font-weight: 600;                  /* bold for emphasis */
+}
+
+/* === Colors === */
+.warning {
+  color: #e74c3c;                    /* red text for warnings */
 }
 
 .ok {
-  color: #27ae60;
-  font-weight: 500;
-  font-size: 13.5px;
-  margin: 2px 0;
+  color: #27ae60;                    /* green text for OK state */
 }
 
-/* === Icons and ability text === */
+/* === Icons === */
 .iconMark {
   font-size: 16px;
   flex-shrink: 0;
 }
 
 .abilityIcon {
-  width: 20px;
-  height: 20px;
-  border-radius: 3px;
+  width: 18px;
+  height: 18px;
   border: 1px solid #ddd;
+  border-radius: 3px;
   background: #fff;
   flex-shrink: 0;
 }
 
 .abilityText {
   font-size: 13.5px;
-  line-height: 1.3;
+  font-weight: 600;
+  line-height: 1.25;
 }
 
-/* === Responsive === */
-@media (max-width: 900px) {
-  .container {
-    max-width: 100%;
-    margin-top: 10px;
-    overflow-y: visible; /* no scroll on mobile */
-  }
+/* === Scrollbar styling === */
+.container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.container::-webkit-scrollbar-thumb {
+  background-color: #bbb;
+  border-radius: 3px;
+}
+
+.container::-webkit-scrollbar-thumb:hover {
+  background-color: #999;
+}
+.container {
+  padding: 12px 14px 8px 14px; /* add top breathing room */
+}
+.iconMark {
+  font-size: 13px;     /* was 16px — smaller, matches text height */
+  flex-shrink: 0;
+  line-height: 1;
+  position: relative;
+  top: -0.5px;         /* tiny vertical alignment tweak */
 }
