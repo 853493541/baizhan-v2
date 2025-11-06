@@ -1,22 +1,89 @@
-/* === Layout === */
+/* ===========================================================
+   🧩 Right Column (Member List Panel)
+   =========================================================== */
+
 .rightColumn {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   width: 100%;
   position: relative;
-  overflow: visible; /* ✅ allow popup to escape */
+  overflow: visible; /* allow popup to escape */
   gap: 6px;
+  font-family: "Segoe UI", "PingFang SC", sans-serif;
 }
 
+/* ===========================================================
+   🌐 Unified Section Divider — used across all columns
+   =========================================================== */
 .sectionDivider {
-  font-weight: 600;
-  font-size: 15px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  font-size: 14px;           /* 🔸 consistent readable text size */
+  font-weight: 600;
+  color: #555;               /* 🔸 darker gray for contrast */
+  margin: 8px 0 6px;         /* 🔸 balanced spacing */
   width: 100%;
-  margin-bottom: 8px;
+}
+
+.sectionDivider::before,
+.sectionDivider::after {
+  content: "";
+  flex: 1 1 0;
+  border-top: 1px solid #ccc; /* 🔸 lighter gray divider line */
+  margin: 0 10px;
+  height: 0;
+}
+
+/* === Section Title (text + question icon) === */
+.sectionTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+}
+
+/* === Compact ? help icon === */
+.helpCircle {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 1px;
+  position: relative;
+  top: -1px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* 🟦 Closed state */
+.helpCircleInactive {
+  border: 1.5px solid #0070f3;
+  color: #0070f3;
+  background: #ffffff;
+}
+
+/* 🟩 Open state */
+.helpCircleActive {
+  background: #0070f3;
+  color: #ffffff;
+  border: 1.5px solid #0070f3;
+  transform: scale(1.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.helpCircle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 /* === Character Grid === */
@@ -124,11 +191,11 @@
   font-weight: 500;
 }
 
-/* === Floating Recommendation Window (fixed beside modal) === */
+/* === Floating Recommendation Window === */
 .window {
   position: fixed;
-  top: 80px;                  /* vertical offset from top */
-  left: calc(50% + 420px);    /* ✅ shift horizontally from modal center */
+  top: 80px;
+  left: calc(50% + 420px);
   width: 380px;
   background: #ffffff;
   border: 1px solid #ddd;
@@ -136,16 +203,12 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   padding: 14px 16px;
   z-index: 3000;
-  font-family: "Segoe UI", "PingFang SC", sans-serif;
-
-  /* ✅ expand to fit all content */
   display: flex;
   flex-direction: column;
   align-items: stretch;
   height: auto;
   overflow: visible;
   animation: fadeIn 0.25s ease-out;
-  border:2px red solid;
 }
 
 @keyframes fadeIn {
@@ -159,29 +222,7 @@
   }
 }
 
-/* === Header === */
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-
-.title {
-  font-size: 14px;
-  color: #222;
-}
-
-/* === Content === */
-.content {
-  display: block;
-  overflow: visible;
-  padding-right: 0;
-  flex: none;
-}
-
-/* === Step List === */
+/* === Step List (inside RecommendationWindow) === */
 .stepList {
   list-style: none;
   padding: 0;
@@ -217,75 +258,4 @@
   color: #856404;
   background: #fff3cd;
   border-left: 4px solid #ffc107;
-}
-
-/* === Compact ? help icon === */
-.helpCircle {
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  font-weight: 700;
-  font-size: 13px;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 6px;
-  position: relative;
-  top: -1px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-/* 🟦 Closed state */
-.helpCircleInactive {
-  border: 1.5px solid #0070f3;
-  color: #0070f3;
-  background: #ffffff;
-}
-
-/* 🟩 Open state */
-.helpCircleActive {
-  background: #0070f3;
-  color: #ffffff;
-  border: 1.5px solid #0070f3;
-  transform: scale(1.1);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-}
-
-/* Hover animation */
-.helpCircle:hover {
-  transform: scale(1.1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-/* === Section Divider (centered with lines) === */
-.sectionDivider {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  font-weight: 600;
-  color: #666;
-  margin: 6px 0 4px;
-  width: 100%;
-}
-
-.sectionDivider::before,
-.sectionDivider::after {
-  content: "";
-  flex: 1 1 0;
-  border-top: 1px solid #ddd;
-  margin: 0 8px;
-  height: 0;
-}
-
-/* === Section Title (text + question icon) === */
-.sectionTitle {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: #444;
-  font-size: 13px;
-  font-weight: 600;
 }

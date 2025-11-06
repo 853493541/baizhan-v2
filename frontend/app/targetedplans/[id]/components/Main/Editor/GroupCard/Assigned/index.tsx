@@ -162,12 +162,15 @@ export default function AssignedDrops({
           onClick={() => setSelectedDrop(null)}
         >
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            {/* 🧱 Header Title */}
+            <div className={styles.modalHeader}>删除掉落</div>
+
             <div className={styles.modalLine}>
               <Image
                 src={`/icons/${selectedDrop.ability || selectedDrop.name}.png`}
                 alt={selectedDrop.ability || "技能"}
-                width={24}
-                height={24}
+                width={28}
+                height={28}
                 className={styles.modalIcon}
               />
               <span className={styles.abilityFullName}>
