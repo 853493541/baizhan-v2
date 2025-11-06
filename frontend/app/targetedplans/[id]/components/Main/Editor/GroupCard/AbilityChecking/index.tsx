@@ -98,7 +98,7 @@ export default function AbilityChecking({ groups, characters, checkedAbilities }
 
         if (msg.startsWith("❌") && !msg.includes("|"))
           return (
-            <div key={idx} className={styles.warning}>
+            <div key={idx} className={`${styles.warning} ${styles.warningX}`}>
               <span className={styles.iconMark}>❌</span>
               <span className={styles.abilityText}>{msg.replace("❌", "")}</span>
             </div>
@@ -107,8 +107,11 @@ export default function AbilityChecking({ groups, characters, checkedAbilities }
         if (msg.startsWith("⚠️") || msg.startsWith("❌")) {
           const icon = msg.startsWith("⚠️") ? "⚠️" : "❌";
           const [name, level] = msg.replace(icon, "").split("|");
+          const styleClass =
+            icon === "⚠️" ? styles.warningWarn : styles.warningX;
+
           return (
-            <div key={idx} className={styles.warning}>
+            <div key={idx} className={`${styles.warning} ${styleClass}`}>
               <span className={styles.iconMark}>{icon}</span>
               <Image
                 src={`/icons/${name.trim()}.png`}

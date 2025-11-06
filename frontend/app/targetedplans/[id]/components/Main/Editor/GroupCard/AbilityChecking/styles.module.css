@@ -1,17 +1,17 @@
 /* === Single scrollable card container === */
 .container {
   width: 100%;
-  flex: 1;                           /* fill parent height */
+  flex: 1;
   border: 1px solid #ddd;
   border-radius: 8px;
   background: #fff;
-  padding: 8px 12px;                 /* compact padding */
+  padding: 12px 14px 8px 14px; /* top breathing room */
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  box-sizing: border-box;            /* padding counted in width */
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 4px;                          /* small vertical gap between lines */
-  overflow-y: auto;                  /* scroll internally if tall */
+  gap: 4px;
+  overflow-y: auto;
   max-height: 100%;
 }
 
@@ -20,26 +20,41 @@
 .ok {
   display: flex;
   align-items: center;
-  gap: 4px;                          /* tighter icon–text spacing */
+  gap: 4px;
   font-size: 13.5px;
   line-height: 1.25;
   margin: 0;
-  font-weight: 600;                  /* bold for emphasis */
+  font-weight: 600;
+  border-radius: 4px;
+  padding: 2px 4px;
 }
 
-/* === Colors === */
+/* === Color + grouping === */
 .warning {
-  color: #e74c3c;                    /* red text for warnings */
+  color: #e74c3c;
+}
+
+.warningX {
+  color: #d32f2f;
+  background: #fff5f5;  /* faint red tint */
+}
+
+.warningWarn {
+  color: #d97706;
+  background: #fffaf0;  /* faint yellow tint */
 }
 
 .ok {
-  color: #27ae60;                    /* green text for OK state */
+  color: #27ae60;
 }
 
 /* === Icons === */
 .iconMark {
-  font-size: 16px;
+  font-size: 13px;  /* smaller icons */
   flex-shrink: 0;
+  line-height: 1;
+  position: relative;
+  top: -0.5px;
 }
 
 .abilityIcon {
@@ -70,13 +85,26 @@
 .container::-webkit-scrollbar-thumb:hover {
   background-color: #999;
 }
-.container {
-  padding: 12px 14px 8px 14px; /* add top breathing room */
+.warningX {
+  color: #d32f2f;
+  background: linear-gradient(
+    to right,
+    #fff5f5 0%,
+    #fff5f5 30%,
+    rgba(255, 245, 245, 0.4) 45%,
+    #ffffff 50%,
+    #ffffff 100%
+  );
 }
-.iconMark {
-  font-size: 13px;     /* was 16px — smaller, matches text height */
-  flex-shrink: 0;
-  line-height: 1;
-  position: relative;
-  top: -0.5px;         /* tiny vertical alignment tweak */
+
+.warningWarn {
+  color: #d97706;
+  background: linear-gradient(
+    to right,
+    #fffaf0 0%,
+    #fffaf0 30%,
+    rgba(255, 250, 240, 0.4) 45%,
+    #ffffff 50%,
+    #ffffff 100%
+  );
 }
