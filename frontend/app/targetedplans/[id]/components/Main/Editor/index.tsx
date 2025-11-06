@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import styles from "./styles.module.css";
 import GroupCard from "./GroupCard";
-import CharacterDropdown from "./CharacterDropdown";
-import AbilityDropdown from "./AbilityDropdown";
+import CharacterDropdown from "./EditCharacter";
+import EditAbility from "./EditAbility";
 import { abilities, abilityColorMap } from "./config";
 import type { GroupResult, Character, AbilityCheck } from "@/utils/solver";
 import {
@@ -286,7 +286,7 @@ useEffect(() => {
 
       {/* Ability Dropdown */}
       {abilityOpenId && abilityPos && abilityCtx && (
-        <AbilityDropdown
+        <EditAbility
           x={abilityPos.left}
           y={abilityPos.top}
           abilities={abilities}

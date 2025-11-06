@@ -55,12 +55,14 @@ function hexToRgb(hex?: string): [number, number, number] | null {
     parseInt(s.slice(4, 6), 16),
   ];
 }
+
 function rgbDist2(a: [number, number, number], b: [number, number, number]) {
   const dr = a[0] - b[0],
     dg = a[1] - b[1],
     db = a[2] - b[2];
   return dr * dr + dg * dg + db * db;
 }
+
 function categorize(hex?: string): string {
   const rgb = hexToRgb(hex);
   if (!rgb) return "other";
@@ -74,7 +76,7 @@ function categorize(hex?: string): string {
 }
 
 /* === Component === */
-export default function AbilityDropdown({
+export default function EditAbility({
   abilities,
   abilityColorMap,
   character,
@@ -98,13 +100,13 @@ export default function AbilityDropdown({
   const [activeTab, setActiveTab] = useState<"recommended" | "all">("recommended");
 
   useEffect(() => {
-    const saved = localStorage.getItem("AbilityDropdownTab");
+    const saved = localStorage.getItem("EditAbilityTab");
     if (saved === "all" || saved === "recommended") setActiveTab(saved);
   }, []);
 
   const changeTab = (tab: "recommended" | "all") => {
     setActiveTab(tab);
-    localStorage.setItem("AbilityDropdownTab", tab);
+    localStorage.setItem("EditAbilityTab", tab);
   };
 
   if (typeof document === "undefined") return null;
@@ -161,7 +163,7 @@ export default function AbilityDropdown({
     <>
       <div className={styles.portalBackdrop} onMouseDown={onClose} />
       <div
-        className={styles.abilityDropdownGrid}
+        className={styles.editAbilityWindow}
         onMouseDown={(e) => e.stopPropagation()}
       >
         {/* Header row: [tabs] center title X */}
@@ -202,7 +204,6 @@ export default function AbilityDropdown({
               >
                 <div className={styles.catalogHeader}>{COLOR_LABELS[color]}</div>
 
-                {/* Always render column even if empty */}
                 {list.length === 0 ? (
                   <div className={styles.emptySlot}>—</div>
                 ) : (
@@ -218,7 +219,7 @@ export default function AbilityDropdown({
                     return (
                       <div
                         key={a}
-                        className={`${styles.abilityOptionCard} ${
+                        className={`${styles.abilityCard} ${
                           isSelected ? styles.grayedOut : ""
                         }`}
                         onClick={(e) => {
@@ -251,7 +252,7 @@ export default function AbilityDropdown({
                           alt={a}
                           width={26}
                           height={26}
-                          className={styles.abilityIconLarge}
+                          className={styles.iconLarge}
                         />
 
                         <div className={styles.abilityText}>

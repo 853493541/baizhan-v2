@@ -12,8 +12,8 @@
   to { opacity: 1; transform: translate(-50%, -50%); }
 }
 
-/* === Modal === */
-.abilityDropdownGrid {
+/* === Modal Window === */
+.editAbilityWindow {
   animation: fadeIn 0.2s ease-out;
   position: fixed;
   top: 50%;
@@ -28,7 +28,7 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
   padding: 20px;
   z-index: 1000;
-   min-height: 640px;
+  min-height: 640px;
 }
 
 /* === Header === */
@@ -47,7 +47,7 @@
   flex: 1;
 }
 
-/* === Left Tabs === */
+/* === Tabs === */
 .tabRowLeft {
   display: flex;
   align-items: center;
@@ -64,7 +64,6 @@
   font-size: 13px;
   transition: background 0.2s, border-color 0.2s;
 }
-
 .tabButton:hover { background: #eee; }
 
 .activeTab {
@@ -86,18 +85,16 @@
 }
 .closeBtn:hover { color: #000; }
 
-/* === Columns layout (fixed size) === */
+/* === Catalog Grid === */
 .catalogRow {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   gap: 12px;
-  min-height: 640px; /* keeps modal size fixed */
-  height: 100%;      /* 🟢 allows columns to stretch */
+  min-height: 640px;
+  height: 100%;
   align-items: stretch;
-  /* border:2px red solid; */
 }
 
-/* === Column === */
 .catalogColumn {
   border-radius: 10px;
   padding: 8px 5px 12px;
@@ -106,7 +103,6 @@
   align-items: center;
   gap: 6px;
   min-width: 0;
-  
 }
 
 .catalogHeader {
@@ -129,7 +125,7 @@
 .healer { background: #ffe8f0; }
 
 /* === Ability Card === */
-.abilityOptionCard {
+.abilityCard {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -145,14 +141,14 @@
   transition: transform 0.1s, box-shadow 0.1s;
   box-sizing: border-box;
 }
-.abilityOptionCard:hover {
+.abilityCard:hover {
   background: #f5f5f5;
   transform: scale(1.03);
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 }
 
 /* === Icon === */
-.abilityIconLarge {
+.iconLarge {
   border-radius: 5px;
   width: 26px;
   height: 26px;
@@ -175,7 +171,7 @@
 .lowLevel { color: #b22222; }
 .highLevel { color: #333; }
 
-/* === Checkmark Badge === */
+/* === Checkmark === */
 .checkMark {
   position: absolute;
   top: -6px;
@@ -193,7 +189,7 @@
   z-index: 5;
 }
 
-/* === Empty Column Filler === */
+/* === Empty Slot === */
 .emptySlot {
   text-align: center;
   color: #aaa;

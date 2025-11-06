@@ -2,27 +2,28 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { createPortal } from "react-dom";
-import styles from "./styles.module.css";
+import styles from "./styles.module.css"; // ✅ new filename
 import type { Character } from "@/utils/solver";
 
-interface CharacterDropdownProps {
+interface EditCharacterProps {
   excludeId?: string;
   onSelect: (c: Character) => void;
   onClose: () => void;
 }
 
 /**
- * 🔹 Modal-style character selector (catalog by account)
+ * 🧩 EditCharacter
+ * Modal-style character selector (catalog by account)
  *  - Groups characters by account
  *  - Colored pills by role
  *  - Shows 已选 / 组X (both gray-out)
- *  - Account header shows (已有角色) only if this account has a member in the current group
+ *  - Account header shows (已有角色) only if that account has a member in the current group
  */
-export default function CharacterDropdown({
+export default function EditCharacter({
   excludeId,
   onSelect,
   onClose,
-}: CharacterDropdownProps) {
+}: EditCharacterProps) {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [usedMap, setUsedMap] = useState<Record<string, number>>({});
   const [currentGroup, setCurrentGroup] = useState<number | null>(null);
@@ -65,7 +66,7 @@ export default function CharacterDropdown({
 
         <div className={styles.accountGrid}>
           {Object.entries(groupedByAccount).map(([account, list]) => {
-            // ✅ Only mark when a member is in the current group
+            // ✅ Mark if an account already has a character in the current group
             const hasSelectedInCurrent =
               typeof currentGroup === "number" &&
               list.some((c) => usedMap[c._id] === currentGroup);
