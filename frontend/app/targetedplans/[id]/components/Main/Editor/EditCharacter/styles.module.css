@@ -157,18 +157,20 @@
   min-width: 32px;
   text-align: right;
 }
-/* === Gray-out (for 已选 + 组X) but still clickable === */
+
+/* === Gray-out (for 已选 + 组X) === */
 .grayOut {
   opacity: 0.55;
   filter: grayscale(40%);
   background: #f0f0f0 !important;
   border: 1px solid #ccc !important;
   color: #666 !important;
-  cursor: pointer; /* ✅ still clickable */
+  cursor: pointer;
 }
-/* === Red “已有角色” marker next to account header === */
+
+/* === Red “已有角色” marker === */
 .usedNotice {
-  color: #d32f2f;        /* 🔴 bright red */
+  color: #d32f2f;
   font-weight: 700;
   font-size: 12.5px;
   margin-left: 4px;
