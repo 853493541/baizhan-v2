@@ -17,7 +17,7 @@
 .groupsGrid {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 4px;
   margin-top: 10px;
   align-items: stretch;
   width: 100%;
@@ -172,4 +172,13 @@
   align-items: center;
   margin-bottom: 8px;
   padding-left: 6px;             /* small indent to align with content */
+}
+.addGroupWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 60%;                  /* match .groupCard width */
+  margin: 0px 0 10px 0;       /* remove auto centering */
+  margin-left: 0;              /* align to grid start */
+  transform: translateX(0);    /* ensure no offset */
 }

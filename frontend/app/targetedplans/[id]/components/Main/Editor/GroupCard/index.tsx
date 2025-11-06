@@ -259,14 +259,6 @@ export default function GroupCard({
           )}
         </div>
 
-        {/* === Add Group Button === */}
-        {editing && onAddGroup && (
-          <div className={styles.addGroupWrapper}>
-            <button onClick={onAddGroup} className={styles.addGroupBtn}>
-              <span className={styles.addGroupIcon}>➕</span> 添加小组
-            </button>
-          </div>
-        )}
 
         {/* === GroupDrops Modal === */}
         {showDropModal && (
