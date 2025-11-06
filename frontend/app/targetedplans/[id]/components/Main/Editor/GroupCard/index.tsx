@@ -156,8 +156,9 @@ export default function GroupCard({
       <div ref={leftRef} className={styles.groupCard}>
         {/* === Header === */}
         <div className={styles.groupHeader}>
-          <div className={styles.groupHeaderLeft}>
-            {editing ? (
+          {/* Editing mode: show delete button */}
+          {editing && (
+            <div className={styles.groupHeaderLeft}>
               <button
                 onClick={() => onRemoveGroup(groupIndex)}
                 className={styles.deleteHeaderBtn}
@@ -166,51 +167,44 @@ export default function GroupCard({
                 <span className={styles.deleteHeaderX}></span>
                 删除组 {groupIndex + 1}
               </button>
-            ) : (
-              <div className={styles.groupTitleWrap}>
-                <h4 className={`${styles.groupTitle} ${styles.groupTitleBold}`}>
-                  组{groupIndex + 1}
-                </h4>
+            </div>
+          )}
 
-                {hasCharacters && (
-                  <div
-                    className={styles.statusWrap}
-                    title={`当前状态：${statusLabel[status]}`}
-                  >
-                    <span
-                      className={`${styles.statusDot} ${statusCircleClass[status]}`}
-                    />
-                    <span className={styles.statusText}>
-                      {statusLabel[status]}
-                    </span>
-                  </div>
-                )}
+          {/* Non-editing mode: full functional header */}
+          {!editing && hasCharacters && (
+            <div className={styles.groupHeaderFull}>
+              {/* Leftest: Add button */}
+              <button
+                onClick={() => setShowDropModal(true)}
+                className={styles.addDropBtn}
+                title="为此组添加掉落"
+              >
+                ＋ 掉落
+              </button>
+
+              {/* Middle: AssignedDrops */}
+              <div className={styles.assignedInlineRight}>
+                <AssignedDrops
+                  API_URL={API_URL}
+                  planId={planId}
+                  groupIndex={groupIndex}
+                  groupCharacters={group.characters}
+                  refreshSignal={refreshSignal}
+                />
               </div>
-            )}
-          </div>
 
-          {hasCharacters && (
-            <div className={styles.groupHeaderRight}>
-              {!editing && (
-                <>
-                  <div className={styles.assignedInlineRight}>
-                    <AssignedDrops
-                      API_URL={API_URL}
-                      planId={planId}
-                      groupIndex={groupIndex}
-                      groupCharacters={group.characters}
-                      refreshSignal={refreshSignal}
-                    />
-                  </div>
-                  <button
-                    onClick={() => setShowDropModal(true)}
-                    className={styles.addDropBtn}
-                    title="为此组添加掉落"
-                  >
-                    ＋ 掉落
-                  </button>
-                </>
-              )}
+              {/* Rightmost: Status */}
+              <div
+                className={`${styles.statusWrap} ${
+                  status === "finished" ? styles.finished : ""
+                }`}
+                title={`当前状态：${statusLabel[status]}`}
+              >
+                <span
+                  className={`${styles.statusDot} ${statusCircleClass[status]}`}
+                />
+                <span className={styles.statusText}>{statusLabel[status]}</span>
+              </div>
             </div>
           )}
         </div>
