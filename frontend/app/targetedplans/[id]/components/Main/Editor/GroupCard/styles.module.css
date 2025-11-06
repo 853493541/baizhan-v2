@@ -5,17 +5,18 @@
 /* === Outer Layout Row === */
 .groupRow {
   display: flex;
-  align-items: flex-start;        /* left defines height; right scrolls */
+  align-items: stretch;            /* ensure both columns match height */
   justify-content: space-between;
-  gap: 20px;                      /* space between left/right cards */
+  gap: 20px;                       /* space between left/right cards */
   margin-bottom: 24px;
   width: 100%;
   box-sizing: border-box;
+  overflow-x: hidden;              /* prevent overflow when widths sum >100% */
 }
 
 /* === Left: Main Group Card === */
 .groupCard {
-  flex: 0 0 60%;                  /* 🟢 takes 60% width */
+  flex: 3;                         /* roughly 60% width */
   max-width: 60%;
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -23,7 +24,7 @@
   background: #fff;
   transition: box-shadow 0.2s ease;
   display: flex;
-  flex-direction: column;         /* maintain column layout */
+  flex-direction: column;
   box-sizing: border-box;
 }
 
@@ -33,11 +34,11 @@
 
 /* === Right: Ability Checking Sidebar === */
 .analysisContainer {
-  flex: 0 0 40%;                  /* 🟢 takes 40% width */
+  flex: 2;                         /* roughly 40% width */
   max-width: 40%;
   box-sizing: border-box;
-  overflow-y: auto;               /* scrollable when too tall */
-  max-height: 100%;
+  display: flex;                   /* to stretch the inner card */
+  flex-direction: column;
 }
 
 /* === Responsive stacking (mobile/tablet) === */
@@ -70,7 +71,6 @@
   box-sizing: border-box;
 }
 
-/* Left/Right header zones */
 .groupHeaderLeft {
   display: flex;
   align-items: center;
@@ -219,6 +219,7 @@
   box-shadow: 0 1px 2px rgba(21, 101, 192, 0.08);
   box-sizing: border-box;
 }
+
 .addDropBtn:hover {
   background: linear-gradient(to bottom, #eaf4ff, #d8ebff);
   border-color: #7fb4ff;
@@ -258,6 +259,7 @@
   transition: all 0.15s ease;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
+
 .addCharacterBtn:hover {
   background: #007bff;
   color: #fff;
@@ -271,6 +273,7 @@
   justify-content: center;
   margin-top: 14px;
 }
+
 .addGroupBtn {
   display: inline-flex;
   align-items: center;
@@ -289,16 +292,22 @@
   text-align: center;
   min-width: 140px;
 }
+
 .addGroupBtn:hover {
   background: linear-gradient(to bottom right, #c8f4c8, #a9eaa9);
   transform: translateY(-1px);
   box-shadow: 0 4px 10px rgba(76, 175, 80, 0.25);
 }
+
 .addGroupBtn:active {
   transform: translateY(0);
   box-shadow: none;
 }
+
 .addGroupIcon {
   font-size: 16px;
   color: #2e7d32;
+}
+.container {
+  padding: 12px 14px 8px 14px; /* add top breathing room */
 }
