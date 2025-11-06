@@ -5,7 +5,6 @@ import styles from "./styles.module.css";
 import { runAdvancedSolver } from "@/utils/advancedSolver";
 import { summarizeAftermath } from "@/utils/aftermathSummary";
 import type { GroupResult, Character, AbilityCheck } from "@/utils/solver";
-import AbilityChecking from "./AbilityChecking";
 import Editor from "./Editor";
 
 const MAIN_CHARACTERS = new Set([
@@ -14,7 +13,6 @@ const MAIN_CHARACTERS = new Set([
   "饲猫大桔",
   "五溪",
   "唐宵风",
-  "程老黑",
 ]);
 
 interface Props {
@@ -94,9 +92,6 @@ export default function MainSection({
 
   /* ----------------------------------------------------------------------
      ✅ Local editable copy of groups (live updates)
-     - Editor modifies localGroups
-     - AbilityChecking observes localGroups directly
-     - Only Save button commits to backend
   ---------------------------------------------------------------------- */
   const [localGroups, setLocalGroups] = useState(groups);
 
@@ -117,56 +112,53 @@ export default function MainSection({
   }, [localGroups]);
 
   /* ----------------------------------------------------------------------
-     🧩 Save logic (still uses backend groups)
+     🧩 Save logic (preserves kills + drops)
   ---------------------------------------------------------------------- */
-  /* ----------------------------------------------------------------------
-   🧩 Save logic (preserves kills + drops)
----------------------------------------------------------------------- */
-const saveGroups = async (results: GroupResult[]) => {
-  const payload = results.map((g, idx) => ({
-    index: idx + 1,
-    characters: g.characters.map((c) => ({
-      characterId: c._id || c.characterId || null,
-      abilities:
-        Array.isArray(c.abilities) && c.abilities.length > 0 ? c.abilities : ["", "", ""],
-    })),
-    status: g.status || "not_started",
-    kills: g.kills || [],            // ✅ keep kills
-    drops: g.drops || [],            // ✅ keep drops
-  }));
+  const saveGroups = async (results: GroupResult[]) => {
+    const payload = results.map((g, idx) => ({
+      index: idx + 1,
+      characters: g.characters.map((c) => ({
+        characterId: c._id || c.characterId || null,
+        abilities:
+          Array.isArray(c.abilities) && c.abilities.length > 0 ? c.abilities : ["", "", ""],
+      })),
+      status: g.status || "not_started",
+      kills: g.kills || [], // ✅ keep kills
+      drops: g.drops || [], // ✅ keep drops
+    }));
 
-  // Filter out empty slots
-  payload.forEach((group) => {
-    group.characters = group.characters.filter((c) => !!c.characterId);
-  });
+    // Filter out empty slots
+    payload.forEach((group) => {
+      group.characters = group.characters.filter((c) => !!c.characterId);
+    });
 
-  const isTargeted = schedule.type === "targeted";
-  const idField = isTargeted ? schedule.planId : schedule._id;
-  const endpoint = isTargeted ? "targeted-plans" : "standard-schedules";
+    const isTargeted = schedule.type === "targeted";
+    const idField = isTargeted ? schedule.planId : schedule._id;
+    const endpoint = isTargeted ? "targeted-plans" : "standard-schedules";
 
-  try {
-    console.log("🧭 [trace][saveGroups] Sending payload:", payload);
+    try {
+      console.log("🧭 [trace][saveGroups] Sending payload:", payload);
 
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/${endpoint}/${idField}`,
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ groups: payload }),
-      }
-    );
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/${endpoint}/${idField}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ groups: payload }),
+        }
+      );
 
-    const text = await res.text();
-    console.log("🧭 [trace][saveGroups] Response:", text);
-  } catch (err) {
-    console.error("❌ Failed to save groups:", err);
-  }
-};
-
+      const text = await res.text();
+      console.log("🧭 [trace][saveGroups] Response:", text);
+    } catch (err) {
+      console.error("❌ Failed to save groups:", err);
+    }
+  };
 
   /* ----------------------------------------------------------------------
      🧠 Optional Solver Runner
   ---------------------------------------------------------------------- */
+  const reorderGroups = (results: GroupResult[]) => results; // placeholder if you reorder groups
   const safeRunSolver = async (abilities: AbilityCheck[], label: string) => {
     if (solving) return;
     try {
@@ -187,37 +179,21 @@ const saveGroups = async (results: GroupResult[]) => {
 
   return (
     <div className={styles.section}>
-      {/* <h3 className={styles.sectionTitle}>排表区域</h3> */}
       <p className={styles.finishedCount}>
         已完成小组: {finishedCount} / {localGroups.length}
       </p>
 
-      {/* === Editor + Ability Checking Side by Side === */}
-      <div className={styles.editorRow}>
-        <div className={styles.editorPane}>
-          <Editor
-            scheduleId={schedule.planId ?? schedule._id}
-            groups={localGroups}         
-            setGroups={setLocalGroups}      
-            allCharacters={schedule.characters}
-            checkedAbilities={allAbilities}
-            targetedBoss={targetedBoss}
-            
-          />
-        </div>
-
-        <div className={styles.checkingPane}>
-          <AbilityChecking
-            groups={localGroups}          
-            characters={schedule.characters}
-            checkedAbilities={allAbilities}
-          />
-        </div>
+      {/* === Editor Only (ability checking now inside each GroupCard) === */}
+      <div className={styles.editorContainer}>
+        <Editor
+          scheduleId={schedule.planId ?? schedule._id}
+          groups={localGroups}
+          setGroups={setLocalGroups}
+          allCharacters={schedule.characters}
+          checkedAbilities={allAbilities}
+          targetedBoss={targetedBoss}
+        />
       </div>
-
-      {/* {localGroups.length === 0 && (
-        <p className={styles.empty}>暂无排表结果（请创建一个小组）</p>
-      )} */}
     </div>
   );
 }

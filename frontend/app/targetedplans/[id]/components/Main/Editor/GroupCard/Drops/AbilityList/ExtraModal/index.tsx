@@ -81,9 +81,8 @@ export default function ExtraModal({
                         }
                         className={styles.icon}
                       />
-                      <span className={styles.abilityName}>
-                        {a.length > 2 ? a.slice(0, 2) : a}
-                      </span>
+                      {/* ✅ Show full ability name */}
+                      <span className={styles.abilityName}>{a}</span>
                     </button>
                   ))}
                 </div>
@@ -92,7 +91,6 @@ export default function ExtraModal({
           </div>
 
           <div className={styles.levelPanel}>
-            {/* <div className={styles.levelLabel}>重数选择</div> */}
             <div className={styles.levelButtons}>
               {[9, 10].map((lvl) => (
                 <button

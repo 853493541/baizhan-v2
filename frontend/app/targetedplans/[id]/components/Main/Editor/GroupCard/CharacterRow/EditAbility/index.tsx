@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import styles from "./styles.module.css";
-import abilityGroups from "../../../../../../data/TargetedPlanUseAbilities.json";
+import abilityGroups from "../../../../../../../../data/TargetedPlanUseAbilities.json";
 
 type Role = "Tank" | "DPS" | "Healer";
 
@@ -55,12 +55,14 @@ function hexToRgb(hex?: string): [number, number, number] | null {
     parseInt(s.slice(4, 6), 16),
   ];
 }
+
 function rgbDist2(a: [number, number, number], b: [number, number, number]) {
   const dr = a[0] - b[0],
     dg = a[1] - b[1],
     db = a[2] - b[2];
   return dr * dr + dg * dg + db * db;
 }
+
 function categorize(hex?: string): string {
   const rgb = hexToRgb(hex);
   if (!rgb) return "other";
@@ -74,7 +76,7 @@ function categorize(hex?: string): string {
 }
 
 /* === Component === */
-export default function AbilityDropdown({
+export default function EditAbility({
   abilities,
   abilityColorMap,
   character,
@@ -82,7 +84,7 @@ export default function AbilityDropdown({
   onSelect,
   onClose,
 }: {
-  abilities: string[];
+  abilities?: string[]; // ✅ make optional-safe
   abilityColorMap: Record<string, string>;
   character?: {
     name: string;
@@ -98,16 +100,21 @@ export default function AbilityDropdown({
   const [activeTab, setActiveTab] = useState<"recommended" | "all">("recommended");
 
   useEffect(() => {
-    const saved = localStorage.getItem("AbilityDropdownTab");
+    const saved = localStorage.getItem("EditAbilityTab");
     if (saved === "all" || saved === "recommended") setActiveTab(saved);
   }, []);
 
   const changeTab = (tab: "recommended" | "all") => {
     setActiveTab(tab);
-    localStorage.setItem("AbilityDropdownTab", tab);
+    localStorage.setItem("EditAbilityTab", tab);
   };
 
   if (typeof document === "undefined") return null;
+
+  /* === Safety: ensure we always have an iterable list === */
+  const abilityList: string[] = Array.isArray(abilities)
+    ? abilities
+    : Object.keys(abilityColorMap || {});
 
   const bossRecommendations =
     (abilityGroups as any).bossRecommendations?.[targetedBoss] || null;
@@ -140,7 +147,8 @@ export default function AbilityDropdown({
     groupedRecommended[color] = [];
   }
 
-  for (const a of abilities) {
+  // ✅ now always safe to iterate
+  for (const a of abilityList) {
     const cat = categorize(abilityColorMap[a]);
     if (ALIAS_MAP[cat] && ALIAS_MAP[cat][a]) {
       groupedAll[cat].push(a);
@@ -161,7 +169,7 @@ export default function AbilityDropdown({
     <>
       <div className={styles.portalBackdrop} onMouseDown={onClose} />
       <div
-        className={styles.abilityDropdownGrid}
+        className={styles.editAbilityWindow}
         onMouseDown={(e) => e.stopPropagation()}
       >
         {/* Header row: [tabs] center title X */}
@@ -202,7 +210,6 @@ export default function AbilityDropdown({
               >
                 <div className={styles.catalogHeader}>{COLOR_LABELS[color]}</div>
 
-                {/* Always render column even if empty */}
                 {list.length === 0 ? (
                   <div className={styles.emptySlot}>—</div>
                 ) : (
@@ -218,7 +225,7 @@ export default function AbilityDropdown({
                     return (
                       <div
                         key={a}
-                        className={`${styles.abilityOptionCard} ${
+                        className={`${styles.abilityCard} ${
                           isSelected ? styles.grayedOut : ""
                         }`}
                         onClick={(e) => {
@@ -251,7 +258,7 @@ export default function AbilityDropdown({
                           alt={a}
                           width={26}
                           height={26}
-                          className={styles.abilityIconLarge}
+                          className={styles.iconLarge}
                         />
 
                         <div className={styles.abilityText}>
