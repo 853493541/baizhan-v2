@@ -73,7 +73,7 @@ export default function AbilityList({
   return (
     <div className={styles.leftColumn}>
       {/* === Section Divider Header === */}
-      <div className={styles.sectionDivider}>掉落技能</div>
+      <div className={styles.sectionDivider}>技能</div>
 
       {/* === Ability List === */}
       <div className={styles.abilityList}>
@@ -92,8 +92,8 @@ export default function AbilityList({
                 <Image
                   src={`/icons/${a.name}.png`}
                   alt={a.name}
-                  width={26}
-                  height={26}
+                  width={20}
+                  height={20}
                   onError={(e) =>
                     ((e.target as HTMLImageElement).style.display = "none")
                   }
@@ -115,7 +115,7 @@ export default function AbilityList({
           className={styles.addAbilityBtn}
           onClick={() => setIsModalOpen(true)}
         >
-          ＋ 添加技能
+          ＋ 更多技能
         </button>
       </div>
 

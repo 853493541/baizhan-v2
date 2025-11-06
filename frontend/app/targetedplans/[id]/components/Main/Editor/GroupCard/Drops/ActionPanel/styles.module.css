@@ -1,3 +1,7 @@
+/* ===========================================================
+   🧩 Middle Column (Action Buttons Panel)
+   =========================================================== */
+
 .column {
   display: flex;
   flex-direction: column;
@@ -17,10 +21,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 30px;            /* ✅ match abilityRow height */
-  padding: 5px 10px;       /* same padding style */
+  height: 30px;              /* match abilityRow height */
+  padding: 5px 10px;
   border-radius: 6px;
-  font-size: 0.9rem;       /* consistent font size */
+  font-size: 0.9rem;
   font-weight: 450;
   cursor: pointer;
   width: 120px;
@@ -57,25 +61,36 @@
   color: #999 !important;
 }
 
-/* === Section Divider Line (matches AbilityList & MemberList) === */
-/* === Section Divider Line (matches AbilityList & MemberList) === */
+/* ===========================================================
+   🌐 Unified Section Divider — used across all columns
+   =========================================================== */
+
 .sectionDivider {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: 14px;           /* 🔸 consistent readable text size */
   font-weight: 600;
-  color: #666;
-  margin: 6px 0 0;   /* 🔧 reduced bottom margin from 4px → 0 for snug alignment */
+  color: #555;               /* 🔸 slightly darker gray for contrast */
+  margin: 8px 0 6px;         /* 🔸 balanced spacing */
   width: 100%;
 }
 
 .sectionDivider::before,
 .sectionDivider::after {
   content: "";
-  display: block;
   flex: 1 1 0;
-  border-top: 1px solid #ddd;
-  margin: 0 8px;
+  border-top: 1px solid #ccc; /* 🔸 lighter gray divider line */
+  margin: 0 10px;             /* 🔸 uniform spacing around text */
   height: 0;
+}
+
+/* Optional — title text inside divider */
+.sectionTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
 }
