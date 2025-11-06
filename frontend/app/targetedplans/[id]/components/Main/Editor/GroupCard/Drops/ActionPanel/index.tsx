@@ -132,7 +132,7 @@ export default function ActionPanel({
           disabled={disabled}
           className={`${styles.useBtn} ${disabled ? styles.disabled : ""}`}
         >
-          立即使用
+          使用
         </button>
 
         <button
@@ -140,7 +140,7 @@ export default function ActionPanel({
           disabled={disabled}
           className={`${styles.saveBtn} ${disabled ? styles.disabled : ""}`}
         >
-          保存到背包
+          存入背包
         </button>
       </div>
     </div>
