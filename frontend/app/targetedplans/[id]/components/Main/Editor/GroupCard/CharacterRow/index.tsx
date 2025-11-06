@@ -1,46 +1,75 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import styles from "./styles.module.css";
-import { MAIN_CHARACTERS, abilityAliases } from "../../config"; // 🟢 add alias map import
+import EditCharacter from "./EditCharacter";
+import EditAbility from "./EditAbility";
+import { MAIN_CHARACTERS, abilityAliases } from "../../config";
 import type { Character } from "@/utils/solver";
+
+interface Props {
+  character: Character;
+  groupIndex: number;
+  editing: boolean;
+  abilityColorMap: Record<string, string>;
+  targetedBoss?: string;
+
+  onRemoveCharacter: (groupIdx: number, charId: string) => void;
+  onAddCharacter?: (groupIdx: number, character: Character) => void;
+  onReplaceCharacter?: (
+    groupIdx: number,
+    oldCharId: string,
+    newCharacter: Character
+  ) => void;
+  onAbilityChange?: (
+    groupIdx: number,
+    charId: string,
+    slot: number,
+    abilityName: string
+  ) => void;
+
+  /** ✅ New props to pass context for modal */
+  allCharacters?: Character[];
+  usedMap?: Record<string, number>;
+}
 
 export default function CharacterRow({
   character,
   groupIndex,
   editing,
   abilityColorMap,
+  targetedBoss,
   onRemoveCharacter,
-  onOpenCharacterDropdown,
-  onOpenAbilityDropdown,
-}: {
-  character: Character;
-  groupIndex: number;
-  editing: boolean;
-  abilityColorMap: Record<string, string>;
-  onRemoveCharacter: (groupIdx: number, charId: string) => void;
-  onOpenCharacterDropdown: (
-    type: "replace" | "add",
-    groupIdx: number,
-    charId: string | undefined,
-    e: React.MouseEvent
-  ) => void;
-  onOpenAbilityDropdown: (
-    groupIdx: number,
-    charId: string,
-    slot: number,
-    dropdownId: string,
-    e: React.MouseEvent
-  ) => void;
-}) {
+  onReplaceCharacter,
+  onAbilityChange,
+  allCharacters = [],
+  usedMap = {},
+}: Props) {
   const c = character;
 
-  // Always ensure 3 ability slots
+  /** 🪟 Local modal control */
+  const [activeWindow, setActiveWindow] = useState<
+    | null
+    | { type: "character" }
+    | { type: "ability"; slot: number }
+  >(null);
+
+  /** Always ensure 3 ability slots */
   const selectedAbilities = c.selectedAbilities || [
     { name: "", level: 0 },
     { name: "", level: 0 },
     { name: "", level: 0 },
   ];
+
+  /** Handlers */
+  const openCharacterModal = () => editing && setActiveWindow({ type: "character" });
+  const openAbilityModal = (slot: number) =>
+    editing && setActiveWindow({ type: "ability", slot });
+  const closeModal = () => setActiveWindow(null);
+
+  /** Derived alias lookup */
+  const getAlias = (name: string) => abilityAliases[name] || name;
 
   return (
     <div className={styles.memberRow}>
@@ -53,13 +82,12 @@ export default function CharacterRow({
             ? styles.healer
             : styles.dps
         }`}
-        onClick={(e) =>
-          editing && onOpenCharacterDropdown("replace", groupIndex, c._id, e)
-        }
+        onClick={openCharacterModal}
       >
         {MAIN_CHARACTERS.has(c.name) ? "★ " : ""}
-        {c.name}
-        {editing && (
+        {c.name || "（空位）"}
+
+        {editing && c._id && (
           <button
             className={styles.deleteCircle}
             onClick={(e) => {
@@ -75,23 +103,22 @@ export default function CharacterRow({
 
       {/* === Ability Slots === */}
       <div className={styles.abilityGroup}>
-        {[0, 1, 2].map((ai) => {
-          const slot = selectedAbilities[ai];
+        {[0, 1, 2].map((i) => {
+          const slot = selectedAbilities[i];
           const fullName = slot?.name || "";
-          const alias = abilityAliases[fullName] || fullName; // 🟢 show alias instead
+          const alias = getAlias(fullName);
           const level = slot?.level || 0;
-          const currentColor = abilityColorMap[fullName] || "#ccc";
-          const dropdownId = `${c._id}-${ai}`;
+          const color = abilityColorMap[fullName] || "#ccc";
 
           return (
-            <div key={ai} className={styles.abilitySlot}>
+            <div key={i} className={styles.abilitySlot}>
               {!editing ? (
                 fullName ? (
                   <div
                     className={styles.abilityPill}
                     style={{
-                      backgroundColor: currentColor + "33",
-                      borderLeft: `5px solid ${currentColor}`,
+                      backgroundColor: color + "33",
+                      borderLeft: `5px solid ${color}`,
                     }}
                   >
                     <div className={styles.abilityContent}>
@@ -115,22 +142,10 @@ export default function CharacterRow({
                 <div
                   className={styles.customDropdown}
                   style={{
-                    borderLeft: `5px solid ${
-                      fullName ? currentColor : "#ccc"
-                    }`,
-                    backgroundColor: fullName
-                      ? currentColor + "25"
-                      : undefined,
+                    borderLeft: `5px solid ${fullName ? color : "#ccc"}`,
+                    backgroundColor: fullName ? color + "25" : undefined,
                   }}
-                  onClick={(e) =>
-                    onOpenAbilityDropdown(
-                      groupIndex,
-                      c._id,
-                      ai,
-                      dropdownId,
-                      e
-                    )
-                  }
+                  onClick={() => openAbilityModal(i)}
                 >
                   {fullName ? (
                     <div className={styles.abilityContent}>
@@ -155,6 +170,34 @@ export default function CharacterRow({
           );
         })}
       </div>
+
+      {/* === 🪟 Modals === */}
+      {activeWindow?.type === "character" && (
+        <EditCharacter
+          allCharacters={allCharacters}   // ✅ pass full context
+          usedMap={usedMap}               // ✅ mark where each char belongs
+          currentGroup={groupIndex}       // ✅ show “已选 / 当前”
+          excludeId={c._id}               // ✅ current char = being replaced
+          onSelect={(picked) => {
+            onReplaceCharacter?.(groupIndex, c._id, picked);
+            closeModal();
+          }}
+          onClose={closeModal}
+        />
+      )}
+
+      {activeWindow?.type === "ability" && (
+        <EditAbility
+          abilityColorMap={abilityColorMap}
+          character={c}
+          targetedBoss={targetedBoss}
+          onSelect={(abilityName) => {
+            onAbilityChange?.(groupIndex, c._id, activeWindow.slot, abilityName);
+            closeModal();
+          }}
+          onClose={closeModal}
+        />
+      )}
     </div>
   );
 }

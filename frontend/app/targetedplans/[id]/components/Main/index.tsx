@@ -14,7 +14,6 @@ const MAIN_CHARACTERS = new Set([
   "饲猫大桔",
   "五溪",
   "唐宵风",
-  "程老黑",
 ]);
 
 interface Props {
