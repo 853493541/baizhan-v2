@@ -7,6 +7,7 @@ import { createCharacter } from "../controllers/characters/createController";
 import {
   getCharacters,
   getCharacterById,
+  getAllAccounts,
   getAllStorage, // ✅ global backpack endpoint
 } from "../controllers/characters/getController";
 import {
@@ -32,6 +33,7 @@ const router = express.Router();
 // ─────────────────────────────────────────────
 // Character CRUD
 // ─────────────────────────────────────────────
+router.get("/accounts", getAllAccounts); 
 router.post("/", createCharacter);
 router.get("/", getCharacters);
 router.get("/:id", getCharacterById);

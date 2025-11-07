@@ -60,3 +60,14 @@ export const getAllStorage = async (req: Request, res: Response) => {
     res.status(500).json({ error: err.message });
   }
 };
+export const getAllAccounts = async (req: Request, res: Response) => {
+  try {
+    // Use .distinct() for fast unique list retrieval
+    const accounts = await Character.distinct("account");
+
+    return res.json(accounts);
+  } catch (err: any) {
+    console.error("❌ getAllAccounts error:", err);
+    return res.status(500).json({ error: err.message });
+  }
+};

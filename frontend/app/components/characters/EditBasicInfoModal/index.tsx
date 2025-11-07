@@ -174,7 +174,7 @@ export default function EditBasicInfoModal({
           </button>
         </div>
 
-        {saving && <p className={styles.saving}>正在保存...</p>}
+        {/* {saving && <p className={styles.saving}>正在保存...</p>} */}
       </div>
     </div>
   );
