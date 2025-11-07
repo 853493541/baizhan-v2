@@ -25,7 +25,7 @@ const numToChinese = (num: number): string => {
   return `${map[tens]}十${ones ? map[ones] : ""}`;
 };
 
-/* --- Normalize + force level-10 names --- */
+// --- Normalize + force level-10 names ---
 const normalize = (s: string) => (s || "").trim().replace(/\u200B/g, "");
 const FORCE_LV10_ABILITIES = new Set(["立剑势", "玉魄惊鸾", "剑飞惊天"].map(normalize));
 
@@ -49,13 +49,28 @@ export default function ActionModal({
     if (e.target === e.currentTarget) onClose();
   };
 
+  /* ---------------------------------------------------------------
+     🧭 Handle Use (with forced LV10 + Chinese numeral)
+  --------------------------------------------------------------- */
   const handleUse = async (ability: string, level: number) => {
-    if (!confirm(`确定要使用 ${ability}${level}重 吗？`)) return;
+    const name = normalize(ability);
+    let finalLevel = level;
+
+    // ✅ Force LV10 for special abilities
+    if (FORCE_LV10_ABILITIES.has(name)) {
+      finalLevel = 10;
+    }
+
+    // 🈶 Convert to Chinese numeral for display
+    const chineseLevel = numToChinese(finalLevel);
+
+    if (!confirm(`确定要使用 ${ability} · ${chineseLevel}重 吗？`)) return;
+
     try {
       const res = await fetch(`${API_URL}/api/characters/${charId}/storage/use`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ability, level }),
+        body: JSON.stringify({ ability, level: finalLevel }),
       });
       if (!res.ok) throw new Error("使用失败");
       await onRefresh();
@@ -107,7 +122,7 @@ export default function ActionModal({
                       alt={ability}
                       className={styles.abilityIcon}
                       onError={(e) =>
-                        (e.currentTarget as HTMLImageElement).style.display = "none"
+                        ((e.currentTarget as HTMLImageElement).style.display = "none")
                       }
                     />
                     <span className={styles.abilityLine}>
@@ -155,7 +170,7 @@ export default function ActionModal({
                       alt={ability}
                       className={styles.abilityIcon}
                       onError={(e) =>
-                        (e.currentTarget as HTMLImageElement).style.display = "none"
+                        ((e.currentTarget as HTMLImageElement).style.display = "none")
                       }
                     />
                     <span className={styles.abilityLine}>
