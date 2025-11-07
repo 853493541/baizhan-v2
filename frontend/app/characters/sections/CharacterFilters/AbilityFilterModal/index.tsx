@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import abilities from "@/lib/seedAbilities";
 import styles from "./styles.module.css";
+import { createPinyinMap, pinyinFilter } from "@/utils/pinyinSearch";
 
 interface Props {
   onConfirm: (ability: string) => void;
@@ -12,11 +13,27 @@ interface Props {
 export default function AbilityFilterModal({ onConfirm, onClose }: Props) {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
+  const [pinyinMap, setPinyinMap] = useState<
+    Record<string, { full: string; short: string }>
+  >({});
 
-  // Filter abilities by search
-  const filtered = abilities.filter((a) =>
-    a.toLowerCase().includes(search.toLowerCase())
-  );
+  /* ===============================
+     🈶 Build Pinyin Map once
+     =============================== */
+  useEffect(() => {
+    (async () => {
+      const map = await createPinyinMap(abilities);
+      setPinyinMap(map);
+    })();
+  }, []);
+
+  /* ===============================
+     🔍 Filter abilities by Hanzi or Pinyin
+     =============================== */
+  const filtered =
+    search.trim() === ""
+      ? abilities
+      : pinyinFilter(abilities, pinyinMap, search);
 
   const handleSelect = (ability: string) => {
     setSelected(ability);
@@ -31,7 +48,7 @@ export default function AbilityFilterModal({ onConfirm, onClose }: Props) {
 
         <input
           type="text"
-          placeholder="搜索技能..."
+          placeholder="搜索技能（支持拼音）..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className={styles.input}
@@ -55,11 +72,10 @@ export default function AbilityFilterModal({ onConfirm, onClose }: Props) {
                 }
               />
               <span>{a}</span>
-              {selected === a && (
-                <span className={styles.checkmark}>✔</span>
-              )}
+              {selected === a && <span className={styles.checkmark}>✔</span>}
             </div>
           ))}
+
           {filtered.length === 0 && (
             <div className={styles.noResult}>没有匹配的技能</div>
           )}
