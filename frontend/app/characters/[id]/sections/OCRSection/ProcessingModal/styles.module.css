@@ -2,7 +2,7 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.55);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -13,17 +13,19 @@
 .box {
   background: #fff;
   border-radius: 10px;
-  padding: 24px;
-  width: 380px;
+  padding: 18px 22px;
+  width: 420px;
+  max-height: 80vh;
+  overflow-y: auto;
   text-align: center;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* === Title === */
 .title {
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   font-weight: 700;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   color: #111;
 }
 
@@ -31,56 +33,55 @@
 .previewImage {
   width: 100%;
   border-radius: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+  max-height: 55vh;
+  object-fit: contain;
 }
 
 /* === Scanning Text === */
 .text {
   color: #444;
   font-size: 1rem;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 /* === Progress Bar === */
 .progressBarWrapper {
   background: #eee;
   border-radius: 6px;
-  height: 8px;
+  height: 6px;
   width: 100%;
   overflow: hidden;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .progressBar {
-  width: 100%;
+  width: 0%;
   height: 100%;
-  background: linear-gradient(90deg, #0070f3, #00b4d8, #0070f3);
-  background-size: 200% 100%;
-  animation: progressAnim 2s linear infinite;
+  background: linear-gradient(90deg, #0070f3, #00b4d8);
+  animation: fillProgress 2s ease-in forwards;
 }
 
-@keyframes progressAnim {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
+/* 🟦 Smooth fill from 0% → 100%, then stay full */
+@keyframes fillProgress {
+  0% { width: 0%; }
+  100% { width: 100%; }
 }
 
 /* === Footer / Cancel Button === */
 .footer {
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
 .cancelButton {
   background: #f3f4f6;
   color: #111;
-  padding: 6px 14px;
+  padding: 6px 16px;
   border-radius: 6px;
   border: none;
   cursor: pointer;
   font-weight: 600;
+  font-size: 0.95rem;
   transition: background 0.2s ease;
 }
 
