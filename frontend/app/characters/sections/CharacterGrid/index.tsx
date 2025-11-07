@@ -64,6 +64,18 @@ function SingleCard({ character, onUpdated }: SingleCardProps) {
         className={`${styles.card} ${roleClass}`}
         onClick={() => (window.location.href = `/characters/${character._id}`)}
       >
+        {/* ⚙️ Floating Settings Button */}
+        <button
+          className={styles.iconButton}
+          onClick={(e) => {
+            e.stopPropagation();
+            setModalOpen(true);
+          }}
+          aria-label="编辑基础信息"
+        >
+          <FaCog />
+        </button>
+
         <div className={styles.content}>
           <div className={styles.headerRow}>
             <img
@@ -85,28 +97,17 @@ function SingleCard({ character, onUpdated }: SingleCardProps) {
               </h3>
               <p className={styles.server}>{character.server}</p>
             </div>
-
-            {/* ⚙️ Edit button aligned with header */}
-            <button
-              className={styles.iconButton}
-              onClick={(e) => {
-                e.stopPropagation();
-                setModalOpen(true);
-              }}
-              aria-label="编辑基础信息"
-            >
-              <FaCog />
-            </button>
           </div>
         </div>
       </div>
 
+      {/* 🧩 Modal */}
       {isModalOpen && (
         <EditBasicInfoModal
           isOpen={isModalOpen}
           onClose={() => setModalOpen(false)}
-          onSave={onUpdated} // ✅ no data argument, just refresh
-          characterId={character._id} // ✅ pass character ID for backend route
+          onSave={onUpdated}
+          characterId={character._id}
           initialData={{
             server: character.server,
             role: character.role,
