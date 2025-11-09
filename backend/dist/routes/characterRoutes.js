@@ -16,6 +16,7 @@ const router = express_1.default.Router();
 // ─────────────────────────────────────────────
 // Character CRUD
 // ─────────────────────────────────────────────
+router.get("/accounts", getController_1.getAllAccounts);
 router.post("/", createController_1.createCharacter);
 router.get("/", getController_1.getCharacters);
 router.get("/:id", getController_1.getCharacterById);
