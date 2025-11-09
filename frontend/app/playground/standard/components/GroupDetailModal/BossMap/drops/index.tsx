@@ -46,25 +46,63 @@ export default function Drops(props: any) {
   /** 🧩 Build full drop options for this floor */
   const options = buildOptions(dropList, floor);
 
-  /** Mirror pairs (cross-gender transferable skills) */
-  const MIRROR_MAP: Record<string, string> = {
-    "剑心通明": "巨猿劈山",
-    "巨猿劈山": "剑心通明",
-    "蛮熊碎颅击": "水遁水流闪",
-    "水遁水流闪": "蛮熊碎颅击",
+  /**
+   * ⚔️ Ability relationships
+   * - 蛮熊碎颅击 → 水遁水流闪 : one-way transfer (female can learn)
+   * - 剑心通明 ↔ 巨猿劈山 : mirror pair (shared level for all-have)
+   */
+  const TRANSFER_MAP: Record<string, string> = {
+    "蛮熊碎颅击": "水遁水流闪", // one-way transfer: female only
   };
 
-  /** 🔧 Helper: get mirror name */
-  const getMirror = (name: string) => MIRROR_MAP[name] || null;
+  const MIRROR_PAIRS: Record<string, string> = {
+    "剑心通明": "巨猿劈山",
+    "巨猿劈山": "剑心通明",
+  };
 
-  /** 🧠 Check if all members already have a specific ability or its mirror */
+  /** 🔧 Helper: get mappings */
+  const getTransferSource = (dest: string) =>
+    Object.entries(TRANSFER_MAP).find(([src, target]) => target === dest)?.[0] || null;
+  const getTransferDest = (src: string) => TRANSFER_MAP[src] || null;
+  const getMirror = (name: string) => MIRROR_PAIRS[name] || null;
+
+  /** 🧠 Compute effective level including transfer and mirror rules */
+  const getEffectiveLevel = (char: any, ability: string) => {
+    const baseLevel = char.abilities?.[ability] ?? 0;
+    const gender = char.gender;
+
+    // ① Female one-way transfer (蛮熊 -> 水遁)
+    if (gender === "女") {
+      const source = getTransferSource(ability);
+      if (source) {
+        const srcLevel = char.abilities?.[source] ?? 0;
+        return Math.max(baseLevel, srcLevel);
+      }
+    }
+
+    // ② Female reflection for all-have (水遁 counts as 蛮熊)
+    if (gender === "女") {
+      const dest = getTransferDest(ability);
+      if (dest) {
+        const destLevel = char.abilities?.[dest] ?? 0;
+        return Math.max(baseLevel, destLevel);
+      }
+    }
+
+    // ③ Mirror pair equivalence (剑心 ↔ 巨猿)
+    const mirror = getMirror(ability);
+    if (mirror) {
+      const mirrorLv = char.abilities?.[mirror] ?? 0;
+      return Math.max(baseLevel, mirrorLv);
+    }
+
+    // ④ Default: direct use
+    return baseLevel;
+  };
+
+  /** 🧠 Check if all members already have a specific ability (considering rules) */
   const allHaveAbility = (ability: string, level: 9 | 10) =>
-    group.characters.every((c: any) => {
-      const lvMain = c.abilities?.[ability] ?? 0;
-      const mirror = getMirror(ability);
-      const lvMirror = mirror ? c.abilities?.[mirror] ?? 0 : 0;
-      return Math.max(lvMain, lvMirror) >= level;
-    });
+    group.characters.every((c: any) => getEffectiveLevel(c, ability) >= level);
 
   /** 🩵 Build “all have” lists */
   let allHave9Options = options.filter(
@@ -73,21 +111,6 @@ export default function Drops(props: any) {
   let allHave10Options = options.filter(
     (opt: any) => opt.level === 10 && allHaveAbility(opt.ability, 10)
   );
-
-  /** Expand to include mirror equivalents for display convenience */
-  function expandWithMirrors(list: { ability: string; level: number }[]) {
-    const expanded = [...list];
-    for (const item of list) {
-      const mirror = getMirror(item.ability);
-      if (mirror && !expanded.some((x) => x.ability === mirror)) {
-        expanded.push({ ability: mirror, level: item.level });
-      }
-    }
-    return expanded;
-  }
-
-  allHave9Options = expandWithMirrors(allHave9Options);
-  allHave10Options = expandWithMirrors(allHave10Options);
 
   /** 🔄 Reset logic */
   const doReset = async () => {
