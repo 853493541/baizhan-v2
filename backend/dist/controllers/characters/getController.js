@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllStorage = exports.getCharacterById = exports.getCharacters = void 0;
+exports.getAllAccounts = exports.getAllStorage = exports.getCharacterById = exports.getCharacters = void 0;
 const Character_1 = __importDefault(require("../../models/Character"));
 const getCharacters = async (req, res) => {
     try {
@@ -65,3 +65,15 @@ const getAllStorage = async (req, res) => {
     }
 };
 exports.getAllStorage = getAllStorage;
+const getAllAccounts = async (req, res) => {
+    try {
+        // Use .distinct() for fast unique list retrieval
+        const accounts = await Character_1.default.distinct("account");
+        return res.json(accounts);
+    }
+    catch (err) {
+        console.error("❌ getAllAccounts error:", err);
+        return res.status(500).json({ error: err.message });
+    }
+};
+exports.getAllAccounts = getAllAccounts;
