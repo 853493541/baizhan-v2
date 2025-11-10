@@ -187,7 +187,7 @@ export default function AbilityList({
         {/* === 非需求掉落 (全有 + 无掉落) === */}
         {(hasAllHave || true) && (
           <>
-            <div className={styles.sectionDivider}>非需求</div>
+            <div className={styles.sectionDivider}>浪费</div>
 
             {/* 全有 (九重) */}
             {mergedAllHave9.map((entry, i: number) => (

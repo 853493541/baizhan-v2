@@ -1,22 +1,23 @@
 /* ===========================================
-   🧩 Ability Buttons — Base Styles
+   🧩 Ability Buttons — Base Styles (Left-Aligned & Balanced)
    =========================================== */
 .dropBtn,
 .noDropBtn {
   display: flex;
   align-items: center;
-  justify-content: center;       /* ✅ Center icon + text horizontally */
+  justify-content: flex-start;     /* 👈 left-align icon + text */
   gap: 6px;
-  padding: 6px 10px;
+  padding: 6px 14px;               /* ⬆ slightly more inner space */
   border-radius: 6px;
   font-size: 0.9rem;
-  min-width: 220px;
-  max-width: 220px;
-  height: 40px;
+  min-width: 215px;
+  max-width: 215px;
+  height: 40px;                    /* ⬆ restored height */
   box-sizing: border-box;
   cursor: pointer;
-  margin-bottom: 3px;
+  margin-bottom: 4px;
   transition: all 0.2s ease;
+  text-align: left;
 }
 
 /* === Ability Icon === */
@@ -24,39 +25,44 @@
   width: 18px;
   height: 18px;
   object-fit: contain;
+  flex-shrink: 0;
 }
 
-/* === Default (Blue Book) === */
-.dropBtn {
-  background: #f0f9ff;           /* pale icy blue */
-  border: 1px solid #bae6fd;     /* light blue border */
-  color: #1e3a8a;                /* navy text */
-  font-weight: 500;
-}
-
-.dropBtn:hover {
-  background: #dbeafe;           /* gentle blue hover */
-  border-color: #3b82f6;
-  transform: translateY(-1px);
-}
-
-.activeBtn {
-  background: #93c5fd;                            /* stronger blue when selected */
-  border: 2px solid #1d4ed8;                      /* thicker, darker border */
-  box-shadow:
-    inset 0 0 6px rgba(0, 0, 0, 0.25),
-    0 0 6px rgba(37, 99, 235, 0.45);              /* pressed + glow */
-  transform: scale(1.02);                         /* tiny scale to stand out */
-}
-
-/* === Text Inside Button === */
+/* === Text (Left-Aligned) === */
 .dropText {
-  text-align: center;   /* ✅ Center text inside */
+  flex: 1;
+  text-align: left;
   color: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ===========================================
-   🔴 No-drop & All-Have (Red Styles)
+   🔷 Default (Blue Book)
+   =========================================== */
+.dropBtn {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  color: #1e3a8a;
+  font-weight: 500;
+}
+.dropBtn:hover {
+  background: #dbeafe;
+  border-color: #3b82f6;
+  transform: translateY(-1px);
+}
+.activeBtn {
+  background: #93c5fd;
+  border: 2px solid #1d4ed8;
+  box-shadow:
+    inset 0 0 5px rgba(0, 0, 0, 0.25),
+    0 0 4px rgba(37, 99, 235, 0.45);
+  transform: scale(1.015);
+}
+
+/* ===========================================
+   🔴 No-drop & All-Have (Red)
    =========================================== */
 .noDropBtn,
 .allHaveBtn {
@@ -75,12 +81,12 @@
 }
 
 /* ===========================================
-   💜 紫书掉落按钮 (Purple Book Drop)
+   💜 紫书掉落按钮 (Purple Book)
    =========================================== */
 .purpleBookBtn {
-  background: #e9d5ff;          /* lavender base */
-  border: 1px solid #9333ea;    /* violet border */
-  color: #4c1d95;               /* deep purple text */
+  background: #e9d5ff;
+  border: 1px solid #9333ea;
+  color: #4c1d95;
   font-weight: 600;
 }
 .purpleBookBtn:hover {
@@ -103,7 +109,8 @@
   color: #666;
   font-weight: 600;
   font-size: 0.9rem;
-  margin: 14px 0;
+  margin: 10px 0;                  /* ⬆ restored breathing room */
+  line-height: 1.2;
   text-align: center;
 }
 
@@ -114,10 +121,10 @@
   border-bottom: 1px solid #ccc;
 }
 .sectionDivider:not(:empty)::before {
-  margin-right: 8px;
+  margin-right: 6px;
 }
 .sectionDivider:not(:empty)::after {
-  margin-left: 8px;
+  margin-left: 6px;
 }
 
 /* === Divider Color Variants === */
