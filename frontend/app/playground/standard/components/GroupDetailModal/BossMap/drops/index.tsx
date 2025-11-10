@@ -10,7 +10,8 @@ export default function Drops(props: any) {
     scheduleId,
     floor,
     boss,
-    dropList,
+    dropList,          // 🟢 normal abilities
+    tradableList = [], // 🟣 紫书 abilities (new)
     dropLevel,
     group,
     onClose,
@@ -26,6 +27,19 @@ export default function Drops(props: any) {
   const [errMsg, setErrMsg] = useState<string | null>(null);
   const hasKillRecord = group.kills?.some((k: any) => k.floor === floor);
   const modalRef = useRef<HTMLDivElement>(null);
+
+  /** 🧠 Debug: check incoming data from BossCard */
+  useEffect(() => {
+    console.log(
+      `[purple] Drops opened → floor ${floor} boss ${boss}`,
+      {
+        dropList,
+        tradableList,
+        dropCount: dropList?.length || 0,
+        tradableCount: tradableList?.length || 0,
+      }
+    );
+  }, [floor, boss, dropList, tradableList]);
 
   /** 🧭 Click outside main modal → close */
   useEffect(() => {
@@ -48,40 +62,31 @@ export default function Drops(props: any) {
 
   /**
    * ⚔️ Ability relationships
-   * - 蛮熊碎颅击 → 水遁水流闪 : one-way transfer (female can learn)
-   * - 剑心通明 ↔ 巨猿劈山 : mirror pair (shared level for all-have)
    */
   const TRANSFER_MAP: Record<string, string> = {
-    "蛮熊碎颅击": "水遁水流闪", // one-way transfer: female only
+    "蛮熊碎颅击": "水遁水流闪",
   };
-
   const MIRROR_PAIRS: Record<string, string> = {
     "剑心通明": "巨猿劈山",
     "巨猿劈山": "剑心通明",
   };
 
-  /** 🔧 Helper: get mappings */
   const getTransferSource = (dest: string) =>
     Object.entries(TRANSFER_MAP).find(([src, target]) => target === dest)?.[0] || null;
   const getTransferDest = (src: string) => TRANSFER_MAP[src] || null;
   const getMirror = (name: string) => MIRROR_PAIRS[name] || null;
 
-  /** 🧠 Compute effective level including transfer and mirror rules */
+  /** 🧠 Compute effective level including transfer/mirror rules */
   const getEffectiveLevel = (char: any, ability: string) => {
     const baseLevel = char.abilities?.[ability] ?? 0;
     const gender = char.gender;
 
-    // ① Female one-way transfer (蛮熊 -> 水遁)
     if (gender === "女") {
       const source = getTransferSource(ability);
       if (source) {
         const srcLevel = char.abilities?.[source] ?? 0;
         return Math.max(baseLevel, srcLevel);
       }
-    }
-
-    // ② Female reflection for all-have (水遁 counts as 蛮熊)
-    if (gender === "女") {
       const dest = getTransferDest(ability);
       if (dest) {
         const destLevel = char.abilities?.[dest] ?? 0;
@@ -89,18 +94,16 @@ export default function Drops(props: any) {
       }
     }
 
-    // ③ Mirror pair equivalence (剑心 ↔ 巨猿)
     const mirror = getMirror(ability);
     if (mirror) {
       const mirrorLv = char.abilities?.[mirror] ?? 0;
       return Math.max(baseLevel, mirrorLv);
     }
 
-    // ④ Default: direct use
     return baseLevel;
   };
 
-  /** 🧠 Check if all members already have a specific ability (considering rules) */
+  /** 🧠 Check if all members already have a specific ability */
   const allHaveAbility = (ability: string, level: 9 | 10) =>
     group.characters.every((c: any) => getEffectiveLevel(c, ability) >= level);
 
@@ -146,6 +149,7 @@ export default function Drops(props: any) {
         <div className={styles.columns}>
           <AbilityList
             options={options}
+            tradableList={tradableList}
             allHave9Options={allHave9Options}
             allHave10Options={allHave10Options}
             chosenDrop={chosenDrop}
@@ -154,6 +158,7 @@ export default function Drops(props: any) {
             markStartedIfNeeded={markStartedIfNeeded}
             onSave={onSave}
             onClose={onClose}
+            boss={boss} // for better trace
           />
 
           <MemberList

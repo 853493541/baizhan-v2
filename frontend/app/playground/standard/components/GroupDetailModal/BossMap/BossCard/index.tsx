@@ -17,6 +17,7 @@ interface BossCardProps {
     floor: number,
     boss: string,
     dropList: string[],
+    tradableList: string[],
     dropLevel: 9 | 10
   ) => void;
 }
@@ -47,7 +48,12 @@ export default function BossCard({
     );
   }
 
-  const dropList: string[] = bossData[boss] || [];
+  const fullDropList: string[] = bossData[boss] || [];
+
+  // ✅ Split into tradable vs. normal abilities
+  const tradableList = fullDropList.filter((a) => tradableSet.has(a));
+  const dropList = fullDropList.filter((a) => !tradableSet.has(a));
+
   const dropLevel = floor >= 81 && floor <= 90 ? 9 : 10;
 
   // ✅ Only include selected members
@@ -55,29 +61,22 @@ export default function BossCard({
     activeMembers.includes(i)
   );
 
-  // ✅ Healer abilities list
-  const healerAbilities = [
-    "万花金创药",
-    "特制金创药",
-    "毓秀灵药",
-    "霞月长针",
-  ];
+  // ✅ Healer abilities
+  const healerAbilities = ["万花金创药", "特制金创药", "毓秀灵药", "霞月长针"];
 
-  // ✅ Needs calculation
+  // ✅ Calculate needs
   let needs = dropList
-    .filter((ability) => !tradableSet.has(ability))
     .map((ability) => {
       const needers = includedChars.filter((c: any) => {
         const lvl = c.abilities?.[ability] ?? 0;
         const usable = canUseAbility(c, ability);
         return usable && lvl < dropLevel;
       });
-
       const needCount = needers.length;
       if (needCount > 0) {
         const isHighlightBase = highlightAbilities.includes(ability);
 
-        // 🔍 Healer-specific highlight rule
+        // Healer-specific highlight
         let isHighlight = isHighlightBase;
         if (isHighlightBase && healerAbilities.includes(ability)) {
           const healerNeed = needers.some(
@@ -96,7 +95,7 @@ export default function BossCard({
     isHighlight: boolean;
   }[];
 
-  // ✅ Sort core highlights first
+  // ✅ Sort highlights first
   needs.sort((a, b) => {
     if (a.isHighlight && !b.isHighlight) return -1;
     if (!a.isHighlight && b.isHighlight) return 1;
@@ -128,10 +127,13 @@ export default function BossCard({
     assignedName = char ? char.name : kill.selection.characterId;
   }
 
-  // ✅ Drop display
+  // ✅ Drop display logic
   let dropDisplay = null;
   if (kill?.selection) {
-    if (kill.selection.noDrop || !kill.selection.ability) {
+    const sel = kill.selection;
+
+    if (sel.noDrop || (!sel.ability && !sel.purpleBook)) {
+      // === 无掉落 ===
       dropDisplay = (
         <div className={`${styles.dropResult} ${styles.noDrop}`}>
           <img
@@ -142,31 +144,46 @@ export default function BossCard({
           <div>无掉落</div>
         </div>
       );
-    } else if (kill.selection.ability && !kill.selection.characterId) {
+    } else if (sel.purpleBook) {
+      // === 紫书掉落 ===
+      dropDisplay = (
+        <div className={`${styles.dropResult} ${styles.wasted} ${styles.purpleBookResult}`}>
+          <img
+            src={getAbilityIcon(sel.ability)}
+            alt={sel.ability}
+            className={`${styles.iconLarge} ${styles.iconWasted}`}
+          />
+          <div>{sel.ability}</div>
+          <div>{sel.level}重（紫书）</div>
+        </div>
+      );
+    } else if (sel.ability && !sel.characterId) {
+      // === 有掉落但无人领 ===
       dropDisplay = (
         <div
           className={`${styles.dropResult} ${styles.wasted} ${styles.stackCenter}`}
         >
           <img
-            src={getAbilityIcon(kill.selection.ability)}
-            alt={kill.selection.ability}
+            src={getAbilityIcon(sel.ability)}
+            alt={sel.ability}
             className={`${styles.iconLarge} ${styles.iconWasted}`}
           />
-          <div>{kill.selection.ability}</div>
-          <div>{kill.selection.level}重</div>
+          <div>{sel.ability}</div>
+          <div>{sel.level}重</div>
           <div>(无)</div>
         </div>
       );
     } else {
+      // === 正常掉落 ===
       dropDisplay = (
         <div className={`${styles.dropResult} ${styles.normal}`}>
           <img
-            src={getAbilityIcon(kill.selection.ability)}
-            alt={kill.selection.ability}
+            src={getAbilityIcon(sel.ability)}
+            alt={sel.ability}
             className={styles.iconLarge}
           />
-          <div>{kill.selection.ability}</div>
-          <div>{kill.selection.level}重</div>
+          <div>{sel.ability}</div>
+          <div>{sel.level}重</div>
           {assignedName && <div>{assignedName}</div>}
         </div>
       );
@@ -180,11 +197,14 @@ export default function BossCard({
         kill?.selection?.ability && kill?.selection?.characterId
           ? styles.cardNormal
           : (kill?.selection?.noDrop ||
+              kill?.selection?.purpleBook ||
               (kill?.selection?.ability && !kill?.selection?.characterId))
           ? styles.cardHealer
           : ""
       }`}
-      onClick={() => onSelect(floor, boss, dropList, dropLevel as 9 | 10)}
+      onClick={() =>
+        onSelect(floor, boss, dropList, tradableList, dropLevel as 9 | 10)
+      }
     >
       <div className={styles.header}>
         {floor} {boss}

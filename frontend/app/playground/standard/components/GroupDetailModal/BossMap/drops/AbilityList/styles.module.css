@@ -1,9 +1,11 @@
-/* Ability buttons (base) */
+/* ===========================================
+   🧩 Ability Buttons — Base Styles
+   =========================================== */
 .dropBtn,
 .noDropBtn {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;       /* ✅ Center icon + text horizontally */
   gap: 6px;
   padding: 6px 10px;
   border-radius: 6px;
@@ -14,74 +16,123 @@
   box-sizing: border-box;
   cursor: pointer;
   margin-bottom: 3px;
+  transition: all 0.2s ease;
 }
 
-/* Ability icon */
+/* === Ability Icon === */
 .iconSmall {
   width: 18px;
   height: 18px;
   object-fit: contain;
 }
 
-/* Hover + active states */
+/* === Default (Blue Book) === */
 .dropBtn {
-  border: 1px solid #ccc;
-  background: #f9f9f9;
+  background: #f0f9ff;           /* pale icy blue */
+  border: 1px solid #bae6fd;     /* light blue border */
+  color: #1e3a8a;                /* navy text */
+  font-weight: 500;
 }
+
 .dropBtn:hover {
-  background: #e6f7ff;
-  border-color: #1890ff;
+  background: #dbeafe;           /* gentle blue hover */
+  border-color: #3b82f6;
+  transform: translateY(-1px);
 }
+
 .activeBtn {
-  background: #d0ebff;
-  border-color: #1890ff;
+  background: #93c5fd;                            /* stronger blue when selected */
+  border: 2px solid #1d4ed8;                      /* thicker, darker border */
+  box-shadow:
+    inset 0 0 6px rgba(0, 0, 0, 0.25),
+    0 0 6px rgba(37, 99, 235, 0.45);              /* pressed + glow */
+  transform: scale(1.02);                         /* tiny scale to stand out */
 }
 
-/* No-drop (red) */
-.noDropBtn {
-  border: 1px solid #dc3545;
-  background: #f8d7da;
-  color: #721c24;
-  font-weight: 600;
-}
-.noDropBtn:hover {
-  background: #f5c6cb;
-}
-.activeNoDrop {
-  background: #f1b0b7;
-  border-color: #dc3545;
+/* === Text Inside Button === */
+.dropText {
+  text-align: center;   /* ✅ Center text inside */
+  color: inherit;
 }
 
-/* “已有” abilities (allHave) */
+/* ===========================================
+   🔴 No-drop & All-Have (Red Styles)
+   =========================================== */
+.noDropBtn,
 .allHaveBtn {
   background-color: #f8d7da;
   color: #721c24;
   border: 1px solid #ff0019;
+  font-weight: 600;
+}
+.noDropBtn:hover,
+.allHaveBtn:hover {
+  background-color: #f1b0b7;
+}
+.noDropBtn:active,
+.allHaveBtn:active {
+  background-color: #e48a96;
 }
 
-/* Button content text */
-.dropBtn {
+/* ===========================================
+   💜 紫书掉落按钮 (Purple Book Drop)
+   =========================================== */
+.purpleBookBtn {
+  background: #e9d5ff;          /* lavender base */
+  border: 1px solid #9333ea;    /* violet border */
+  color: #4c1d95;               /* deep purple text */
+  font-weight: 600;
+}
+.purpleBookBtn:hover {
+  background: #d8b4fe;
+  border-color: #7e22ce;
+  transform: translateY(-1px);
+}
+.purpleBookBtn:active {
+  transform: translateY(0);
+  background: #c084fc;
+}
+
+/* ===========================================
+   🧭 Section Divider (─ text ─ style)
+   =========================================== */
+.sectionDivider {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 6px;
-  padding: 6px 16px;
-  min-width: 220px;
-  white-space: nowrap;
-}
-
-.dropText {
-  flex: 1;
-  text-align: left;
-}
-
-/* Section titles */
-.sectionDivider {
-  margin: 10px 0;
-  font-size: 0.85rem;
-  font-weight: bold;
+  justify-content: center;
   color: #666;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin: 14px 0;
   text-align: center;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 2px;
+}
+
+.sectionDivider::before,
+.sectionDivider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid #ccc;
+}
+.sectionDivider:not(:empty)::before {
+  margin-right: 8px;
+}
+.sectionDivider:not(:empty)::after {
+  margin-left: 8px;
+}
+
+/* === Divider Color Variants === */
+.purpleDivider {
+  color: #7a3db8;
+}
+.purpleDivider::before,
+.purpleDivider::after {
+  border-color: #d8b4fe;
+}
+
+.redDivider {
+  color: #b91c1c;
+}
+.redDivider::before,
+.redDivider::after {
+  border-color: #f5a3a3;
 }
