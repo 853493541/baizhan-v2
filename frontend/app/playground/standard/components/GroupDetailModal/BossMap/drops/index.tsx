@@ -142,10 +142,19 @@ export default function Drops(props: any) {
   return (
     <div className={styles.overlay}>
       <div className={styles.modal} ref={modalRef}>
-        <h3>
-          {floor}层 - {boss}
-        </h3>
+        {/* === Header Row === */}
+        <div className={styles.headerRow}>
+          <div className={styles.headerLeft}>
+            <span className={styles.dropLevel}>
+              {dropLevel === 10 ? "十阶" : "九阶"}
+            </span>
+            <span className={styles.separator}>·</span>
+            <span className={styles.bossName}>{boss}</span>
+          </div>
+          <div className={styles.headerRight}>{floor}层</div>
+        </div>
 
+        {/* === Two Columns Layout === */}
         <div className={styles.columns}>
           <AbilityList
             options={options}
@@ -158,7 +167,7 @@ export default function Drops(props: any) {
             markStartedIfNeeded={markStartedIfNeeded}
             onSave={onSave}
             onClose={onClose}
-            boss={boss} // for better trace
+            boss={boss}
           />
 
           <MemberList
@@ -175,6 +184,7 @@ export default function Drops(props: any) {
 
         {errMsg && <div className={styles.errorBox}>{errMsg}</div>}
 
+        {/* === Footer Buttons === */}
         <div className={styles.footer}>
           {hasKillRecord && (
             <button
@@ -190,6 +200,7 @@ export default function Drops(props: any) {
           </button>
         </div>
 
+        {/* === Confirm Modal === */}
         {showConfirm && (
           <div
             className={styles.confirmOverlay}
