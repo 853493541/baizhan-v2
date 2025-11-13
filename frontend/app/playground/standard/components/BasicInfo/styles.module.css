@@ -276,3 +276,27 @@
   color: #000;
   transform: scale(1.1);
 }
+.valueWithBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.inlineAddBtn {
+  background: #4a8fff;
+  color: #fff;
+  border: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s ease;
+}
+
+.inlineAddBtn:hover {
+  background: #3a7be0;
+}

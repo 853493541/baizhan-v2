@@ -14,7 +14,7 @@ interface Props {
   };
   onBack: () => void;
   onDelete?: () => void;
-  onOpenEditCharacters: () => void;   // ⭐ NEW CALLBACK
+  onOpenEditCharacters: () => void;
   locked?: boolean;
 }
 
@@ -111,17 +111,9 @@ export default function BasicInfoSection({
           <button className={styles.gearBtn} onClick={() => setEditing(true)}>
             <Settings size={18} />
           </button>
-
-          {/* ➕ ADD Button (NEW) */}
-          <button
-            className={styles.addBtn}
-            onClick={onOpenEditCharacters}
-            title="编辑参与角色"
-          >
-            <Plus size={18} />
-          </button>
         </div>
 
+        {/* 排表名称 */}
         <div className={styles.infoRow}>
           <span className={styles.label}>排表名称:</span>
           <span className={styles.value}>
@@ -129,16 +121,30 @@ export default function BasicInfoSection({
           </span>
         </div>
 
+        {/* 服务器 */}
         <div className={styles.infoRow}>
           <span className={styles.label}>服务器:</span>
           <span className={styles.value}>{localSchedule.server}</span>
         </div>
 
+        {/* ⭐ 角色数量 + Inline Add Button */}
         <div className={styles.infoRow}>
           <span className={styles.label}>角色数量:</span>
-          <span className={styles.value}>{localSchedule.characterCount}</span>
+
+          <span className={styles.valueWithBtn}>
+            {localSchedule.characterCount}
+
+            <button
+              className={styles.inlineAddBtn}
+              onClick={onOpenEditCharacters}
+              title="编辑参与角色"
+            >
+              <Plus size={14} />
+            </button>
+          </span>
         </div>
 
+        {/* 创建时间 */}
         <div className={styles.infoRow}>
           <span className={styles.label}>创建时间:</span>
           <span className={styles.value}>
@@ -147,7 +153,7 @@ export default function BasicInfoSection({
         </div>
       </div>
 
-      {/* Editing Modal */}
+      {/* Edit modal */}
       {editing && (
         <div
           className={styles.modalOverlay}
@@ -198,7 +204,7 @@ export default function BasicInfoSection({
         </div>
       )}
 
-      {/* Locked Delete Modal */}
+      {/* Locked delete modal */}
       {confirmingDelete && (
         <div
           className={styles.modalOverlay}
