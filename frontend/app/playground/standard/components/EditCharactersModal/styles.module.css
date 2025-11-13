@@ -8,7 +8,6 @@
 
 /* === Modal === */
 .characterModal {
-
   position: fixed;
   top: 50%;
   left: 50%;
@@ -23,8 +22,10 @@
   box-sizing: border-box;
   overflow-y: auto;
   z-index: 1000;
+  min-height: 600px;
 }
 
+/* === Fade animation === */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -36,53 +37,86 @@
   }
 }
 
-/* === Header === */
-.header {
+/* ============================================
+   HEADER — Perfect Title Center + Button Right
+   ============================================ */
+.headerRow {
   position: relative;
+  height: 42px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
-.centerTitle {
-  font-size: 18px;
+
+/* Center title */
+.title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 20px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Inline count */
+.countInline {
+  margin-left: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #666;
+}
+
+.warn {
+  color: #d30000;
   font-weight: 700;
 }
-.closeBtn {
+
+/* Close button (solid blue) */
+.closeTextBtn {
   position: absolute;
   right: 10px;
   top: 50%;
   transform: translateY(-50%);
-  background: none;
+  background: #4a8fff;
   border: none;
-  font-size: 28px;
+  padding: 6px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  border-radius: 6px;
   cursor: pointer;
-  color: #555;
-}
-.closeBtn:hover {
-  color: #000;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+  transition: background 0.15s ease, transform 0.15s ease;
 }
 
-/* === Split Layout (75/25) === */
+.closeTextBtn:hover {
+  background: #3a78d6;
+  transform: translateY(-52%);
+}
+
+/* === Layout === */
 .splitLayout {
   display: flex;
   gap: 18px;
 }
+
 .leftPane {
-  flex: 3;
+  flex: 4;
 }
+
 .rightPane {
   flex: 1;
 }
 
-/* === Left: Account Grid === */
+/* === Account grid (4 columns) === */
 .accountGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 14px;
 }
 
-/* === Account Column === */
+/* === Account column === */
 .accountColumn {
   background: #fff;
   border: 1px solid #e2e2e2;
@@ -92,29 +126,26 @@
   box-sizing: border-box;
 }
 
-/* === Account Header === */
 .accountHeader {
   background: #f5f5f5;
   border-radius: 6px;
+  text-align: center;
   font-weight: 700;
   font-size: 13px;
-  margin-bottom: 8px;
-  padding: 4px;
-  text-align: center;
   color: #333;
+  padding: 4px;
+  margin-bottom: 8px;
   border-bottom: 2px solid rgba(0, 0, 0, 0.1);
-  line-height: 1.2;
-  box-sizing: border-box;
 }
 
-/* === Character List === */
+/* === Character list === */
 .characterList {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-/* === Character Pills === */
+/* === Character pill === */
 .characterPill {
   display: flex;
   justify-content: space-between;
@@ -125,41 +156,43 @@
   font-weight: 600;
   border: 1px solid rgba(0, 0, 0, 0.05);
   cursor: pointer;
-  transition: background 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 
 .characterPill:hover {
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
 }
 
-/* ✅ Selected state (slight border + background) */
-.selected {
-  border-color: #4a8fff;
-  box-shadow: 0 0 0 1px rgba(74, 143, 255, 0.5);
-}
-
-/* === Role Colors === */
+/* === Selected role colors === */
 .tank {
   background: #fff8d7;
   color: #6b4e00;
 }
+
 .dps {
   background: #e3fbe3;
   color: #0f5132;
 }
+
 .healer {
   background: #ffe2ea;
   color: #842029;
 }
 
-/* === Right: checkbox-only === */
-.checkbox {
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
+/* Not selected */
+.inactive {
+  background: #f2f2f2 !important;
+  color: #888 !important;
 }
 
-/* === Right: Single Accounts === */
+/* Main character star */
+.starMark {
+  font-size: 13px;
+  font-weight: 900;
+  transform: translateY(1px);
+}
+
+/* === Single account column === */
 .singleColumn {
   background: #fafafa;
   border: 1px solid #ddd;
@@ -167,6 +200,7 @@
   padding: 10px;
   box-sizing: border-box;
 }
+
 .singleHeader {
   background: #f2f2f2;
   border-radius: 6px;
@@ -176,85 +210,4 @@
   color: #333;
   padding: 5px;
   margin-bottom: 8px;
-}
-
-.singleRight {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* === Misc === */
-.singleAccountTag {
-  font-size: 11px;
-  color: #777;
-}
-
-.charName {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.starMark {
-  display: inline-block;
-  font-size: 13px;
-  color: currentColor;
-  font-weight: 900;
-  line-height: 1;
-  transform: translateY(1px);
-}
-
-/* === Footer === */
-.footer {
-  margin-top: 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  border-top: 1px solid #eee;
-  padding-top: 10px;
-}
-
-.countText {
-  font-size: 13px;
-  color: #555;
-}
-
-.footerButtons {
-  display: flex;
-  gap: 8px;
-}
-
-.cancelBtn {
-  background: #e2e2e2;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 6px;
-  font-size: 13px;
-  cursor: pointer;
-}
-.cancelBtn:hover {
-  background: #d0d0d0;
-}
-
-.saveBtn {
-  background: #4a8fff;
-  color: #fff;
-  border: none;
-  padding: 6px 16px;
-  border-radius: 6px;
-  font-size: 13px;
-  cursor: pointer;
-}
-.saveBtn:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-.characterModal {
-  min-height: 800px;  /* UI guard to avoid shrinking during load */
-}
-.inactive {
-  background: #f2f2f2 !important;
-  color: #888 !important;
 }

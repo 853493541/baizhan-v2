@@ -17,7 +17,7 @@ interface Props {
   };
   onClose: () => void;
   onUpdated: () => void;
-  onLocalUpdate: (ids: Set<string>) => void;   // ⭐ NEW
+  onLocalUpdate: (ids: Set<string>) => void;
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
@@ -34,7 +34,7 @@ export default function EditScheduleCharactersModal({
   schedule,
   onClose,
   onUpdated,
-  onLocalUpdate,         // ⭐ NEW
+  onLocalUpdate,
 }: Props) {
   const [allCharacters, setAllCharacters] = useState<BasicChar[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,12 +42,11 @@ export default function EditScheduleCharactersModal({
     () => new Set((schedule.characters || []).map((c) => c._id))
   );
 
-  // First-open animation flag
   const [entered, setEntered] = useState(false);
   useEffect(() => setEntered(true), []);
 
   /* ----------------------------------------------------
-     LOAD BASIC CHARACTERS (FAST)
+     LOAD BASIC CHARACTERS
   ---------------------------------------------------- */
   useEffect(() => {
     const load = async () => {
@@ -61,12 +60,11 @@ export default function EditScheduleCharactersModal({
         setLoading(false);
       }
     };
-
     load();
   }, []);
 
   /* ----------------------------------------------------
-     AUTO-SAVE ON TOGGLE + LIVE UPDATE
+     TOGGLE CHAR
   ---------------------------------------------------- */
   const toggleChar = async (charId: string) => {
     const currentlySelected = selectedIds.has(charId);
@@ -75,13 +73,9 @@ export default function EditScheduleCharactersModal({
     if (currentlySelected) next.delete(charId);
     else next.add(charId);
 
-    // 1️⃣ Optimistic UI update
     setSelectedIds(next);
+    onLocalUpdate(next);
 
-    // 2️⃣ Live update parent UI (角色数量)
-    onLocalUpdate(next);  // ⭐ NEW
-
-    // 3️⃣ Backend auto-save
     try {
       await fetch(
         `${API_BASE}/api/standard-schedules/${schedule._id}/toggle-character`,
@@ -100,15 +94,13 @@ export default function EditScheduleCharactersModal({
   };
 
   /* ----------------------------------------------------
-     GROUPING BY ACCOUNT — NO SORTING
+     GROUPING — MAIN CHARACTER PRIORITY
   ---------------------------------------------------- */
   const { multiAccounts, singleAccounts } = useMemo(() => {
     if (!allCharacters.length)
       return { multiAccounts: [], singleAccounts: [] };
 
     const groups: Record<string, BasicChar[]> = {};
-
-    // Preserve server load order
     for (const c of allCharacters) {
       const acc = c.account || "未分配账号";
       if (!groups[acc]) groups[acc] = [];
@@ -119,15 +111,26 @@ export default function EditScheduleCharactersModal({
     const single: [string, BasicChar[]][] = [];
 
     for (const [acc, chars] of Object.entries(groups)) {
-      if (chars.length === 1) single.push([acc, chars]);
-      else multi.push([acc, chars]);
+      const mainChars = chars.filter((c) => MAIN_CHARACTERS.has(c.name));
+      const normalChars = chars.filter((c) => !MAIN_CHARACTERS.has(c.name));
+      const merged = [...mainChars, ...normalChars];
+
+      if (merged.length === 1) single.push([acc, merged]);
+      else multi.push([acc, merged]);
     }
+
+    // sort accounts containing main characters first
+    const hasMain = (chars: BasicChar[]) =>
+      chars.some((c) => MAIN_CHARACTERS.has(c.name));
+
+    multi.sort((a, b) => Number(hasMain(b[1])) - Number(hasMain(a[1])));
+    single.sort((a, b) => Number(hasMain(b[1])) - Number(hasMain(a[1])));
 
     return { multiAccounts: multi, singleAccounts: single };
   }, [allCharacters, selectedIds]);
 
   /* ----------------------------------------------------
-     RENDER CHARACTER ENTRY
+     RENDER CHARACTER PILL
   ---------------------------------------------------- */
   const renderChar = (c: BasicChar) => {
     const checked = selectedIds.has(c._id);
@@ -151,31 +154,27 @@ export default function EditScheduleCharactersModal({
           {isMain && <span className={styles.starMark}>★</span>}
           {c.name}
         </span>
-
-        <input
-          type="checkbox"
-          className={styles.checkbox}
-          checked={checked}
-          onChange={() => toggleChar(c._id)}
-          onClick={(e) => e.stopPropagation()}
-        />
       </div>
     );
   };
 
   /* ----------------------------------------------------
-     MODAL OUTPUT
+     LOADING
   ---------------------------------------------------- */
   if (loading) {
     return (
-      <div className={styles.portalBackdrop} onMouseDown={onClose}>
-        <div
-          className={`${styles.characterModal} ${
-            !entered ? styles.animated : ""
-          }`}
-        >
-          <div className={styles.header}>
-            <h2 className={styles.centerTitle}>编辑参与角色</h2>
+      <div
+        className={styles.portalBackdrop}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            onUpdated();
+            onClose();
+          }
+        }}
+      >
+        <div className={styles.characterModal}>
+          <div className={styles.headerRow}>
+            <h2 className={styles.title}>编辑排表角色</h2>
           </div>
           <p>加载中…</p>
         </div>
@@ -183,33 +182,55 @@ export default function EditScheduleCharactersModal({
     );
   }
 
+  const count = selectedIds.size;
+  const warn = count % 3 !== 0;
+
+  /* ----------------------------------------------------
+     MAIN MODAL
+  ---------------------------------------------------- */
   return (
     <>
-      <div className={styles.portalBackdrop} onMouseDown={onClose} />
+      <div
+        className={styles.portalBackdrop}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            onUpdated();
+            onClose();
+          }
+        }}
+      />
 
       <div
-        className={`${styles.characterModal} ${
-          !entered ? styles.animated : ""
-        }`}
-        onMouseDown={(e) => e.stopPropagation()}
+        className={styles.characterModal}
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className={styles.header}>
-          <h2 className={styles.centerTitle}>编辑参与角色</h2>
+        {/* HEADER ROW */}
+        <div className={styles.headerRow}>
+          <h2 className={styles.title}>
+            编辑排表角色
+            <span
+              className={`${styles.countInline} ${
+                warn ? styles.warn : ""
+              }`}
+            >
+              （{count} 人）
+            </span>
+          </h2>
+
           <button
-            className={styles.closeBtn}
+            className={styles.closeTextBtn}
             onClick={() => {
-              onUpdated();  // Refresh backend data
+              onUpdated();
               onClose();
             }}
           >
-            ✕
+            关闭
           </button>
         </div>
 
-        {/* Content */}
+        {/* CONTENT */}
         <div className={styles.splitLayout}>
-          {/* Multi-character Accounts */}
+          {/* MULTI-ACCOUNT */}
           <div className={styles.leftPane}>
             <div className={styles.accountGrid}>
               {multiAccounts.map(([acc, chars]) => (
@@ -223,7 +244,7 @@ export default function EditScheduleCharactersModal({
             </div>
           </div>
 
-          {/* Single-character Accounts */}
+          {/* SINGLE-ACCOUNT */}
           <div className={styles.rightPane}>
             <div className={styles.singleColumn}>
               <div className={styles.singleHeader}>单角色账号</div>
@@ -234,13 +255,6 @@ export default function EditScheduleCharactersModal({
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className={styles.footer}>
-          <span className={styles.countText}>
-            已选 {selectedIds.size} 人 / 共 {allCharacters.length} 人
-          </span>
         </div>
       </div>
     </>
