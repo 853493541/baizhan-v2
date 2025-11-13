@@ -1,4 +1,6 @@
-/* === Overlay === */
+/* ============================================
+   BACKDROP
+============================================ */
 .portalBackdrop {
   position: fixed;
   inset: 0;
@@ -6,7 +8,9 @@
   z-index: 999;
 }
 
-/* === Modal === */
+/* ============================================
+   MODAL BOX
+============================================ */
 .characterModal {
   position: fixed;
   top: 50%;
@@ -22,24 +26,12 @@
   box-sizing: border-box;
   overflow-y: auto;
   z-index: 1000;
-  min-height: 600px;
-}
-
-/* === Fade animation === */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -46%);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%);
-  }
+  min-height: 730px;
 }
 
 /* ============================================
-   HEADER — Perfect Title Center + Button Right
-   ============================================ */
+   HEADER — PERFECT TITLE CENTER
+============================================ */
 .headerRow {
   position: relative;
   height: 42px;
@@ -49,7 +41,7 @@
   margin-bottom: 10px;
 }
 
-/* Center title */
+/* Title */
 .title {
   position: absolute;
   left: 50%;
@@ -59,20 +51,19 @@
   white-space: nowrap;
 }
 
-/* Inline count */
+/* Count */
 .countInline {
   margin-left: 6px;
   font-size: 15px;
   font-weight: 500;
   color: #666;
 }
-
 .warn {
   color: #d30000;
   font-weight: 700;
 }
 
-/* Close button (solid blue) */
+/* Close button (solid) */
 .closeTextBtn {
   position: absolute;
   right: 10px;
@@ -86,7 +77,7 @@
   color: #fff;
   border-radius: 6px;
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
   transition: background 0.15s ease, transform 0.15s ease;
 }
 
@@ -95,7 +86,39 @@
   transform: translateY(-52%);
 }
 
-/* === Layout === */
+/* ============================================
+   SERVER FILTER BAR
+============================================ */
+.serverFilterRow {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.serverFilterBtn {
+  padding: 6px 14px;
+  background: #f1f1f1;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #444;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.serverFilterBtn:hover {
+  background: #e9e9e9;
+}
+
+.activeFilter {
+  background: #4a8fff !important;
+  border-color: #4a8fff !important;
+  color: white !important;
+}
+
+/* ============================================
+   ORIGINAL LAYOUT (全部 mode)
+============================================ */
 .splitLayout {
   display: flex;
   gap: 18px;
@@ -109,24 +132,44 @@
   flex: 1;
 }
 
-/* === Account grid (4 columns) === */
+/* 4-column grid (left pane) */
 .accountGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 14px;
 }
 
-/* === Account column === */
+/* Right single column */
+.singleColumn {
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+/* ============================================
+   CENTERED GRID MODE (FILTERED MODE)
+============================================ */
+.centerGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);  /* ← EXACT 5 per row */
+  gap: 18px;
+  margin-top: 10px;
+}
+/* ============================================
+   ACCOUNT COLUMN
+============================================ */
 .accountColumn {
   background: #fff;
   border: 1px solid #e2e2e2;
   border-radius: 10px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   padding: 12px 10px;
-  box-sizing: border-box;
 }
 
-.accountHeader {
+/* Account header */
+.accountHeader,
+.singleHeader {
   background: #f5f5f5;
   border-radius: 6px;
   text-align: center;
@@ -138,17 +181,20 @@
   border-bottom: 2px solid rgba(0, 0, 0, 0.1);
 }
 
-/* === Character list === */
+/* ============================================
+   CHARACTER LIST
+============================================ */
 .characterList {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-/* === Character pill === */
+/* ============================================
+   CHARACTER PILL
+============================================ */
 .characterPill {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   border-radius: 6px;
   padding: 6px 10px;
@@ -163,7 +209,7 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
 }
 
-/* === Selected role colors === */
+/* Selected background colors */
 .tank {
   background: #fff8d7;
   color: #6b4e00;
@@ -179,35 +225,21 @@
   color: #842029;
 }
 
-/* Not selected */
+/* Inactive state */
 .inactive {
   background: #f2f2f2 !important;
   color: #888 !important;
 }
 
-/* Main character star */
+/* Main char ★ */
 .starMark {
   font-size: 13px;
   font-weight: 900;
-  transform: translateY(1px);
+  margin-right: 4px;
 }
 
-/* === Single account column === */
-.singleColumn {
-  background: #fafafa;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  padding: 10px;
-  box-sizing: border-box;
-}
-
-.singleHeader {
-  background: #f2f2f2;
-  border-radius: 6px;
-  text-align: center;
-  font-weight: 700;
-  font-size: 13px;
-  color: #333;
-  padding: 5px;
-  margin-bottom: 8px;
+.charName {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }

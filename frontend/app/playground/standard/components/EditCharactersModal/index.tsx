@@ -8,6 +8,7 @@ interface BasicChar {
   name: string;
   account: string;
   role: "Tank" | "DPS" | "Healer";
+  server: string;
 }
 
 interface Props {
@@ -30,6 +31,9 @@ const MAIN_CHARACTERS = new Set([
   "唐宵风",
 ]);
 
+/* GLOBAL REQUEST QUEUE */
+let toggleQueue = Promise.resolve();
+
 export default function EditScheduleCharactersModal({
   schedule,
   onClose,
@@ -38,16 +42,16 @@ export default function EditScheduleCharactersModal({
 }: Props) {
   const [allCharacters, setAllCharacters] = useState<BasicChar[]>([]);
   const [loading, setLoading] = useState(true);
+  const [serverFilter, setServerFilter] = useState("全部");
+
   const [selectedIds, setSelectedIds] = useState<Set<string>>(
-    () => new Set((schedule.characters || []).map((c) => c._id))
+    () => new Set(schedule.characters?.map((c) => c._id))
   );
 
   const [entered, setEntered] = useState(false);
   useEffect(() => setEntered(true), []);
 
-  /* ----------------------------------------------------
-     LOAD BASIC CHARACTERS
-  ---------------------------------------------------- */
+  /* LOAD BASIC CHARACTERS */
   useEffect(() => {
     const load = async () => {
       try {
@@ -63,20 +67,93 @@ export default function EditScheduleCharactersModal({
     load();
   }, []);
 
-  /* ----------------------------------------------------
-     TOGGLE CHAR
-  ---------------------------------------------------- */
+  /* SERVER FILTER OPTIONS */
+  const servers = useMemo(() => {
+    const s = new Set(allCharacters.map((c) => c.server));
+    return ["全部", ...Array.from(s)];
+  }, [allCharacters]);
+
+  const filteredCharacters = useMemo(() => {
+    return serverFilter === "全部"
+      ? allCharacters
+      : allCharacters.filter((c) => c.server === serverFilter);
+  }, [serverFilter, allCharacters]);
+
+  /* QUEUED ACCOUNT SELECT ALL */
+  const toggleAccountAll = (chars: BasicChar[]) => {
+    toggleQueue = toggleQueue.then(async () => {
+      const next = new Set(selectedIds);
+      const allSelected = chars.every((c) => next.has(c._id));
+
+      if (allSelected) chars.forEach((c) => next.delete(c._id));
+      else chars.forEach((c) => next.add(c._id));
+
+      setSelectedIds(next);
+      onLocalUpdate(next);
+
+      for (const c of chars) {
+        await fetch(
+          `${API_BASE}/api/standard-schedules/${schedule._id}/toggle-character`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              characterId: c._id,
+              add: !allSelected,
+            }),
+          }
+        );
+      }
+    });
+
+    toggleQueue.catch(() => {});
+  };
+
+  /* NEW — QUEUED SINGLE-ACCOUNT SELECT ALL */
+  const toggleSingleAll = (singleAccounts: [string, BasicChar[]][]) => {
+    toggleQueue = toggleQueue.then(async () => {
+      const chars = singleAccounts.flatMap(([acc, list]) => list);
+      if (!chars.length) return;
+
+      const next = new Set(selectedIds);
+      const allSelected = chars.every((c) => next.has(c._id));
+
+      if (allSelected) chars.forEach((c) => next.delete(c._id));
+      else chars.forEach((c) => next.add(c._id));
+
+      setSelectedIds(next);
+      onLocalUpdate(next);
+
+      for (const c of chars) {
+        await fetch(
+          `${API_BASE}/api/standard-schedules/${schedule._id}/toggle-character`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              characterId: c._id,
+              add: !allSelected,
+            }),
+          }
+        );
+      }
+    });
+
+    toggleQueue.catch(() => {});
+  };
+
+  /* QUEUED SINGLE CHARACTER TOGGLE */
   const toggleChar = async (charId: string) => {
-    const currentlySelected = selectedIds.has(charId);
-    const next = new Set(selectedIds);
+    toggleQueue = toggleQueue.then(async () => {
+      const currentlySelected = selectedIds.has(charId);
+      const next = new Set(selectedIds);
 
-    if (currentlySelected) next.delete(charId);
-    else next.add(charId);
+      if (currentlySelected) next.delete(charId);
+      else next.add(charId);
 
-    setSelectedIds(next);
-    onLocalUpdate(next);
+      setSelectedIds(next);
+      onLocalUpdate(next);
 
-    try {
       await fetch(
         `${API_BASE}/api/standard-schedules/${schedule._id}/toggle-character`,
         {
@@ -88,20 +165,18 @@ export default function EditScheduleCharactersModal({
           }),
         }
       );
-    } catch (err) {
-      console.error("toggle save error:", err);
-    }
+    });
+
+    toggleQueue.catch(() => {});
   };
 
-  /* ----------------------------------------------------
-     GROUPING — MAIN CHARACTER PRIORITY
-  ---------------------------------------------------- */
+  /* GROUPING w/ MAIN PRIORITY */
   const { multiAccounts, singleAccounts } = useMemo(() => {
-    if (!allCharacters.length)
+    if (!filteredCharacters.length)
       return { multiAccounts: [], singleAccounts: [] };
 
     const groups: Record<string, BasicChar[]> = {};
-    for (const c of allCharacters) {
+    for (const c of filteredCharacters) {
       const acc = c.account || "未分配账号";
       if (!groups[acc]) groups[acc] = [];
       groups[acc].push(c);
@@ -111,15 +186,14 @@ export default function EditScheduleCharactersModal({
     const single: [string, BasicChar[]][] = [];
 
     for (const [acc, chars] of Object.entries(groups)) {
-      const mainChars = chars.filter((c) => MAIN_CHARACTERS.has(c.name));
-      const normalChars = chars.filter((c) => !MAIN_CHARACTERS.has(c.name));
-      const merged = [...mainChars, ...normalChars];
+      const mains = chars.filter((c) => MAIN_CHARACTERS.has(c.name));
+      const normal = chars.filter((c) => !MAIN_CHARACTERS.has(c.name));
+      const merged = [...mains, ...normal];
 
       if (merged.length === 1) single.push([acc, merged]);
       else multi.push([acc, merged]);
     }
 
-    // sort accounts containing main characters first
     const hasMain = (chars: BasicChar[]) =>
       chars.some((c) => MAIN_CHARACTERS.has(c.name));
 
@@ -127,11 +201,9 @@ export default function EditScheduleCharactersModal({
     single.sort((a, b) => Number(hasMain(b[1])) - Number(hasMain(a[1])));
 
     return { multiAccounts: multi, singleAccounts: single };
-  }, [allCharacters, selectedIds]);
+  }, [filteredCharacters, selectedIds]);
 
-  /* ----------------------------------------------------
-     RENDER CHARACTER PILL
-  ---------------------------------------------------- */
+  /* CHARACTER ENTRY */
   const renderChar = (c: BasicChar) => {
     const checked = selectedIds.has(c._id);
     const isMain = MAIN_CHARACTERS.has(c.name);
@@ -158,9 +230,7 @@ export default function EditScheduleCharactersModal({
     );
   };
 
-  /* ----------------------------------------------------
-     LOADING
-  ---------------------------------------------------- */
+  /* LOADING */
   if (loading) {
     return (
       <div
@@ -185,9 +255,7 @@ export default function EditScheduleCharactersModal({
   const count = selectedIds.size;
   const warn = count % 3 !== 0;
 
-  /* ----------------------------------------------------
-     MAIN MODAL
-  ---------------------------------------------------- */
+  /* MAIN */
   return (
     <>
       <div
@@ -200,19 +268,12 @@ export default function EditScheduleCharactersModal({
         }}
       />
 
-      <div
-        className={styles.characterModal}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* HEADER ROW */}
+      <div className={styles.characterModal} onClick={(e) => e.stopPropagation()}>
+        {/* HEADER */}
         <div className={styles.headerRow}>
           <h2 className={styles.title}>
             编辑排表角色
-            <span
-              className={`${styles.countInline} ${
-                warn ? styles.warn : ""
-              }`}
-            >
+            <span className={`${styles.countInline} ${warn ? styles.warn : ""}`}>
               （{count} 人）
             </span>
           </h2>
@@ -228,14 +289,34 @@ export default function EditScheduleCharactersModal({
           </button>
         </div>
 
-        {/* CONTENT */}
+        {/* SERVER FILTER */}
+        <div className={styles.serverFilterRow}>
+          {servers.map((s) => (
+            <button
+              key={s}
+              className={`${styles.serverFilterBtn} ${
+                serverFilter === s ? styles.activeFilter : ""
+              }`}
+              onClick={() => setServerFilter(s)}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+
         <div className={styles.splitLayout}>
-          {/* MULTI-ACCOUNT */}
+          {/* MULTI ACCOUNTS */}
           <div className={styles.leftPane}>
             <div className={styles.accountGrid}>
               {multiAccounts.map(([acc, chars]) => (
                 <div key={acc} className={styles.accountColumn}>
-                  <div className={styles.accountHeader}>{acc}</div>
+                  <div
+                    className={styles.accountHeader}
+                    onClick={() => toggleAccountAll(chars)}
+                  >
+                    {acc}
+                  </div>
+
                   <div className={styles.characterList}>
                     {chars.map(renderChar)}
                   </div>
@@ -244,14 +325,18 @@ export default function EditScheduleCharactersModal({
             </div>
           </div>
 
-          {/* SINGLE-ACCOUNT */}
+          {/* SINGLE ACCOUNTS — NOW SELECT ALL */}
           <div className={styles.rightPane}>
             <div className={styles.singleColumn}>
-              <div className={styles.singleHeader}>单角色账号</div>
+              <div
+                className={styles.singleHeader}
+                onClick={() => toggleSingleAll(singleAccounts)}
+              >
+                单角色账号
+              </div>
+
               <div className={styles.characterList}>
-                {singleAccounts.map(([acc, [c]]) =>
-                  renderChar({ ...c, account: acc })
-                )}
+                {singleAccounts.map(([acc, [c]]) => renderChar({ ...c, account: acc }))}
               </div>
             </div>
           </div>
