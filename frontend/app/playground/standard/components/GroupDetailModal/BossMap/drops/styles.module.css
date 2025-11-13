@@ -155,3 +155,20 @@
   border-radius: 6px;
   font-size: 14px;
 }
+/* ✅ Delete/reset button (red style) */
+.deleteBtn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid #dc3545;
+  background: #f8d7da;
+  color: #842029;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.deleteBtn:hover {
+  background: #f5c6cb;
+  border-color: #b02a37;
+}
