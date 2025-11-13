@@ -263,3 +263,16 @@
 .cancelBtn:hover {
   background: #e2e2e2;
 }
+.addBtn {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  margin-left: 6px;
+  color: #444;
+}
+
+.addBtn:hover {
+  color: #000;
+  transform: scale(1.1);
+}

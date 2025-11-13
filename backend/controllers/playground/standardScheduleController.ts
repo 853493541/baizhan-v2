@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import StandardSchedule from "../../models/StandardSchedule";
+import Character from "../../models/Character";
 
 // ✅ Create new standard schedule
 export const createStandardSchedule = async (req: Request, res: Response) => {
@@ -313,5 +314,65 @@ export const getGroupKills = async (req: Request, res: Response) => {
   } catch (err) {
     console.error("❌ Error fetching group kills:", err);
     res.status(500).json({ error: "Failed to fetch group kills" });
+  }
+};
+export const updateScheduleCharacters = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { characterIds } = req.body;
+
+    console.log("📥 Updating schedule characters:", {
+      scheduleId: id,
+      characterIdsCount: Array.isArray(characterIds) ? characterIds.length : "invalid",
+    });
+
+    if (!Array.isArray(characterIds)) {
+      return res.status(400).json({ error: "characterIds must be an array" });
+    }
+
+    // 1️⃣ Validate characters exist in DB
+    const chars = await Character.find({ _id: { $in: characterIds } });
+    if (chars.length !== characterIds.length) {
+      return res.status(400).json({
+        error: "Some character IDs do not exist",
+        received: characterIds.length,
+        found: chars.length,
+      });
+    }
+
+    // 2️⃣ Load schedule
+    const schedule: any = await StandardSchedule.findById(id);
+    if (!schedule) {
+      return res.status(404).json({ error: "Standard schedule not found" });
+    }
+
+    // 3️⃣ Update characters field
+    schedule.characters = characterIds;
+
+    // 4️⃣ Clear all groups because membership changed
+    if (Array.isArray(schedule.groups)) {
+      schedule.groups = schedule.groups.map((g: any) => ({
+        ...g,
+        characters: [],
+        kills: g.kills || [],
+      }));
+    }
+
+    await schedule.save();
+
+    // 5️⃣ Return populated version so frontend gets full objects
+    const populated = await StandardSchedule.findById(id)
+      .populate("characters")
+      .populate("groups.characters");
+
+    console.log("✅ Updated schedule characters:", {
+      id,
+      characterCount: schedule.characters.length,
+    });
+
+    res.json(populated);
+  } catch (err) {
+    console.error("❌ Error updating schedule characters:", err);
+    res.status(500).json({ error: "Failed to update schedule characters" });
   }
 };
