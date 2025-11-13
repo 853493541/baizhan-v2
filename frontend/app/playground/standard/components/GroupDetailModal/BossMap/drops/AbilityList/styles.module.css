@@ -1,87 +1,150 @@
-/* Ability buttons (base) */
+/* ===========================================
+   🧩 Ability Buttons — Base Styles (Left-Aligned & Balanced)
+   =========================================== */
 .dropBtn,
 .noDropBtn {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: flex-start; /* 👈 Left-align icon + text */
   gap: 6px;
-  padding: 6px 10px;
+  padding: 6px 14px;
   border-radius: 6px;
   font-size: 0.9rem;
-  min-width: 220px;
-  max-width: 220px;
+  min-width: 215px;
+  max-width: 215px;
   height: 40px;
   box-sizing: border-box;
   cursor: pointer;
-  margin-bottom: 3px;
+  margin-bottom: 4px;
+  transition: all 0.2s ease;
+  text-align: left;
 }
 
-/* Ability icon */
+/* === Ability Icon === */
 .iconSmall {
   width: 18px;
   height: 18px;
   object-fit: contain;
+  flex-shrink: 0;
 }
 
-/* Hover + active states */
+/* === Text (Left-Aligned) === */
+.dropText {
+  flex: 1;
+  text-align: left;
+  color: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===========================================
+   🔷 Default (Blue Book)
+   =========================================== */
 .dropBtn {
-  border: 1px solid #ccc;
-  background: #f9f9f9;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  color: #1e3a8a;
+  font-weight: 500;
 }
-.dropBtn:hover {
-  background: #e6f7ff;
-  border-color: #1890ff;
-}
+
+/* ✅ Unified Hover & Active Effect */
+.dropBtn:hover,
 .activeBtn {
-  background: #d0ebff;
-  border-color: #1890ff;
+  background: #dbeafe;
+  border-color: #3b82f6;
+  box-shadow:
+    0 0 6px rgba(59, 130, 246, 0.35),
+    inset 0 0 3px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
 }
 
-/* No-drop (red) */
-.noDropBtn {
-  border: 1px solid #dc3545;
-  background: #f8d7da;
-  color: #721c24;
-  font-weight: 600;
-}
-.noDropBtn:hover {
-  background: #f5c6cb;
-}
-.activeNoDrop {
-  background: #f1b0b7;
-  border-color: #dc3545;
-}
-
-/* “已有” abilities (allHave) */
+/* ===========================================
+   🔴 No-Drop & All-Have (Red)
+   =========================================== */
+.noDropBtn,
 .allHaveBtn {
   background-color: #f8d7da;
   color: #721c24;
   border: 1px solid #ff0019;
+  font-weight: 600;
 }
 
-/* Button content text */
-.dropBtn {
+.noDropBtn:hover,
+.allHaveBtn:hover,
+.activeNoDrop,
+.activeAllHave {
+  background-color: #f1b0b7;
+  border-color: #dc3545;
+  box-shadow:
+    0 0 6px rgba(220, 53, 69, 0.3),
+    inset 0 0 3px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+/* ===========================================
+   💜 紫书掉落按钮 (Purple Book)
+   =========================================== */
+.purpleBookBtn {
+  background: #e9d5ff;
+  border: 1px solid #9333ea;
+  color: #4c1d95;
+  font-weight: 600;
+}
+
+/* ✅ Unified Hover & Active */
+.purpleBookBtn:hover,
+.purpleBookBtn.activeBtn {
+  background: #d8b4fe;
+  border-color: #7e22ce;
+  box-shadow:
+    0 0 6px rgba(124, 58, 237, 0.4),
+    inset 0 0 3px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+/* ===========================================
+   🧭 Section Divider (─ text ─ style)
+   =========================================== */
+.sectionDivider {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 6px;
-  padding: 6px 16px;
-  min-width: 220px;
-  white-space: nowrap;
-}
-
-.dropText {
-  flex: 1;
-  text-align: left;
-}
-
-/* Section titles */
-.sectionDivider {
-  margin: 10px 0;
-  font-size: 0.85rem;
-  font-weight: bold;
+  justify-content: center;
   color: #666;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin: 10px 0;
+  line-height: 1.2;
   text-align: center;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 2px;
+}
+
+.sectionDivider::before,
+.sectionDivider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid #ccc;
+}
+
+.sectionDivider:not(:empty)::before {
+  margin-right: 6px;
+}
+.sectionDivider:not(:empty)::after {
+  margin-left: 6px;
+}
+
+/* === Divider Color Variants === */
+.purpleDivider {
+  color: #7a3db8;
+}
+.purpleDivider::before,
+.purpleDivider::after {
+  border-color: #d8b4fe;
+}
+
+.redDivider {
+  color: #b91c1c;
+}
+.redDivider::before,
+.redDivider::after {
+  border-color: #f5a3a3;
 }

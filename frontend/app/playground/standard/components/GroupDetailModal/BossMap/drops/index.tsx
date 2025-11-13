@@ -10,7 +10,8 @@ export default function Drops(props: any) {
     scheduleId,
     floor,
     boss,
-    dropList,
+    dropList,          // 🟢 normal abilities
+    tradableList = [], // 🟣 紫书 abilities (new)
     dropLevel,
     group,
     onClose,
@@ -26,6 +27,19 @@ export default function Drops(props: any) {
   const [errMsg, setErrMsg] = useState<string | null>(null);
   const hasKillRecord = group.kills?.some((k: any) => k.floor === floor);
   const modalRef = useRef<HTMLDivElement>(null);
+
+  /** 🧠 Debug: check incoming data from BossCard */
+  useEffect(() => {
+    console.log(
+      `[purple] Drops opened → floor ${floor} boss ${boss}`,
+      {
+        dropList,
+        tradableList,
+        dropCount: dropList?.length || 0,
+        tradableCount: tradableList?.length || 0,
+      }
+    );
+  }, [floor, boss, dropList, tradableList]);
 
   /** 🧭 Click outside main modal → close */
   useEffect(() => {
@@ -46,25 +60,52 @@ export default function Drops(props: any) {
   /** 🧩 Build full drop options for this floor */
   const options = buildOptions(dropList, floor);
 
-  /** Mirror pairs (cross-gender transferable skills) */
-  const MIRROR_MAP: Record<string, string> = {
+  /**
+   * ⚔️ Ability relationships
+   */
+  const TRANSFER_MAP: Record<string, string> = {
+    "蛮熊碎颅击": "水遁水流闪",
+  };
+  const MIRROR_PAIRS: Record<string, string> = {
     "剑心通明": "巨猿劈山",
     "巨猿劈山": "剑心通明",
-    "蛮熊碎颅击": "水遁水流闪",
-    "水遁水流闪": "蛮熊碎颅击",
   };
 
-  /** 🔧 Helper: get mirror name */
-  const getMirror = (name: string) => MIRROR_MAP[name] || null;
+  const getTransferSource = (dest: string) =>
+    Object.entries(TRANSFER_MAP).find(([src, target]) => target === dest)?.[0] || null;
+  const getTransferDest = (src: string) => TRANSFER_MAP[src] || null;
+  const getMirror = (name: string) => MIRROR_PAIRS[name] || null;
 
-  /** 🧠 Check if all members already have a specific ability or its mirror */
+  /** 🧠 Compute effective level including transfer/mirror rules */
+  const getEffectiveLevel = (char: any, ability: string) => {
+    const baseLevel = char.abilities?.[ability] ?? 0;
+    const gender = char.gender;
+
+    if (gender === "女") {
+      const source = getTransferSource(ability);
+      if (source) {
+        const srcLevel = char.abilities?.[source] ?? 0;
+        return Math.max(baseLevel, srcLevel);
+      }
+      const dest = getTransferDest(ability);
+      if (dest) {
+        const destLevel = char.abilities?.[dest] ?? 0;
+        return Math.max(baseLevel, destLevel);
+      }
+    }
+
+    const mirror = getMirror(ability);
+    if (mirror) {
+      const mirrorLv = char.abilities?.[mirror] ?? 0;
+      return Math.max(baseLevel, mirrorLv);
+    }
+
+    return baseLevel;
+  };
+
+  /** 🧠 Check if all members already have a specific ability */
   const allHaveAbility = (ability: string, level: 9 | 10) =>
-    group.characters.every((c: any) => {
-      const lvMain = c.abilities?.[ability] ?? 0;
-      const mirror = getMirror(ability);
-      const lvMirror = mirror ? c.abilities?.[mirror] ?? 0 : 0;
-      return Math.max(lvMain, lvMirror) >= level;
-    });
+    group.characters.every((c: any) => getEffectiveLevel(c, ability) >= level);
 
   /** 🩵 Build “all have” lists */
   let allHave9Options = options.filter(
@@ -73,21 +114,6 @@ export default function Drops(props: any) {
   let allHave10Options = options.filter(
     (opt: any) => opt.level === 10 && allHaveAbility(opt.ability, 10)
   );
-
-  /** Expand to include mirror equivalents for display convenience */
-  function expandWithMirrors(list: { ability: string; level: number }[]) {
-    const expanded = [...list];
-    for (const item of list) {
-      const mirror = getMirror(item.ability);
-      if (mirror && !expanded.some((x) => x.ability === mirror)) {
-        expanded.push({ ability: mirror, level: item.level });
-      }
-    }
-    return expanded;
-  }
-
-  allHave9Options = expandWithMirrors(allHave9Options);
-  allHave10Options = expandWithMirrors(allHave10Options);
 
   /** 🔄 Reset logic */
   const doReset = async () => {
@@ -116,13 +142,23 @@ export default function Drops(props: any) {
   return (
     <div className={styles.overlay}>
       <div className={styles.modal} ref={modalRef}>
-        <h3>
-          {floor}层 - {boss}
-        </h3>
+        {/* === Header Row === */}
+        <div className={styles.headerRow}>
+          <div className={styles.headerLeft}>
+            <span className={styles.dropLevel}>
+              {dropLevel === 10 ? "十阶" : "九阶"}
+            </span>
+            <span className={styles.separator}>·</span>
+            <span className={styles.bossName}>{boss}</span>
+          </div>
+          <div className={styles.headerRight}>{floor}层</div>
+        </div>
 
+        {/* === Two Columns Layout === */}
         <div className={styles.columns}>
           <AbilityList
             options={options}
+            tradableList={tradableList}
             allHave9Options={allHave9Options}
             allHave10Options={allHave10Options}
             chosenDrop={chosenDrop}
@@ -131,6 +167,7 @@ export default function Drops(props: any) {
             markStartedIfNeeded={markStartedIfNeeded}
             onSave={onSave}
             onClose={onClose}
+            boss={boss}
           />
 
           <MemberList
@@ -147,6 +184,7 @@ export default function Drops(props: any) {
 
         {errMsg && <div className={styles.errorBox}>{errMsg}</div>}
 
+        {/* === Footer Buttons === */}
         <div className={styles.footer}>
           {hasKillRecord && (
             <button
@@ -162,6 +200,7 @@ export default function Drops(props: any) {
           </button>
         </div>
 
+        {/* === Confirm Modal === */}
         {showConfirm && (
           <div
             className={styles.confirmOverlay}
