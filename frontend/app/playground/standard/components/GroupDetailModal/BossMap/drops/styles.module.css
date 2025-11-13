@@ -5,7 +5,7 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0,0,0,0.55);
+  background: rgba(0, 0, 0, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -19,24 +19,53 @@
   padding: 20px;
   max-width: 700px;
   width: auto;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
 }
 
-/* Layout */
+/* ============================
+   Header (Clean Neutral)
+   ============================ */
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #222;
+}
+
+.dropLevel {
+  color: #222; /* neutral, no red */
+  font-weight: 700;
+}
+
+.dot {
+  color: #666;
+}
+
+.bossName {
+  color: #333;
+  font-weight: 600;
+}
+
+.headerRight {
+  font-size: 0.9rem;
+  color: #888;
+}
+
+/* Columns */
 .columns {
   display: flex;
   gap: 20px;
   align-items: flex-start;
   justify-content: center;
-}
-
-/* Column wrappers */
-.leftColumn,
-.rightColumn {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
 }
 
 /* Footer */
@@ -47,7 +76,7 @@
   margin-top: 12px;
 }
 
-/* ✅ Close button (neutral gray) */
+/* Buttons */
 .closeBtn {
   padding: 6px 14px;
   border: 1px solid #ccc;
@@ -64,21 +93,20 @@
   border-color: #999;
 }
 
-/* ✅ Delete/reset button (red style) */
 .deleteBtn {
   padding: 6px 14px;
   border-radius: 6px;
-  border: 1px solid #dc3545;
-  background: #f8d7da;
-  color: #842029;
-  font-weight: 600;
+  border: 1px solid #bbb;
+  background: #f1f1f1;
+  color: #333;
+  font-weight: 500;
   cursor: pointer;
   font-size: 14px;
   transition: background 0.2s, border-color 0.2s;
 }
 .deleteBtn:hover {
-  background: #f5c6cb;
-  border-color: #b02a37;
+  background: #e5e5e5;
+  border-color: #888;
 }
 
 /* Confirm modal overlay */
@@ -98,7 +126,7 @@
   padding: 16px;
   min-width: 320px;
   max-width: 90vw;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
 }
 
 .confirmTitle {
@@ -126,4 +154,21 @@
   color: #842029;
   border-radius: 6px;
   font-size: 14px;
+}
+/* ✅ Delete/reset button (red style) */
+.deleteBtn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid #dc3545;
+  background: #f8d7da;
+  color: #842029;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.deleteBtn:hover {
+  background: #f5c6cb;
+  border-color: #b02a37;
 }

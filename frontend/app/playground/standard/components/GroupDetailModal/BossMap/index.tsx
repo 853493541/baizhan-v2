@@ -21,17 +21,40 @@ interface Props {
   scheduleId: string;
   group: ExtendedGroup;
   weeklyMap: Record<number, string>;
-  countdown?: number;                    // ✅ now we accept the number
+  countdown?: number;
   onRefresh?: () => void;
   onGroupUpdate?: (g: ExtendedGroup) => void;
 }
 
 const highlightAbilities = [
-  "蛮熊碎颅击","花钱消灾","斗转金移","特制金创药","万花金创药",
-  "一闪天诛","初景白雨","漾剑式","定波式","黑煞落贪狼","毓秀灵药","霞月长针",
-  "剑心通明","飞云回转刀","阴阳术退散","尸鬼封烬","兔死狐悲","血龙甩尾","七荒黑牙",
-  "三个铜钱","乾坤一掷","厄毒爆发","坠龙惊鸿","引燃","火焰之种","阴雷之种",
-  "短歌万劫","泉映幻歌",
+  "蛮熊碎颅击",
+  "花钱消灾",
+  "斗转金移",
+  "特制金创药",
+  "万花金创药",
+  "一闪天诛",
+  "初景白雨",
+  "漾剑式",
+  "定波式",
+  "黑煞落贪狼",
+  "毓秀灵药",
+  "霞月长针",
+  "剑心通明",
+  "飞云回转刀",
+  "阴阳术退散",
+  "尸鬼封烬",
+  "兔死狐悲",
+  "血龙甩尾",
+  "七荒黑牙",
+  "三个铜钱",
+  "乾坤一掷",
+  "厄毒爆发",
+  "坠龙惊鸿",
+  "引燃",
+  "火焰之种",
+  "阴雷之种",
+  "短歌万劫",
+  "泉映幻歌",
 ];
 
 export default function BossMap({
@@ -64,7 +87,8 @@ export default function BossMap({
   const [selected, setSelected] = useState<{
     floor: number;
     boss: string;
-    dropList: string[];
+    dropList: string[];       // 🟢 normal abilities
+    tradableList: string[];   // 🟣 紫书 abilities
     dropLevel: 9 | 10;
   } | null>(null);
 
@@ -209,7 +233,6 @@ export default function BossMap({
         </div>
 
         <div className={styles.rightControls}>
-          {/* ✅ countdown sits left of status */}
           {typeof countdown === "number" && (
             <span className={styles.countdownText}>
               （{countdown}秒后刷新）
@@ -246,8 +269,8 @@ export default function BossMap({
             tradableSet={tradableSet}
             kill={localGroup.kills?.find((k) => k.floor === f)}
             activeMembers={activeMembers}
-            onSelect={(floor, boss, dropList, dropLevel) =>
-              setSelected({ floor, boss, dropList, dropLevel })
+            onSelect={(floor, boss, dropList, tradableList, dropLevel) =>
+              setSelected({ floor, boss, dropList, tradableList, dropLevel })
             }
           />
         ))}
@@ -265,8 +288,8 @@ export default function BossMap({
             tradableSet={tradableSet}
             kill={localGroup.kills?.find((k) => k.floor === f)}
             activeMembers={activeMembers}
-            onSelect={(floor, boss, dropList, dropLevel) =>
-              setSelected({ floor, boss, dropList, dropLevel })
+            onSelect={(floor, boss, dropList, tradableList, dropLevel) =>
+              setSelected({ floor, boss, dropList, tradableList, dropLevel })
             }
           />
         ))}
@@ -278,6 +301,7 @@ export default function BossMap({
           floor={selected.floor}
           boss={selected.boss}
           dropList={selected.dropList}
+          tradableList={selected.tradableList}  // 🟣 now actually passed
           dropLevel={selected.dropLevel}
           group={localGroup}
           onClose={() => setSelected(null)}

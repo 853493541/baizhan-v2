@@ -100,7 +100,7 @@ const countLevel10FromBoss = (character: any, dropList: string[]): number => {
   }, 0);
 };
 
-/** 🧠 Final version — includes 九重 & 十重进度检查 */
+/** 🧠 Final version — includes improved 背包检查 logic & display */
 export function pickBestCharacterWithTrace(
   ability: string,
   level: number,
@@ -149,7 +149,9 @@ export function pickBestCharacterWithTrace(
     if (eliminatedByOwned.length)
       parts.push(`[可用检查] ${eliminatedByOwned.join("、")} 已有`);
     if (eliminatedByGender.length)
-      parts.push(`${eliminatedByGender.join("、")} 性别不符 → 淘汰）`);
+      parts.push(
+        `${eliminatedByGender.join("、")} 无法学习该技能 → 淘汰`
+      );
     step1Text += parts.join("，");
   }
   steps.push({ reason: step1Text, passed: candidates.length > 0 });
@@ -167,44 +169,99 @@ export function pickBestCharacterWithTrace(
   };
   const mainCandidates = candidates.filter((c) => isMain(c.name));
   if (mainCandidates.length > 0) {
-    steps.push({
-      reason: `② [大号检查] → ${mainCandidates.map((c) => c.name).join("、")}`,
-      passed: true,
-    });
-    candidates = mainCandidates;
-    if (candidates.length === 1) return finalize(candidates[0]);
+    if (mainCandidates.length === 1) {
+      steps.push({
+        reason: `② [大号检查] ${mainCandidates[0].name} → 结束`,
+        passed: true,
+      });
+      return finalize(mainCandidates[0]);
+    } else {
+      steps.push({
+        reason: `② [大号检查] → ${mainCandidates
+          .map((c) => c.name)
+          .join("、")}`,
+        passed: true,
+      });
+      candidates = mainCandidates;
+    }
   } else {
     steps.push({ reason: "② [大号检查] 无大号 → 跳过", passed: false });
   }
 
-  /* ---------------- ③ 👜 背包检查 ---------------- */
-  const backpack10 = candidates.filter((c) => {
-    if (!Array.isArray(c.storage)) return false;
-    const linked = getLinkedGenderAbility(ability, c.gender);
-    const item = c.storage.find(
-      (it: any) =>
-        it?.ability === ability || (linked && it?.ability === linked)
-    );
-    if (!item) return false;
-    const lv = typeof item.level === "number" ? item.level : 10;
-    return lv >= 10;
-  });
+  /* ---------------- ③ 👜 背包检查（最终展示版） ---------------- */
+  if (level === 9) {
+    // ✅ 九重掉落 → 优先考虑包里已有十重的角色
+    const backpack10 = candidates.filter((c) => {
+      if (!Array.isArray(c.storage)) return false;
+      const linked = getLinkedGenderAbility(ability, c.gender);
+      const item = c.storage.find(
+        (it: any) =>
+          it?.ability === ability || (linked && it?.ability === linked)
+      );
+      if (!item) return false;
+      const lv = typeof item.level === "number" ? item.level : 10;
+      return lv >= 10;
+    });
 
-  if (backpack10.length === 1) {
-    const name = backpack10[0].name;
-    steps.push({
-      reason: `③ [背包检查] → ${name}包里有10`,
-      passed: true,
-    });
-    return finalize(backpack10[0]);
-  } else if (backpack10.length > 1) {
-    steps.push({
-      reason: `③ [背包检查] → ${backpack10.map((c) => c.name).join("、")}包里有10`,
-      passed: true,
-    });
-    candidates = backpack10;
-  } else {
-    steps.push({ reason: "③ [背包检查] 无储存 → 跳过", passed: false });
+    if (backpack10.length === 1) {
+      steps.push({
+        reason: `③ [背包检查] ${backpack10[0].name} 包里有十`,
+        passed: true,
+      });
+      return finalize(backpack10[0]);
+    } else if (backpack10.length > 1) {
+      steps.push({
+        reason: `③ [背包检查] ${backpack10
+          .map((c) => c.name)
+          .join("、")} 包里有十`,
+        passed: true,
+      });
+      candidates = backpack10;
+    } else {
+      steps.push({ reason: "③ [背包检查] 无储存 → 跳过", passed: false });
+    }
+  } else if (level === 10) {
+    // ✅ 十重掉落 → 避免浪费在已有十重书的角色
+    const has10Book = (c: any): boolean => {
+      if (!Array.isArray(c.storage)) return false;
+      const linked = getLinkedGenderAbility(ability, c.gender);
+      const item = c.storage.find(
+        (it: any) =>
+          it?.ability === ability || (linked && it?.ability === linked)
+      );
+      if (!item) return false;
+      const lv = typeof item.level === "number" ? item.level : 10;
+      return lv >= 10;
+    };
+
+    const with10 = candidates.filter(has10Book);
+    const without10 = candidates.filter((c) => !has10Book(c));
+
+    if (without10.length === 1) {
+      steps.push({
+        reason: `③ [背包检查] 只有${without10[0].name}包里没十 → 结束`,
+        passed: true,
+      });
+      return finalize(without10[0]);
+    } else if (without10.length > 1 && with10.length > 0) {
+      steps.push({
+        reason: `③ [背包检查] ${with10
+          .map((c) => c.name)
+          .join("、")} 已有十重 → 淘汰`,
+        passed: true,
+      });
+      candidates = without10;
+    } else if (without10.length > 1 && with10.length === 0) {
+      steps.push({
+        reason: "③ [背包检查] 无储存 → 跳过",
+        passed: false,
+      });
+    } else {
+      steps.push({
+        reason: "③ [背包检查] 所有人都有十 → 跳过",
+        passed: false,
+      });
+    }
   }
 
   /* ---------------- ④ 治疗技能过滤 ---------------- */
@@ -219,7 +276,9 @@ export function pickBestCharacterWithTrace(
     if (healerOnly.length > 0) {
       if (eliminated.length > 0) {
         steps.push({
-          reason: `④ [治疗检查] 淘汰 ${eliminated.map((c) => c.name).join("、")}`,
+          reason: `④ [治疗检查] 淘汰 ${eliminated
+            .map((c) => c.name)
+            .join("、")}`,
           passed: true,
         });
       } else {
@@ -255,9 +314,10 @@ export function pickBestCharacterWithTrace(
   });
 
   if (levelFiltered.length === 1) {
-    const name = levelFiltered[0].name;
     steps.push({
-      reason: `⑤ [重数检查] ${name} 重数最高（${numToChinese(maxLv)}重）→ 结束`,
+      reason: `⑤ [重数检查] ${levelFiltered[0].name} 重数最高（${numToChinese(
+        maxLv
+      )}重）→ 结束`,
       passed: true,
     });
     return finalize(levelFiltered[0]);
@@ -270,10 +330,10 @@ export function pickBestCharacterWithTrace(
     });
   } else {
     steps.push({
-      reason: `⑤ [重数检查] 重数最低 → 淘汰 ${candidates
+      reason: `⑤ [重数检查] ${candidates
         .filter((c) => !levelFiltered.includes(c))
         .map((c) => c.name)
-        .join("、")}`,
+        .join("、")} 重数最低 → 淘汰`,
       passed: true,
     });
   }

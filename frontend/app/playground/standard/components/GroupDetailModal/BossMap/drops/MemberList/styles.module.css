@@ -1,19 +1,20 @@
-/* === Character Buttons === */
+/* ===========================================
+   🧩 Character Buttons — Base Styles
+   =========================================== */
 .memberBtn {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
   gap: 2px;
-  padding: 3px 16px;
+  padding: 4px 16px;
   border-radius: 6px;
   font-size: 0.9rem;
   font-weight: 450;
   min-width: 220px;
   max-width: 220px;
-  height: auto;
-  min-height: 37px;
-  line-height: 1.2;
+  min-height: 38px;
+  line-height: 1.25;
   box-sizing: border-box;
   cursor: pointer;
   border: 1px solid #28a745;
@@ -27,34 +28,44 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-/* Disabled */
 .memberDisabled {
   background: #f0f0f0;
   color: #888;
   border: 1px solid #ddd;
   cursor: not-allowed;
-  box-shadow: none;
 }
 
-/* Section title */
+/* ===========================================
+   🧭 Section Divider (Unified ─ text ─ style)
+   =========================================== */
 .sectionDivider {
-  margin: 10px 0;
-  font-size: 0.85rem;
-  font-weight: bold;
-  color: #666;
-  text-align: center;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 2px;
-}
-
-/* Grid layout */
-.memberGrid {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin: 10px 0;
+  text-align: center;
 }
 
-/* === Highlight colors === */
+.sectionDivider::before,
+.sectionDivider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid #ccc;
+}
+
+.sectionDivider:not(:empty)::before {
+  margin-right: 6px;
+}
+.sectionDivider:not(:empty)::after {
+  margin-left: 6px;
+}
+
+/* ===========================================
+   🟩 Level Highlights
+   =========================================== */
 .levelGreen {
   background-color: #e2fbe2 !important;
   border-color: #1c7c2d !important;
@@ -67,25 +78,50 @@
   color: #4a3f00 !important;
 }
 
-/* === Top Row: Name + Progress aligned right === */
+/* ===========================================
+   🧱 Grid Layout
+   =========================================== */
+.memberGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ===========================================
+   🧾 Character Info Rows
+   =========================================== */
 .topRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: nowrap;
   width: 100%;
+  overflow: hidden;
+}
+
+.nameAndIcon {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  flex-shrink: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .progressText {
+  flex-shrink: 0;
   font-size: 13px;
   font-weight: 500;
-  color: inherit;
   margin-left: 6px;
   white-space: nowrap;
-  background: none;
-  padding: 0;
+  color: inherit;
 }
 
-/* === Summary Row === */
+/* ===========================================
+   🧮 Summary Row
+   =========================================== */
 .summaryRow {
   display: flex;
   align-items: center;
@@ -112,6 +148,9 @@
   text-overflow: ellipsis;
 }
 
+/* ===========================================
+   🔍 Info & Help Buttons
+   =========================================== */
 .infoBtn {
   background: none;
   border: none;
@@ -121,40 +160,70 @@
   line-height: 1;
   padding: 0;
   margin-left: 2px;
+  transition: color 0.2s;
 }
 
 .infoBtn:hover {
   color: #0056b3;
 }
 
-/* === Attached reasoning window (next to parent modal) === */
+/* === Compact circular ? icon button === */
+.helpCircle {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  position: relative;
+  top: -1px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.helpCircleInactive {
+  border: 1.5px solid #0070f3;
+  color: #0070f3;
+  background: #ffffff;
+}
+
+.helpCircleActive {
+  background: #0070f3;
+  color: #ffffff;
+  border: 1.5px solid #0070f3;
+  transform: scale(1.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+/* ===========================================
+   💬 Attached Reasoning Window
+   =========================================== */
 .rightColumn {
   position: relative;
   overflow: visible;
 }
 
-/* 🧭 Window is dynamically positioned by JS (no top/translateY here) */
 .window {
   position: absolute;
-  left: calc(100% + 24px); /* keep consistent 24px gap from parent */
-  width: 300px;
-  min-width: 350px;
-  max-width: 400px;
-  background: #ffffff;
+  left: calc(100% + 24px);
+  width: 350px;
+  background: #fff;
   border: 1px solid #ddd;
   border-radius: 10px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   padding: 10px 12px;
   z-index: 50;
   font-family: "Segoe UI", "PingFang SC", sans-serif;
-  transition: none;
   overflow-y: auto;
   transform: translateY(30px);
-  /* border:red 2px solid; */
-  max-height: calc(100vh - 40px); /* just prevent viewport clipping */
+  max-height: calc(100vh - 40px);
 }
 
-/* Header */
+/* === Header === */
 .header {
   display: flex;
   justify-content: space-between;
@@ -176,18 +245,29 @@
   font-size: 16px;
   line-height: 1;
 }
-
 .closeBtn:hover {
   color: #000;
 }
 
-/* Scrollable content */
+/* === Scrollable content === */
 .content {
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 4px;
 }
 
+.content::-webkit-scrollbar {
+  width: 6px;
+}
+.content::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+.content::-webkit-scrollbar-thumb:hover {
+  background: #aaa;
+}
+
+/* === Step List === */
 .stepList {
   list-style: none;
   padding: 0;
@@ -199,45 +279,28 @@
   border-radius: 4px;
   padding: 4px 6px;
   line-height: 1.4;
-  word-wrap: break-word;
-  word-break: break-all;
   margin-bottom: 6px;
+  word-wrap: break-word;
 }
 
-/* === Status color styles === */
+/* === Step Status Colors === */
 .passed {
   color: #155724;
   background: #d4edda;
   border-left: 4px solid #28a745;
 }
-
 .failed {
   color: #721c24;
   background: #f8d7da;
   border-left: 4px solid #dc3545;
 }
-
 .fallback {
   color: #856404;
   background: #fff3cd;
   border-left: 4px solid #ffc107;
 }
 
-/* === Character icons === */
-.nameAndIcon {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.abilityIconSmall {
-  width: 16px;
-  height: 16px;
-  vertical-align: middle;
-  border-radius: 3px;
-}
-
-/* 💎 Tied candidates (blue tone) */
+/* === Diamond Tier Candidates === */
 .diamond {
   background: #e8f4ff;
   border: 1px solid #7cb9ff;
@@ -246,179 +309,7 @@
   box-shadow: 0 1px 4px rgba(0, 102, 204, 0.15);
   transition: background 0.2s, border 0.2s;
 }
-
 .diamond:hover {
   background: #d6ebff;
   border-color: #5da8ff;
 }
-
-/* Optional scrollbar styling for attached window */
-.content::-webkit-scrollbar {
-  width: 6px;
-}
-.content::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 3px;
-}
-.content::-webkit-scrollbar-thumb:hover {
-  background: #aaa;
-}
-/* Keep character info in one horizontal row */
-.topRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  flex-wrap: nowrap;          /* ✅ prevents breaking into new line */
-  overflow: hidden;
-}
-
-/* Name + icon stay inline and shrink if needed */
-.nameAndIcon {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  min-width: 0;               /* ✅ allows flex-shrink inside topRow */
-  flex-shrink: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Progress text shrinks if space is tight */
-.progressText {
-  flex-shrink: 0;
-  font-size: 13px;
-  font-weight: 500;
-  color: inherit;
-  margin-left: 6px;
-  white-space: nowrap;
-}
-
-/* Optional: give name+icon more room inside the button */
-.memberBtn {
-  min-width: 240px;   /* was 220px */
-  max-width: 240px;
-}
-.helpBtn {
-  background: none;
-  border: none;
-  font-size: 14px;
-  color: #0070f3;
-  margin-left: 6px;
-  cursor: pointer;
-  line-height: 1;
-  transition: color 0.2s ease, transform 0.15s ease;
-}
-
-.helpBtn:hover {
-  color: #0059c9;
-  transform: scale(1.15);
-}
-
-.helpBtnActive {
-  color: #1c7c2d; /* green when active/open */
-}
-/* === Circular ? icon button === */
-.helpCircle {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  border: 1.5px solid #0070f3;
-  color: #0070f3;
-  background: white;
-  font-weight: 600;
-  font-size: 14px;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-.helpCircle:hover {
-  background: #0070f3;
-  color: white;
-  transform: scale(1.1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
-.helpCircleActive {
-  background: #0070f3;
-  color: white;
-  border-color: #0070f3;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-}
-/* === Circular ? icon button === */
-.helpCircle {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  border: 1.5px solid #0070f3;
-  color: #0070f3;
-  background: #ffffff;
-  font-weight: 600;
-  font-size: 14px;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-.helpCircle:hover {
-  background: #0070f3;
-  color: white;
-  transform: scale(1.1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
-.helpCircleActive {
-  background: #0070f3;
-  color: white;
-  border-color: #0070f3;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-}
-/* === Compact circular ? icon button === */
-.helpCircle {
-  width: 15px;               /* smaller size */
-  height: 15px;
-  border-radius: 50%;
-  font-weight: 700;
-  font-size: 13px;           /* proportionally smaller ? */
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 6px;
-  position: relative;
-  top: -2px;                 /* ⬆️ move slightly upward */
-  cursor: pointer;
-
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-
-/* 🟦 Closed state */
-.helpCircleInactive {
-  border: 1.5px solid #0070f3;
-  color: #0070f3;
-  background: #ffffff;
-}
-
-/* 🟩 Open state */
-.helpCircleActive {
-  background: #0070f3;
-  color: #ffffff;
-  border: 1.5px solid #0070f3;
-  transform: scale(1.1);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-}
-
