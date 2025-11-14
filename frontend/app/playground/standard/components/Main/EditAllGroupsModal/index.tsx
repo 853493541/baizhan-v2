@@ -1,15 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import styles from "./styles.module.css";
 import type { Character, GroupResult } from "@/utils/solver";
 
 interface Props {
   groups: GroupResult[];
-  allCharacters: Character[];
   onSave: (updatedGroups: GroupResult[]) => void;
   onClose: () => void;
 }
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 const MAIN_CHARACTERS = new Set([
   "剑心猫猫糕",
@@ -19,30 +20,146 @@ const MAIN_CHARACTERS = new Set([
   "唐宵风",
 ]);
 
-export default function EditAllGroupsModal({
-  groups,
-  allCharacters,
-  onSave,
-  onClose,
-}: Props) {
-  const [selectedGroup, setSelectedGroup] = useState(0);
-
-  const initialSelections = useMemo(
-    () => groups.map((g) => new Set(g.characters.map((c) => c._id))),
-    [groups]
+export default function EditAllGroupsModal({ groups, onSave, onClose }: Props) {
+  /* -----------------------------------------
+     STATE
+  ----------------------------------------- */
+  const [selectedGroup, setSelectedGroup] = useState<number | null>(
+    groups.length ? 0 : null
   );
+  const [allCharacters, setAllCharacters] = useState<Character[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selections, setSelections] = useState<Set<string>[]>([]);
 
-  const [selections, setSelections] = useState<Set<string>[]>(initialSelections);
+  /* -----------------------------------------
+     LOAD FULL CHARACTER LIST
+  ----------------------------------------- */
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/characters/basic`);
+        const data = await res.json();
+        setAllCharacters(data);
+      } catch (err) {
+        console.error("❌ Character fetch failed:", err);
+      }
+      setLoading(false);
+    };
+    load();
+  }, []);
 
-  const current = selections[selectedGroup];
+  /* -----------------------------------------
+     INITIAL SELECTIONS
+  ----------------------------------------- */
+  const initialSelections = useMemo(() => {
+    return groups.map((g) => {
+      const existing = new Set(g.characters.map((c) => c._id));
+      const s = new Set<string>();
 
-  // LIVE UPDATE
+      for (const c of allCharacters) {
+        if (existing.has(c._id)) s.add(c._id);
+      }
+
+      return s;
+    });
+  }, [groups, allCharacters]);
+
+  useEffect(() => {
+    if (!loading && allCharacters.length > 0) {
+      setSelections(initialSelections);
+    }
+  }, [loading, initialSelections, allCharacters.length]);
+
+  /* -----------------------------------------
+     GROUP MAP
+  ----------------------------------------- */
+  const charGroupMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    groups.forEach((g, i) => {
+      g.characters.forEach((c) => (map[c._id] = i + 1));
+    });
+    return map;
+  }, [groups]);
+
+  /* -----------------------------------------
+     GROUP BY ACCOUNT
+  ----------------------------------------- */
+  const { multiAccounts, singleAccounts } = useMemo(() => {
+    const accountMap: Record<string, Character[]> = {};
+
+    for (const c of allCharacters) {
+      const acc = c.account || "未分配账号";
+      (accountMap[acc] ||= []).push(c);
+    }
+
+    const multi: [string, Character[]][] = [];
+    const single: [string, Character[]][] = [];
+
+    for (const [acc, chars] of Object.entries(accountMap)) {
+      const mains = chars.filter((c) => MAIN_CHARACTERS.has(c.name));
+      const rest = chars.filter((c) => !MAIN_CHARACTERS.has(c.name));
+      const merged = [...mains, ...rest];
+
+      merged.length === 1 ? single.push([acc, merged]) : multi.push([acc, merged]);
+    }
+
+    return { multiAccounts: multi, singleAccounts: single };
+  }, [allCharacters, selections]);
+
+  /* -----------------------------------------
+     LOADING UI
+  ----------------------------------------- */
+  if (loading) {
+    return (
+      <>
+        <div className={styles.portalBackdrop} onClick={onClose} />
+        <div className={styles.characterModal}>
+          <h2 className={styles.title}>加载角色列表中…</h2>
+        </div>
+      </>
+    );
+  }
+
+  /* -----------------------------------------
+     ADD NEW GROUP
+  ----------------------------------------- */
+  const addNewGroup = () => {
+    const newGroupIndex = groups.length + 1;
+
+    const newGroup: GroupResult = {
+      index: newGroupIndex,
+      characters: [],
+    };
+
+    const newGroups = [...groups, newGroup];
+    const newSelections = [...selections, new Set<string>()];
+
+    setSelections(newSelections);
+
+    if (selectedGroup === null) setSelectedGroup(0);
+    else setSelectedGroup(newGroups.length - 1);
+
+    onSave(newGroups);
+  };
+
+  /* -----------------------------------------
+     TOGGLE CHARACTER
+  ----------------------------------------- */
   const toggleChar = (id: string) => {
+    if (selectedGroup === null) return;
+
     const clones = selections.map((s) => new Set(s));
     const set = clones[selectedGroup];
 
-    if (set.has(id)) set.delete(id);
-    else if (set.size < 3) set.add(id);
+    if (set.has(id)) {
+      set.delete(id);
+    } else {
+      clones.forEach((s, idx) => {
+        if (idx !== selectedGroup && s.has(id)) s.delete(id);
+      });
+
+      if (set.size < 3) set.add(id);
+    }
 
     setSelections(clones);
 
@@ -52,50 +169,49 @@ export default function EditAllGroupsModal({
       return { ...g, characters: chars };
     });
 
-    onSave(updated); // live update but modal stays open
+    onSave(updated);
   };
 
-  // GROUP BY ACCOUNT
-  const { multiAccounts, singleAccounts } = useMemo(() => {
-    if (!allCharacters.length)
-      return { multiAccounts: [], singleAccounts: [] };
+  /* -----------------------------------------
+     CLEANUP EMPTY GROUPS ON CLOSE
+  ----------------------------------------- */
+  const handleClose = () => {
+    // Step 1: Remove empty groups
+    const nonEmpty = groups.filter((g) => g.characters.length > 0);
 
-    const accGroups: Record<string, Character[]> = {};
-
-    for (const c of allCharacters) {
-      const acc = c.account || "未分配账号";
-      if (!accGroups[acc]) accGroups[acc] = [];
-      accGroups[acc].push(c);
+    // If nothing removed, just close
+    if (nonEmpty.length === groups.length) {
+      onClose();
+      return;
     }
 
-    const multi: [string, Character[]][] = [];
-    const single: [string, Character[]][] = [];
+    // Step 2: Reindex
+    const cleaned = nonEmpty.map((g, idx) => ({
+      ...g,
+      index: idx + 1,
+    }));
 
-    for (const [acc, list] of Object.entries(accGroups)) {
-      const mains = list.filter((c) => MAIN_CHARACTERS.has(c.name));
-      const rest = list.filter((c) => !MAIN_CHARACTERS.has(c.name));
-      const merged = [...mains, ...rest];
+    // Step 3: Save cleaned list
+    onSave(cleaned);
 
-      if (merged.length === 1) single.push([acc, merged]);
-      else multi.push([acc, merged]);
-    }
+    // Step 4: Close modal
+    onClose();
+  };
 
-    const hasMain = (list: Character[]) =>
-      list.some((c) => MAIN_CHARACTERS.has(c.name));
-
-    multi.sort((a, b) => Number(hasMain(b[1])) - Number(hasMain(a[1])));
-    single.sort((a, b) => Number(hasMain(b[1])) - Number(hasMain(a[1])));
-
-    return { multiAccounts: multi, singleAccounts: single };
-  }, [allCharacters, selections]);
+  /* -----------------------------------------
+     RENDER CHARACTER
+  ----------------------------------------- */
+  const current = selectedGroup !== null ? selections[selectedGroup] : null;
 
   const renderChar = (c: Character) => {
-    const selected = current.has(c._id);
+    const selected = current?.has(c._id) ?? false;
     const isMain = MAIN_CHARACTERS.has(c.name);
+    const groupIndex = charGroupMap[c._id];
 
     return (
       <div
         key={c._id}
+        onClick={() => toggleChar(c._id)}
         className={`${styles.characterPill} ${
           selected
             ? c.role === "Tank"
@@ -105,72 +221,65 @@ export default function EditAllGroupsModal({
               : styles.dps
             : styles.inactive
         }`}
-        onClick={() => toggleChar(c._id)}
       >
         <span className={styles.charName}>
           {isMain && <span className={styles.starMark}>★</span>}
           {c.name}
         </span>
+
+        {groupIndex && <span className={styles.groupText}>组{groupIndex}</span>}
       </div>
     );
   };
 
-  const warn = current.size !== 3;
-
+  /* -----------------------------------------
+     MAIN UI
+  ----------------------------------------- */
   return (
     <>
-      <div className={styles.portalBackdrop} onClick={onClose} />
+      <div className={styles.portalBackdrop} onClick={handleClose} />
 
-      <div
-        className={styles.characterModal}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* HEADER */}
+      <div className={styles.characterModal} onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
         <div className={styles.headerRow}>
-          <h2 className={styles.title}>
-            编辑排表角色
-            <span className={`${styles.countInline} ${warn ? styles.warn : ""}`}>
-              （第 {selectedGroup + 1} 组 — {current.size} 人）
-            </span>
-          </h2>
-
-          <button className={styles.closeTextBtn} onClick={onClose}>
+          <h2 className={styles.title}>编辑组员</h2>
+          <button className={styles.closeTextBtn} onClick={handleClose}>
             关闭
           </button>
         </div>
 
-        {/* GROUP SWITCHER */}
-        <div className={styles.serverFilterRow}>
-          {groups.map((_, i) => (
+        {/* Group selector */}
+        <div className={styles.groupNumberRow}>
+          {groups.map((_, idx) => (
             <button
-              key={i}
-              className={`${styles.serverFilterBtn} ${
-                selectedGroup === i ? styles.activeFilter : ""
+              key={idx}
+              className={`${styles.groupNumberBtn} ${
+                selectedGroup === idx ? styles.groupNumberActive : ""
               }`}
-              onClick={() => setSelectedGroup(i)}
+              onClick={() => setSelectedGroup(idx)}
             >
-              第 {i + 1} 组
+              {idx + 1}
             </button>
           ))}
+
+          <button className={styles.groupNumberBtn} onClick={addNewGroup}>
+            +
+          </button>
         </div>
 
-        {/* SPLIT LAYOUT */}
+        {/* Content */}
         <div className={styles.splitLayout}>
-          {/* LEFT MULTI-ACCOUNT */}
           <div className={styles.leftPane}>
             <div className={styles.accountGrid}>
               {multiAccounts.map(([acc, chars]) => (
                 <div key={acc} className={styles.accountColumn}>
                   <div className={styles.accountHeader}>{acc}</div>
-                  <div className={styles.characterList}>
-                    {chars.map(renderChar)}
-                  </div>
+                  <div className={styles.characterList}>{chars.map(renderChar)}</div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* RIGHT SINGLE ACCOUNT */}
           <div className={styles.rightPane}>
             <div className={styles.singleColumn}>
               <div className={styles.singleHeader}>单角色账号</div>
@@ -180,8 +289,6 @@ export default function EditAllGroupsModal({
             </div>
           </div>
         </div>
-
-        {/* ❌ Save button removed */}
       </div>
     </>
   );

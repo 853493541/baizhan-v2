@@ -145,9 +145,8 @@ export default function MainSection({
     .filter(({ g }) => !g.characters.some((c) => MAIN_CHARACTERS.has(c.name)));
 
   const finishedCount = groups.filter((g) => g.status === "finished").length;
-  const shouldLock = groups.some((g) => g.status !== "not_started");
+ const shouldLock = groups.some((g) => (g.status ?? "not_started") !== "not_started");
 
-  const getActiveAbilities = () =>
     allAbilities.filter((a) => enabledAbilities[keyFor(a)] !== false);
 
   return (
@@ -214,7 +213,7 @@ export default function MainSection({
       {showEditAll && (
         <EditAllGroupsModal
           groups={groups}
-          allCharacters={schedule.characters}
+         
           onClose={() => setShowEditAll(false)}
           onSave={(updatedGroups) => {
             // 🔥 LIVE update groups
