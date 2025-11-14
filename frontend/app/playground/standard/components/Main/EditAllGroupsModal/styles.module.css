@@ -1,0 +1,207 @@
+/* ============================================
+   BACKDROP
+============================================ */
+.portalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 999;
+}
+
+/* ============================================
+   MODAL BOX
+============================================ */
+.characterModal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 92%;
+  max-width: 1150px;
+  max-height: 90vh;
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px 24px;
+  overflow-y: auto;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  z-index: 1000;
+}
+
+/* ============================================
+   HEADER
+============================================ */
+.headerRow {
+  position: relative;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.countInline {
+  margin-left: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #666;
+}
+
+.warn {
+  color: #d30000;
+  font-weight: 700;
+}
+
+.closeTextBtn {
+  position: absolute;
+  right: 0;
+  background: #4a8fff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* ============================================
+   FILTER BUTTON ROW
+============================================ */
+.serverFilterRow {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.serverFilterBtn {
+  padding: 6px 14px;
+  background: #f1f1f1;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.activeFilter {
+  background: #4a8fff !important;
+  border-color: #4a8fff !important;
+  color: #fff !important;
+}
+
+/* ============================================
+   SPLIT LAYOUT — ***EXACT COPY OF WORKING MODAL***
+============================================ */
+.splitLayout {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+/* LEFT: FULL WIDTH remaining */
+.leftPane {
+  flex: 1;
+  min-width: 0;
+}
+
+/* RIGHT: FIXED WIDTH, NOT FLEX */
+.rightPane {
+  width: 210px;        /* ← EXACT narrow column */
+  flex-shrink: 0;
+}
+
+/* ============================================
+   ACCOUNT GROUP GRID (LEFT SIDE)
+============================================ */
+.accountGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.accountColumn {
+  background: white;
+  border: 1px solid #e2e2e2;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+/* ============================================
+   SINGLE ACCOUNT COLUMN (RIGHT SIDE)
+============================================ */
+.singleColumn {
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.accountHeader,
+.singleHeader {
+  background: #f5f5f5;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 13px;
+  color: #333;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+/* ============================================
+   CHARACTER LIST + PILLS
+============================================ */
+.characterList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.characterPill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.tank { background: #fff8d7; }
+.dps { background: #e3fbe3; }
+.healer { background: #ffe2ea; }
+
+.inactive {
+  background: #f2f2f2;
+  color: #888;
+}
+
+.charName {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.starMark {
+  font-weight: 900;
+  color: #ffb800;
+}
+
+/* ============================================
+   SAVE BUTTON
+============================================ */
+.footer {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+}
