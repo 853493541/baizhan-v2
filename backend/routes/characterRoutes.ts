@@ -8,7 +8,7 @@ import {
   getCharacters,
   getCharacterById,
   getAllAccounts,
-  getAllStorage, // ✅ global backpack endpoint
+  getAllStorage,
 } from "../controllers/characters/getController";
 import {
   updateCharacter,
@@ -17,25 +17,38 @@ import {
   addToStorage,
   getStorage,
   useStoredAbility,
-  deleteFromStorage, // ✅ storage management
+  deleteFromStorage,
 } from "../controllers/characters/updateController";
 import {
   getAbilityHistory,
   revertAbilityHistory,
   deleteAbilityHistory,
   revertMultipleHistory,
-  getLatestAbilityUpdate, // ✅ lightweight latest update
-} from "../controllers/characters/history"; // ✅ history controller
+  getLatestAbilityUpdate,
+} from "../controllers/characters/history";
 import { compareCharacterAbilities } from "../controllers/characters/compareController";
+
+// ⭐ NEW ultra-fast controller
+import { getBasicCharacters } from "../controllers/characters/getBasicCharacters";
 
 const router = express.Router();
 
 // ─────────────────────────────────────────────
-// Character CRUD
+// ⚡ NEW Ultra-light Characters Endpoint
+// MUST come BEFORE "/:id" or it'll conflict
+// ─────────────────────────────────────────────
+router.get("/basic", getBasicCharacters);
+
+// ─────────────────────────────────────────────
+// Character Metadata
 // ─────────────────────────────────────────────
 router.get("/accounts", getAllAccounts); 
+
+// ─────────────────────────────────────────────
+// Character CRUD
+// ─────────────────────────────────────────────
 router.post("/", createCharacter);
-router.get("/", getCharacters);
+router.get("/", getCharacters);             // full characters
 router.get("/:id", getCharacterById);
 router.patch("/:id/abilities", updateCharacterAbilities);
 router.put("/:id", updateCharacter);
@@ -44,33 +57,25 @@ router.post("/:id/compare-abilities", compareCharacterAbilities);
 
 // ─────────────────────────────────────────────
 // 🧾 Ability History
+// ⚠️ Specific routes first
 // ─────────────────────────────────────────────
-// ⚠️ More specific routes first
-router.get("/abilities/history", getAbilityHistory); // 获取技能历史
-router.get("/abilities/history/latest/:characterId", getLatestAbilityUpdate); // ✅ 最新更新记录
-router.post("/abilities/history/batch/revert", revertMultipleHistory); // ✅ 批量撤回
-router.post("/abilities/history/:id/revert", revertAbilityHistory); // 单条撤回
-router.delete("/abilities/history/:id", deleteAbilityHistory); // 删除历史记录
+router.get("/abilities/history", getAbilityHistory);
+router.get("/abilities/history/latest/:characterId", getLatestAbilityUpdate);
+router.post("/abilities/history/batch/revert", revertMultipleHistory);
+router.post("/abilities/history/:id/revert", revertAbilityHistory);
+router.delete("/abilities/history/:id", deleteAbilityHistory);
 
 // ─────────────────────────────────────────────
-// 🎒 Storage System (per-character endpoints)
+// 🎒 Storage System (per-character)
 // ─────────────────────────────────────────────
-// POST /api/characters/:id/storage → add ability to storage
 router.post("/:id/storage", addToStorage);
-
-// GET /api/characters/:id/storage → get stored abilities
 router.get("/:id/storage", getStorage);
-
-// PUT /api/characters/:id/storage/use → use a stored ability
 router.put("/:id/storage/use", useStoredAbility);
-
-// DELETE /api/characters/:id/storage/delete → remove a stored ability
 router.delete("/:id/storage/delete", deleteFromStorage);
 
 // ─────────────────────────────────────────────
-// 🎒 Global Storage Endpoint (Backpack Page)
+// 🎒 Global Storage (backpack page)
 // ─────────────────────────────────────────────
-// ⚠️ Must be declared *after* per-character routes, but *before* /:id
 router.get("/storage/all", getAllStorage);
 
 export default router;
