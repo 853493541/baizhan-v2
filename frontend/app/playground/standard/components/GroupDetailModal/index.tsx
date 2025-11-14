@@ -112,8 +112,14 @@ export default function GroupDetailModal({
   }, [weeklyMap]);
 
   return (
-    <div className={styles.overlay}>
-      <div className={styles.modal}>
+    <div
+      className={styles.overlay}
+      onClick={onClose}          // 🟢 click outside closes modal
+    >
+      <div
+        className={styles.modal}
+        onClick={(e) => e.stopPropagation()}   // 🛑 prevent close when clicking inside
+      >
         <button className={styles.closeBtn} onClick={onClose}>
           ✖
         </button>
@@ -135,7 +141,7 @@ export default function GroupDetailModal({
           <ResultWindow
             scheduleId={scheduleId}
             group={groupData}
-            countdown={countdown} // ✅ pass countdown down
+            countdown={countdown}
             onRefresh={fetchGroupKills}
           />
         </div>
@@ -145,7 +151,7 @@ export default function GroupDetailModal({
           group={groupData as any}
           weeklyMap={weeklyMap}
           onRefresh={fetchGroupKills}
-          countdown={countdown} 
+          countdown={countdown}
           onGroupUpdate={(updated) => setGroupData(updated)}
         />
       </div>

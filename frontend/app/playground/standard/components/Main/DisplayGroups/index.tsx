@@ -95,7 +95,7 @@ export default function DisplayGroups({
               {qaWarnings.length > 0 && (
                 <div className={styles.groupViolation}>
                   {qaWarnings.map((w, idx) => (
-                    <p key={idx}>⚠️ {w}</p>
+                    <p key={idx}>❌ {w}</p>
                   ))}
                 </div>
               )}
