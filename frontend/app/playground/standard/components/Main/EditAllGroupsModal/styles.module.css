@@ -284,3 +284,8 @@
   color: #666;
   opacity: 0.8;
 }
+/* When the entire pill is inactive, star should also be gray */
+.inactive .starMark {
+  color: #888 !important;
+  opacity: 0.6;
+}

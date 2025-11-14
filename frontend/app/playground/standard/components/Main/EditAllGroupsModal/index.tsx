@@ -8,7 +8,7 @@ interface Props {
   groups: GroupResult[];
   onSave: (updatedGroups: GroupResult[]) => void;
   onClose: () => void;
-  scheduleId: string;            // ⭐ REQUIRED for backend call
+  scheduleId: string;
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
@@ -82,7 +82,7 @@ export default function EditAllGroupsModal({
   }, [groups]);
 
   /* -----------------------------------------
-     ACCOUNT GROUPING
+     ACCOUNT GROUPING + SORTING  (UPDATED)
   ----------------------------------------- */
   const { multiAccounts, singleAccounts } = useMemo(() => {
     const map: Record<string, Character[]> = {};
@@ -100,6 +100,21 @@ export default function EditAllGroupsModal({
       const merged = [...mains, ...rest];
       merged.length === 1 ? single.push([acc, merged]) : multi.push([acc, merged]);
     }
+
+    const hasMain = (chars: Character[]) =>
+      chars.some((c) => MAIN_CHARACTERS.has(c.name));
+
+    /* --------------------------
+       🔥 New Sorting Logic
+       -------------------------- */
+
+    // Sort by number of characters (DESC)
+    multi.sort((a, b) => b[1].length - a[1].length);
+    single.sort((a, b) => b[1].length - a[1].length);
+
+    // Then sort by main-character priority
+    multi.sort((a, b) => Number(hasMain(b[1])) - Number(hasMain(a[1])));
+    single.sort((a, b) => Number(hasMain(b[1])) - Number(hasMain(a[1])));
 
     return { multiAccounts: multi, singleAccounts: single };
   }, [allCharacters, selections]);
@@ -125,7 +140,7 @@ export default function EditAllGroupsModal({
   };
 
   /* -----------------------------------------
-     TOGGLE CHARACTER — SAFE MERGE
+     TOGGLE CHARACTER (MAX 3/GROUP)
   ----------------------------------------- */
   const toggleChar = (id: string) => {
     if (selectedGroup === null) return;
@@ -136,9 +151,9 @@ export default function EditAllGroupsModal({
     if (currentSet.has(id)) {
       currentSet.delete(id);
     } else {
-      if (currentSet.size >= 3) return; // FULL → DO NOTHING
+      if (currentSet.size >= 3) return; // group full
 
-      // remove from other groups
+      // remove from other groups first
       clones.forEach((s, idx) => {
         if (idx !== selectedGroup && s.has(id)) s.delete(id);
       });
@@ -148,7 +163,7 @@ export default function EditAllGroupsModal({
 
     setSelections(clones);
 
-    // ⭐ SAFE MERGE: KEEP kills + status
+    // Safe update: keep kills + status
     const updated = groups.map((g, i) => {
       const ids = clones[i];
       const chars = allCharacters.filter((c) => ids.has(c._id));
@@ -159,7 +174,7 @@ export default function EditAllGroupsModal({
   };
 
   /* -----------------------------------------
-     CALL BACKEND /manual-groups
+     PERSIST TO BACKEND
   ----------------------------------------- */
   const persistToBackend = async (finalGroups: GroupResult[]) => {
     try {
@@ -182,10 +197,9 @@ export default function EditAllGroupsModal({
   };
 
   /* -----------------------------------------
-     CLEANUP, REORDER, SAVE
+     CLOSE + CLEANUP + SAVE
   ----------------------------------------- */
   const handleClose = async () => {
-    // remove ONLY truly empty + unused groups
     const safeGroups = groups.filter(
       (g) =>
         !(
@@ -197,7 +211,6 @@ export default function EditAllGroupsModal({
 
     const base = safeGroups.length ? safeGroups : groups;
 
-    // main groups first
     const mainGroups = base.filter((g) =>
       g.characters.some((c) => MAIN_CHARACTERS.has(c.name))
     );
@@ -205,18 +218,13 @@ export default function EditAllGroupsModal({
       (g) => !g.characters.some((c) => MAIN_CHARACTERS.has(c.name))
     );
 
-    // reindex
     const reordered = [...mainGroups, ...normalGroups].map((g, idx) => ({
       ...g,
       index: idx + 1,
     }));
 
-    // save locally
     onSave(reordered);
-
-    // persist
     await persistToBackend(reordered);
-
     onClose();
   };
 
@@ -302,9 +310,7 @@ export default function EditAllGroupsModal({
               {multiAccounts.map(([acc, chars]) => (
                 <div key={acc} className={styles.accountColumn}>
                   <div className={styles.accountHeader}>{acc}</div>
-                  <div className={styles.characterList}>
-                    {chars.map(renderChar)}
-                  </div>
+                  <div className={styles.characterList}>{chars.map(renderChar)}</div>
                 </div>
               ))}
             </div>
