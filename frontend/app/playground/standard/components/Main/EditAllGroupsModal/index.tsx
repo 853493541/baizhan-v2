@@ -8,6 +8,7 @@ interface Props {
   groups: GroupResult[];
   onSave: (updatedGroups: GroupResult[]) => void;
   onClose: () => void;
+  scheduleId: string;            // ⭐ REQUIRED for backend call
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
@@ -20,19 +21,22 @@ const MAIN_CHARACTERS = new Set([
   "唐宵风",
 ]);
 
-export default function EditAllGroupsModal({ groups, onSave, onClose }: Props) {
-  /* -----------------------------------------
-     STATE
-  ----------------------------------------- */
+export default function EditAllGroupsModal({
+  groups,
+  onSave,
+  onClose,
+  scheduleId,
+}: Props) {
   const [selectedGroup, setSelectedGroup] = useState<number | null>(
     groups.length ? 0 : null
   );
+
   const [allCharacters, setAllCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
   const [selections, setSelections] = useState<Set<string>[]>([]);
 
   /* -----------------------------------------
-     LOAD FULL CHARACTER LIST
+     LOAD ALL CHARACTERS
   ----------------------------------------- */
   useEffect(() => {
     const load = async () => {
@@ -53,13 +57,9 @@ export default function EditAllGroupsModal({ groups, onSave, onClose }: Props) {
   ----------------------------------------- */
   const initialSelections = useMemo(() => {
     return groups.map((g) => {
-      const existing = new Set(g.characters.map((c) => c._id));
       const s = new Set<string>();
-
-      for (const c of allCharacters) {
-        if (existing.has(c._id)) s.add(c._id);
-      }
-
+      const ids = new Set(g.characters.map((c) => c._id));
+      for (const c of allCharacters) if (ids.has(c._id)) s.add(c._id);
       return s;
     });
   }, [groups, allCharacters]);
@@ -71,35 +71,33 @@ export default function EditAllGroupsModal({ groups, onSave, onClose }: Props) {
   }, [loading, initialSelections, allCharacters.length]);
 
   /* -----------------------------------------
-     GROUP MAP (char → group index)
+     CHAR → GROUP DISPLAY MAP
   ----------------------------------------- */
   const charGroupMap = useMemo(() => {
     const map: Record<string, number> = {};
-    groups.forEach((g, i) => {
-      g.characters.forEach((c) => (map[c._id] = i + 1));
+    groups.forEach((g, idx) => {
+      g.characters.forEach((c) => (map[c._id] = idx + 1));
     });
     return map;
   }, [groups]);
 
   /* -----------------------------------------
-     GROUP BY ACCOUNT
+     ACCOUNT GROUPING
   ----------------------------------------- */
   const { multiAccounts, singleAccounts } = useMemo(() => {
-    const accountMap: Record<string, Character[]> = {};
-
+    const map: Record<string, Character[]> = {};
     for (const c of allCharacters) {
       const acc = c.account || "未分配账号";
-      (accountMap[acc] ||= []).push(c);
+      (map[acc] ||= []).push(c);
     }
 
     const multi: [string, Character[]][] = [];
     const single: [string, Character[]][] = [];
 
-    for (const [acc, chars] of Object.entries(accountMap)) {
+    for (const [acc, chars] of Object.entries(map)) {
       const mains = chars.filter((c) => MAIN_CHARACTERS.has(c.name));
       const rest = chars.filter((c) => !MAIN_CHARACTERS.has(c.name));
       const merged = [...mains, ...rest];
-
       merged.length === 1 ? single.push([acc, merged]) : multi.push([acc, merged]);
     }
 
@@ -107,65 +105,50 @@ export default function EditAllGroupsModal({ groups, onSave, onClose }: Props) {
   }, [allCharacters, selections]);
 
   /* -----------------------------------------
-     LOADING UI
-  ----------------------------------------- */
-  if (loading) {
-    return (
-      <>
-        <div className={styles.portalBackdrop} onClick={onClose} />
-        <div className={styles.characterModal}>
-          <h2 className={styles.title}>加载角色列表中…</h2>
-        </div>
-      </>
-    );
-  }
-
-  /* -----------------------------------------
      ADD NEW GROUP
   ----------------------------------------- */
   const addNewGroup = () => {
-    const newGroupIndex = groups.length + 1;
-
     const newGroup: GroupResult = {
-      index: newGroupIndex,
+      index: groups.length + 1,
       characters: [],
+      kills: [],
+      status: "not_started",
     };
 
     const newGroups = [...groups, newGroup];
     const newSelections = [...selections, new Set<string>()];
 
     setSelections(newSelections);
-
-    if (selectedGroup === null) setSelectedGroup(0);
-    else setSelectedGroup(newGroups.length - 1);
+    setSelectedGroup(newGroups.length - 1);
 
     onSave(newGroups);
   };
 
   /* -----------------------------------------
-     FIXED: toggleChar should NOT remove from other groups
-     when current group is full
+     TOGGLE CHARACTER — SAFE MERGE
   ----------------------------------------- */
   const toggleChar = (id: string) => {
     if (selectedGroup === null) return;
 
     const clones = selections.map((s) => new Set(s));
-    const set = clones[selectedGroup];
+    const currentSet = clones[selectedGroup];
 
-    if (set.has(id)) {
-      set.delete(id);
+    if (currentSet.has(id)) {
+      currentSet.delete(id);
     } else {
-      if (set.size >= 3) return; // ❗ FULL — do nothing
+      if (currentSet.size >= 3) return; // FULL → DO NOTHING
 
+      // remove from other groups
       clones.forEach((s, idx) => {
         if (idx !== selectedGroup && s.has(id)) s.delete(id);
       });
 
-      set.add(id);
+      currentSet.add(id);
     }
 
     setSelections(clones);
 
+    // ⭐ SAFE MERGE: KEEP kills + status
     const updated = groups.map((g, i) => {
       const ids = clones[i];
       const chars = allCharacters.filter((c) => ids.has(c._id));
@@ -176,30 +159,64 @@ export default function EditAllGroupsModal({ groups, onSave, onClose }: Props) {
   };
 
   /* -----------------------------------------
-     CLEANUP + PRIORITY REINDEX ON CLOSE
+     CALL BACKEND /manual-groups
   ----------------------------------------- */
-  const handleClose = () => {
-    // 1. Remove empty groups
-    const nonEmpty = groups.filter((g) => g.characters.length > 0);
-    const base = nonEmpty.length > 0 ? nonEmpty : groups;
+  const persistToBackend = async (finalGroups: GroupResult[]) => {
+    try {
+      const payload = finalGroups.map((g) => ({
+        index: g.index,
+        characters: g.characters.map((c) => c._id),
+      }));
 
-    // 2. Identify main-character groups
+      await fetch(
+        `${API_BASE}/api/standard-schedules/${scheduleId}/manual-groups`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ groups: payload }),
+        }
+      );
+    } catch (err) {
+      console.error("❌ Manual edit backend update failed:", err);
+    }
+  };
+
+  /* -----------------------------------------
+     CLEANUP, REORDER, SAVE
+  ----------------------------------------- */
+  const handleClose = async () => {
+    // remove ONLY truly empty + unused groups
+    const safeGroups = groups.filter(
+      (g) =>
+        !(
+          g.characters.length === 0 &&
+          (g.kills?.length ?? 0) === 0 &&
+          g.status === "not_started"
+        )
+    );
+
+    const base = safeGroups.length ? safeGroups : groups;
+
+    // main groups first
     const mainGroups = base.filter((g) =>
       g.characters.some((c) => MAIN_CHARACTERS.has(c.name))
     );
-
     const normalGroups = base.filter(
       (g) => !g.characters.some((c) => MAIN_CHARACTERS.has(c.name))
     );
 
-    // 3. Reorder: main → normal
+    // reindex
     const reordered = [...mainGroups, ...normalGroups].map((g, idx) => ({
       ...g,
       index: idx + 1,
     }));
 
-    // 4. Save + close
+    // save locally
     onSave(reordered);
+
+    // persist
+    await persistToBackend(reordered);
+
     onClose();
   };
 
@@ -231,15 +248,25 @@ export default function EditAllGroupsModal({ groups, onSave, onClose }: Props) {
           {isMain && <span className={styles.starMark}>★</span>}
           {c.name}
         </span>
-
         {groupIndex && <span className={styles.groupText}>组{groupIndex}</span>}
       </div>
     );
   };
 
   /* -----------------------------------------
-     MAIN UI
+     UI
   ----------------------------------------- */
+  if (loading) {
+    return (
+      <>
+        <div className={styles.portalBackdrop} onClick={onClose} />
+        <div className={styles.characterModal}>
+          <h2 className={styles.title}>加载角色列表中…</h2>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <div className={styles.portalBackdrop} onClick={handleClose} />
@@ -247,7 +274,9 @@ export default function EditAllGroupsModal({ groups, onSave, onClose }: Props) {
       <div className={styles.characterModal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.headerRow}>
           <h2 className={styles.title}>编辑组员</h2>
-          <button className={styles.closeTextBtn} onClick={handleClose}>关闭</button>
+          <button className={styles.closeTextBtn} onClick={handleClose}>
+            关闭
+          </button>
         </div>
 
         <div className={styles.groupNumberRow}>
@@ -262,8 +291,9 @@ export default function EditAllGroupsModal({ groups, onSave, onClose }: Props) {
               {idx + 1}
             </button>
           ))}
-
-          <button className={styles.groupNumberBtn} onClick={addNewGroup}>+</button>
+          <button className={styles.groupNumberBtn} onClick={addNewGroup}>
+            +
+          </button>
         </div>
 
         <div className={styles.splitLayout}>
@@ -272,7 +302,9 @@ export default function EditAllGroupsModal({ groups, onSave, onClose }: Props) {
               {multiAccounts.map(([acc, chars]) => (
                 <div key={acc} className={styles.accountColumn}>
                   <div className={styles.accountHeader}>{acc}</div>
-                  <div className={styles.characterList}>{chars.map(renderChar)}</div>
+                  <div className={styles.characterList}>
+                    {chars.map(renderChar)}
+                  </div>
                 </div>
               ))}
             </div>
