@@ -166,6 +166,7 @@ export default function MainSection({
           }))}
           enabledAbilities={enabledAbilities}
           setEnabledAbilities={setEnabledAbilities}
+          disabled={shouldLock}
         />
 
         <SolverButtons
