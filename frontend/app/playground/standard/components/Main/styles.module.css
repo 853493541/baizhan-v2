@@ -41,3 +41,22 @@
   gap: 10px;               /* space between gear and buttons */
   margin-bottom: 12px;     /* spacing below bar */
 }
+.editBar {
+  margin-top: 12px;
+  margin-bottom: 18px;
+}
+
+.editBtn {
+  background: #007bff;
+  border: 1px solid #007bff;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.editBtn:hover {
+  background: #0069d9;
+}
