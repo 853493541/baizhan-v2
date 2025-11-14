@@ -1,4 +1,5 @@
 import { Router } from "express";
+
 import {
   createStandardSchedule,
   getStandardSchedules,
@@ -9,39 +10,71 @@ import {
   updateGroupKill,
   deleteGroupKill,
   updateScheduleName,
-  getGroupKills, // ✅ new controller
+  getGroupKills,
+  updateScheduleCharacters, 
 } from "../controllers/playground/standardScheduleController";
+
 import { getScheduleSummaryByWeek } from "../controllers/playground/standardSchedules/getScheduleSummaryByWeek";
+
+// ⭐ NEW: ultra-light toggle controller
+import { toggleScheduleCharacter } from "../controllers/playground/standardSchedules/toggleScheduleCharacter";
 
 const router = Router();
 
-// ✅ Summary route must come first to avoid conflict with :id
+/* -----------------------------------------------------
+   🔹 HIGH-LEVEL SUMMARY ROUTES (must come first)
+----------------------------------------------------- */
 router.get("/summary", getScheduleSummaryByWeek);
 
-// POST new standard schedule
+/* -----------------------------------------------------
+   🔹 CREATE & READ
+----------------------------------------------------- */
+// Create a new standard schedule
 router.post("/", createStandardSchedule);
 
-// GET all standard schedules
+// Get all schedules
 router.get("/", getStandardSchedules);
 
-// GET one standard schedule by ID (full data)
+// Get one schedule (full details)
 router.get("/:id", getStandardScheduleById);
 
-// ✅ NEW: lightweight route to get only a group’s kills + status
+/* -----------------------------------------------------
+   🔹 CHARACTERS (OLD + NEW)
+----------------------------------------------------- */
+// Full replace characters (used by Save button)
+router.patch("/:id/characters", updateScheduleCharacters);
+
+// ⭐ NEW: instant toggle add/remove character
+router.patch("/:id/toggle-character", toggleScheduleCharacter);
+
+/* -----------------------------------------------------
+   🔹 GROUP KILLS (lightweight fetch)
+----------------------------------------------------- */
+// Get kills of one group
 router.get("/:id/groups/:index/kills", getGroupKills);
 
-// UPDATE standard schedule groups
+/* -----------------------------------------------------
+   🔹 UPDATE GROUPS / STATUS / KILLS
+----------------------------------------------------- */
+// Replace groups entirely
 router.put("/:id", updateStandardSchedule);
 
-// DELETE standard schedule by ID
-router.delete("/:id", deleteStandardSchedule);
+// Update just the status of a group
+router.patch("/:id/groups/:index/status", updateGroupStatus);
 
-// ✅ Update schedule name
+// Update specific kill record
+router.put("/:id/groups/:index/floor/:floor", updateGroupKill);
+
+// Delete kill record
+router.delete("/:id/groups/:index/floor/:floor", deleteGroupKill);
+
+/* -----------------------------------------------------
+   🔹 SCHEDULE NAME / DELETE
+----------------------------------------------------- */
+// Rename schedule
 router.patch("/:id/name", updateScheduleName);
 
-// ✅ Group routes
-router.patch("/:id/groups/:index/status", updateGroupStatus);
-router.put("/:id/groups/:index/floor/:floor", updateGroupKill);
-router.delete("/:id/groups/:index/floor/:floor", deleteGroupKill);
+// Delete schedule
+router.delete("/:id", deleteStandardSchedule);
 
 export default router;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Settings, X, Trash2, Lock } from "lucide-react";
+import { Settings, X, Trash2, Lock, Plus } from "lucide-react";
 import styles from "./styles.module.css";
 
 interface Props {
@@ -14,6 +14,7 @@ interface Props {
   };
   onBack: () => void;
   onDelete?: () => void;
+  onOpenEditCharacters: () => void;
   locked?: boolean;
 }
 
@@ -23,6 +24,7 @@ export default function BasicInfoSection({
   schedule,
   onBack,
   onDelete,
+  onOpenEditCharacters,
   locked = false,
 }: Props) {
   const [localSchedule, setLocalSchedule] = useState(schedule);
@@ -46,6 +48,7 @@ export default function BasicInfoSection({
 
   const handleRename = async () => {
     if (!localSchedule._id) return;
+
     try {
       const res = await fetch(
         `${API_BASE}/api/standard-schedules/${localSchedule._id}/name`,
@@ -55,10 +58,10 @@ export default function BasicInfoSection({
           body: JSON.stringify({ name: tempName }),
         }
       );
-      if (!res.ok) throw new Error("Failed to update name");
 
-      // ✅ Update UI only (no success alert)
-      setLocalSchedule((prev) => ({ ...prev, name: tempName }));
+      if (!res.ok) throw new Error("Failed");
+
+      setLocalSchedule((p) => ({ ...p, name: tempName }));
       setEditing(false);
     } catch {
       alert("更新失败，请稍后再试");
@@ -69,7 +72,6 @@ export default function BasicInfoSection({
     if (locked) {
       setConfirmingDelete(true);
     } else {
-      // ✅ add system confirm for unlocked delete
       if (confirm("确定要删除这个排表吗？")) {
         onDelete?.();
         setEditing(false);
@@ -81,7 +83,7 @@ export default function BasicInfoSection({
     if (deleteInput.trim() === "确认删除") {
       onDelete?.();
       setConfirmingDelete(false);
-      setEditing(false); // ✅ close both modals
+      setEditing(false);
     } else {
       alert("请输入正确的确认文字：确认删除");
     }
@@ -89,7 +91,7 @@ export default function BasicInfoSection({
 
   const handleCancelDelete = () => {
     setConfirmingDelete(false);
-    setEditing(false); // ✅ also close editing modal when canceling
+    setEditing(false);
   };
 
   return (
@@ -104,25 +106,45 @@ export default function BasicInfoSection({
       <div className={styles.card}>
         <div className={styles.cardHeader}>
           <h3 className={styles.cardTitle}>基本信息</h3>
+
+          {/* ⚙️ Settings Button */}
           <button className={styles.gearBtn} onClick={() => setEditing(true)}>
             <Settings size={18} />
           </button>
         </div>
 
+        {/* 排表名称 */}
         <div className={styles.infoRow}>
           <span className={styles.label}>排表名称:</span>
           <span className={styles.value}>
             {localSchedule.name || "未命名排表"}
           </span>
         </div>
+
+        {/* 服务器 */}
         <div className={styles.infoRow}>
           <span className={styles.label}>服务器:</span>
           <span className={styles.value}>{localSchedule.server}</span>
         </div>
+
+        {/* ⭐ 角色数量 + Inline Add Button */}
         <div className={styles.infoRow}>
           <span className={styles.label}>角色数量:</span>
-          <span className={styles.value}>{localSchedule.characterCount}</span>
+
+          <span className={styles.valueWithBtn}>
+            {localSchedule.characterCount}
+
+            <button
+              className={styles.inlineAddBtn}
+              onClick={onOpenEditCharacters}
+              title="编辑参与角色"
+            >
+              <Plus size={14} />
+            </button>
+          </span>
         </div>
+
+        {/* 创建时间 */}
         <div className={styles.infoRow}>
           <span className={styles.label}>创建时间:</span>
           <span className={styles.value}>
@@ -131,7 +153,7 @@ export default function BasicInfoSection({
         </div>
       </div>
 
-      {/* ✏️ Editing Modal */}
+      {/* Edit modal */}
       {editing && (
         <div
           className={styles.modalOverlay}
@@ -140,11 +162,15 @@ export default function BasicInfoSection({
           }}
         >
           <div className={styles.modal}>
-            <button className={styles.closeBtn} onClick={() => setEditing(false)}>
+            <button
+              className={styles.closeBtn}
+              onClick={() => setEditing(false)}
+            >
               <X size={20} />
             </button>
 
             <h3>编辑排表</h3>
+
             <label>
               排表名称:
               <input
@@ -169,6 +195,7 @@ export default function BasicInfoSection({
                   </>
                 )}
               </button>
+
               <button className={styles.saveBtn} onClick={handleRename}>
                 保存
               </button>
@@ -177,7 +204,7 @@ export default function BasicInfoSection({
         </div>
       )}
 
-      {/* 🔒 Delete Confirmation Modal */}
+      {/* Locked delete modal */}
       {confirmingDelete && (
         <div
           className={styles.modalOverlay}
@@ -189,11 +216,13 @@ export default function BasicInfoSection({
             <button className={styles.closeBtn} onClick={handleCancelDelete}>
               <X size={20} />
             </button>
+
             <h3>确认删除</h3>
+
             <p className={styles.warningText}>
               该排表已开始，是否确认删除？
               <br />
-              请在下方输入 <strong>确认删除</strong> 以继续。
+              请输入 <strong>确认删除</strong> 以继续。
             </p>
 
             <input
@@ -208,6 +237,7 @@ export default function BasicInfoSection({
               <button className={styles.deleteBtn} onClick={handleConfirmDelete}>
                 确认删除
               </button>
+
               <button className={styles.cancelBtn} onClick={handleCancelDelete}>
                 取消
               </button>
