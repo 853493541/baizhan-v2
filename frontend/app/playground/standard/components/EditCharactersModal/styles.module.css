@@ -239,3 +239,8 @@
   align-items: center;
   gap: 4px;
 }
+/* When the pill is inactive, star should also become gray */
+.inactive .starMark {
+  color: #888 !important;
+  opacity: 0.6;
+}
