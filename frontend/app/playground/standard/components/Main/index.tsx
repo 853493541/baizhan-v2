@@ -67,6 +67,9 @@ export default function MainSection({
     } else setAftermath(null);
   }, [groups]);
 
+  /* ---------------------------------------------------
+     🔥 SOLVER — updates everything using PUT endpoint
+  --------------------------------------------------- */
   const safeRunSolver = async (abilities: AbilityCheck[], label: string) => {
     if (solving) return;
     try {
@@ -102,6 +105,9 @@ export default function MainSection({
     }
   };
 
+  /* ---------------------------------------------------
+     🔥 Automatic reordering (main → alt)
+  --------------------------------------------------- */
   const reorderGroups = (inputGroups: GroupResult[]) => {
     const main = inputGroups.filter((g) =>
       g.characters.some((c) => MAIN_CHARACTERS.has(c.name))
@@ -123,6 +129,14 @@ export default function MainSection({
     }
   }, [groups]);
 
+  /* ---------------------------------------------------
+     🔥 Automatic lock when groups are started
+  --------------------------------------------------- */
+  const shouldLock = groups.some((g) => (g.status ?? "not_started") !== "not_started");
+
+  /* ---------------------------------------------------
+     UI rendering
+  --------------------------------------------------- */
   const mainPairs = groups
     .map((g, i) => ({ g, i }))
     .filter(({ g }) => g.characters.some((c) => MAIN_CHARACTERS.has(c.name)));
@@ -132,7 +146,6 @@ export default function MainSection({
     .filter(({ g }) => !g.characters.some((c) => MAIN_CHARACTERS.has(c.name)));
 
   const finishedCount = groups.filter((g) => g.status === "finished").length;
-  const shouldLock = groups.some((g) => (g.status ?? "not_started") !== "not_started");
 
   const getActiveAbilities = () =>
     allAbilities.filter((a) => enabledAbilities[keyFor(a)] !== false);
@@ -144,7 +157,7 @@ export default function MainSection({
         已完成小组: {finishedCount} / {groups.length}
       </p>
 
-      {/* ⭐ Merged toolbar (solver + manual edit) */}
+      {/* ⭐ Solver + Manual Editor */}
       <div className={styles.solverBar}>
         <SolverOptions
           allAbilities={allAbilities.map((a) => ({
@@ -160,19 +173,11 @@ export default function MainSection({
           disabled={shouldLock}
           onCore={() => safeRunSolver(getActiveAbilities(), "Custom")}
           onFull={() => safeRunSolver(allAbilities, "Full")}
-           onManual={() => setShowEditAll(true)} 
+          onManual={() => setShowEditAll(true)}
         />
-
-        {/* ⭐ NEW — manual edit button, identical style to solver buttons */}
-        {/* <button
-          className={`${styles.solverBtn} ${styles.fullBtn}`}
-          onClick={() => setShowEditAll(true)}
-        >
-          手动编辑
-        </button> */}
       </div>
 
-      {/* render groups */}
+      {/* ⭐ Groups */}
       {groups.length === 0 ? (
         <p className={styles.empty}>暂无排表结果</p>
       ) : (
@@ -201,13 +206,15 @@ export default function MainSection({
         </>
       )}
 
+      {/* ⭐ Manual Edit Modal */}
       {showEditAll && (
         <EditAllGroupsModal
           groups={groups}
+          scheduleId={schedule._id}      // <-- REQUIRED
           onClose={() => setShowEditAll(false)}
           onSave={(updatedGroups) => {
             setGroups(updatedGroups);
-            saveGroups(updatedGroups);
+            // ❗ DO NOT CALL saveGroups here — manual edit already saves safely
           }}
         />
       )}

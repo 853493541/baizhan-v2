@@ -11,13 +11,16 @@ import {
   deleteGroupKill,
   updateScheduleName,
   getGroupKills,
-  updateScheduleCharacters, 
+  updateScheduleCharacters,
 } from "../controllers/playground/standardScheduleController";
 
 import { getScheduleSummaryByWeek } from "../controllers/playground/standardSchedules/getScheduleSummaryByWeek";
 
 // ⭐ NEW: ultra-light toggle controller
 import { toggleScheduleCharacter } from "../controllers/playground/standardSchedules/toggleScheduleCharacter";
+
+// ⭐ NEW: safe manual-edit controller
+import { manualEditGroups } from "../controllers/playground/standardSchedules/manualEditGroups";
 
 const router = Router();
 
@@ -41,10 +44,10 @@ router.get("/:id", getStandardScheduleById);
 /* -----------------------------------------------------
    🔹 CHARACTERS (OLD + NEW)
 ----------------------------------------------------- */
-// Full replace characters (used by Save button)
+// Full replace characters (Save button)
 router.patch("/:id/characters", updateScheduleCharacters);
 
-// ⭐ NEW: instant toggle add/remove character
+// Ultra-light instant toggle (add/remove)
 router.patch("/:id/toggle-character", toggleScheduleCharacter);
 
 /* -----------------------------------------------------
@@ -54,15 +57,18 @@ router.patch("/:id/toggle-character", toggleScheduleCharacter);
 router.get("/:id/groups/:index/kills", getGroupKills);
 
 /* -----------------------------------------------------
-   🔹 UPDATE GROUPS / STATUS / KILLS
+   🔹 GROUP UPDATES
 ----------------------------------------------------- */
-// Replace groups entirely
+// Solver — replace groups ENTIRELY (dangerous)
 router.put("/:id", updateStandardSchedule);
 
-// Update just the status of a group
+// ⭐ Manual Edit — safe, updates ONLY characters
+router.patch("/:id/manual-groups", manualEditGroups);
+
+// Update only group status
 router.patch("/:id/groups/:index/status", updateGroupStatus);
 
-// Update specific kill record
+// Update a kill record
 router.put("/:id/groups/:index/floor/:floor", updateGroupKill);
 
 // Delete kill record
