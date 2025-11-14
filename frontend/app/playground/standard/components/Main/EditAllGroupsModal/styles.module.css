@@ -9,26 +9,28 @@
 }
 
 /* ============================================
-   MODAL BOX
+   MODAL BOX — EXACT MATCH TO REFERENCE MODAL
 ============================================ */
 .characterModal {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 92%;
-  max-width: 1150px;
-  max-height: 90vh;
+  width: 85%;
+  max-width: 1100px;
+  max-height: 85vh;
+  min-height: 730px;              /* ⭐ EXACT SAME HEIGHT */
   background: #fff;
   border-radius: 12px;
-  padding: 20px 24px;
-  overflow-y: auto;
+  padding: 20px 20px 16px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  overflow-y: auto;
+  box-sizing: border-box;
   z-index: 1000;
 }
 
 /* ============================================
-   HEADER
+   HEADER — SAME
 ============================================ */
 .headerRow {
   position: relative;
@@ -36,7 +38,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .title {
@@ -59,27 +61,29 @@
   font-weight: 700;
 }
 
+/* CLOSE BUTTON — SAME */
 .closeTextBtn {
   position: absolute;
-  right: 0;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
   background: #4a8fff;
-  color: #fff;
   border: none;
-  border-radius: 6px;
   padding: 6px 14px;
-  cursor: pointer;
   font-size: 14px;
   font-weight: 600;
+  color: #fff;
+  border-radius: 6px;
+  cursor: pointer;
 }
 
 /* ============================================
-   FILTER BUTTON ROW
+   SERVER FILTER — SAME
 ============================================ */
 .serverFilterRow {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
 }
 
 .serverFilterBtn {
@@ -87,7 +91,7 @@
   background: #f1f1f1;
   border: 1px solid #ddd;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
 }
 
@@ -98,28 +102,23 @@
 }
 
 /* ============================================
-   SPLIT LAYOUT — ***EXACT COPY OF WORKING MODAL***
+   SPLIT LAYOUT — MATCH OTHER MODAL
 ============================================ */
 .splitLayout {
   display: flex;
-  gap: 20px;
-  align-items: flex-start;
+  gap: 18px;
 }
 
-/* LEFT: FULL WIDTH remaining */
 .leftPane {
-  flex: 1;
-  min-width: 0;
+  flex: 4;
 }
 
-/* RIGHT: FIXED WIDTH, NOT FLEX */
 .rightPane {
-  width: 210px;        /* ← EXACT narrow column */
-  flex-shrink: 0;
+  flex: 1;
 }
 
 /* ============================================
-   ACCOUNT GROUP GRID (LEFT SIDE)
+   ACCOUNT GRID — SAME
 ============================================ */
 .accountGrid {
   display: grid;
@@ -128,22 +127,21 @@
 }
 
 .accountColumn {
-  background: white;
+  background: #fff;
   border: 1px solid #e2e2e2;
   border-radius: 10px;
   padding: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-/* ============================================
-   SINGLE ACCOUNT COLUMN (RIGHT SIDE)
-============================================ */
 .singleColumn {
   background: #fafafa;
   border: 1px solid #ddd;
   border-radius: 10px;
-  padding: 12px;
+  padding: 10px;
 }
 
+/* Headers */
 .accountHeader,
 .singleHeader {
   background: #f5f5f5;
@@ -154,36 +152,69 @@
   color: #333;
   margin-bottom: 10px;
   text-align: center;
+  border-bottom: 2px solid rgba(0,0,0,0.1);
 }
 
 /* ============================================
-   CHARACTER LIST + PILLS
+   CHARACTER LIST — SAME
 ============================================ */
 .characterList {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
+/* ============================================
+   CHARACTER PILL — EXACT SAME DESIGN
+============================================ */
 .characterPill {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;      /* ⭐ LEFT ALIGN */
+  padding: 6px 12px;                /* ⭐ SAME */
   border-radius: 6px;
-  padding: 6px 10px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0,0,0,0.05);
+  transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 
-.tank { background: #fff8d7; }
-.dps { background: #e3fbe3; }
-.healer { background: #ffe2ea; }
+.characterPill:hover {
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+}
+
+/* ============================================
+   TEXT COLORS — EXACT SAME AS REFERENCE MODAL
+============================================ */
+.tank {
+  background: #fff8d7 !important;
+  color: #6b4e00 !important;
+}
+
+.dps {
+  background: #e3fbe3 !important;
+  color: #0f5132 !important;
+}
+
+.healer {
+  background: #ffe2ea !important;
+  color: #842029 !important;
+}
 
 .inactive {
-  background: #f2f2f2;
-  color: #888;
+  background: #f2f2f2 !important;
+  color: #888 !important;
+}
+
+/* ============================================
+   STAR — MATCH EXACTLY
+============================================ */
+.starMark {
+  font-size: 13px;
+  font-weight: 900;
+  color: #000 !important;
+  margin-right: 4px;
 }
 
 .charName {
@@ -191,17 +222,65 @@
   align-items: center;
   gap: 4px;
 }
-
-.starMark {
-  font-weight: 900;
-  color: #ffb800;
+.characterPill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;   /* ⭐ name left / group right */
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  min-height: 34px;                 /* ⭐ consistent pill height */
+}
+.groupText {
+  font-size: 12px;
+  color: #888;          /* ⭐ simple gray */
+  padding-left: 8px;
+  white-space: nowrap;
+}
+/* --------------------------------------------
+   GROUP NUMBER ROW
+-------------------------------------------- */
+.groupNumberRow {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
-/* ============================================
-   SAVE BUTTON
-============================================ */
-.footer {
-  margin-top: 24px;
-  display: flex;
-  justify-content: flex-end;
+/* Large number buttons */
+.groupNumberBtn {
+  width: 35px;
+  height: 35px;
+  font-size: 14px;
+  font-weight: 700;
+  background: #f1f1f1;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  color: #444;
+}
+
+.groupNumberBtn:hover {
+  background: #e5e5e5;
+}
+
+.groupNumberActive {
+  background: #4a8fff !important;
+  border-color: #4a8fff !important;
+  color: #fff !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+}
+
+/* --------------------------------------------
+   GROUP TEXT ON RIGHT OF PILL
+-------------------------------------------- */
+.groupText {
+  margin-left: auto;
+  font-size: 12px;
+  color: #666;
+  opacity: 0.8;
 }

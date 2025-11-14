@@ -9,7 +9,7 @@
 }
 
 /* ============================================
-   MODAL BOX
+   MODAL BOX — SAME AS OTHER MODAL
 ============================================ */
 .characterModal {
   position: fixed;
@@ -19,18 +19,18 @@
   width: 85%;
   max-width: 1100px;
   max-height: 85vh;
+  min-height: 730px;                 /* ⭐ SAME MIN HEIGHT */
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
   padding: 20px 20px 16px;
-  box-sizing: border-box;
   overflow-y: auto;
+  box-sizing: border-box;
   z-index: 1000;
-  min-height: 730px;
 }
 
 /* ============================================
-   HEADER — PERFECT TITLE CENTER
+   HEADER — SAME LOOK
 ============================================ */
 .headerRow {
   position: relative;
@@ -51,19 +51,19 @@
   white-space: nowrap;
 }
 
-/* Count */
 .countInline {
   margin-left: 6px;
   font-size: 15px;
   font-weight: 500;
   color: #666;
 }
+
 .warn {
   color: #d30000;
   font-weight: 700;
 }
 
-/* Close button (solid) */
+/* Close button */
 .closeTextBtn {
   position: absolute;
   right: 10px;
@@ -87,7 +87,7 @@
 }
 
 /* ============================================
-   SERVER FILTER BAR
+   SERVER FILTER BAR — MATCH SPACING
 ============================================ */
 .serverFilterRow {
   display: flex;
@@ -117,7 +117,7 @@
 }
 
 /* ============================================
-   ORIGINAL LAYOUT (全部 mode)
+   LAYOUT (兩欄版)
 ============================================ */
 .splitLayout {
   display: flex;
@@ -132,33 +132,15 @@
   flex: 1;
 }
 
-/* 4-column grid (left pane) */
+/* ============================================
+   ACCOUNT GRID (左側四欄)
+============================================ */
 .accountGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 14px;
 }
 
-/* Right single column */
-.singleColumn {
-  background: #fafafa;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  padding: 10px;
-}
-
-/* ============================================
-   CENTERED GRID MODE (FILTERED MODE)
-============================================ */
-.centerGrid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);  /* ← EXACT 5 per row */
-  gap: 18px;
-  margin-top: 10px;
-}
-/* ============================================
-   ACCOUNT COLUMN
-============================================ */
 .accountColumn {
   background: #fff;
   border: 1px solid #e2e2e2;
@@ -167,7 +149,14 @@
   padding: 12px 10px;
 }
 
-/* Account header */
+.singleColumn {
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+/* Headers */
 .accountHeader,
 .singleHeader {
   background: #f5f5f5;
@@ -179,10 +168,11 @@
   padding: 4px;
   margin-bottom: 8px;
   border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+  cursor: pointer;
 }
 
 /* ============================================
-   CHARACTER LIST
+   CHARACTER LIST — SAME SPACING
 ============================================ */
 .characterList {
   display: flex;
@@ -191,13 +181,15 @@
 }
 
 /* ============================================
-   CHARACTER PILL
+   CHARACTER PILL — MATCH OTHER MODAL EXACTLY
 ============================================ */
 .characterPill {
   display: flex;
   align-items: center;
+  justify-content: flex-start;       /* ⭐ LEFT ALIGN TEXT */
   border-radius: 6px;
   padding: 6px 10px;
+  padding-left: 12px;                /* ⭐ same spacing */
   font-size: 13px;
   font-weight: 600;
   border: 1px solid rgba(0, 0, 0, 0.05);
@@ -209,7 +201,7 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
 }
 
-/* Selected background colors */
+/* Selected colors */
 .tank {
   background: #fff8d7;
   color: #6b4e00;
@@ -225,19 +217,23 @@
   color: #842029;
 }
 
-/* Inactive state */
+/* Inactive */
 .inactive {
   background: #f2f2f2 !important;
   color: #888 !important;
 }
 
-/* Main char ★ */
+/* ============================================
+   STAR — MATCH OTHER MODAL
+============================================ */
 .starMark {
   font-size: 13px;
   font-weight: 900;
+  color: #000 !important;       /* ⭐ BLACK */
   margin-right: 4px;
 }
 
+/* Name */
 .charName {
   display: flex;
   align-items: center;
