@@ -2,6 +2,7 @@
   display: flex;
   gap: 12px;
  margin-top:8px;
+ /* border:2px green solid; */
 }
 
 .solverBtn {
@@ -38,4 +39,14 @@
   background: #ccc !important;
   color: #444 !important;
   cursor: not-allowed !important;
+}
+.manualBtn {
+  background: #0070f3;
+}
+
+.manualBtn:hover {
+  background: #0059c1;
+}
+.manualBtn:hover {
+  background: #0059c1;
 }
