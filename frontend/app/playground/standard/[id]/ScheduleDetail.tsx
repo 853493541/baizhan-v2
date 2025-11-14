@@ -45,20 +45,38 @@ function checkGroupQA(
 ): string[] {
   const warnings: string[] = [];
 
+  // ----------------------------
+  // 🆕 Rule 0 — Less than 3 people
+  // ----------------------------
+  if (group.characters.length < 3) {
+    warnings.push("团队不满");
+  }
+
+  // ----------------------------
+  // Rule 1 — Missing healer
+  // ----------------------------
   if (!group.characters.some((c) => c.role === "Healer")) {
     warnings.push("缺少治疗");
   }
 
+  // ----------------------------
+  // Rule 2 — Duplicate accounts
+  // ----------------------------
   const seen = new Set<string>();
   const dups = new Set<string>();
+
   for (const c of group.characters) {
     if (seen.has(c.account)) dups.add(c.account);
     seen.add(c.account);
   }
+
   if (dups.size > 0) {
     warnings.push(`重复账号: ${Array.from(dups).join("、")}`);
   }
 
+  // ----------------------------
+  // Rule 3 — Ability conflict (> 2)
+  // ----------------------------
   const activeAbilities = checkedAbilities.filter((a) => a.available);
   const abilityCount: Record<string, number> = {};
 
@@ -77,6 +95,7 @@ function checkGroupQA(
 
   return warnings;
 }
+
 
 // =============================
 // 🔵 MAIN COMPONENT
