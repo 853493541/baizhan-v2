@@ -71,7 +71,7 @@ export default function EditAllGroupsModal({ groups, onSave, onClose }: Props) {
   }, [loading, initialSelections, allCharacters.length]);
 
   /* -----------------------------------------
-     GROUP MAP
+     GROUP MAP (char → group index)
   ----------------------------------------- */
   const charGroupMap = useMemo(() => {
     const map: Record<string, number> = {};
@@ -143,7 +143,8 @@ export default function EditAllGroupsModal({ groups, onSave, onClose }: Props) {
   };
 
   /* -----------------------------------------
-     TOGGLE CHARACTER
+     FIXED: toggleChar should NOT remove from other groups
+     when current group is full
   ----------------------------------------- */
   const toggleChar = (id: string) => {
     if (selectedGroup === null) return;
@@ -154,11 +155,13 @@ export default function EditAllGroupsModal({ groups, onSave, onClose }: Props) {
     if (set.has(id)) {
       set.delete(id);
     } else {
+      if (set.size >= 3) return; // ❗ FULL — do nothing
+
       clones.forEach((s, idx) => {
         if (idx !== selectedGroup && s.has(id)) s.delete(id);
       });
 
-      if (set.size < 3) set.add(id);
+      set.add(id);
     }
 
     setSelections(clones);
@@ -173,28 +176,30 @@ export default function EditAllGroupsModal({ groups, onSave, onClose }: Props) {
   };
 
   /* -----------------------------------------
-     CLEANUP EMPTY GROUPS ON CLOSE
+     CLEANUP + PRIORITY REINDEX ON CLOSE
   ----------------------------------------- */
   const handleClose = () => {
-    // Step 1: Remove empty groups
+    // 1. Remove empty groups
     const nonEmpty = groups.filter((g) => g.characters.length > 0);
+    const base = nonEmpty.length > 0 ? nonEmpty : groups;
 
-    // If nothing removed, just close
-    if (nonEmpty.length === groups.length) {
-      onClose();
-      return;
-    }
+    // 2. Identify main-character groups
+    const mainGroups = base.filter((g) =>
+      g.characters.some((c) => MAIN_CHARACTERS.has(c.name))
+    );
 
-    // Step 2: Reindex
-    const cleaned = nonEmpty.map((g, idx) => ({
+    const normalGroups = base.filter(
+      (g) => !g.characters.some((c) => MAIN_CHARACTERS.has(c.name))
+    );
+
+    // 3. Reorder: main → normal
+    const reordered = [...mainGroups, ...normalGroups].map((g, idx) => ({
       ...g,
       index: idx + 1,
     }));
 
-    // Step 3: Save cleaned list
-    onSave(cleaned);
-
-    // Step 4: Close modal
+    // 4. Save + close
+    onSave(reordered);
     onClose();
   };
 
@@ -240,15 +245,11 @@ export default function EditAllGroupsModal({ groups, onSave, onClose }: Props) {
       <div className={styles.portalBackdrop} onClick={handleClose} />
 
       <div className={styles.characterModal} onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
         <div className={styles.headerRow}>
           <h2 className={styles.title}>编辑组员</h2>
-          <button className={styles.closeTextBtn} onClick={handleClose}>
-            关闭
-          </button>
+          <button className={styles.closeTextBtn} onClick={handleClose}>关闭</button>
         </div>
 
-        {/* Group selector */}
         <div className={styles.groupNumberRow}>
           {groups.map((_, idx) => (
             <button
@@ -262,12 +263,9 @@ export default function EditAllGroupsModal({ groups, onSave, onClose }: Props) {
             </button>
           ))}
 
-          <button className={styles.groupNumberBtn} onClick={addNewGroup}>
-            +
-          </button>
+          <button className={styles.groupNumberBtn} onClick={addNewGroup}>+</button>
         </div>
 
-        {/* Content */}
         <div className={styles.splitLayout}>
           <div className={styles.leftPane}>
             <div className={styles.accountGrid}>

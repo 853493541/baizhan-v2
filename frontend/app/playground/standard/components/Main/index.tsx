@@ -9,8 +9,6 @@ import type { GroupResult, Character, AbilityCheck } from "@/utils/solver";
 import SolverOptions from "./SolverOptions";
 import SolverButtons from "./SolverButtons";
 import DisplayGroups from "./DisplayGroups";
-
-// ⭐ NEW: edit-all-groups modal
 import EditAllGroupsModal from "./EditAllGroupsModal";
 
 const MAIN_CHARACTERS = new Set([
@@ -52,21 +50,15 @@ export default function MainSection({
   const [solving, setSolving] = useState(false);
   const [aftermath, setAftermath] =
     useState<{ wasted9: number; wasted10: number } | null>(null);
-
-  // ⭐ NEW: controls edit-all modal visibility
   const [showEditAll, setShowEditAll] = useState(false);
 
-  // abilities
   const allAbilities = schedule.checkedAbilities;
   const keyFor = (a: AbilityCheck) => `${a.name}-${a.level}`;
 
-  const [enabledAbilities, setEnabledAbilities] = useState<
-    Record<string, boolean>
-  >(() =>
-    Object.fromEntries(allAbilities.map((a) => [keyFor(a), true]))
+  const [enabledAbilities, setEnabledAbilities] = useState<Record<string, boolean>>(
+    () => Object.fromEntries(allAbilities.map((a) => [keyFor(a), true]))
   );
 
-  // aftermath
   useEffect(() => {
     if (groups.length > 0) {
       summarizeAftermath(groups)
@@ -75,7 +67,6 @@ export default function MainSection({
     } else setAftermath(null);
   }, [groups]);
 
-  // safe solver
   const safeRunSolver = async (abilities: AbilityCheck[], label: string) => {
     if (solving) return;
     try {
@@ -89,7 +80,6 @@ export default function MainSection({
     }
   };
 
-  // backend save
   const saveGroups = async (results: GroupResult[]) => {
     const payload = results.map((g, idx) => ({
       index: idx + 1,
@@ -112,7 +102,6 @@ export default function MainSection({
     }
   };
 
-  // reorder groups
   const reorderGroups = (inputGroups: GroupResult[]) => {
     const main = inputGroups.filter((g) =>
       g.characters.some((c) => MAIN_CHARACTERS.has(c.name))
@@ -124,7 +113,6 @@ export default function MainSection({
     return [...main, ...alt].map((g, idx) => ({ ...g, index: idx + 1 }));
   };
 
-  // auto reorder
   useEffect(() => {
     if (!groups.length) return;
     const reordered = reorderGroups(groups);
@@ -135,7 +123,6 @@ export default function MainSection({
     }
   }, [groups]);
 
-  // split rendering
   const mainPairs = groups
     .map((g, i) => ({ g, i }))
     .filter(({ g }) => g.characters.some((c) => MAIN_CHARACTERS.has(c.name)));
@@ -145,8 +132,9 @@ export default function MainSection({
     .filter(({ g }) => !g.characters.some((c) => MAIN_CHARACTERS.has(c.name)));
 
   const finishedCount = groups.filter((g) => g.status === "finished").length;
- const shouldLock = groups.some((g) => (g.status ?? "not_started") !== "not_started");
+  const shouldLock = groups.some((g) => (g.status ?? "not_started") !== "not_started");
 
+  const getActiveAbilities = () =>
     allAbilities.filter((a) => enabledAbilities[keyFor(a)] !== false);
 
   return (
@@ -156,7 +144,7 @@ export default function MainSection({
         已完成小组: {finishedCount} / {groups.length}
       </p>
 
-      {/* solver bar */}
+      {/* ⭐ Merged toolbar (solver + manual edit) */}
       <div className={styles.solverBar}>
         <SolverOptions
           allAbilities={allAbilities.map((a) => ({
@@ -166,19 +154,22 @@ export default function MainSection({
           enabledAbilities={enabledAbilities}
           setEnabledAbilities={setEnabledAbilities}
         />
+
         <SolverButtons
           solving={solving}
           disabled={shouldLock}
           onCore={() => safeRunSolver(getActiveAbilities(), "Custom")}
           onFull={() => safeRunSolver(allAbilities, "Full")}
+           onManual={() => setShowEditAll(true)} 
         />
-      </div>
 
-      {/* ⭐ Edit-all button */}
-      <div className={styles.editBar}>
-        <button className={styles.editBtn} onClick={() => setShowEditAll(true)}>
-          编辑所有小组成员
-        </button>
+        {/* ⭐ NEW — manual edit button, identical style to solver buttons */}
+        {/* <button
+          className={`${styles.solverBtn} ${styles.fullBtn}`}
+          onClick={() => setShowEditAll(true)}
+        >
+          手动编辑
+        </button> */}
       </div>
 
       {/* render groups */}
@@ -196,6 +187,7 @@ export default function MainSection({
               checkedAbilities={schedule.checkedAbilities}
             />
           )}
+
           {altPairs.length > 0 && (
             <DisplayGroups
               title="小号组"
@@ -209,21 +201,13 @@ export default function MainSection({
         </>
       )}
 
-      {/* ⭐ FINAL: EditAllGroupsModal — fixed to NOT close on save */}
       {showEditAll && (
         <EditAllGroupsModal
           groups={groups}
-         
           onClose={() => setShowEditAll(false)}
           onSave={(updatedGroups) => {
-            // 🔥 LIVE update groups
             setGroups(updatedGroups);
-
-            // 🔥 Save to backend
             saveGroups(updatedGroups);
-
-            // ❗ DO NOT CLOSE MODAL HERE
-            // setShowEditAll(false);  ← removed
           }}
         />
       )}

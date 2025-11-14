@@ -2,12 +2,19 @@ import styles from "./styles.module.css";
 
 interface Props {
   solving: boolean;
-  disabled?: boolean; // ✅ external lock flag
+  disabled?: boolean;       // 🔒 external lock
   onCore: () => void;
   onFull: () => void;
+  onManual: () => void;     // ⭐ NEW prop
 }
 
-export default function SolverButtons({ solving, disabled, onCore, onFull }: Props) {
+export default function SolverButtons({
+  solving,
+  disabled,
+  onCore,
+  onFull,
+  onManual,
+}: Props) {
   const isLocked = disabled ?? false;
 
   // helper to decide button text
@@ -20,20 +27,37 @@ export default function SolverButtons({ solving, disabled, onCore, onFull }: Pro
 
   return (
     <div className={styles.solverButtons}>
+      {/* 自定义排表 */}
       <button
-        className={`${styles.solverBtn} ${styles.coreBtn} ${isLocked ? styles.locked : ""}`}
+        className={`${styles.solverBtn} ${styles.coreBtn} ${
+          isLocked ? styles.locked : ""
+        }`}
         onClick={onCore}
         disabled={solving || isLocked}
       >
         {getLabel("core")}
       </button>
 
+      {/* 全局排表 */}
       <button
-        className={`${styles.solverBtn} ${styles.fullBtn} ${isLocked ? styles.locked : ""}`}
+        className={`${styles.solverBtn} ${styles.fullBtn} ${
+          isLocked ? styles.locked : ""
+        }`}
         onClick={onFull}
         disabled={solving || isLocked}
       >
         {getLabel("full")}
+      </button>
+
+      {/* ⭐ NEW: 手动编辑 — same size, same style */}
+      <button
+        className={`${styles.solverBtn} ${styles.fullBtn} ${
+          isLocked ? styles.locked : ""
+        }`}
+        onClick={onManual}
+        disabled={isLocked}
+      >
+        手动编辑
       </button>
     </div>
   );
