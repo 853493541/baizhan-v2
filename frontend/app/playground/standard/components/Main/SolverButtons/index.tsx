@@ -1,11 +1,12 @@
+import { useRef } from "react";
 import styles from "./styles.module.css";
 
 interface Props {
   solving: boolean;
-  disabled?: boolean;       // 🔒 external lock
+  disabled?: boolean;
   onCore: () => void;
   onFull: () => void;
-  onManual: () => void;     // ⭐ NEW prop
+  onManual: () => void;
 }
 
 export default function SolverButtons({
@@ -17,45 +18,59 @@ export default function SolverButtons({
 }: Props) {
   const isLocked = disabled ?? false;
 
-  // helper to decide button text
-  const getLabel = (type: "core" | "full") => {
-    if (solving && isLocked) return type === "core" ? "🔒 处理中" : "🔒 排表中";
-    if (solving) return type === "core" ? "🔒处理中..." : "🔒排表中";
-    if (isLocked) return "🔒 已锁定";
-    return type === "core" ? "自定义排表" : "全局排表";
+  // ⭐ NEW: tracks if user already confirmed in this session
+  const manualWarnedRef = useRef(false);
+
+  const handleManualClick = () => {
+    // If NOT locked, open immediately
+    if (!isLocked) {
+      onManual();
+      return;
+    }
+
+    // If locked, but user already confirmed once → open without asking
+    if (manualWarnedRef.current) {
+      onManual();
+      return;
+    }
+
+    // First time showing warning
+    const ok = window.confirm("当前排表已锁定，确定要手动编辑吗？");
+    if (ok) {
+      manualWarnedRef.current = true; // ✔ Remember user's choice
+      onManual();
+    }
   };
 
   return (
     <div className={styles.solverButtons}>
-      {/* 自定义排表 */}
-      <button
-        className={`${styles.solverBtn} ${styles.coreBtn} ${
-          isLocked ? styles.locked : ""
-        }`}
-        onClick={onCore}
-        disabled={solving || isLocked}
-      >
-        {getLabel("core")}
-      </button>
 
-      {/* 全局排表 */}
+      {/* Custom Solver — hidden when locked */}
+      {!isLocked && (
+        <button
+          className={`${styles.solverBtn} ${styles.coreBtn}`}
+          onClick={onCore}
+          disabled={solving}
+        >
+          {solving ? "处理中..." : "自定义排表"}
+        </button>
+      )}
+
+      {/* Full Solver / Locked indicator */}
       <button
         className={`${styles.solverBtn} ${styles.fullBtn} ${
-          isLocked ? styles.locked : ""
+          isLocked ? styles.disabledLight : ""
         }`}
-        onClick={onFull}
+        onClick={() => !isLocked && onFull()}
         disabled={solving || isLocked}
       >
-        {getLabel("full")}
+        {isLocked ? "🔒 已锁定" : solving ? "排表中..." : "全局排表"}
       </button>
 
-      {/* ⭐ NEW: 手动编辑 — same size, same style */}
+      {/* Manual Edit — always visible, ask ONCE */}
       <button
-        className={`${styles.solverBtn} ${styles.fullBtn} ${
-          isLocked ? styles.locked : ""
-        }`}
-        onClick={onManual}
-        disabled={isLocked}
+        className={`${styles.solverBtn} ${styles.manualBtn}`}
+        onClick={handleManualClick}
       >
         手动编辑
       </button>
