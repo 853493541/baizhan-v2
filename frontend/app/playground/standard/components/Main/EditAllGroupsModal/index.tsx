@@ -35,6 +35,14 @@ export default function EditAllGroupsModal({
   const [loading, setLoading] = useState(true);
   const [selections, setSelections] = useState<Set<string>[]>([]);
 
+  // 🔹 Local copy of groups so we don't rely on stale props
+  const [localGroups, setLocalGroups] = useState<GroupResult[]>(groups);
+
+  // If parent updates groups (e.g. after save), keep local copy in sync
+  useEffect(() => {
+    setLocalGroups(groups);
+  }, [groups]);
+
   /* -----------------------------------------
      LOAD ALL CHARACTERS
   ----------------------------------------- */
@@ -53,16 +61,16 @@ export default function EditAllGroupsModal({
   }, []);
 
   /* -----------------------------------------
-     INITIAL SELECTIONS
+     INITIAL SELECTIONS (SYNC WITH localGroups)
   ----------------------------------------- */
   const initialSelections = useMemo(() => {
-    return groups.map((g) => {
+    return localGroups.map((g) => {
       const s = new Set<string>();
       const ids = new Set(g.characters.map((c) => c._id));
       for (const c of allCharacters) if (ids.has(c._id)) s.add(c._id);
       return s;
     });
-  }, [groups, allCharacters]);
+  }, [localGroups, allCharacters]);
 
   useEffect(() => {
     if (!loading && allCharacters.length > 0) {
@@ -71,15 +79,15 @@ export default function EditAllGroupsModal({
   }, [loading, initialSelections, allCharacters.length]);
 
   /* -----------------------------------------
-     CHAR → GROUP DISPLAY MAP
+     CHAR → GROUP DISPLAY MAP (use localGroups)
   ----------------------------------------- */
   const charGroupMap = useMemo(() => {
     const map: Record<string, number> = {};
-    groups.forEach((g, idx) => {
+    localGroups.forEach((g, idx) => {
       g.characters.forEach((c) => (map[c._id] = idx + 1));
     });
     return map;
-  }, [groups]);
+  }, [localGroups]);
 
   /* -----------------------------------------
      ACCOUNT GROUPING + SORTING  (UPDATED)
@@ -104,10 +112,6 @@ export default function EditAllGroupsModal({
     const hasMain = (chars: Character[]) =>
       chars.some((c) => MAIN_CHARACTERS.has(c.name));
 
-    /* --------------------------
-       🔥 New Sorting Logic
-       -------------------------- */
-
     // Sort by number of characters (DESC)
     multi.sort((a, b) => b[1].length - a[1].length);
     single.sort((a, b) => b[1].length - a[1].length);
@@ -120,19 +124,20 @@ export default function EditAllGroupsModal({
   }, [allCharacters, selections]);
 
   /* -----------------------------------------
-     ADD NEW GROUP
+     ADD NEW GROUP  (use localGroups)
   ----------------------------------------- */
   const addNewGroup = () => {
     const newGroup: GroupResult = {
-      index: groups.length + 1,
+      index: localGroups.length + 1,
       characters: [],
       kills: [],
       status: "not_started",
     };
 
-    const newGroups = [...groups, newGroup];
+    const newGroups = [...localGroups, newGroup];
     const newSelections = [...selections, new Set<string>()];
 
+    setLocalGroups(newGroups);
     setSelections(newSelections);
     setSelectedGroup(newGroups.length - 1);
 
@@ -163,13 +168,14 @@ export default function EditAllGroupsModal({
 
     setSelections(clones);
 
-    // Safe update: keep kills + status
-    const updated = groups.map((g, i) => {
+    // Safe update: keep kills + status; base on localGroups
+    const updated = localGroups.map((g, i) => {
       const ids = clones[i];
       const chars = allCharacters.filter((c) => ids.has(c._id));
       return { ...g, characters: chars };
     });
 
+    setLocalGroups(updated);
     onSave(updated);
   };
 
@@ -197,10 +203,10 @@ export default function EditAllGroupsModal({
   };
 
   /* -----------------------------------------
-     CLOSE + CLEANUP + SAVE
+     CLOSE + CLEANUP + SAVE  (use localGroups)
   ----------------------------------------- */
   const handleClose = async () => {
-    const safeGroups = groups.filter(
+    const safeGroups = localGroups.filter(
       (g) =>
         !(
           g.characters.length === 0 &&
@@ -209,7 +215,7 @@ export default function EditAllGroupsModal({
         )
     );
 
-    const base = safeGroups.length ? safeGroups : groups;
+    const base = safeGroups.length ? safeGroups : localGroups;
 
     const mainGroups = base.filter((g) =>
       g.characters.some((c) => MAIN_CHARACTERS.has(c.name))
@@ -288,7 +294,7 @@ export default function EditAllGroupsModal({
         </div>
 
         <div className={styles.groupNumberRow}>
-          {groups.map((_, idx) => (
+          {localGroups.map((_, idx) => (
             <button
               key={idx}
               className={`${styles.groupNumberBtn} ${
