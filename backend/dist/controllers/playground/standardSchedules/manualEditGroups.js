@@ -17,17 +17,24 @@ const manualEditGroups = async (req, res) => {
         if (!schedule) {
             return res.status(404).json({ error: "Schedule not found" });
         }
-        // Map index → characters[]
-        const map = new Map(incoming.map((g) => [g.index, g.characters || []]));
-        // Update characters ONLY
-        schedule.groups = schedule.groups.map((old) => {
-            const newChars = map.get(old.index);
-            if (!newChars)
-                return old; // unchanged if frontend didn't include it
-            return { ...old, characters: newChars };
+        // Build a map of old groups by index for preserving kills/status
+        const oldMap = new Map();
+        for (const g of schedule.groups) {
+            oldMap.set(g.index, g);
+        }
+        // Build the new groups array exactly as frontend desires
+        const rebuilt = incoming.map((g) => {
+            const prev = oldMap.get(g.index);
+            return {
+                index: g.index,
+                characters: g.characters || [],
+                kills: prev?.kills || [],
+                status: prev?.status || "not_started",
+            };
         });
+        // Replace groups entirely
+        schedule.groups = rebuilt;
         await schedule.save();
-        // repopulate to return full objects
         const updated = await StandardSchedule_1.default.findById(id)
             .populate("characters")
             .populate("groups.characters");
