@@ -313,3 +313,10 @@
   background: #d6ebff;
   border-color: #5da8ff;
 }
+/* === Ability Icon (shared across all components) === */
+.iconSmall {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
