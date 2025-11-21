@@ -92,6 +92,27 @@ export default function EditCharacter({
   /* ---------- Guard ---------- */
   if (!Array.isArray(allCharacters) || allCharacters.length === 0) return null;
 
+  /* ----------------------------------------------------------------------
+     ⭐ CLICK HANDLER WITH AUTO-MOVE
+  ---------------------------------------------------------------------- */
+  const handleSelect = (
+    c: Character,
+    isUsedElsewhere: boolean,
+    isCurrent: boolean
+  ) => {
+    // AUTO-MOVE BEHAVIOR
+    if (isUsedElsewhere) {
+      onSelect(c);
+      return;
+    }
+
+    // Prevent clicking the "当前" item
+    if (isCurrent) return;
+
+    // Normal select
+    onSelect(c);
+  };
+
   /* ---------- Render one account card ---------- */
   const renderAccount = (account: string, list: Character[]) => {
     const hasSelectedInCurrent =
@@ -135,8 +156,7 @@ export default function EditCharacter({
                 } ${shouldGray ? styles.grayOut : ""}`}
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (shouldGray) return;
-                  onSelect(c);
+                  handleSelect(c, isUsedElsewhere, isCurrent);
                 }}
               >
                 <span className={styles.charName}>
@@ -201,8 +221,7 @@ export default function EditCharacter({
                 } ${shouldGray ? styles.grayOut : ""}`}
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (shouldGray) return;
-                  onSelect(c);
+                  handleSelect(c, isUsedElsewhere, isCurrent);
                 }}
               >
                 <span className={styles.charName}>
