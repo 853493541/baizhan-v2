@@ -84,7 +84,6 @@ export default function MemberList({
   const rightColumnRef = useRef<HTMLDivElement>(null);
   const storageKey = `showReasoningWindow-floor${floor || "global"}`;
 
-  /* ✅ Persisted reasoning state */
   const [showReasoning, setShowReasoning] = useState<boolean>(false);
 
   useEffect(() => {
@@ -241,6 +240,7 @@ export default function MemberList({
             else colorClass = styles.levelYellow;
           }
 
+          /* Show transferred icon properly */
           const abilityIcon =
             isTransferred && shownAbility ? getAbilityIcon(shownAbility) : null;
 
@@ -256,15 +256,19 @@ export default function MemberList({
               <div className={styles.topRow}>
                 <span className={styles.nameAndIcon}>
                   {c.name}
+
+                  {/* ✔ FIXED: use iconSmall, not abilityIconSmall */}
                   {abilityIcon && (
                     <img
                       src={abilityIcon}
                       alt={shownAbility}
-                      className={styles.abilityIconSmall}
+                      className={styles.iconSmall}
                     />
                   )}
+
                   <span>({shownLevel}重)</span>
                 </span>
+
                 <span className={`${styles.progressText} ${progressColor}`}>
                   {progressText}
                 </span>

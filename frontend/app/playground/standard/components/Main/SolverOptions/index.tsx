@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { FaCog } from "react-icons/fa"; // ⚙️ Gear icon
+import { FaCog } from "react-icons/fa";
 import styles from "./styles.module.css";
 
 interface AbilityItem {
@@ -10,6 +10,7 @@ interface AbilityItem {
 }
 
 interface Props {
+  disabled?: boolean;   // ⭐ NEW
   allAbilities?: AbilityItem[];
   enabledAbilities: Record<string, boolean>;
   setEnabledAbilities: React.Dispatch<
@@ -53,14 +54,30 @@ export const GOOD_ABILITIES = [
 ];
 
 export default function SolverOptions({
+  disabled = false,
   allAbilities = [],
   enabledAbilities,
   setEnabledAbilities,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [activeLevel, setActiveLevel] = useState<9 | 10>(9);
+  const [warned, setWarned] = useState(false); // ⭐ only warn once
 
   const getKey = (name: string, level: number) => `${name}-${level}`;
+
+  const handleGearClick = () => {
+    if (!disabled) {
+      setOpen(true);
+      return;
+    }
+
+    // 🔒 Locked: warn once per session
+    if (!warned) {
+      alert("当前排表已锁定，调整技能可能无效。");
+      setWarned(true);
+    }
+    setOpen(true);
+  };
 
   const toggleAbility = (name: string, level: number) => {
     const key = getKey(name, level);
@@ -70,16 +87,16 @@ export default function SolverOptions({
     }));
   };
 
-  // Split by level
   const level9 = allAbilities.filter((a) => a.level === 9);
   const level10 = allAbilities.filter((a) => a.level === 10);
 
-  // Split by category
   const splitByCategory = (list: AbilityItem[]) => {
     const core = list.filter((a) => CORE_ABILITIES.includes(a.name));
     const good = list.filter((a) => GOOD_ABILITIES.includes(a.name));
     const others = list.filter(
-      (a) => !CORE_ABILITIES.includes(a.name) && !GOOD_ABILITIES.includes(a.name)
+      (a) =>
+        !CORE_ABILITIES.includes(a.name) &&
+        !GOOD_ABILITIES.includes(a.name)
     );
     return { core, good, others };
   };
@@ -141,7 +158,6 @@ export default function SolverOptions({
     );
   };
 
-  // ✅ Divider between catalogs
   const renderActiveLevel = (level: number, list: AbilityItem[]) => {
     const { core, good, others } = splitByCategory(list);
     return (
@@ -167,15 +183,21 @@ export default function SolverOptions({
 
   return (
     <>
-      {/* ⚙️ Gear icon button */}
-      <button className={styles.iconBtn} onClick={() => setOpen(true)} title="打开技能选择">
+      {/* ⚙️ Gear icon — now supports gray when disabled */}
+      <button
+        className={`${styles.iconBtn} ${disabled ? styles.lockedBtn : ""}`}
+        onClick={handleGearClick}
+        title="打开技能选择"
+      >
         <FaCog />
       </button>
 
       {open && (
         <div className={styles.overlay}>
           <div className={styles.modal}>
-            <button className={styles.closeBtn} onClick={() => setOpen(false)}>✕</button>
+            <button className={styles.closeBtn} onClick={() => setOpen(false)}>
+              ✕
+            </button>
 
             <div className={styles.tabBar}>
               <button
@@ -195,7 +217,9 @@ export default function SolverOptions({
             {renderActiveLevel(activeLevel, activeList)}
 
             <div className={styles.modalActions}>
-              <button className={styles.confirmBtn} onClick={() => setOpen(false)}>确定</button>
+              <button className={styles.confirmBtn} onClick={() => setOpen(false)}>
+                确定
+              </button>
             </div>
           </div>
         </div>

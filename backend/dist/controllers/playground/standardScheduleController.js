@@ -3,8 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getGroupKills = exports.updateScheduleName = exports.deleteGroupKill = exports.updateGroupKill = exports.updateGroupStatus = exports.updateStandardSchedule = exports.deleteStandardSchedule = exports.getStandardScheduleById = exports.getStandardSchedules = exports.createStandardSchedule = void 0;
+exports.updateScheduleCharacters = exports.getGroupKills = exports.updateScheduleName = exports.deleteGroupKill = exports.updateGroupKill = exports.updateGroupStatus = exports.updateStandardSchedule = exports.deleteStandardSchedule = exports.getStandardScheduleById = exports.getStandardSchedules = exports.createStandardSchedule = void 0;
 const StandardSchedule_1 = __importDefault(require("../../models/StandardSchedule"));
+const Character_1 = __importDefault(require("../../models/Character"));
 // ✅ Create new standard schedule
 const createStandardSchedule = async (req, res) => {
     try {
@@ -264,3 +265,55 @@ const getGroupKills = async (req, res) => {
     }
 };
 exports.getGroupKills = getGroupKills;
+const updateScheduleCharacters = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { characterIds } = req.body;
+        console.log("📥 Updating schedule characters:", {
+            scheduleId: id,
+            characterIdsCount: Array.isArray(characterIds) ? characterIds.length : "invalid",
+        });
+        if (!Array.isArray(characterIds)) {
+            return res.status(400).json({ error: "characterIds must be an array" });
+        }
+        // 1️⃣ Validate characters exist in DB
+        const chars = await Character_1.default.find({ _id: { $in: characterIds } });
+        if (chars.length !== characterIds.length) {
+            return res.status(400).json({
+                error: "Some character IDs do not exist",
+                received: characterIds.length,
+                found: chars.length,
+            });
+        }
+        // 2️⃣ Load schedule
+        const schedule = await StandardSchedule_1.default.findById(id);
+        if (!schedule) {
+            return res.status(404).json({ error: "Standard schedule not found" });
+        }
+        // 3️⃣ Update characters field
+        schedule.characters = characterIds;
+        // 4️⃣ Clear all groups because membership changed
+        if (Array.isArray(schedule.groups)) {
+            schedule.groups = schedule.groups.map((g) => ({
+                ...g,
+                characters: [],
+                kills: g.kills || [],
+            }));
+        }
+        await schedule.save();
+        // 5️⃣ Return populated version so frontend gets full objects
+        const populated = await StandardSchedule_1.default.findById(id)
+            .populate("characters")
+            .populate("groups.characters");
+        console.log("✅ Updated schedule characters:", {
+            id,
+            characterCount: schedule.characters.length,
+        });
+        res.json(populated);
+    }
+    catch (err) {
+        console.error("❌ Error updating schedule characters:", err);
+        res.status(500).json({ error: "Failed to update schedule characters" });
+    }
+};
+exports.updateScheduleCharacters = updateScheduleCharacters;
