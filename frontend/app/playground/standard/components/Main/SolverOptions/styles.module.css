@@ -275,3 +275,25 @@
   box-shadow: 0 2px 6px rgba(59, 130, 246, 0.25);
   transform: rotate(20deg) scale(1.05);
 }
+.lockedBtn {
+  background: #ccc !important;      /* light gray */
+  color: #666 !important;           /* darker gray icon */
+  opacity: 0.6 !important;          /* slightly faded */
+  cursor: not-allowed !important;   /* disable pointer */
+}.lockedBtn {
+  background: #ccc !important;
+  color: #666 !important;
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+
+  pointer-events: none !important;   /* 🔥 This fully blocks clicks */
+  user-select: none !important;      /* Prevent highlighting */
+}
+
+.lockedBtn:active,
+.lockedBtn:focus,
+.lockedBtn:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  transform: none !important;       /* 🔥 Prevent icon “press down” animation */
+}
