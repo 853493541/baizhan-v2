@@ -46,7 +46,7 @@ export default function StatsSection() {
   /* ---------- Remove year (only show "第 X 周") ---------- */
   const formatWeek = (week: string) => {
     const num = Number(week.split("-W")[1]);
-    return `第 ${num} 周`;
+    return `W${num}`;
   };
 
   const currentData = tab === "90" ? stats.floor90 : stats.floor100;
@@ -78,11 +78,11 @@ export default function StatsSection() {
     <table className={styles.table}>
       <thead>
         <tr>
-          <th>Boss 名称</th>
+          <th>名称</th>
           <th>出现次数</th>
           <th>最近出现</th>
-          <th>距今（周）</th>
-          <th>出现周数</th>
+          <th>距今</th>
+          <th>出现周</th>
         </tr>
       </thead>
       <tbody>
@@ -130,7 +130,7 @@ export default function StatsSection() {
 
   return (
     <div className={styles.container}>
-      <h2 className={styles.header}>📊 Boss 出现分析</h2>
+      <h2 className={styles.header}>精英首领出场次数统计</h2>
 
       {/* ====================== Tab UI ====================== */}
       <div className={styles.tabs}>
