@@ -5,6 +5,7 @@ import bossData from "../data/boss_skills_collection_map.json";
 import styles from "./styles.module.css";
 import CurrentWeek from "./components/CurrentWeek";
 import HistorySection from "./components/HistorySection";
+import StatsSection from "./components/Stats";
 
 const specialBosses = [
   "武雪散",
@@ -153,7 +154,7 @@ export default function MapPage() {
         locked={locked}       // ✅ pass lock state
         onLock={lockMap}      // ✅ lock handler
       />
-
+      <StatsSection />  
       <HistorySection row1={row1} row2={row2} />
     </div>
   );
