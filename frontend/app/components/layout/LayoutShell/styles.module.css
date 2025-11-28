@@ -1,20 +1,96 @@
+/* =========================================
+   GLOBAL WRAPPER (also stores height variable)
+========================================= */
+.container {
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+
+  /* default desktop topbar height */
+  --topbar-height: 56px;
+}
+
+/* mobile override */
+@media (max-width: 768px) {
+  .container {
+    --topbar-height: 44px;
+  }
+}
+
+
+/* =========================================
+   FIXED TOP BAR
+========================================= */
+.topbarGlobal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+
+  height: var(--topbar-height);
+  z-index: 3000;
+
+  background: white;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.drawer-open .topbarGlobal {
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+
+
+/* =========================================
+   GRID BELOW TOPBAR
+========================================= */
 .appGrid {
   display: grid;
-  grid-template-rows: 56px 1fr;
   grid-template-columns: 240px 1fr;
-  grid-template-areas:
-    "topbar topbar"
-    "sidebar main";
-  height: 100vh;
+  grid-template-areas: "sidebar main";
+
+  margin-top: var(--topbar-height);
+  height: calc(100vh - var(--topbar-height));
 }
-.topbar { grid-area: topbar; }
-.sidebar { grid-area: sidebar; }
+
+.sidebar {
+  grid-area: sidebar;
+}
+
 .main {
   grid-area: main;
   padding: 16px 20px 24px;
-  overflow: auto;
+  overflow-y: auto;
 }
 
+
+/* =========================================
+   RESPONSIVE (Tablet)
+========================================= */
 @media (max-width: 920px) {
-  .appGrid { grid-template-columns: 72px 1fr; }
+  .appGrid {
+    grid-template-columns: 72px 1fr;
+  }
+}
+
+
+/* =========================================
+   RESPONSIVE (Mobile)
+========================================= */
+@media (max-width: 768px) {
+
+  /* ⭐ FIX: remove sidebar column entirely */
+  .appGrid {
+    grid-template-columns: 1fr !important;
+    grid-template-areas: "main" !important;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  /* Optional tighter padding for mobile */
+  .main {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
 }
