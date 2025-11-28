@@ -8,9 +8,10 @@ export default function HomePage() {
     <div className={styles.container}>
       <h1 className={styles.title}>百战</h1>
       <p className={styles.subtitle}>快速查看角色和排表</p>
+      
 
       <div className={styles.footer}>
-        <p>版本 v2.01</p>
+        <p>版本 v2.20</p>
         <p>作者: 轻语@乾坤一掷</p>
       </div>
     </div>
