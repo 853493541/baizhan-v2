@@ -8,8 +8,8 @@
   height: 56px;
   border-bottom: 1px solid #e5e5e5;
   background: #fff;
-  z-index: 3000 !important;
-  box-shadow: 0 2px 3px rgba(0,0,0,0.08); /* desktop shadow */
+
+ 
 }
 
 /* ⭐ When drawer is open: remove shadow & border */

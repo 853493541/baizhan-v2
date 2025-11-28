@@ -155,7 +155,7 @@ export default function MapPage() {
         onLock={lockMap}      // ✅ lock handler
       />
       <StatsSection />  
-      <HistorySection row1={row1} row2={row2} />
+      {/* <HistorySection row1={row1} row2={row2} /> */}
     </div>
   );
 }
