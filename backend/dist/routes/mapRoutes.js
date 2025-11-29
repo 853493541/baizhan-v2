@@ -9,4 +9,5 @@ router.delete("/", mapController_1.deleteWeeklyMap); // ✅ Delete current week
 router.get("/past", mapController_1.getPastWeeklyMap);
 router.get("/history", mapController_1.getWeeklyMapHistory);
 router.post("/lock", mapController_1.lockWeeklyMap);
+router.get("/stats", mapController_1.getWeeklyMapStats);
 exports.default = router;

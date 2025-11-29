@@ -6,6 +6,7 @@ import {
   getPastWeeklyMap,
   getWeeklyMapHistory,
   lockWeeklyMap,
+  getWeeklyMapStats
 } from "../controllers/map/mapController";
 
 const router = Router();
@@ -16,5 +17,7 @@ router.delete("/", deleteWeeklyMap);    // ✅ Delete current week
 router.get("/past", getPastWeeklyMap);
 router.get("/history", getWeeklyMapHistory); 
 router.post("/lock", lockWeeklyMap); 
+router.get("/stats", getWeeklyMapStats);
+
 
 export default router;
