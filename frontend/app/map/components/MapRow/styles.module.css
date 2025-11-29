@@ -1,41 +1,75 @@
+/* === Row: fixed 10-column grid === */
 .row {
   display: grid;
-  grid-template-columns: repeat(10, 1fr);
-  gap: 8px;
-  margin-bottom: 16px;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
 }
 
+/* === Card === */
 .card {
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  padding: 8px;
-  background: #f9f9f9;
+  background: #fafafa;
+  border: 1px solid #e4e4e4;
+  border-radius: 10px;
+  padding: 10px 8px;
   text-align: center;
-  font-size: 14px;
+
+  /* keep same size in locked/unlocked */
+  min-height: 72px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.08s ease;
 }
 
+.card:hover {
+  background: #f3f3f3;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+/* Elite 90 / 100 floor highlight */
+.eliteCard {
+  background: #fff8e1;
+  border-color: #cfa124;
+  box-shadow: 0 0 6px rgba(207, 161, 36, 0.25);
+}
+
+/* Floor number */
 .floorLabel {
-  font-weight: bold;
-  margin-bottom: 6px;
   font-size: 13px;
+  font-weight: 600;
+  color: #666;
 }
 
+/* Boss name in readonly mode */
 .readonlyValue {
-  font-size: 13px;
-  color: #444;
-  padding: 4px 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
 }
 
+/* Dropdown */
 .dropdown {
-  width: 100%;
-  padding: 6px;
-  border: 1px solid #aaa;
-  border-radius: 4px;
-  background: #fff;
+  padding: 6px 8px;
   font-size: 13px;
+  border: 1px solid #bdbdbd;
+  border-radius: 6px;
+  outline: none;
+  width: 100%;
+  background: #ffffff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
+.dropdown:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 1px rgba(74, 144, 226, 0.2);
+}
+
+/* Elite dropdown look */
 .dropdownElite {
-  border-color: #d32f2f;
-  box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.12);
+  border-color: #cfa124 !important;
+  background: #fff8e1 !important;
 }

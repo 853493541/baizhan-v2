@@ -4,8 +4,6 @@ import React, { useState, useEffect } from "react";
 import bossData from "../data/boss_skills_collection_map.json";
 import styles from "./styles.module.css";
 import CurrentWeek from "./components/CurrentWeek";
-import HistorySection from "./components/HistorySection";
-
 
 const specialBosses = [
   "武雪散",
@@ -21,6 +19,8 @@ const specialBosses = [
 ];
 
 export default function MapPage() {
+  console.log("🚀 MapPage rendered");
+
   const normalBosses = Object.keys(bossData).filter(
     (b) => !specialBosses.includes(b)
   );
@@ -30,11 +30,74 @@ export default function MapPage() {
 
   const [floorAssignments, setFloorAssignments] = useState<Record<number, string>>({});
   const [status, setStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
-  const [locked, setLocked] = useState(false); // ✅ track lock state
+  const [locked, setLocked] = useState(false);
 
-  // 🔹 Save to DB
+  // -----------------------------
+  // 🔍 Debug: fetch current week
+  // -----------------------------
+  const fetchMap = async () => {
+    console.log("📌 Fetching weekly map...");
+
+    try {
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map`;
+      console.log("🔗 API URL:", url);
+
+      const res = await fetch(url);
+
+      console.log("📥 Response status:", res.status);
+
+      if (!res.ok) {
+        console.warn("⚠️ Backend returned NOT OK. No map for this week.");
+        return;
+      }
+
+      let data: any = {};
+      try {
+        data = await res.json();
+        console.log("📦 Raw data received:", data);
+      } catch (parseErr) {
+        console.error("❌ Failed to parse JSON:", parseErr);
+        return;
+      }
+
+      if (!data || typeof data !== "object") {
+        console.error("❌ Invalid data format:", data);
+        return;
+      }
+
+      if (!data.floors) {
+        console.error("❌ No floors found in response:", data);
+        return;
+      }
+
+      const floors: Record<number, string> = {};
+
+      for (const [floor, obj] of Object.entries(data.floors)) {
+        console.log(`🧩 Parsing floor ${floor}:`, obj);
+        floors[Number(floor)] = (obj as any).boss;
+      }
+
+      console.log("📊 Parsed floors:", floors);
+
+      setFloorAssignments(floors);
+      setLocked(data.locked ?? false);
+
+      localStorage.setItem("weeklyFloors", JSON.stringify(floors));
+      console.log("💾 Saved to localStorage!");
+
+    } catch (err) {
+      console.error("❌ fetchMap failed:", err);
+    }
+  };
+
+  // -----------------------------
+  // 🔍 Debug: Save to DB
+  // -----------------------------
   const persistToDB = async (floors: Record<number, string>) => {
+    console.log("💾 Saving new weekly map to DB:", floors);
+
     setStatus("saving");
+
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map`, {
         method: "POST",
@@ -45,59 +108,61 @@ export default function MapPage() {
           ),
         }),
       });
-      if (!res.ok) throw new Error("Request failed");
+
+      console.log("📥 Save response status:", res.status);
+
+      if (!res.ok) throw new Error("Save failed");
+
       setStatus("success");
-      setTimeout(() => setStatus("idle"), 2000);
+      setTimeout(() => setStatus("idle"), 1500);
     } catch (err) {
-      console.error("❌ Failed to save weekly map:", err);
+      console.error("❌ Failed to save:", err);
       setStatus("error");
-      setTimeout(() => setStatus("idle"), 3000);
+      setTimeout(() => setStatus("idle"), 2000);
     }
   };
 
-  // 🔹 Delete current week
-  const deleteCurrentWeek = async () => {
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map`, {
-        method: "DELETE",
-      });
-      if (!res.ok) throw new Error("Delete failed");
-      setFloorAssignments({});
-      setLocked(false); // ✅ reset lock when deleting
-    } catch (err) {
-      console.error("❌ Failed to delete weekly map:", err);
-    }
-  };
-
-  // 🔹 Fetch current week
-  const fetchMap = async () => {
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map`);
-      if (res.ok) {
-        const data = await res.json();
-        const floors: Record<number, string> = {};
-        for (const [floor, obj] of Object.entries(data.floors)) {
-          floors[Number(floor)] = (obj as any).boss;
-        }
-        setFloorAssignments(floors);
-        setLocked(data.locked ?? false); // ✅ read locked state
-        localStorage.setItem("weeklyFloors", JSON.stringify(floors));
-      }
-    } catch (err) {
-      console.error("❌ Failed to load weekly map:", err);
-    }
-  };
-
-  // 🔹 Lock current week
+  // -----------------------------
+  // 🔍 Debug: lock week
+  // -----------------------------
   const lockMap = async () => {
+    console.log("🔒 Locking weekly map...");
+
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map/lock`, {
         method: "POST",
       });
+
+      console.log("📥 Lock response:", res.status);
+
       if (!res.ok) throw new Error("Lock failed");
+
       setLocked(true);
     } catch (err) {
-      console.error("❌ Failed to lock weekly map:", err);
+      console.error("❌ Lock failed:", err);
+    }
+  };
+
+  // -----------------------------
+  // 🔍 Debug: delete week
+  // -----------------------------
+  const deleteCurrentWeek = async () => {
+    console.log("🗑 Deleting weekly map...");
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map`, {
+        method: "DELETE",
+      });
+
+      console.log("📥 Delete response:", res.status);
+
+      if (!res.ok) throw new Error("Delete failed");
+
+      setFloorAssignments({});
+      setLocked(false);
+      console.log("🧹 Cleared map & lock state");
+    } catch (err) {
+      console.error("❌ Delete failed:", err);
     }
   };
 
@@ -105,18 +170,21 @@ export default function MapPage() {
     fetchMap();
   }, []);
 
-  // 🔹 Handle dropdown select
   const handleSelect = (floor: number, boss: string) => {
+    console.log(`📝 Selecting boss "${boss}" for floor ${floor}`);
+
     setFloorAssignments((prev) => {
       const updated = { ...prev, [floor]: boss };
+      console.log("📌 Updated floorAssignments:", updated);
       localStorage.setItem("weeklyFloors", JSON.stringify(updated));
       persistToDB(updated);
       return updated;
     });
   };
 
-  // 🔹 Boss options filtering
   const getAvailableBosses = (floor: number) => {
+    console.log(`🔍 getAvailableBosses(${floor}) called`);
+
     if (floor === 90 || floor === 100) {
       return specialBosses.filter(
         (b) =>
@@ -124,6 +192,7 @@ export default function MapPage() {
           floorAssignments[floor] === b
       );
     }
+
     if (floor >= 81 && floor <= 89) {
       return normalBosses.filter(
         (b) =>
@@ -131,6 +200,7 @@ export default function MapPage() {
           floorAssignments[floor] === b
       );
     }
+
     if (floor >= 91 && floor <= 99) {
       return normalBosses.filter(
         (b) =>
@@ -138,6 +208,7 @@ export default function MapPage() {
           floorAssignments[floor] === b
       );
     }
+
     return normalBosses;
   };
 
@@ -151,11 +222,9 @@ export default function MapPage() {
         getAvailableBosses={getAvailableBosses}
         onDelete={deleteCurrentWeek}
         status={status}
-        locked={locked}       // ✅ pass lock state
-        onLock={lockMap}      // ✅ lock handler
+        locked={locked}
+        onLock={lockMap}
       />
-
-      <HistorySection row1={row1} row2={row2} />
     </div>
   );
 }
