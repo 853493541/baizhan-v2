@@ -39,6 +39,21 @@ interface Props {
   onPick: (floor: number, boss: string) => void;
 }
 
+/* --------------------------------------------------------
+   Only show 已选 if boss is in SAME pool group:
+   - 81–89 together
+   - 91–99 together
+   - 90 alone
+   - 100 alone
+-------------------------------------------------------- */
+function inSamePoolGroup(f1: number, f2: number) {
+  if (f1 >= 81 && f1 <= 89 && f2 >= 81 && f2 <= 89) return true;
+  if (f1 >= 91 && f1 <= 99 && f2 >= 91 && f2 <= 99) return true;
+  if (f1 === 90 && f2 === 90) return true;
+  if (f1 === 100 && f2 === 100) return true;
+  return false;
+}
+
 export default function BossSelectModal({
   floor,
   pool,
@@ -50,15 +65,11 @@ export default function BossSelectModal({
 
   return (
     <div className={styles.overlay}>
-      <div
-        className={styles.modal}
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.title}>{floor} 层</div>
 
-          {/* Close button */}
           <button
             className={styles.closeBtn}
             onClick={(e) => {
@@ -76,19 +87,24 @@ export default function BossSelectModal({
             const bosses = GROUPS[col.key].filter((b) => poolSet.has(b));
 
             return (
-              <div key={col.key} className={clsx(styles.column, col.className)}>
+              <div
+                key={col.key}
+                className={clsx(styles.column, col.className)}
+              >
                 <div className={styles.columnHeader}>{col.label}</div>
 
                 <div className={styles.bossList}>
                   {bosses.map((boss) => {
+                    /* --------------------------------------------------------
+                       Correct "isSelected" logic
+                    -------------------------------------------------------- */
                     const assigned = Object.entries(floorAssignments).find(
-                      ([, b]) => b === boss
+                      ([otherFloor, b]) =>
+                        b === boss &&
+                        inSamePoolGroup(Number(otherFloor), floor)
                     );
-                    const assignedFloor = assigned
-                      ? Number(assigned[0])
-                      : null;
 
-                    const isSelected = assignedFloor != null;
+                    const isSelected = Boolean(assigned);
 
                     return (
                       <button
