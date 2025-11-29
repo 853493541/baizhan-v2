@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./styles.module.css";
 import MapRow from "../MapRow";
 
@@ -12,8 +12,8 @@ interface Props {
   getAvailableBosses: (floor: number) => string[];
   onDelete: () => void;
   status: "idle" | "saving" | "success" | "error";
-  locked: boolean;
-  onLock: () => void;
+  locked: boolean;     // initial locked state from backend
+  onLock: () => void;  // backend lock API
 }
 
 export default function CurrentWeek({
@@ -24,20 +24,38 @@ export default function CurrentWeek({
   getAvailableBosses,
   onDelete,
   status,
-  locked,
+  locked: backendLocked,
   onLock,
 }: Props) {
-  const [confirm, setConfirm] = useState(false);
+
+  /** 🔓 Local lock state — allows frontend unlock */
+  const [locked, setLocked] = useState(backendLocked);
+
+  /** Sync backend lock → local lock ONLY on first load */
+  useEffect(() => {
+    setLocked(backendLocked);
+  }, [backendLocked]);
 
   const totalFloors = row1.length + row2.length;
   const selectedCount = Object.keys(floorAssignments).length;
   const isComplete = row1.concat(row2).every((f) => floorAssignments[f]);
 
+  /** 🔒 Lock and freeze */
+  const handleLock = async () => {
+    await onLock();
+    setLocked(true);
+  };
+
+  /** 🔓 Unlock (frontend ONLY — keeps all selections) */
+  const handleUnlock = () => {
+    console.log("🔓 Frontend unlock — selections stay the same");
+    setLocked(false);
+  };
+
   return (
     <section className={styles.section}>
       <h1 className={styles.title}>本周地图</h1>
 
-      {/* 上排：81–90 */}
       <MapRow
         floors={row1}
         floorAssignments={floorAssignments}
@@ -46,7 +64,6 @@ export default function CurrentWeek({
         getAvailableBosses={getAvailableBosses}
       />
 
-      {/* 下排：100–91 */}
       <MapRow
         floors={row2}
         floorAssignments={floorAssignments}
@@ -55,46 +72,36 @@ export default function CurrentWeek({
         getAvailableBosses={getAvailableBosses}
       />
 
-      {/* 底部统计 + 按钮 */}
       <div className={styles.footer}>
         <p className={styles.counter}>
           已选择 {selectedCount} / {totalFloors}
-          {status === "saving" && <span> 💾</span>}
-          {status === "success" && <span> ✅</span>}
-          {status === "error" && <span> ❌</span>}
+          {status === "saving" && <span>💾</span>}
+          {status === "success" && <span>✅</span>}
+          {status === "error" && <span>❌</span>}
         </p>
 
         <div className={styles.actionRow}>
           <button
             onClick={onDelete}
             className={styles.deleteBtn}
-            disabled={selectedCount === 0}
+            disabled={locked || selectedCount === 0}
           >
             清空
           </button>
 
-          {!locked ? (
-            !confirm ? (
-              <button
-                onClick={() => setConfirm(true)}
-                className={styles.lockBtn}
-                disabled={!isComplete}
-              >
-                锁定
-              </button>
-            ) : (
-              <button
-                onClick={() => {
-                  onLock();
-                  setConfirm(false);
-                }}
-                className={styles.confirmLockBtn}
-              >
-                确认锁定？
-              </button>
-            )
+          {/* 🔒 Locked → show Unlock button */}
+          {locked ? (
+            <button className={styles.unlockBtn} onClick={handleUnlock}>
+              解锁
+            </button>
           ) : (
-            <p className={styles.lockedText}>🔒 已锁定</p>
+            <button
+              className={styles.lockBtn}
+              disabled={!isComplete}
+              onClick={handleLock}
+            >
+              锁定
+            </button>
           )}
         </div>
       </div>
