@@ -41,3 +41,40 @@
   gap: 10px;               /* space between gear and buttons */
   margin-bottom: 12px;     /* spacing below bar */
 }
+.editBar {
+  margin-top: 12px;
+  margin-bottom: 18px;
+}
+
+.editBtnInline {
+  padding: 8px 16px;              /* ← same as .solverBtn */
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-size: 14px;                /* same */
+  cursor: pointer;
+  background: #0070f3;            /* same blue */
+  transition: background 0.2s;
+  white-space: nowrap;
+  height: 100%;                   /* match height inside flex */
+  display: flex;
+  align-items: center;
+}
+
+.editBtnInline:hover {
+  background: #0059c1;            /* same hover */
+}
+.solverBar {
+  display: flex;
+  align-items: center;
+  padding: 0 !important;   /* REMOVE padding */
+  margin: 0 !important;    /* REMOVE margin */
+  min-height: 40px;        /* same as buttons */
+}
+.manualBtn {
+  background: #0070f3;
+}
+
+.manualBtn:hover {
+  background: #0059c1;
+}

@@ -9,8 +9,8 @@ import type { GroupResult, Character, AbilityCheck } from "@/utils/solver";
 import SolverOptions from "./SolverOptions";
 import SolverButtons from "./SolverButtons";
 import DisplayGroups from "./DisplayGroups";
+import EditAllGroupsModal from "./EditAllGroupsModal";
 
-// ✅ Hardcoded main characters (still used to split main/alt groups)
 const MAIN_CHARACTERS = new Set([
   "剑心猫猫糕",
   "东海甜妹",
@@ -43,60 +43,46 @@ export default function MainSection({
   schedule,
   groups,
   setGroups,
+  activeIdx,
   setActiveIdx,
   checkGroupQA,
 }: Props) {
   const [solving, setSolving] = useState(false);
-  const [aftermath, setAftermath] = useState<{ wasted9: number; wasted10: number } | null>(null);
+  const [aftermath, setAftermath] =
+    useState<{ wasted9: number; wasted10: number } | null>(null);
+  const [showEditAll, setShowEditAll] = useState(false);
 
-  // ✅ All abilities from schedule (each has name + level)
   const allAbilities = schedule.checkedAbilities;
-
-  // ✅ Helper: unique key per ability/level
   const keyFor = (a: AbilityCheck) => `${a.name}-${a.level}`;
 
-  // ✅ Initialize toggle state for all ability levels
-  const [enabledAbilities, setEnabledAbilities] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(allAbilities.map((a) => [keyFor(a), true]))
+  const [enabledAbilities, setEnabledAbilities] = useState<Record<string, boolean>>(
+    () => Object.fromEntries(allAbilities.map((a) => [keyFor(a), true]))
   );
 
-  // ✅ Update aftermath on group change
   useEffect(() => {
     if (groups.length > 0) {
       summarizeAftermath(groups)
         .then(setAftermath)
-        .catch((err) => {
-          console.error("❌ Error summarizing aftermath:", err);
-          setAftermath(null);
-        });
-    } else {
-      setAftermath(null);
-    }
+        .catch(() => setAftermath(null));
+    } else setAftermath(null);
   }, [groups]);
 
-  // ---------- Safe Solver Wrapper ----------
+  /* ---------------------------------------------------
+     🔥 SOLVER — updates everything using PUT endpoint
+  --------------------------------------------------- */
   const safeRunSolver = async (abilities: AbilityCheck[], label: string) => {
-    if (solving) {
-      // console.log(`[SAFE] Skipping ${label}, solver already running.`);
-      return;
-    }
+    if (solving) return;
     try {
       setSolving(true);
-      console.log(`🧩 Running solver with ${label}`);
       const results = runAdvancedSolver(schedule.characters, abilities, 3);
-      console.log(`✅ Solver results (${label}):`, results);
-
       const reordered = reorderGroups(results);
       setGroups(reordered);
       await saveGroups(reordered);
-    } catch (err) {
-      console.error("❌ Solver failed:", err);
     } finally {
       setSolving(false);
     }
   };
 
-  // ---------- Save groups to backend ----------
   const saveGroups = async (results: GroupResult[]) => {
     const payload = results.map((g, idx) => ({
       index: idx + 1,
@@ -114,47 +100,43 @@ export default function MainSection({
       );
       if (!res.ok) throw new Error("Failed to update groups");
       await res.json();
-      console.log("Groups saved to backend");
     } catch (err) {
-      console.error("❌ Error saving groups:", err);
+      console.error("❌ Save error:", err);
     }
   };
 
-  // ---------- Helper: reorder groups so 大号组 first ----------
+  /* ---------------------------------------------------
+     🔥 Automatic reordering (main → alt)
+  --------------------------------------------------- */
   const reorderGroups = (inputGroups: GroupResult[]) => {
-    const mainGroups = inputGroups.filter((g) =>
+    const main = inputGroups.filter((g) =>
       g.characters.some((c) => MAIN_CHARACTERS.has(c.name))
     );
-    const altGroups = inputGroups.filter(
+    const alt = inputGroups.filter(
       (g) => !g.characters.some((c) => MAIN_CHARACTERS.has(c.name))
     );
 
-    const reordered = [...mainGroups, ...altGroups].map((g, idx) => ({
-      ...g,
-      index: idx + 1,
-    }));
-
-    if (mainGroups.length && altGroups.length) {
-      // console.log(`🔄 Reordered groups: ${mainGroups.length} main, ${altGroups.length} alt`);
-    }
-
-    return reordered;
+    return [...main, ...alt].map((g, idx) => ({ ...g, index: idx + 1 }));
   };
 
-  // ---------- Auto reorder existing groups ----------
   useEffect(() => {
-    if (groups.length > 0) {
-      const reordered = reorderGroups(groups);
-      const isDifferent = reordered.some((g, idx) => g.index !== groups[idx]?.index);
-      if (isDifferent) {
-        console.log("🔁 Detected index mismatch, saving reordered groups...");
-        setGroups(reordered);
-        saveGroups(reordered);
-      }
+    if (!groups.length) return;
+    const reordered = reorderGroups(groups);
+    const diff = reordered.some((g, i) => g.index !== groups[i]?.index);
+    if (diff) {
+      setGroups(reordered);
+      saveGroups(reordered);
     }
   }, [groups]);
 
-  // ---------- Split groups for rendering ----------
+  /* ---------------------------------------------------
+     🔥 Automatic lock when groups are started
+  --------------------------------------------------- */
+  const shouldLock = groups.some((g) => (g.status ?? "not_started") !== "not_started");
+
+  /* ---------------------------------------------------
+     UI rendering
+  --------------------------------------------------- */
   const mainPairs = groups
     .map((g, i) => ({ g, i }))
     .filter(({ g }) => g.characters.some((c) => MAIN_CHARACTERS.has(c.name)));
@@ -163,14 +145,8 @@ export default function MainSection({
     .map((g, i) => ({ g, i }))
     .filter(({ g }) => !g.characters.some((c) => MAIN_CHARACTERS.has(c.name)));
 
-  // ---------- Render ----------
   const finishedCount = groups.filter((g) => g.status === "finished").length;
 
-  const shouldLock = groups.some(
-    (g) => g.status === "started" || g.status === "finished"
-  );
-
-  // ✅ Build list of abilities currently toggled ON (name-level aware)
   const getActiveAbilities = () =>
     allAbilities.filter((a) => enabledAbilities[keyFor(a)] !== false);
 
@@ -181,21 +157,28 @@ export default function MainSection({
         已完成小组: {finishedCount} / {groups.length}
       </p>
 
-      {/* ✅ Solver control bar (Gear + Buttons side by side) */}
+      {/* ⭐ Solver + Manual Editor */}
       <div className={styles.solverBar}>
         <SolverOptions
-          allAbilities={allAbilities.map((a) => ({ name: a.name, level: a.level }))}
+          allAbilities={allAbilities.map((a) => ({
+            name: a.name,
+            level: a.level,
+          }))}
           enabledAbilities={enabledAbilities}
           setEnabledAbilities={setEnabledAbilities}
+          disabled={shouldLock}
         />
+
         <SolverButtons
           solving={solving}
           disabled={shouldLock}
-          onCore={() => safeRunSolver(getActiveAbilities(), "Custom (Selected)")}
-          onFull={() => safeRunSolver(allAbilities, "Full Pool")}
+          onCore={() => safeRunSolver(getActiveAbilities(), "Custom")}
+          onFull={() => safeRunSolver(allAbilities, "Full")}
+          onManual={() => setShowEditAll(true)}
         />
       </div>
 
+      {/* ⭐ Groups */}
       {groups.length === 0 ? (
         <p className={styles.empty}>暂无排表结果</p>
       ) : (
@@ -210,6 +193,7 @@ export default function MainSection({
               checkedAbilities={schedule.checkedAbilities}
             />
           )}
+
           {altPairs.length > 0 && (
             <DisplayGroups
               title="小号组"
@@ -220,8 +204,20 @@ export default function MainSection({
               checkedAbilities={schedule.checkedAbilities}
             />
           )}
-
         </>
+      )}
+
+      {/* ⭐ Manual Edit Modal */}
+      {showEditAll && (
+        <EditAllGroupsModal
+          groups={groups}
+          scheduleId={schedule._id}      // <-- REQUIRED
+          onClose={() => setShowEditAll(false)}
+          onSave={(updatedGroups) => {
+            setGroups(updatedGroups);
+            // ❗ DO NOT CALL saveGroups here — manual edit already saves safely
+          }}
+        />
       )}
     </div>
   );

@@ -1,3 +1,5 @@
+"use client";
+
 import styles from "./styles.module.css";
 import type { GroupResult, AbilityCheck } from "@/utils/solver";
 
@@ -13,7 +15,10 @@ const MAIN_CHARACTERS = new Set([
 
 interface Props {
   title: string;
-  groups: { g: GroupResult & { status?: "not_started" | "started" | "finished" }; i: number }[];
+  groups: {
+    g: GroupResult & { status?: "not_started" | "started" | "finished" };
+    i: number;
+  }[];
   setActiveIdx: (i: number | null) => void;
   checkGroupQA: (
     group: GroupResult,
@@ -35,8 +40,13 @@ export default function DisplayGroups({
   const renderStatus = (status?: string) => {
     const s = status || "not_started";
     const dotClass =
-      s === "finished" ? styles.finished : s === "started" ? styles.started : styles.notStarted;
+      s === "finished"
+        ? styles.finished
+        : s === "started"
+        ? styles.started
+        : styles.notStarted;
     const text = s === "finished" ? "完成" : s === "started" ? "进行中" : "未开始";
+
     return (
       <span className={`${styles.statusDot} ${dotClass}`}>
         ● <span className={styles.statusText}>{text}</span>
@@ -50,8 +60,15 @@ export default function DisplayGroups({
       <div className={styles.groupsGrid}>
         {groups.map(({ g, i }) => {
           const qaWarnings = checkGroupQA(g, conflictLevel, checkedAbilities);
+
           return (
-            <div key={i} className={styles.groupCard} onClick={() => setActiveIdx(i)}>
+            <div
+              key={i}
+              className={`${styles.groupCard} ${
+                qaWarnings.length > 0 ? styles.groupCardError : ""
+              }`}
+              onClick={() => setActiveIdx(i)}
+            >
               <div className={styles.groupHeader}>
                 <h4 className={styles.groupTitle}>组 {i + 1}</h4>
                 {renderStatus(g.status)}
@@ -78,7 +95,7 @@ export default function DisplayGroups({
               {qaWarnings.length > 0 && (
                 <div className={styles.groupViolation}>
                   {qaWarnings.map((w, idx) => (
-                    <p key={idx}>⚠️ {w}</p>
+                    <p key={idx}>❌ {w}</p>
                   ))}
                 </div>
               )}

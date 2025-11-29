@@ -109,3 +109,9 @@
   font-size: 13px;
   margin-top: 8px;
 }
+/* 🚨 Red glow border for QA errors */
+.groupCardError {
+  border: 2px solid #ff4d4f !important;        /* bright red */
+  box-shadow: 0 0 8px rgba(255, 77, 79, 0.6);  /* glowing effect */
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+}

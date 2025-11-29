@@ -2,6 +2,7 @@
   display: flex;
   gap: 12px;
  margin-top:8px;
+ /* border:2px green solid; */
 }
 
 .solverBtn {
@@ -38,4 +39,50 @@
   background: #ccc !important;
   color: #444 !important;
   cursor: not-allowed !important;
+}
+.manualBtn {
+  background: #0070f3;
+}
+
+.manualBtn:hover {
+  background: #0059c1;
+}
+.manualBtn:hover {
+  background: #0059c1;
+}
+.solverButtons {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.solverBtn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  margin-bottom: 16px;
+  transition: background 0.2s;
+}
+
+/* Blue button */
+.coreBtn,
+.fullBtn,
+.manualBtn {
+  background: #0070f3;
+}
+.coreBtn:hover,
+.fullBtn:hover,
+.manualBtn:hover {
+  background: #0059c1;
+}
+
+/* ⭐ NEW — light blue disabled state */
+.disabledLight {
+  background: #7fb8ff !important; /* light blue */
+  color: white !important;
+  cursor: not-allowed !important;
+  opacity: 0.9 !important;
 }
