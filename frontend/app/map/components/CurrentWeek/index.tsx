@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import styles from "./styles.module.css";
+import MapRow from "../MapRow";
 
 interface Props {
   row1: number[];
@@ -32,85 +33,69 @@ export default function CurrentWeek({
   const selectedCount = Object.keys(floorAssignments).length;
   const isComplete = row1.concat(row2).every((f) => floorAssignments[f]);
 
-  const renderRow = (floors: number[]) =>
-    floors.map((floor) => {
-      const boss = floorAssignments[floor] || "";
-      return (
-        <div key={floor} className={styles.card}>
-          <div className={styles.floorLabel}>{floor}</div>
-          {!locked ? (
-            <select
-              className={
-                floor === 90 || floor === 100
-                  ? `${styles.dropdown} ${styles.dropdownElite}`
-                  : styles.dropdown
-              }
-              value={boss}
-              onChange={(e) => onSelect(floor, e.target.value)}
-            >
-              <option value="">请选择</option>
-              {getAvailableBosses(floor).map((b) => (
-                <option key={b} value={b}>
-                  {b}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <div className={styles.readonlyValue}>{boss || "未选择"}</div>
-          )}
-        </div>
-      );
-    });
-
   return (
     <section className={styles.section}>
       <h1 className={styles.title}>本周地图</h1>
 
-      <div className={styles.mapBox}>
-        <div className={styles.row}>{renderRow(row1)}</div>
-        <div className={styles.row}>{renderRow(row2)}</div>
+      {/* 上排：81–90 */}
+      <MapRow
+        floors={row1}
+        floorAssignments={floorAssignments}
+        readonly={locked}
+        onSelect={onSelect}
+        getAvailableBosses={getAvailableBosses}
+      />
 
-        <div className={styles.footer}>
-          <p className={styles.counter}>
-            已选择 {selectedCount} / {totalFloors}
-            {status === "saving" && <span>💾</span>}
-            {status === "success" && <span>✅</span>}
-            {status === "error" && <span>❌</span>}
-          </p>
+      {/* 下排：100–91 */}
+      <MapRow
+        floors={row2}
+        floorAssignments={floorAssignments}
+        readonly={locked}
+        onSelect={onSelect}
+        getAvailableBosses={getAvailableBosses}
+      />
 
-          <div className={styles.actionRow}>
-            <button
-              onClick={onDelete}
-              className={styles.deleteBtn}
-              disabled={selectedCount === 0}
-            >
-              清空
-            </button>
+      {/* 底部统计 + 按钮 */}
+      <div className={styles.footer}>
+        <p className={styles.counter}>
+          已选择 {selectedCount} / {totalFloors}
+          {status === "saving" && <span> 💾</span>}
+          {status === "success" && <span> ✅</span>}
+          {status === "error" && <span> ❌</span>}
+        </p>
 
-            {!locked ? (
-              !confirm ? (
-                <button
-                  onClick={() => setConfirm(true)}
-                  className={styles.lockBtn}
-                  disabled={!isComplete}
-                >
-                  锁定
-                </button>
-              ) : (
-                <button
-                  onClick={() => {
-                    onLock();
-                    setConfirm(false);
-                  }}
-                  className={styles.confirmLockBtn}
-                >
-                  确认锁定？
-                </button>
-              )
+        <div className={styles.actionRow}>
+          <button
+            onClick={onDelete}
+            className={styles.deleteBtn}
+            disabled={selectedCount === 0}
+          >
+            清空
+          </button>
+
+          {!locked ? (
+            !confirm ? (
+              <button
+                onClick={() => setConfirm(true)}
+                className={styles.lockBtn}
+                disabled={!isComplete}
+              >
+                锁定
+              </button>
             ) : (
-              <p className={styles.lockedText}>🔒 已锁定</p>
-            )}
-          </div>
+              <button
+                onClick={() => {
+                  onLock();
+                  setConfirm(false);
+                }}
+                className={styles.confirmLockBtn}
+              >
+                确认锁定？
+              </button>
+            )
+          ) : (
+            <p className={styles.lockedText}>🔒 已锁定</p>
+          )}
         </div>
       </div>
     </section>
