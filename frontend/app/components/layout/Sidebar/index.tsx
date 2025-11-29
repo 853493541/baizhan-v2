@@ -94,11 +94,12 @@ export default function Sidebar() {
             onClick={() => setOpenRanking(!openRanking)}
           >
             <span>{openRanking ? "▾" : "▸"}</span>
-            <span style={{ marginLeft: 6 }}>排行榜</span>
+            <span style={{ marginLeft: 6 }}>数据</span>
           </div>
 
           {openRanking && (
             <div className={styles.folderItems}>
+              <NavLink href="/stats/appearances">📊 上班统计</NavLink>
               <div className={styles.placeholderItem}>📈 技能</div>
             </div>
           )}
