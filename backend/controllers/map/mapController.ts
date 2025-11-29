@@ -75,15 +75,21 @@ export const getPastWeeklyMap = async (req: Request, res: Response) => {
 };
 
 // Get all past weeks (history, newest → oldest)
-export const getWeeklyMapHistory = async (_req: Request, res: Response) => {
+export const getWeeklyMapHistory = async (req: Request, res: Response) => {
   try {
-    const currentWeek = getCurrentGameWeek(); // ✅ updated
+    const currentWeek = getCurrentGameWeek();
 
-    const maps = await WeeklyMap.find({ week: { $ne: currentWeek } })
-      .sort({ week: -1 })
-      .limit(5);
+    const loadAll = req.query.all === "1"; // check for ?all=1
 
+    let query = WeeklyMap.find({ week: { $ne: currentWeek } }).sort({ week: -1 });
+
+    if (!loadAll) {
+      query = query.limit(5);  // default 5 weeks
+    }
+
+    const maps = await query;
     res.json(maps);
+
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

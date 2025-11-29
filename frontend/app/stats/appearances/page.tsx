@@ -182,8 +182,7 @@ export default function AppearancesPage() {
   return (
     <div className={styles.page}>
       <h2 className={styles.title}>首领上班次数统计</h2>
-
-      {/* Stage Tabs */}
+      
       <div className={styles.tabs}>
         <div
           className={`${styles.tab} ${
