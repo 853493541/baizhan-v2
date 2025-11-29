@@ -84,3 +84,15 @@
   font-weight: 600;
   color: #444;
 }
+.unlockBtn {
+  padding: 8px 16px;
+  background: #555;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.unlockBtn:hover {
+  background: #333;
+}
