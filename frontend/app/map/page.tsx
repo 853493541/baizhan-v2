@@ -43,7 +43,6 @@ export default function MapPage() {
 
   const [locked, setLocked] = useState(false);
 
-  // which floor's modal is open
   const [selectingFloor, setSelectingFloor] = useState<number | null>(null);
 
   /* ============================================================
@@ -157,7 +156,7 @@ export default function MapPage() {
   };
 
   /* ============================================================
-     OPEN MODAL WHEN A FLOOR IS CLICKED
+     OPEN MODAL
   ============================================================ */
   const handleOpenModal = (floor: number) => {
     if (locked) return;
@@ -165,17 +164,35 @@ export default function MapPage() {
   };
 
   /* ============================================================
-     HANDLE BOSS PICK
+     FIXED — CORRECT SAME-RANGE CONFLICT LOGIC
+  ============================================================ */
+  const isSameRange = (a: number, b: number) => {
+    // 81–89 together
+    if (a >= 81 && a <= 89 && b >= 81 && b <= 89) return true;
+    // 91–99 together
+    if (a >= 91 && a <= 99 && b >= 91 && b <= 99) return true;
+    // 90 isolated
+    if (a === 90 && b === 90) return true;
+    // 100 isolated
+    if (a === 100 && b === 100) return true;
+
+    return false;
+  };
+
+  /* ============================================================
+     HANDLE BOSS PICK (fixed)
   ============================================================ */
   const applyBossSelection = (floor: number, boss: string) => {
     console.log(`📝 Selected boss "${boss}" for floor ${floor}`);
 
     const updated = { ...floorAssignments };
 
-    // remove boss from other floor
+    // Remove only within SAME GROUP (not globally)
     for (const [f, b] of Object.entries(updated)) {
-      if (b === boss && Number(f) !== floor) {
-        updated[Number(f)] = "";
+      const ff = Number(f);
+
+      if (b === boss && isSameRange(ff, floor) && ff !== floor) {
+        updated[ff] = "";
       }
     }
 
@@ -185,16 +202,19 @@ export default function MapPage() {
     localStorage.setItem("weeklyFloors", JSON.stringify(updated));
 
     persistToDB(updated);
-
     setSelectingFloor(null);
   };
 
   /* ============================================================
-     FULL POOL
+     RETURN FULL POOL BASED ON FLOOR RANGE
   ============================================================ */
   const getFullPool = (floor: number) => {
     if (floor === 90 || floor === 100) return specialBosses;
-    return normalBosses;
+
+    if (floor >= 81 && floor <= 89) return normalBosses;
+    if (floor >= 91 && floor <= 99) return normalBosses;
+
+    return [];
   };
 
   /* ============================================================
@@ -206,14 +226,13 @@ export default function MapPage() {
         row1={row1}
         row2={row2}
         floorAssignments={floorAssignments}
-        onFloorClick={handleOpenModal}      // ✅ matches CurrentWeek props
+        onFloorClick={handleOpenModal}
         onDelete={deleteCurrentWeek}
         status={status}
         locked={locked}
         onLock={lockMap}
       />
 
-      {/* MODAL */}
       {selectingFloor !== null && (
         <BossSelectModal
           floor={selectingFloor}
