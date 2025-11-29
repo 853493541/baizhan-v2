@@ -8,8 +8,7 @@ interface Props {
   floorAssignments?: Record<number, string>;
   data?: Record<number, { boss: string }>;
   readonly?: boolean;
-  onSelect?: (floor: number, boss: string) => void;
-  getAvailableBosses?: (floor: number) => string[];
+  onClickFloor?: (floor: number) => void;
 }
 
 export default function MapRow({
@@ -17,45 +16,32 @@ export default function MapRow({
   floorAssignments = {},
   data,
   readonly = false,
-  onSelect,
-  getAvailableBosses,
+  onClickFloor,
 }: Props) {
   return (
     <div className={styles.row}>
       {floors.map((floor) => {
         const isElite = floor === 90 || floor === 100;
+        const bossName =
+          data?.[floor]?.boss ??
+          (floorAssignments ? floorAssignments[floor] : undefined);
 
-        // 🔹 When readonly, prefer `data[floor].boss` (history),
-        //    but fall back to `floorAssignments[floor]` (current week locked).
-        const readonlyBoss =
-          data?.[floor]?.boss ?? floorAssignments[floor] ?? "未选择";
+        const isClickable = !readonly && typeof onClickFloor === "function";
 
         return (
           <div
             key={floor}
-            className={`${styles.card} ${isElite ? styles.eliteCard : ""}`}
+            className={`${styles.card} ${
+              isElite ? styles.eliteCard : ""
+            } ${isClickable ? styles.clickable : ""}`}
+            onClick={() => {
+              if (isClickable) onClickFloor!(floor);
+            }}
           >
             <div className={styles.floorLabel}>{floor}</div>
-
-            {readonly ? (
-              <div className={styles.readonlyValue}>{readonlyBoss}</div>
-            ) : (
-              <select
-                className={`${styles.dropdown} ${
-                  isElite ? styles.dropdownElite : ""
-                }`}
-                value={floorAssignments[floor] || ""}
-                onChange={(e) => onSelect && onSelect(floor, e.target.value)}
-              >
-                <option value="">请选择</option>
-                {getAvailableBosses &&
-                  getAvailableBosses(floor).map((boss) => (
-                    <option key={boss} value={boss}>
-                      {boss}
-                    </option>
-                  ))}
-              </select>
-            )}
+            <div className={styles.value}>
+              {bossName || (readonly ? "未选择" : "请选择")}
+            </div>
           </div>
         );
       })}

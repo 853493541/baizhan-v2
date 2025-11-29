@@ -1,0 +1,209 @@
+/* =========================
+   OVERLAY
+   ========================= */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 40;
+}
+
+/* =========================
+   MODAL
+   ========================= */
+.modal {
+  background: #ffffff;
+  border-radius: 18px;
+  width: 960px;
+  max-width: 100%;
+  max-height: 80vh;
+  padding: 20px 24px 18px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
+  display: flex;
+  flex-direction: column;
+}
+
+/* =========================
+   HEADER
+   ========================= */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: center;   /* Center the title */
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* Close button aligned right */
+.closeBtn {
+  position: absolute;
+  right: 6px;
+  top: 2px;
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+/* =========================
+   COLUMNS WRAPPER
+   ========================= */
+.columns {
+  display: flex;
+  gap: 14px;
+  padding: 12px 4px 6px;
+  overflow-x: auto;
+}
+
+/* =========================
+   COLUMN
+   ========================= */
+.column {
+  flex: 1;
+  min-width: 150px;
+  border-radius: 14px;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.columnHeader {
+  text-align: center;      /* Center the color name */
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+/* =========================
+   COLUMN BACKGROUND COLORS
+   ========================= */
+.colYellow {
+  background: #fff7df;
+}
+
+.colPurple {
+  background: #f5ecff;
+}
+
+.colBlue {
+  background: #e7f3ff;
+}
+
+.colRed {
+  background: #ffe8e8;
+}
+
+.colGreen {
+  background: #e8ffe9;
+}
+
+/* =========================
+   BOSS LIST
+   ========================= */
+.bossList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* =========================
+   BOSS ITEM (DEFAULT)
+   ========================= */
+.bossItem {
+  background: #ffffff;
+  border: 1px solid #e1e1e1;
+  border-radius: 10px;
+
+  padding: 6px 10px;
+  min-height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.15s ease;
+}
+
+.bossItem:hover {
+  border-color: #5891f3;
+  background: #f8faff;
+}
+
+/* left aligned boss name */
+.bossName {
+  text-align: left;
+}
+
+/* =========================
+   SELECTED BOSS (已选)
+   ========================= */
+.bossBtnAssigned {
+  background: #f4f4f4 !important;
+  border: 1px solid #d0d0d0 !important;
+  color: #999 !important;
+}
+
+.bossBtnAssigned:hover {
+  background: #f4f4f4 !important;
+  border: 1px solid #d0d0d0 !important;
+}
+
+/* “已选” label — NO BACKGROUND */
+.badgeSelected {
+  font-size: 12px;
+  color: #777;
+  margin-left: 8px;
+}
+.modal {
+  pointer-events: auto; /* ensures it captures clicks */
+}
+.overlay {
+  pointer-events: auto;
+}
+
+.overlay > .modal {
+  pointer-events: auto;
+}
+/* Overlay */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 40;
+  pointer-events: auto;
+}
+
+/* Modal */
+.modal {
+  background: white;
+  border-radius: 18px;
+  width: 960px;
+  max-height: 80vh;
+  padding: 20px 24px 18px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto; /* ← ensures modal catches the click */
+}
+
+/* Fills the gaps so overlay is never exposed */
+.columns {
+  display: flex;
+  gap: 14px;
+  padding: 12px 4px 6px;
+  background: white; /* ← THE REAL FIX */
+}
