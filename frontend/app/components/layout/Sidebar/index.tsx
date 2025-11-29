@@ -64,7 +64,7 @@ export default function Sidebar() {
           {openMap && (
             <div className={styles.folderItems}>
               <NavLink href="/map">🗺️ 本周</NavLink>
-              <div className={styles.placeholderItem}>🗂️ 历史</div>
+              <NavLink href="/map/history">🗂️ 历史</NavLink>
             </div>
           )}
         </div>
