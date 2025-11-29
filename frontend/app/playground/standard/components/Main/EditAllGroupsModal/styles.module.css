@@ -9,7 +9,7 @@
 }
 
 /* ============================================
-   MODAL BOX — SAME AS OTHER MODAL
+   MODAL BOX — EXACT MATCH TO REFERENCE MODAL
 ============================================ */
 .characterModal {
   position: fixed;
@@ -19,18 +19,18 @@
   width: 85%;
   max-width: 1100px;
   max-height: 85vh;
-  min-height: 730px;                 /* ⭐ SAME MIN HEIGHT */
+  min-height: 730px;              /* ⭐ EXACT SAME HEIGHT */
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
   padding: 20px 20px 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
   overflow-y: auto;
   box-sizing: border-box;
   z-index: 1000;
 }
 
 /* ============================================
-   HEADER — SAME LOOK
+   HEADER — SAME
 ============================================ */
 .headerRow {
   position: relative;
@@ -38,17 +38,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
-/* Title */
 .title {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
   font-size: 20px;
   font-weight: 700;
-  white-space: nowrap;
 }
 
 .countInline {
@@ -63,7 +61,7 @@
   font-weight: 700;
 }
 
-/* Close button */
+/* CLOSE BUTTON — SAME */
 .closeTextBtn {
   position: absolute;
   right: 10px;
@@ -77,17 +75,10 @@
   color: #fff;
   border-radius: 6px;
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
-  transition: background 0.15s ease, transform 0.15s ease;
-}
-
-.closeTextBtn:hover {
-  background: #3a78d6;
-  transform: translateY(-52%);
 }
 
 /* ============================================
-   SERVER FILTER BAR — MATCH SPACING
+   SERVER FILTER — SAME
 ============================================ */
 .serverFilterRow {
   display: flex;
@@ -101,23 +92,17 @@
   border: 1px solid #ddd;
   border-radius: 6px;
   font-size: 13px;
-  color: #444;
   cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.serverFilterBtn:hover {
-  background: #e9e9e9;
 }
 
 .activeFilter {
   background: #4a8fff !important;
   border-color: #4a8fff !important;
-  color: white !important;
+  color: #fff !important;
 }
 
 /* ============================================
-   LAYOUT (兩欄版)
+   SPLIT LAYOUT — MATCH OTHER MODAL
 ============================================ */
 .splitLayout {
   display: flex;
@@ -133,7 +118,7 @@
 }
 
 /* ============================================
-   ACCOUNT GRID (左側四欄)
+   ACCOUNT GRID — SAME
 ============================================ */
 .accountGrid {
   display: grid;
@@ -145,8 +130,8 @@
   background: #fff;
   border: 1px solid #e2e2e2;
   border-radius: 10px;
+  padding: 10px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  padding: 12px 10px;
 }
 
 .singleColumn {
@@ -160,19 +145,18 @@
 .accountHeader,
 .singleHeader {
   background: #f5f5f5;
+  padding: 6px 10px;
   border-radius: 6px;
-  text-align: center;
   font-weight: 700;
   font-size: 13px;
   color: #333;
-  padding: 4px;
-  margin-bottom: 8px;
-  border-bottom: 2px solid rgba(0, 0, 0, 0.1);
-  cursor: pointer;
+  margin-bottom: 10px;
+  text-align: center;
+  border-bottom: 2px solid rgba(0,0,0,0.1);
 }
 
 /* ============================================
-   CHARACTER LIST — SAME SPACING
+   CHARACTER LIST — SAME
 ============================================ */
 .characterList {
   display: flex;
@@ -181,65 +165,126 @@
 }
 
 /* ============================================
-   CHARACTER PILL — MATCH OTHER MODAL EXACTLY
+   CHARACTER PILL — EXACT SAME DESIGN
 ============================================ */
 .characterPill {
   display: flex;
   align-items: center;
-  justify-content: flex-start;       /* ⭐ LEFT ALIGN TEXT */
+  justify-content: flex-start;      /* ⭐ LEFT ALIGN */
+  padding: 6px 12px;                /* ⭐ SAME */
   border-radius: 6px;
-  padding: 6px 10px;
-  padding-left: 12px;                /* ⭐ same spacing */
   font-size: 13px;
   font-weight: 600;
-  border: 1px solid rgba(0, 0, 0, 0.05);
   cursor: pointer;
+  border: 1px solid rgba(0,0,0,0.05);
   transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 
 .characterPill:hover {
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
 }
 
-/* Selected colors */
+/* ============================================
+   TEXT COLORS — EXACT SAME AS REFERENCE MODAL
+============================================ */
 .tank {
-  background: #fff8d7;
-  color: #6b4e00;
+  background: #fff8d7 !important;
+  color: #6b4e00 !important;
 }
 
 .dps {
-  background: #e3fbe3;
-  color: #0f5132;
+  background: #e3fbe3 !important;
+  color: #0f5132 !important;
 }
 
 .healer {
-  background: #ffe2ea;
-  color: #842029;
+  background: #ffe2ea !important;
+  color: #842029 !important;
 }
 
-/* Inactive */
 .inactive {
   background: #f2f2f2 !important;
   color: #888 !important;
 }
 
 /* ============================================
-   STAR — MATCH OTHER MODAL
+   STAR — MATCH EXACTLY
 ============================================ */
 .starMark {
   font-size: 13px;
   font-weight: 900;
-  color: #000 !important;       /* ⭐ BLACK */
+  color: #000 !important;
   margin-right: 4px;
 }
 
-/* Name */
 .charName {
   display: flex;
   align-items: center;
   gap: 4px;
 }
-/* When the pill is inactive, star should also become gray */
+.characterPill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;   /* ⭐ name left / group right */
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  min-height: 34px;                 /* ⭐ consistent pill height */
+}
+.groupText {
+  font-size: 12px;
+  color: #888;          /* ⭐ simple gray */
+  padding-left: 8px;
+  white-space: nowrap;
+}
+/* --------------------------------------------
+   GROUP NUMBER ROW
+-------------------------------------------- */
+.groupNumberRow {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+/* Large number buttons */
+.groupNumberBtn {
+  width: 35px;
+  height: 35px;
+  font-size: 14px;
+  font-weight: 700;
+  background: #f1f1f1;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  color: #444;
+}
+
+.groupNumberBtn:hover {
+  background: #e5e5e5;
+}
+
+.groupNumberActive {
+  background: #4a8fff !important;
+  border-color: #4a8fff !important;
+  color: #fff !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+}
+
+/* --------------------------------------------
+   GROUP TEXT ON RIGHT OF PILL
+-------------------------------------------- */
+.groupText {
+  margin-left: auto;
+  font-size: 12px;
+  color: #666;
+  opacity: 0.8;
+}
+/* When the entire pill is inactive, star should also be gray */
 .inactive .starMark {
   color: #888 !important;
   opacity: 0.6;

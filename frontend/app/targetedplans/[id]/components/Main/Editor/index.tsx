@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styles from "./styles.module.css";
 import GroupCard from "./GroupCard";
 import { abilities, abilityColorMap } from "./config";
@@ -19,7 +19,6 @@ import {
  * 🧩 Editor
  * Root manager for all groups within a targeted plan.
  * Handles global edit toggles, reset, and auto-save.
- * Each GroupCard handles its own modals (EditCharacter / EditAbility).
  */
 export default function Editor({
   scheduleId,
@@ -49,6 +48,7 @@ export default function Editor({
       characters: g.characters.map((c: any) => {
         const realId = (c._id || c.characterId?._id || c.characterId) as string | undefined;
         const full = realId ? allCharacters.find((ac) => ac._id === realId) : undefined;
+
         return {
           ...full,
           ...c,
@@ -63,24 +63,38 @@ export default function Editor({
         };
       }),
     }));
+
     setLocalGroups(merged);
   }, [groups, allCharacters]);
 
-  // ✅ Mirror groups to local state whenever props change
+  // Mirror props → local state
   useEffect(() => {
     setLocalGroups(groups || []);
   }, [groups]);
+
+  /* ----------------------------------------------------------------------
+     🟢 GLOBAL usedMap — KEY FIX
+  ---------------------------------------------------------------------- */
+  const usedMap = useMemo(() => {
+    const m: Record<string, number> = {};
+    localGroups.forEach((g, gi) => {
+      g.characters.forEach((c) => {
+        if (c?._id) m[c._id] = gi;
+      });
+    });
+    console.log("DEBUG usedMap:", m);
+    return m;
+  }, [localGroups]);
 
   /* 💾 Auto-save (debounced) */
   useEffect(() => {
     if (!editing || !localGroups.length) return;
     const timer = setTimeout(async () => {
       setSaving(true);
-      console.log("💾 Auto-saving groups...");
       await saveChanges(scheduleId, localGroups, setGroups, () => {});
-      console.log("✅ Auto-save finished");
       setSaving(false);
     }, 1000);
+
     return () => clearTimeout(timer);
   }, [localGroups, editing]);
 
@@ -89,7 +103,7 @@ export default function Editor({
     setEditing((prev) => !prev);
   };
 
-  /* 🔄 Reset all groups (clears kills/drops but keeps characters + skills) */
+  /* 🔄 Reset all groups */
   const handleResetPlan = async () => {
     if (!confirm("重置所有掉落记录和完成状态？")) return;
 
@@ -109,9 +123,7 @@ export default function Editor({
           ok = true;
           break;
         }
-      } catch {
-        // try next candidate
-      }
+      } catch {}
     }
     setResetting(false);
 
@@ -120,7 +132,6 @@ export default function Editor({
       return;
     }
 
-    // ✅ Update UI immediately
     const resetGroups = localGroups.map((g: any) => ({
       ...g,
       status: "not_started",
@@ -131,7 +142,7 @@ export default function Editor({
     setLocalGroups(resetGroups);
     setGroups(resetGroups);
 
-    window.location.reload(); // optional refresh
+    window.location.reload();
   };
 
   /* ---------- Render ---------- */
@@ -149,7 +160,7 @@ export default function Editor({
           {saving ? "保存中..." : editing ? "退出编辑" : "编辑全表"}
         </button>
 
-        {/* 🧹 Reset Button */}
+        {/* Reset Button */}
         <button
           onClick={handleResetPlan}
           disabled={resetting}
@@ -172,6 +183,7 @@ export default function Editor({
           abilityColorMap={abilityColorMap}
           checkedAbilities={checkedAbilities}
           targetedBoss={targetedBoss}
+          usedMap={usedMap}  
           onRemoveGroup={(i) => handleRemoveGroup(setLocalGroups, i)}
           onRemoveCharacter={(gi, cid) => handleRemoveCharacter(setLocalGroups, gi, cid)}
           onAddCharacter={(gi, c) => handleAddCharacter(setLocalGroups, gi, c, allCharacters)}

@@ -35,33 +35,26 @@ function useGroupAnalysis(
           (c.abilities?.[ab.name] ?? 0) >= requiredLv
       );
     if (allHave) {
-      const levelLabel = requiredLv === 9 ? "九重" : "十重";
-      warnings.push(`${ab.name}|${levelLabel}`);
+      warnings.push(`${ab.name}|${requiredLv === 9 ? "九重" : "十重"}`);
     }
   }
 
-  // ② Duplicate account check
+  // ② Duplicate accounts
   const accounts = group.characters.map((c) => c.account || c.owner || "");
   const duplicates = accounts.filter((acc, i) => acc && accounts.indexOf(acc) !== i);
-  if (duplicates.length > 0) {
-    const unique = Array.from(new Set(duplicates));
-    warnings.push(`⚠️ 同账号角色: ${unique.join("、")}`);
-  }
+  if (duplicates.length > 0) warnings.push(`⚠️ 同账号角色: ${Array.from(new Set(duplicates)).join("、")}`);
 
-  // ③ Healer presence check
-  const hasHealer = group.characters.some(
-    (c) => c.role?.toLowerCase?.() === "healer"
-  );
-  if (!hasHealer) warnings.push("⚠️ 无治疗角色");
+  // ③ Healer check
+  if (!group.characters.some((c) => c.role?.toLowerCase() === "healer"))
+    warnings.push("⚠️ 无治疗角色");
 
-  // ④ No issues
   if (warnings.length === 0) warnings.push("✅ 无浪费");
 
   return warnings;
 }
 
 /* ----------------------------------------------------------------------
-   🧩 GroupCard Component
+   🧩 GroupCard Component — FINAL FIXED VERSION
 ---------------------------------------------------------------------- */
 export default function GroupCard({
   group,
@@ -70,6 +63,8 @@ export default function GroupCard({
   abilityColorMap,
   checkedAbilities,
   allCharacters,
+
+  usedMap,               // ⭐ GLOBAL usedMap (correct)
   onRemoveGroup,
   onRemoveCharacter,
   onAddCharacter,
@@ -87,6 +82,7 @@ export default function GroupCard({
   abilityColorMap: Record<string, string>;
   checkedAbilities: AbilityCheck[];
   allCharacters: Character[];
+  usedMap: Record<string, number>;
   onRemoveGroup: (idx: number) => void;
   onRemoveCharacter: (groupIdx: number, charId: string) => void;
   onAddCharacter?: (groupIdx: number, character: Character) => void;
@@ -113,7 +109,6 @@ export default function GroupCard({
 
   const hasCharacters = group.characters?.length > 0;
 
-  // 🟢 Status mapping
   const status = (group.status ?? "not_started") as
     | "not_started"
     | "started"
@@ -131,85 +126,66 @@ export default function GroupCard({
     finished: styles.statusDoneDot,
   };
 
-  /** 🧩 Build usedMap (which group each character belongs to) */
-  const usedMap: Record<string, number> = {};
-  allCharacters.forEach((ac) => {
-    group.characters.forEach((gc) => {
-      const id = gc._id || (gc.characterId as string);
-      if (id === ac._id) usedMap[id] = groupIndex;
-    });
-  });
-
-  /** 🧩 Sync right card height with left card height */
+  /* ---------------------------------------------------
+     🟢 HEIGHT SYNC (left and right panels)
+  --------------------------------------------------- */
   const leftRef = useRef<HTMLDivElement>(null);
   const [leftHeight, setLeftHeight] = useState<number | null>(null);
 
   useLayoutEffect(() => {
-    if (leftRef.current) {
-      setLeftHeight(leftRef.current.offsetHeight);
-    }
-  }, [group]); // recalc whenever left card content changes
+    if (leftRef.current) setLeftHeight(leftRef.current.offsetHeight);
+  }, [group]);
 
   return (
     <div className={styles.groupRow}>
-      {/* === Left: Group Info Card === */}
+      {/* === LEFT PANEL === */}
       <div ref={leftRef} className={styles.groupCard}>
-        {/* === Header === */}
+        {/* ===== Header ===== */}
         <div className={styles.groupHeader}>
-          {/* Editing mode: show delete button */}
-          {editing && (
+          {editing ? (
             <div className={styles.groupHeaderLeft}>
               <button
                 onClick={() => onRemoveGroup(groupIndex)}
                 className={styles.deleteHeaderBtn}
-                title="删除整个小组"
               >
                 <span className={styles.deleteHeaderX}></span>
                 删除组 {groupIndex + 1}
               </button>
             </div>
-          )}
+          ) : (
+            hasCharacters && (
+              <div className={styles.groupHeaderFull}>
+                <button
+                  onClick={() => setShowDropModal(true)}
+                  className={styles.addDropBtn}
+                >
+                  ＋ 掉落
+                </button>
 
-          {/* Non-editing mode: full functional header */}
-          {!editing && hasCharacters && (
-            <div className={styles.groupHeaderFull}>
-              {/* Leftest: Add button */}
-              <button
-                onClick={() => setShowDropModal(true)}
-                className={styles.addDropBtn}
-                title="为此组添加掉落"
-              >
-                ＋ 掉落
-              </button>
+                <div className={styles.assignedInlineRight}>
+                  <AssignedDrops
+                    API_URL={API_URL}
+                    planId={planId}
+                    groupIndex={groupIndex}
+                    groupCharacters={group.characters}
+                    refreshSignal={refreshSignal}
+                  />
+                </div>
 
-              {/* Middle: AssignedDrops */}
-              <div className={styles.assignedInlineRight}>
-                <AssignedDrops
-                  API_URL={API_URL}
-                  planId={planId}
-                  groupIndex={groupIndex}
-                  groupCharacters={group.characters}
-                  refreshSignal={refreshSignal}
-                />
+                <div
+                  className={`${styles.statusWrap} ${
+                    status === "finished" ? styles.finished : ""
+                  }`}
+                >
+                  <span className={`${styles.statusDot} ${statusCircleClass[status]}`} />
+                  <span className={styles.statusText}>{statusLabel[status]}</span>
+                </div>
               </div>
-
-              {/* Rightmost: Status */}
-              <div
-                className={`${styles.statusWrap} ${
-                  status === "finished" ? styles.finished : ""
-                }`}
-                title={`当前状态：${statusLabel[status]}`}
-              >
-                <span
-                  className={`${styles.statusDot} ${statusCircleClass[status]}`}
-                />
-                <span className={styles.statusText}>{statusLabel[status]}</span>
-              </div>
-            </div>
+            )
           )}
         </div>
 
-        {/* === Character Rows === */}
+        {/* ===== CHARACTER LIST ===== */}
         <div className={styles.memberList}>
           {group.characters.map((c, ci) => {
             const fixedChar: Character = {
@@ -241,12 +217,11 @@ export default function GroupCard({
                 onReplaceCharacter={onReplaceCharacter}
                 onAbilityChange={onAbilityChange}
                 allCharacters={allCharacters}
-                usedMap={usedMap}
+                usedMap={usedMap}     // ⭐ pass GLOBAL MAP
               />
             );
           })}
 
-          {/* === Inline Add Character Button === */}
           {editing && group.characters.length < 3 && (
             <div className={styles.addRow}>
               <button
@@ -259,8 +234,7 @@ export default function GroupCard({
           )}
         </div>
 
-
-        {/* === GroupDrops Modal === */}
+        {/* ===== Drop Modal ===== */}
         {showDropModal && (
           <GroupDrops
             API_URL={API_URL}
@@ -276,11 +250,11 @@ export default function GroupCard({
           />
         )}
 
-        {/* === Add Character Modal === */}
+        {/* ===== Add Character Modal ===== */}
         {showCharacterModal && (
           <EditCharacter
             allCharacters={allCharacters}
-            usedMap={usedMap}
+            usedMap={usedMap}           // ⭐ correct global usedMap
             currentGroup={groupIndex}
             excludeId={undefined}
             onSelect={(picked) => {
@@ -292,12 +266,12 @@ export default function GroupCard({
         )}
       </div>
 
-      {/* === Right: Ability Checking Sidebar === */}
+      {/* === RIGHT PANEL — ability checking === */}
       {hasCharacters && (
         <div
           className={styles.analysisContainer}
           style={{
-            height: leftHeight ? `${leftHeight}px` : "auto", // 🟢 match height exactly
+            height: leftHeight ? `${leftHeight}px` : "auto",
           }}
         >
           <AbilityChecking

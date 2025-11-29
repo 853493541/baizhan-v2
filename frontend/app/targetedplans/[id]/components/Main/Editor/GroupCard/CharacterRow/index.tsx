@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import styles from "./styles.module.css";
 import EditCharacter from "./EditCharacter";
@@ -16,7 +16,6 @@ interface Props {
   targetedBoss?: string;
 
   onRemoveCharacter: (groupIdx: number, charId: string) => void;
-  onAddCharacter?: (groupIdx: number, character: Character) => void;
   onReplaceCharacter?: (
     groupIdx: number,
     oldCharId: string,
@@ -29,9 +28,9 @@ interface Props {
     abilityName: string
   ) => void;
 
-  /** ✅ New props to pass context for modal */
-  allCharacters?: Character[];
-  usedMap?: Record<string, number>;
+  /** Passed down from parent */
+  allCharacters: Character[];
+  usedMap: Record<string, number>;
 }
 
 export default function CharacterRow({
@@ -43,37 +42,36 @@ export default function CharacterRow({
   onRemoveCharacter,
   onReplaceCharacter,
   onAbilityChange,
-  allCharacters = [],
-  usedMap = {},
+  allCharacters,
+  usedMap,
 }: Props) {
   const c = character;
 
-  /** 🪟 Local modal control */
+  /** Modal state */
   const [activeWindow, setActiveWindow] = useState<
-    | null
-    | { type: "character" }
-    | { type: "ability"; slot: number }
+    null | { type: "character" } | { type: "ability"; slot: number }
   >(null);
 
-  /** Always ensure 3 ability slots */
+  const openCharacterModal = () =>
+    editing && setActiveWindow({ type: "character" });
+
+  const openAbilityModal = (slot: number) =>
+    editing && setActiveWindow({ type: "ability", slot });
+
+  const closeModal = () => setActiveWindow(null);
+
+  /** Always ensure 3 slots */
   const selectedAbilities = c.selectedAbilities || [
     { name: "", level: 0 },
     { name: "", level: 0 },
     { name: "", level: 0 },
   ];
 
-  /** Handlers */
-  const openCharacterModal = () => editing && setActiveWindow({ type: "character" });
-  const openAbilityModal = (slot: number) =>
-    editing && setActiveWindow({ type: "ability", slot });
-  const closeModal = () => setActiveWindow(null);
-
-  /** Derived alias lookup */
-  const getAlias = (name: string) => abilityAliases[name] || name;
+  const getAlias = (n: string) => abilityAliases[n] || n;
 
   return (
     <div className={styles.memberRow}>
-      {/* === Character Pill === */}
+      {/* Character pill */}
       <div
         className={`${styles.memberItem} ${
           c.role === "Tank"
@@ -94,14 +92,13 @@ export default function CharacterRow({
               e.stopPropagation();
               onRemoveCharacter(groupIndex, c._id);
             }}
-            title="移除此角色"
           >
             ×
           </button>
         )}
       </div>
 
-      {/* === Ability Slots === */}
+      {/* Ability slots */}
       <div className={styles.abilityGroup}>
         {[0, 1, 2].map((i) => {
           const slot = selectedAbilities[i];
@@ -129,10 +126,10 @@ export default function CharacterRow({
                         height={20}
                         className={styles.abilityIcon}
                       />
-                      <span className={styles.abilityName}>{alias}</span>
+                      <span>{alias}</span>
                     </div>
                     <span className={styles.abilityLevel}>
-                      {level > 0 ? level : "—"}
+                      {level || "—"}
                     </span>
                   </div>
                 ) : (
@@ -156,9 +153,9 @@ export default function CharacterRow({
                         height={20}
                         className={styles.abilityIcon}
                       />
-                      <span className={styles.abilityName}>{alias}</span>
+                      <span>{alias}</span>
                       <span className={styles.abilityLevel}>
-                        {level > 0 ? level : "—"}
+                        {level || "—"}
                       </span>
                     </div>
                   ) : (
@@ -171,13 +168,13 @@ export default function CharacterRow({
         })}
       </div>
 
-      {/* === 🪟 Modals === */}
+      {/* Modals */}
       {activeWindow?.type === "character" && (
         <EditCharacter
-          allCharacters={allCharacters}   // ✅ pass full context
-          usedMap={usedMap}               // ✅ mark where each char belongs
-          currentGroup={groupIndex}       // ✅ show “已选 / 当前”
-          excludeId={c._id}               // ✅ current char = being replaced
+          allCharacters={allCharacters}
+          usedMap={usedMap}
+          currentGroup={groupIndex}
+          excludeId={c._id}
           onSelect={(picked) => {
             onReplaceCharacter?.(groupIndex, c._id, picked);
             closeModal();
@@ -191,8 +188,8 @@ export default function CharacterRow({
           abilityColorMap={abilityColorMap}
           character={c}
           targetedBoss={targetedBoss}
-          onSelect={(abilityName) => {
-            onAbilityChange?.(groupIndex, c._id, activeWindow.slot, abilityName);
+          onSelect={(ability) => {
+            onAbilityChange?.(groupIndex, c._id, activeWindow.slot, ability);
             closeModal();
           }}
           onClose={closeModal}
