@@ -73,3 +73,129 @@
   border-color: #cfa124 !important;
   background: #fff8e1 !important;
 }
+.selectorBtn {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #aaa;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+.selectorBtn:hover {
+  background: #f3f3f3;
+}
+
+/* ===== Popup ===== */
+.popupBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.popup {
+  background: white;
+  padding: 20px;
+  width: 420px;
+  border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.18);
+}
+
+.popupTitle {
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.popupGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.bossBtn {
+  padding: 10px;
+  background: #fafafa;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: center;
+}
+.bossBtn:hover {
+  background: #f0f0f0;
+}
+
+.popupClose {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  background: #e0e0e0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.popupClose:hover {
+  background: #d5d5d5;
+}
+/* 10 columns, even spacing */
+.row {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+/* Base card */
+.card {
+  background: #fafafa;
+  border: 1px solid #e4e4e4;
+  border-radius: 10px;
+  padding: 10px 8px;
+  min-height: 70px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  transition: all 0.18s ease;
+}
+
+/* Elite floors 90 & 100 */
+.eliteCard {
+  background: #fff8e1;
+  border-color: #cfa124;
+  box-shadow: 0 0 6px rgba(207, 161, 36, 0.25);
+}
+
+/* When editable */
+.clickable {
+  cursor: pointer;
+}
+
+.clickable:hover {
+  background: #f3f3f3;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+/* Floor number */
+.floorLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+/* Boss name / placeholder */
+.value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  word-break: keep-all;
+}
