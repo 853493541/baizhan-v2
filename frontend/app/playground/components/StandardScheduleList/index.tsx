@@ -39,27 +39,22 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
     }
   }, [editingId]);
 
-  // Group by createdAt week
+  // 🔥 Group by createdAt week (correct logic)
   const grouped = schedules.reduce(
     (acc: Record<string, StandardSchedule[]>, s) => {
-      const rawWeek = getGameWeekFromDate(new Date(s.createdAt)); // e.g. 2025-W48
-      const week = rawWeek.includes("-W")
-        ? rawWeek.split("-W")[1] // → “48”
-        : rawWeek;
+      const rawWeek = getGameWeekFromDate(new Date(s.createdAt)); // "2025-W48"
+      const weekNumber = rawWeek.split("-W")[1]; // "48"
 
-      const key = String(week);
-      if (!acc[key]) acc[key] = [];
-      acc[key].push(s);
+      if (!acc[weekNumber]) acc[weekNumber] = [];
+      acc[weekNumber].push(s);
       return acc;
     },
     {}
   );
 
-  const weekList = Object.keys(grouped).sort(
-    (a, b) => Number(b) - Number(a)
-  );
+  const weekList = Object.keys(grouped).sort((a, b) => Number(b) - Number(a));
 
-  // Rename
+  // --- Rename ---
   const handleRename = async (id: string, name: string) => {
     try {
       const res = await fetch(`${API_BASE}/api/standard-schedules/${id}/name`, {
@@ -79,12 +74,10 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
     }
   };
 
-  // Delete
+  // --- Delete ---
   const handleDelete = async (id: string) => {
     try {
-      await fetch(`${API_BASE}/api/standard-schedules/${id}`, {
-        method: "DELETE",
-      });
+      await fetch(`${API_BASE}/api/standard-schedules/${id}`, { method: "DELETE" });
       setSchedules((prev) => prev.filter((s) => s._id !== id));
     } catch {
       alert("删除排表失败");
@@ -95,23 +88,17 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
     <div>
       {weekList.map((week) => (
         <Fragment key={week}>
-          {/* Week header intentionally removed */}
+          {/* ❌ Week header removed */}
 
           <div className={styles.weekRow}>
             {grouped[week].map((s) => {
-              const rawWeek = getGameWeekFromDate(new Date(s.createdAt));
-              const cardWeek = rawWeek.includes("-W")
-                ? rawWeek.split("-W")[1]
-                : rawWeek;
+              const rawWeek = getGameWeekFromDate(new Date(s.createdAt)); // "2025-W48"
+              const cardWeek = rawWeek.split("-W")[1]; // "48"
 
               const groups = s.groups || [];
-              const finishedCount = groups.filter(
-                (g) => g.status === "finished"
-              ).length;
+              const finishedCount = groups.filter((g) => g.status === "finished").length;
               const totalGroups = groups.length;
-              const locked = groups.some(
-                (g) => g.status !== "not_started"
-              );
+              const locked = groups.some((g) => g.status !== "not_started");
 
               return (
                 <div key={s._id} className={styles.cardWrapper}>
@@ -119,7 +106,7 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
                     href={`/playground/standard/${s._id}`}
                     className={`${styles.card} ${styles.standard}`}
                   >
-                    {/* Title + gear */}
+                    {/* --- Title Row --- */}
                     <div className={styles.cardHeader}>
                       <h4 className={styles.cardTitle}>{s.name}</h4>
 
@@ -135,29 +122,28 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
                       </button>
                     </div>
 
+                    {/* --- Content --- */}
                     <div className={styles.cardContent}>
-                      {/* 时间 */}
+                      {/* ❌ 时间 removed */}
+
                       <p>
-                        <span className={styles.label}>时间:</span> W{cardWeek}
+                        <span className={styles.label}>角色数量:</span> {s.characterCount}
                       </p>
 
                       <p>
-                        <span className={styles.label}>角色数量:</span>{" "}
-                        {s.characterCount}
-                      </p>
-
-                      <p>
-                        <span className={styles.label}>完成进度:</span>
+                        <span className={styles.label}>完成进度:</span>{" "}
                         {totalGroups ? `${finishedCount} / ${totalGroups}` : "N/A"}
                       </p>
 
                       <p>
-                        <span className={styles.label}>锁定状态:</span>
+                        <span className={styles.label}>状态:</span>{" "}
                         {locked ? "🔒 已锁定" : "🔓 未锁定"}
                       </p>
 
-                      {/* 底部右下角：服务器（灰色 / italic） */}
-                      <p className={styles.serverFooter}>{s.server}</p>
+                      {/* 🔥 Bottom-right: W48 - 乾坤一掷 */}
+                      <p className={styles.serverFooter}>
+                        W{cardWeek} - {s.server}
+                      </p>
                     </div>
                   </Link>
                 </div>
@@ -165,24 +151,18 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
             })}
           </div>
 
-          {/* Divider line between week groups */}
           <hr className={styles.weekDivider} />
         </Fragment>
       ))}
 
-      {/* Modal */}
+      {/* --- Modal --- */}
       {editingId && (
         <div
           className={styles.modalOverlay}
-          onClick={(e) =>
-            e.target === e.currentTarget && setEditingId(null)
-          }
+          onClick={(e) => e.target === e.currentTarget && setEditingId(null)}
         >
           <div className={styles.modal}>
-            <button
-              className={styles.closeBtn}
-              onClick={() => setEditingId(null)}
-            >
+            <button className={styles.closeBtn} onClick={() => setEditingId(null)}>
               <X className={styles.closeIcon} />
             </button>
 
@@ -207,9 +187,7 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
 
                 return (
                   <button
-                    className={`${styles.deleteBtn} ${
-                      locked ? styles.disabledBtn : ""
-                    }`}
+                    className={`${styles.deleteBtn} ${locked ? styles.disabledBtn : ""}`}
                     disabled={locked}
                     onClick={() => {
                       if (!locked && confirm("⚠️ 确认删除？不可撤销")) {
