@@ -77,14 +77,15 @@
   transition: box-shadow 0.2s ease;
 }
 
+/* keep all your existing hover effect */
 .card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* no transform effect */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .cardTitle {
   font-size: 1.2rem;
   font-weight: 700;
-  margin-bottom: 0.8rem;
+  margin: 0;
   color: #2c3e50;
 }
 
@@ -119,25 +120,6 @@
   text-align: center;
   color: #888;
   margin: 1rem 0 2rem;
-}
-
-/* ---------- Gear Button ---------- */
-.gearBtn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: #666;
-  padding: 6px; /* bigger click area */
-  border-radius: 50%;
-  transition: background 0.2s, color 0.2s;
-}
-
-.gearBtn:hover {
-  background: #f0f0f0;
-  color: #000;
 }
 
 /* ---------- Modal ---------- */
@@ -210,10 +192,6 @@
   font-size: 0.9rem;
 }
 
-.modalActions button:hover {
-  opacity: 0.9;
-}
-
 /* Delete button */
 .deleteBtn {
   background: #f8d7da;
@@ -225,7 +203,7 @@
   background: #f5c6cb;
 }
 
-/* Close button (X) */
+/* Close button */
 .closeBtn {
   position: absolute;
   top: 12px;
@@ -243,6 +221,7 @@
   background: #f0f0f0;
   color: #000;
 }
+
 .saveBtn {
   background: linear-gradient(135deg, #4facfe, #00f2fe);
   color: #fff;
@@ -255,15 +234,115 @@
 }
 
 .disabledBtn {
-  opacity: 0.5;           /* make it look dim */
-  background-color: #ccc; /* light gray background */
-  color: #666;            /* darker gray text */
+  opacity: 0.5;
+  background-color: #ccc;
+  color: #666;
   border: none;
-  cursor: not-allowed;    /* show disabled cursor */
-  pointer-events: none;   /* no hover or click */
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .disabledBtn:hover {
-  background-color: #ccc; /* no hover color change */
+  background-color: #ccc;
   color: #666;
+}
+
+/* ===========================================================
+   🔥 NEW: WEEK GROUPING + INLINE GEAR BUTTON
+   =========================================================== */
+
+/* Week header */
+.weekHeader {
+  margin: 30px 0 10px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #374151;
+}
+
+/* 3 columns always */
+.weekRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .weekRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .weekRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Title + gear on same row */
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+/* Inline gear button */
+.gearBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  padding: 4px;
+  border-radius: 6px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.gearBtn:hover {
+  background: #f0f0f0;
+  color: #000;
+}
+/* Bigger gear icon */
+.gearIcon {
+  width: 24px;
+  height: 24px;
+}
+
+/* Bigger X button icon */
+.closeIcon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Bigger lock icon in delete button */
+.lockIcon {
+  width: 14px;
+  height: 14px;
+}
+.serverFooter {
+  text-align: right;
+  font-size: 0.85rem;
+  color: #999;
+  margin-top: 10px;
+  font-style: italic;   
+}
+.weekRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  width: 100%;
+}
+
+.weekDivider {
+  margin: 35px 0;
+  border: none;
+  border-top: 1px solid #e5e7eb; /* soft gray line */
+}
+
+.serverFooter {
+  text-align: right;
+  font-size: 0.85rem;
+  color: #999;
+  margin-top: 12px;
+  font-style: italic; /* 倾斜 */
 }
