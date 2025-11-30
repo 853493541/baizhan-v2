@@ -1,8 +1,12 @@
+/* =========================================================
+   DESKTOP LAYOUT
+========================================================= */
 .container {
   max-width: 1280px;
   margin: 0 auto;
   padding: 24px 20px;
 }
+
 .section {
   max-width: 1100px;
   margin: 0 auto;
@@ -89,28 +93,30 @@
   font-weight: 600;
   color: #444;
 }
-.unlockBtn {
-  padding: 8px 16px;
-  background: #555;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-}
-.unlockBtn:hover {
-  background: #333;
-}
+
 /* =========================================================
    📱 MOBILE VIEW (max-width: 768px)
 ========================================================= */
 @media (max-width: 768px) {
+
+  /* Remove outer wrapper padding (remove first layer of border/box) */
   .container {
-    padding: 16px 12px;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    max-width: 100% !important;
   }
 
+  /* Remove second layer border/padding from .section */
   .section {
-    padding: 16px 12px;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    max-width: 100% !important;
   }
 
   .title {
@@ -130,7 +136,6 @@
     font-size: 13px;
   }
 
-  /* Buttons wrap nicely */
   .actionRow {
     width: 100%;
     justify-content: space-between;
@@ -150,12 +155,5 @@
   /* Optional: if MapRow uses a grid, force tighter spacing */
   .mapRow {
     gap: 6px !important;
-  }
-}
-@media (max-width: 768px) {
-  .section {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
   }
 }
