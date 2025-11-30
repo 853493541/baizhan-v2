@@ -3,11 +3,21 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import styles from "./styles.module.css";
 
-export default function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+export default function NavLink({ href, children }) {
   const pathname = usePathname();
-  const active = pathname === href || (href !== "/" && pathname.startsWith(href));
+
+  // Convert both paths into segments
+  const pathSeg = pathname.split("/").filter(Boolean);
+  const hrefSeg = href.split("/").filter(Boolean);
+
+  // EXACT segment match
+  const active = pathSeg.join("/") === hrefSeg.join("/");
+
   return (
-    <Link href={href} className={`${styles.link} ${active ? styles.active : ""}`}>
+    <Link
+      href={href}
+      className={`${styles.link} ${active ? styles.active : ""}`}
+    >
       {children}
     </Link>
   );
