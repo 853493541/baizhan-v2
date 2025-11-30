@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Fragment } from "react";
 import Link from "next/link";
 import { Settings, X, Lock } from "lucide-react";
 import styles from "./styles.module.css";
+import { getGameWeekFromDate } from "@/utils/weekUtils";
 
 interface Group {
   status?: "not_started" | "started" | "finished";
@@ -31,7 +32,6 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
   const [tempName, setTempName] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // ✅ Auto-focus on modal open
   useEffect(() => {
     if (editingId && inputRef.current) {
       inputRef.current.focus();
@@ -39,7 +39,21 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
     }
   }, [editingId]);
 
-  // ✅ Rename schedule
+  // Group by createdAt week
+  const grouped = schedules.reduce(
+    (acc: Record<string, StandardSchedule[]>, s) => {
+      const rawWeek = getGameWeekFromDate(new Date(s.createdAt));
+      const weekNumber = rawWeek.split("-W")[1];
+
+      if (!acc[weekNumber]) acc[weekNumber] = [];
+      acc[weekNumber].push(s);
+      return acc;
+    },
+    {}
+  );
+
+  const weekList = Object.keys(grouped).sort((a, b) => Number(b) - Number(a));
+
   const handleRename = async (id: string, name: string) => {
     try {
       const res = await fetch(`${API_BASE}/api/standard-schedules/${id}/name`, {
@@ -47,111 +61,140 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name }),
       });
-      if (!res.ok) throw new Error("Failed to update name");
-      const updated = await res.json();
 
+      if (!res.ok) throw new Error("Rename failed");
+
+      const updated = await res.json();
       setSchedules((prev) =>
         prev.map((s) => (s._id === id ? { ...s, name: updated.name } : s))
       );
-    } catch (err) {
+    } catch {
       alert("更新排表名字失败");
     }
   };
 
-  // ✅ Delete schedule (disabled if locked)
   const handleDelete = async (id: string) => {
     try {
-      const res = await fetch(`${API_BASE}/api/standard-schedules/${id}`, {
+      await fetch(`${API_BASE}/api/standard-schedules/${id}`, {
         method: "DELETE",
       });
-      if (!res.ok) throw new Error("Failed to delete schedule");
       setSchedules((prev) => prev.filter((s) => s._id !== id));
-    } catch (err) {
+    } catch {
       alert("删除排表失败");
     }
   };
 
   return (
     <div>
-      {schedules.length === 0 ? (
-        <p className={styles.empty}>暂无排表</p>
-      ) : (
-        <div className={styles.cardGrid}>
-          {schedules.map((s) => {
-            const groups = s.groups || [];
-            const finishedCount = groups.filter((g) => g.status === "finished").length;
-            const totalGroups = groups.length;
-            const locked = groups.some(
-              (g) => g.status === "started" || g.status === "finished"
-            );
+      {weekList.map((week) => (
+        <Fragment key={week}>
+          <div className={styles.weekRow}>
+            {grouped[week].map((s) => {
+              const rawWeek = getGameWeekFromDate(new Date(s.createdAt));
+              const cardWeek = rawWeek.split("-W")[1];
 
-            return (
-              <div key={s._id} className={styles.cardWrapper}>
-                {/* clickable card */}
-                <Link
-                  href={`/playground/standard/${s._id}`}
-                  className={`${styles.card} ${styles.standard}`}
-                >
-                  <h4 className={styles.cardTitle}>{s.name}</h4>
-                  <div className={styles.cardContent}>
-                    <p>
-                      <span className={styles.label}>服务器:</span> {s.server}
-                    </p>
-                    <p>
-                      <span className={styles.label}>角色数量:</span>{" "}
-                      {s.characterCount ?? "N/A"}
-                    </p>
-                    <p>
-                      <span className={styles.label}>完成进度:</span>{" "}
-                      {totalGroups > 0
-                        ? `${finishedCount} / ${totalGroups}`
-                        : "N/A"}
-                    </p>
-                    <p>
-                      <span className={styles.label}>锁定状态:</span>{" "}
-                      {locked ? "🔒 已锁定" : "🔓 未锁定"}
-                    </p>
-                  </div>
-                  <p className={styles.date}>
-                    创建时间: {new Date(s.createdAt).toLocaleDateString()}
-                  </p>
-                </Link>
+              const groups = s.groups || [];
+              const finishedCount = groups.filter(
+                (g) => g.status === "finished"
+              ).length;
+              const totalGroups = groups.length;
+              const locked = groups.some((g) => g.status !== "not_started");
 
-                {/* Gear icon for edit/delete */}
-                <button
-                  className={styles.gearBtn}
-                  onClick={() => {
-                    setEditingId(s._id);
-                    setTempName(s.name);
-                  }}
-                >
-                  <Settings size={22} />
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              const progress = totalGroups
+                ? (finishedCount / totalGroups) * 100
+                : 0;
 
-      {/* 🔹 Modal for rename/delete */}
+              return (
+                <div key={s._id} className={styles.cardWrapper}>
+                  <Link
+                    href={`/playground/standard/${s._id}`}
+                    className={`${styles.card} ${styles.standard}`}
+                  >
+                    <div className={styles.cardHeader}>
+                      <h4 className={styles.cardTitle}>{s.name}</h4>
+
+                      <button
+                        className={styles.gearBtn}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setEditingId(s._id);
+                          setTempName(s.name);
+                        }}
+                      >
+                        <Settings className={styles.gearIcon} />
+                      </button>
+                    </div>
+
+                    <div className={styles.cardContent}>
+                      <p>
+                        <span className={styles.label}>角色数量:</span>{" "}
+                        {s.characterCount}
+                      </p>
+
+{/* 完成进度 row */}
+<div className={styles.progressLine}>
+  <span className={styles.label}>完成进度:</span>
+
+  <div className={styles.progressInlineBar}>
+    <div
+      className={styles.progressInlineFill}
+      style={{
+        width: `${progress}%`,
+        backgroundColor:
+          progress === 100
+            ? "#22c55e" // green
+            : progress <= 30
+            ? "#ef4444" // red
+            : "#eab308", // yellow
+      }}
+    />
+  </div>
+
+  <span className={styles.progressText}>
+    {totalGroups ? `${finishedCount} / ${totalGroups}` : "N/A"}
+  </span>
+</div>
+
+
+                      <p>
+                        <span className={styles.label}>状态:</span>{" "}
+                        {locked ? "🔒 已锁定" : "🔓 未锁定"}
+                      </p>
+
+                      <p className={styles.serverFooter}>
+                        W{cardWeek} - {s.server}
+                      </p>
+                    </div>
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+
+          <hr className={styles.weekDivider} />
+        </Fragment>
+      ))}
+
+      {/* MODAL */}
       {editingId && (
         <div
           className={styles.modalOverlay}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setEditingId(null);
-          }}
+          onClick={(e) =>
+            e.target === e.currentTarget && setEditingId(null)
+          }
         >
           <div className={styles.modal}>
             <button
               className={styles.closeBtn}
               onClick={() => setEditingId(null)}
             >
-              <X size={20} />
+              <X className={styles.closeIcon} />
             </button>
 
             <h3>编辑</h3>
+
             <label>
-              编辑名字:
+              排表名称：
               <input
                 ref={inputRef}
                 type="text"
@@ -163,9 +206,8 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
             <div className={styles.modalActions}>
               {(() => {
                 const schedule = schedules.find((s) => s._id === editingId);
-                const groups = schedule?.groups || [];
-                const locked = groups.some(
-                  (g) => g.status === "started" || g.status === "finished"
+                const locked = schedule?.groups?.some(
+                  (g) => g.status !== "not_started"
                 );
 
                 return (
@@ -175,24 +217,14 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
                     }`}
                     disabled={locked}
                     onClick={() => {
-                      if (!locked) {
-                        if (
-                          window.confirm("⚠️ 确认要删除这个排表吗？此操作不可撤销")
-                        ) {
-                          handleDelete(editingId);
-                          setEditingId(null);
-                        }
+                      if (!locked && confirm("⚠️ 确认删除？不可撤销")) {
+                        handleDelete(editingId);
+                        setEditingId(null);
                       }
                     }}
                   >
-                    {locked ? (
-                      <>
-                        <Lock size={14} style={{ marginRight: 4 }} />
-                        删除
-                      </>
-                    ) : (
-                      "删除"
-                    )}
+                    <Lock className={styles.lockIcon} />
+                    {locked ? "已锁定" : "删除排表"}
                   </button>
                 );
               })()}
@@ -200,7 +232,7 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
               <button
                 className={styles.saveBtn}
                 onClick={() => {
-                  handleRename(editingId, tempName);
+                  handleRename(editingId!, tempName);
                   setEditingId(null);
                 }}
               >

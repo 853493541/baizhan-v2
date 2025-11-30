@@ -46,6 +46,7 @@ export default function Sidebar() {
           {openSchedule && (
             <div className={styles.folderItems}>
               <NavLink href="/playground">📊 标准</NavLink>
+              <NavLink href="/playground/history">🗂️ 历史排表</NavLink>
               <NavLink href="/targetedplans">🎯 荡剑恩仇</NavLink>
             </div>
           )}

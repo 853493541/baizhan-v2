@@ -216,6 +216,7 @@ export default function ScheduleDetail({ scheduleId }: Props) {
           conflictLevel={schedule.conflictLevel}
           onClose={() => setActiveIdx(null)}
           onRefresh={fetchSchedule}
+          createdAt={schedule.createdAt}
         />
       )}
 
