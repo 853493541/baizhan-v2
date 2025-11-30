@@ -11,6 +11,8 @@ interface Props {
   onClickFloor?: (floor: number) => void;
 }
 
+const highlightBosses = new Set(["鬼影小次郎", "秦雷", "冯度", "阿依努尔"]);
+
 export default function MapRow({
   floors,
   floorAssignments = {},
@@ -21,26 +23,40 @@ export default function MapRow({
   return (
     <div className={styles.row}>
       {floors.map((floor) => {
-        const isElite = floor === 90 || floor === 100;
         const bossName =
           data?.[floor]?.boss ??
           (floorAssignments ? floorAssignments[floor] : undefined);
 
         const isClickable = !readonly && typeof onClickFloor === "function";
 
+        const displayText = bossName
+          ? bossName
+          : readonly
+          ? "未选择"
+          : "请选择";
+
+        // 🔥 red text for empty floors
+        const emptyClass = !bossName ? styles.emptyRed : "";
+
+        // ⭐ use original eliteCard styling, but based on bossName
+        const eliteClass =
+          bossName && highlightBosses.has(bossName)
+            ? styles.eliteCard
+            : "";
+
         return (
           <div
             key={floor}
-            className={`${styles.card} ${
-              isElite ? styles.eliteCard : ""
-            } ${isClickable ? styles.clickable : ""}`}
+            className={`${styles.card} ${eliteClass} ${
+              isClickable ? styles.clickable : ""
+            }`}
             onClick={() => {
               if (isClickable) onClickFloor!(floor);
             }}
           >
             <div className={styles.floorLabel}>{floor}</div>
-            <div className={styles.value}>
-              {bossName || (readonly ? "未选择" : "请选择")}
+            <div className={`${styles.value} ${emptyClass}`}>
+              {displayText}
             </div>
           </div>
         );

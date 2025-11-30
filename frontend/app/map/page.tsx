@@ -3,37 +3,114 @@
 import React, { useState, useEffect } from "react";
 import bossData from "../data/boss_skills_collection_map.json";
 import styles from "./styles.module.css";
-import CurrentWeek from "./components/CurrentWeek";
+
+/* COMPONENTS */
+import MapRow from "./components/MapRow";
 import BossSelectModal from "./components/BossSelectModal";
 
+/* HELPERS */
+import {
+  specialBosses,
+  row1,
+  row2,
+  parseFloorsFromAPI,
+  getFullPool,
+  applySelectionToFloors,
+} from "./mapHelpers";
+
 /* ============================================================
-   SPECIAL BOSSES (90 / 100 floors)
+   INTERNAL CurrentWeek component — combined 编辑/保存
 ============================================================ */
-const specialBosses = [
-  "武雪散",
-  "萧武宗",
-  "悉达罗摩",
-  "阿基修斯",
-  "提多罗吒",
-  "萧沙",
-  "谢云流",
-  "卫栖梧",
-  "牡丹",
-  "迟驻",
-];
+function CurrentWeek({
+  floorAssignments,
+  onFloorClick,
+  onDelete,
+  status,
+  isEditing,
+  onEditToggle,
+  onSave,
+}: {
+  floorAssignments: Record<number, string>;
+  onFloorClick: (floor: number) => void;
+  onDelete: () => void;
+  status: "idle" | "saving" | "success" | "error";
+  isEditing: boolean;
+  onEditToggle: () => void;
+  onSave: () => void;
+}) {
+  const totalFloors = row1.length + row2.length;
+  const selectedCount = Object.keys(floorAssignments).filter(
+    (k) => floorAssignments[Number(k)]
+  ).length;
 
+  const handleRowClick = (floor: number) => {
+    if (isEditing) onFloorClick(floor);
+  };
+
+  return (
+    <section className={styles.section}>
+      <h1 className={styles.title}>本周地图</h1>
+
+      <MapRow
+        floors={row1}
+        floorAssignments={floorAssignments}
+        readonly={!isEditing}
+        onClickFloor={handleRowClick}
+      />
+
+      <MapRow
+        floors={row2}
+        floorAssignments={floorAssignments}
+        readonly={!isEditing}
+        onClickFloor={handleRowClick}
+      />
+
+      <div className={styles.footer}>
+        <p className={styles.counter}>
+          已选择 {selectedCount} / {totalFloors}
+          {status === "saving" && <span> 💾</span>}
+          {status === "success" && <span> ✅</span>}
+          {status === "error" && <span> ❌</span>}
+        </p>
+
+        <div className={styles.actionRow}>
+          {/* 清空：只有在编辑时显示 */}
+          {isEditing && (
+            <button
+              onClick={onDelete}
+              className={styles.deleteBtn}
+              disabled={selectedCount === 0}
+            >
+              清空
+            </button>
+          )}
+
+          {/* 单按钮逻辑：编辑 / 保存 */}
+          <button
+            className={styles.lockBtn}
+            onClick={() => {
+              if (!isEditing) {
+                onEditToggle();        // 进入编辑模式
+              } else {
+                onSave();              // 保存并退出编辑
+              }
+            }}
+          >
+            {isEditing ? "保存" : "编辑"}
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================================
+   MAIN PAGE — cleaned & simplified
+============================================================ */
 export default function MapPage() {
-  console.log("🚀 MapPage rendered");
-
-  /* ============================================================
-     NORMAL BOSSES
-  ============================================================ */
   const normalBosses = Object.keys(bossData).filter(
     (b) => !specialBosses.includes(b)
   );
-
-  const row1 = [81, 82, 83, 84, 85, 86, 87, 88, 89, 90];
-  const row2 = [100, 99, 98, 97, 96, 95, 94, 93, 92, 91];
 
   const [floorAssignments, setFloorAssignments] =
     useState<Record<number, string>>({});
@@ -41,41 +118,18 @@ export default function MapPage() {
   const [status, setStatus] =
     useState<"idle" | "saving" | "success" | "error">("idle");
 
-  const [locked, setLocked] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   const [selectingFloor, setSelectingFloor] = useState<number | null>(null);
 
-  /* ============================================================
-     FETCH WEEKLY MAP
-  ============================================================ */
+  /* ---------------- FETCH MAP ---------------- */
   const fetchMap = async () => {
-    console.log("📌 Fetching weekly map...");
-
     try {
-      const url = `${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map`;
-      const res = await fetch(url);
-
-      console.log("📥 Response status:", res.status);
-
-      if (!res.ok) {
-        console.warn("⚠️ No existing map for this week.");
-        return;
-      }
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map`);
+      if (!res.ok) return;
 
       const data = await res.json();
-      if (!data?.floors) return;
-
-      const floors: Record<number, string> = {};
-      for (const [floor, obj] of Object.entries(data.floors)) {
-        floors[Number(floor)] = (obj as any).boss;
-      }
-
-      console.log("📊 Parsed floors:", floors);
-
-      setFloorAssignments(floors);
-      setLocked(data.locked ?? false);
-
-      localStorage.setItem("weeklyFloors", JSON.stringify(floors));
+      setFloorAssignments(parseFloorsFromAPI(data.floors));
     } catch (err) {
       console.error("❌ fetchMap failed:", err);
     }
@@ -85,13 +139,10 @@ export default function MapPage() {
     fetchMap();
   }, []);
 
-  /* ============================================================
-     SAVE MAP
-  ============================================================ */
-  const persistToDB = async (floors: Record<number, string>) => {
-    console.log("💾 Saving map to DB:", floors);
-
+  /* ---------------- SAVE MAP ---------------- */
+  const persistToDB = async () => {
     setStatus("saving");
+
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map`,
@@ -100,143 +151,60 @@ export default function MapPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             floors: Object.fromEntries(
-              Object.entries(floors).map(([k, v]) => [k, { boss: v }])
+              Object.entries(floorAssignments).map(([k, v]) => [k, { boss: v }])
             ),
           }),
         }
       );
 
-      if (!res.ok) throw new Error("Save failed");
+      if (!res.ok) throw new Error();
 
       setStatus("success");
-      setTimeout(() => setStatus("idle"), 1000);
-    } catch (err) {
-      console.error("❌ Failed to save weekly map:", err);
+      setTimeout(() => setStatus("idle"), 800);
+      setIsEditing(false);
+    } catch {
       setStatus("error");
-      setTimeout(() => setStatus("idle"), 2000);
+      setTimeout(() => setStatus("idle"), 1200);
     }
   };
 
-  /* ============================================================
-     LOCK
-  ============================================================ */
-  const lockMap = async () => {
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map/lock`,
-        { method: "POST" }
-      );
-
-      if (!res.ok) throw new Error("Lock failed");
-      setLocked(true);
-    } catch (err) {
-      console.error("❌ Lock failed:", err);
-    }
-  };
-
-  /* ============================================================
-     DELETE
-  ============================================================ */
+  /* ---------------- DELETE WEEK MAP ---------------- */
   const deleteCurrentWeek = async () => {
-    console.log("🗑 Deleting weekly map…");
-
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map`,
-        { method: "DELETE" }
-      );
-
-      if (!res.ok) throw new Error("Delete failed");
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map`, {
+        method: "DELETE",
+      });
 
       setFloorAssignments({});
-      setLocked(false);
-    } catch (err) {
-      console.error("❌ Delete failed:", err);
+    } catch {
+      console.error("❌ delete failed");
     }
   };
 
-  /* ============================================================
-     OPEN MODAL
-  ============================================================ */
-  const handleOpenModal = (floor: number) => {
-    if (locked) return;
-    setSelectingFloor(floor);
-  };
-
-  /* ============================================================
-     FIXED — CORRECT SAME-RANGE CONFLICT LOGIC
-  ============================================================ */
-  const isSameRange = (a: number, b: number) => {
-    // 81–89 together
-    if (a >= 81 && a <= 89 && b >= 81 && b <= 89) return true;
-    // 91–99 together
-    if (a >= 91 && a <= 99 && b >= 91 && b <= 99) return true;
-    // 90 isolated
-    if (a === 90 && b === 90) return true;
-    // 100 isolated
-    if (a === 100 && b === 100) return true;
-
-    return false;
-  };
-
-  /* ============================================================
-     HANDLE BOSS PICK (fixed)
-  ============================================================ */
+  /* ---------------- HANDLE BOSS PICK ---------------- */
   const applyBossSelection = (floor: number, boss: string) => {
-    console.log(`📝 Selected boss "${boss}" for floor ${floor}`);
-
-    const updated = { ...floorAssignments };
-
-    // Remove only within SAME GROUP (not globally)
-    for (const [f, b] of Object.entries(updated)) {
-      const ff = Number(f);
-
-      if (b === boss && isSameRange(ff, floor) && ff !== floor) {
-        updated[ff] = "";
-      }
-    }
-
-    updated[floor] = boss;
-
+    const updated = applySelectionToFloors(floor, boss, floorAssignments);
     setFloorAssignments(updated);
-    localStorage.setItem("weeklyFloors", JSON.stringify(updated));
-
-    persistToDB(updated);
     setSelectingFloor(null);
   };
 
-  /* ============================================================
-     RETURN FULL POOL BASED ON FLOOR RANGE
-  ============================================================ */
-  const getFullPool = (floor: number) => {
-    if (floor === 90 || floor === 100) return specialBosses;
-
-    if (floor >= 81 && floor <= 89) return normalBosses;
-    if (floor >= 91 && floor <= 99) return normalBosses;
-
-    return [];
-  };
-
-  /* ============================================================
-     RENDER
-  ============================================================ */
+  /* ---------------- RENDER ---------------- */
   return (
     <div className={styles.container}>
       <CurrentWeek
-        row1={row1}
-        row2={row2}
         floorAssignments={floorAssignments}
-        onFloorClick={handleOpenModal}
+        onFloorClick={(f) => setSelectingFloor(f)}
         onDelete={deleteCurrentWeek}
         status={status}
-        locked={locked}
-        onLock={lockMap}
+        isEditing={isEditing}
+        onEditToggle={() => setIsEditing((v) => !v)}
+        onSave={persistToDB}
       />
 
       {selectingFloor !== null && (
         <BossSelectModal
           floor={selectingFloor}
-          pool={getFullPool(selectingFloor)}
+          pool={getFullPool(selectingFloor, specialBosses, normalBosses)}
           floorAssignments={floorAssignments}
           onClose={() => setSelectingFloor(null)}
           onPick={applyBossSelection}

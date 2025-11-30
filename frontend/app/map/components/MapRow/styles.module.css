@@ -12,179 +12,33 @@
   border: 1px solid #e4e4e4;
   border-radius: 10px;
   padding: 10px 8px;
-  text-align: center;
-
-  /* keep same size in locked/unlocked */
   min-height: 72px;
 
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 6px;
-
-  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.08s ease;
-}
-
-.card:hover {
-  background: #f3f3f3;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-}
-
-/* Elite 90 / 100 floor highlight */
-.eliteCard {
-  background: #fff8e1;
-  border-color: #cfa124;
-  box-shadow: 0 0 6px rgba(207, 161, 36, 0.25);
-}
-
-/* Floor number */
-.floorLabel {
-  font-size: 13px;
-  font-weight: 600;
-  color: #666;
-}
-
-/* Boss name in readonly mode */
-.readonlyValue {
-  font-size: 14px;
-  font-weight: 500;
-  color: #333;
-}
-
-/* Dropdown */
-.dropdown {
-  padding: 6px 8px;
-  font-size: 13px;
-  border: 1px solid #bdbdbd;
-  border-radius: 6px;
-  outline: none;
-  width: 100%;
-  background: #ffffff;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.dropdown:focus {
-  border-color: #4a90e2;
-  box-shadow: 0 0 0 1px rgba(74, 144, 226, 0.2);
-}
-
-/* Elite dropdown look */
-.dropdownElite {
-  border-color: #cfa124 !important;
-  background: #fff8e1 !important;
-}
-.selectorBtn {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #aaa;
-  border-radius: 6px;
-  background: #fff;
-  font-size: 14px;
-  cursor: pointer;
-}
-.selectorBtn:hover {
-  background: #f3f3f3;
-}
-
-/* ===== Popup ===== */
-.popupBackdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.35);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 2000;
-}
-
-.popup {
-  background: white;
-  padding: 20px;
-  width: 420px;
-  border-radius: 12px;
-  box-shadow: 0 4px 18px rgba(0,0,0,0.18);
-}
-
-.popupTitle {
   text-align: center;
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 15px;
+
+  transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 
-.popupGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.bossBtn {
-  padding: 10px;
-  background: #fafafa;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  cursor: pointer;
-  text-align: center;
-}
-.bossBtn:hover {
-  background: #f0f0f0;
-}
-
-.popupClose {
-  width: 100%;
-  padding: 10px;
-  border: none;
-  background: #e0e0e0;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.popupClose:hover {
-  background: #d5d5d5;
-}
-/* 10 columns, even spacing */
-.row {
-  display: grid;
-  grid-template-columns: repeat(10, 1fr);
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-/* Base card */
-.card {
-  background: #fafafa;
-  border: 1px solid #e4e4e4;
-  border-radius: 10px;
-  padding: 10px 8px;
-  min-height: 70px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
-  transition: all 0.18s ease;
-}
-
-/* Elite floors 90 & 100 */
-.eliteCard {
-  background: #fff8e1;
-  border-color: #cfa124;
-  box-shadow: 0 0 6px rgba(207, 161, 36, 0.25);
-}
-
-/* When editable */
+/* Hover when clickable */
 .clickable {
   cursor: pointer;
 }
-
 .clickable:hover {
   background: #f3f3f3;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
-/* Floor number */
+/* === Highlight special boss using original elite style === */
+.eliteCard {
+  background: #fff8e1;
+  border-color: #cfa124;
+  box-shadow: 0 0 6px rgba(207, 161, 36, 0.25);
+}
+
+/* === Floor number === */
 .floorLabel {
   font-size: 13px;
   font-weight: 600;
@@ -192,10 +46,178 @@
   margin-bottom: 4px;
 }
 
-/* Boss name / placeholder */
+/* === Value (boss name or placeholder) === */
 .value {
   font-size: 14px;
   font-weight: 500;
   color: #333;
   word-break: keep-all;
+}
+
+/* Red placeholder */
+.emptyRed {
+  color: #d93025;
+  font-weight: 600;
+}
+
+/* ============================================================
+   Section layout (CurrentWeek)
+============================================================ */
+.section {
+  margin-top: 20px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+
+.footer {
+  margin-top: 16px;
+}
+
+.counter {
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.actionRow {
+  display: flex;
+  gap: 10px;
+}
+
+/* Clear button */
+.deleteBtn {
+  padding: 6px 14px;
+  background: #f5f5f5;
+  border: 1px solid #c9c9c9;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.deleteBtn:hover {
+  background: #e8e8e8;
+}
+
+/* Edit / Save button */
+.lockBtn {
+  padding: 6px 16px;
+  background: #e3f2fd;
+  border: 1px solid #90caf9;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.lockBtn:hover {
+  background: #d2e9fb;
+}
+
+/* Save button (same style — kept separate for clarity) */
+.confirmLockBtn {
+  padding: 6px 16px;
+  background: #e3f2fd;
+  border: 1px solid #90caf9;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.confirmLockBtn:hover {
+  background: #d2e9fb;
+}
+/* =========================================================
+   📱 MOBILE VIEW (Option B — Horizontal Scroll)
+========================================================= */
+@media (max-width: 768px) {
+
+  /* === Container & Section === */
+  .section {
+    padding: 12px 8px;
+  }
+
+  .title {
+    font-size: 18px;
+    margin-bottom: 14px;
+    text-align: center;
+  }
+
+  /* === Horizontal scroll map row === */
+  .row {
+    display: grid;
+    grid-template-columns: repeat(10, 80px); /* each card has fixed width */
+    gap: 10px;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    padding-bottom: 8px;
+    margin-bottom: 16px;
+
+    /* Hide scrollbar (Chrome & Safari) */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .row::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar (Firefox) */
+  .row {
+    scrollbar-width: none;
+  }
+
+  /* === Card sizing on mobile === */
+  .card {
+    min-width: 80px;
+    min-height: 70px;
+    padding: 8px 6px;
+    border-radius: 8px;
+
+    /* More touch-friendly */
+    touch-action: manipulation;
+  }
+
+  .floorLabel {
+    font-size: 11px;
+    margin-bottom: 2px;
+  }
+
+  .value {
+    font-size: 13px;
+    line-height: 1.2;
+  }
+
+  .emptyRed {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* === Footer changes === */
+  .footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  .counter {
+    font-size: 13px;
+  }
+
+  .actionRow {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  /* Buttons take equal width */
+  .deleteBtn,
+  .lockBtn,
+  .confirmLockBtn {
+    flex: 1;
+    padding: 10px 0;
+    font-size: 14px;
+    text-align: center;
+  }
 }

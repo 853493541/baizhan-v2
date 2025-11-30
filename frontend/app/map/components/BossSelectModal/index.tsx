@@ -40,11 +40,7 @@ interface Props {
 }
 
 /* --------------------------------------------------------
-   Only show 已选 if boss is in SAME pool group:
-   - 81–89 together
-   - 91–99 together
-   - 90 alone
-   - 100 alone
+   Pool group logic
 -------------------------------------------------------- */
 function inSamePoolGroup(f1: number, f2: number) {
   if (f1 >= 81 && f1 <= 89 && f2 >= 81 && f2 <= 89) return true;
@@ -64,8 +60,13 @@ export default function BossSelectModal({
   const poolSet = new Set(pool);
 
   return (
-    <div className={styles.overlay}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+    /* CLICK ANYWHERE OUTSIDE = CLOSE */
+    <div className={styles.overlay} onClick={onClose}>
+      {/* prevent closing when clicking inside */}
+      <div
+        className={styles.modal}
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.title}>{floor} 层</div>
@@ -81,7 +82,7 @@ export default function BossSelectModal({
           </button>
         </div>
 
-        {/* Columns */}
+        {/* Boss columns */}
         <div className={styles.columns}>
           {COLUMN_META.map((col) => {
             const bosses = GROUPS[col.key].filter((b) => poolSet.has(b));
@@ -95,9 +96,6 @@ export default function BossSelectModal({
 
                 <div className={styles.bossList}>
                   {bosses.map((boss) => {
-                    /* --------------------------------------------------------
-                       Correct "isSelected" logic
-                    -------------------------------------------------------- */
                     const assigned = Object.entries(floorAssignments).find(
                       ([otherFloor, b]) =>
                         b === boss &&
