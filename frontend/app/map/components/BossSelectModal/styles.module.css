@@ -1,6 +1,6 @@
-/* =========================
+/* =========================================================
    OVERLAY
-   ========================= */
+========================================================= */
 .overlay {
   position: fixed;
   inset: 0;
@@ -9,11 +9,12 @@
   align-items: center;
   justify-content: center;
   z-index: 40;
+  pointer-events: auto;
 }
 
-/* =========================
+/* =========================================================
    MODAL
-   ========================= */
+========================================================= */
 .modal {
   background: #ffffff;
   border-radius: 18px;
@@ -21,18 +22,19 @@
   max-width: 100%;
   max-height: 80vh;
   padding: 20px 24px 18px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.16);
   display: flex;
   flex-direction: column;
+  pointer-events: auto;
 }
 
-/* =========================
+/* =========================================================
    HEADER
-   ========================= */
+========================================================= */
 .header {
   display: flex;
   align-items: center;
-  justify-content: center;   /* Center the title */
+  justify-content: center;
   position: relative;
   margin-bottom: 10px;
 }
@@ -42,7 +44,6 @@
   font-weight: 600;
 }
 
-/* Close button aligned right */
 .closeBtn {
   position: absolute;
   right: 6px;
@@ -54,19 +55,17 @@
   padding: 4px 8px;
 }
 
-/* =========================
-   COLUMNS WRAPPER
-   ========================= */
+/* =========================================================
+   DESKTOP COLUMN WRAPPER
+========================================================= */
 .columns {
   display: flex;
   gap: 14px;
   padding: 12px 4px 6px;
   overflow-x: auto;
+  background: white;
 }
 
-/* =========================
-   COLUMN
-   ========================= */
 .column {
   flex: 1;
   min-width: 150px;
@@ -77,47 +76,30 @@
 }
 
 .columnHeader {
-  text-align: center;      /* Center the color name */
+  text-align: center;
   font-size: 15px;
   font-weight: 600;
   margin-bottom: 10px;
 }
 
-/* =========================
-   COLUMN BACKGROUND COLORS
-   ========================= */
-.colYellow {
-  background: #fff7df;
-}
+/* =========================================================
+   COLUMN COLORS
+========================================================= */
+.colYellow { background: #fff7df; }
+.colPurple { background: #f5ecff; }
+.colBlue   { background: #e7f3ff; }
+.colRed    { background: #ffe8e8; }
+.colGreen  { background: #e8ffe9; }
 
-.colPurple {
-  background: #f5ecff;
-}
-
-.colBlue {
-  background: #e7f3ff;
-}
-
-.colRed {
-  background: #ffe8e8;
-}
-
-.colGreen {
-  background: #e8ffe9;
-}
-
-/* =========================
-   BOSS LIST
-   ========================= */
+/* =========================================================
+   BOSS LIST + ITEMS
+========================================================= */
 .bossList {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-/* =========================
-   BOSS ITEM (DEFAULT)
-   ========================= */
 .bossItem {
   background: #ffffff;
   border: 1px solid #e1e1e1;
@@ -128,9 +110,9 @@
 
   display: flex;
   align-items: center;
-  justify-content: space-between;
-
+  justify-content: center;   /* centered since no 已选 */
   cursor: pointer;
+
   font-size: 14px;
   transition: all 0.15s ease;
 }
@@ -140,193 +122,42 @@
   background: #f8faff;
 }
 
-/* left aligned boss name */
-.bossName {
-  text-align: left;
-}
-
-/* =========================
-   SELECTED BOSS (已选)
-   ========================= */
 .bossBtnAssigned {
   background: #f4f4f4 !important;
   border: 1px solid #d0d0d0 !important;
   color: #999 !important;
 }
 
-.bossBtnAssigned:hover {
-  background: #f4f4f4 !important;
-  border: 1px solid #d0d0d0 !important;
-}
-
-/* “已选” label — NO BACKGROUND */
-.badgeSelected {
-  font-size: 12px;
-  color: #777;
-  margin-left: 8px;
-}
-.modal {
-  pointer-events: auto; /* ensures it captures clicks */
-}
-.overlay {
-  pointer-events: auto;
-}
-
-.overlay > .modal {
-  pointer-events: auto;
-}
-/* Overlay */
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.35);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 40;
-  pointer-events: auto;
-}
-
-/* Modal */
-.modal {
-  background: white;
-  border-radius: 18px;
-  width: 960px;
-  max-height: 80vh;
-  padding: 20px 24px 18px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
-  display: flex;
-  flex-direction: column;
-  pointer-events: auto; /* ← ensures modal catches the click */
-}
-
-/* Fills the gaps so overlay is never exposed */
-.columns {
-  display: flex;
-  gap: 14px;
-  padding: 12px 4px 6px;
-  background: white; /* ← THE REAL FIX */
-}
 /* =========================================================
-   📱 MOBILE VIEW — BossSelectModal
+   BOSS NAME (desktop default)
+========================================================= */
+.bossName {
+  font-size: 14px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   📱 MOBILE VIEW
 ========================================================= */
 @media (max-width: 768px) {
 
-  /* === Overlay stays, but modal behaves like bottom sheet === */
-  .overlay {
-    align-items: flex-end; /* push modal to bottom */
-    padding: 0;
-  }
-
-  /* === Modal shrinks to near full-screen width === */
-  .modal {
-    width: 100%;
-    max-width: 100%;
-    border-radius: 14px 14px 0 0;
-    padding: 16px 16px 12px;
-    max-height: 90vh; /* taller for mobile */
-  }
-
-  /* === Header layout improves === */
-  .header {
-    margin-bottom: 12px;
-    padding: 0 4px;
-  }
-
-  .title {
-    font-size: 17px;
-  }
-
-  .closeBtn {
-    right: 2px;
-    top: -2px;
-    font-size: 20px;
-    padding: 4px 6px;
-  }
-
-  /* === Make columns scroll horizontally === */
-  .columns {
-    display: flex;
-    flex-direction: row;
-    gap: 12px;
-
-    overflow-x: auto;
-    overflow-y: hidden;
-
-    padding: 10px 2px 12px;
-    margin: 0;
-
-    scrollbar-width: none; /* Firefox */
-  }
-
-  .columns::-webkit-scrollbar {
-    display: none; /* Chrome */
-  }
-
-  /* === Each column becomes a 140px card === */
-  .column {
-    min-width: 140px;
-    flex: 0 0 auto;
-    border-radius: 12px;
-    padding: 10px 8px;
-  }
-
-  .columnHeader {
-    font-size: 14px;
-    margin-bottom: 8px;
-  }
-
-  /* === Boss list more compact === */
-  .bossList {
-    gap: 8px;
-  }
-
-  .bossItem {
-    padding: 8px 10px;
-    min-height: 40px;
-
-    font-size: 14px;
-    border-radius: 8px;
-  }
-
-  .bossItem:hover {
-    background: #f8faff;
-  }
-
-  .bossBtnAssigned {
-    background: #f4f4f4 !important;
-    color: #999 !important;
-  }
-
-  .badgeSelected {
-    font-size: 11px;
-  }
-}
-/* =========================================================
-   📱 MOBILE VIEW — Centered COMPACT modal
-========================================================= */
-@media (max-width: 768px) {
-
-  /* Keep modal centered */
+  /* Center modal */
   .overlay {
     align-items: center;
     justify-content: center;
     padding: 0 10px;
   }
 
-  /* Compact modal */
   .modal {
     width: 92%;
     max-width: 92%;
     border-radius: 14px;
-    
     padding: 14px 14px 12px;
     max-height: 85vh;
-
     box-shadow: 0 8px 18px rgba(0,0,0,0.20);
   }
 
-  /* Header compact */
   .header {
     margin-bottom: 6px;
   }
@@ -342,27 +173,24 @@
     padding: 2px 6px;
   }
 
-  /* Columns: keep horizontal scroll but tighter */
+  /* ---------------------------------------------------------
+     Grid: 3 columns × auto rows
+  --------------------------------------------------------- */
   .columns {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 10px;
+
     padding: 8px 4px 6px;
-
-    overflow-x: auto;
-    overflow-y: hidden;
-
-    scrollbar-width: none; 
-  }
-  .columns::-webkit-scrollbar {
-    display: none;
+    overflow-y: auto;
+    max-height: calc(85vh - 70px);
   }
 
-  /* Columns smaller */
   .column {
-    min-width: 125px;
-    padding: 8px 8px;
+    padding: 10px 8px;
     border-radius: 10px;
-    flex: 0 0 auto;
+    flex: none;
+    min-width: 0;
   }
 
   .columnHeader {
@@ -370,7 +198,7 @@
     margin-bottom: 6px;
   }
 
-  /* Boss list & items compact */
+  /* compact list */
   .bossList {
     gap: 6px;
   }
@@ -379,14 +207,14 @@
     padding: 6px 8px;
     min-height: 34px;
     font-size: 13px;
-    border-radius: 8px;
   }
 
+  /* MOBILE: limit to 2 Chinese characters visually */
   .bossName {
     font-size: 13px;
-  }
-
-  .badgeSelected {
-    font-size: 11px;
+    width: 2.2em;       /* exactly 2 Chinese characters */
+    overflow: hidden;
+    white-space: nowrap;
+    text-align: center;
   }
 }
