@@ -9,6 +9,7 @@
   color: #222;
 }
 
+/* ---------- Title ---------- */
 .title {
   font-size: 2rem;
   font-weight: 700;
@@ -46,47 +47,13 @@
   box-shadow: 0 3px 7px rgba(0, 0, 0, 0.1);
 }
 
-/* ---------- Section Subtitles ---------- */
+/* ---------- Subtitle (cleaned) ---------- */
 .subtitle {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 2rem 0 1rem;
-  color: #34495e;
-}
-
-/* ---------- Card Grid (shared for lists) ---------- */
-.cardGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1.2rem;
-  margin-bottom: 2rem;
-}
-
-.card {
-  background: #fff;
-  border-radius: 1rem;
-  padding: 1.2rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  text-decoration: none;
-  color: inherit;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-}
-
-.cardTitle {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 0.6rem;
-}
-
-.card p {
-  margin: 0.3rem 0;
-  font-size: 0.9rem;
-  color: #555;
+  margin-top: -6px;
+  margin-bottom: 20px;
+  font-size: 18px;
+  color: #6b7280;   /* gray-500 */
+  text-align: center;
 }
 
 /* ---------- Empty State ---------- */
@@ -97,6 +64,7 @@
   margin: 1rem 0 2rem;
 }
 
+/* ---------- Show past section ---------- */
 .pastSection {
   margin-top: 20px;
   text-align: center;
@@ -122,16 +90,23 @@
   background-color: #d6d6d6;
   transform: translateY(0);
 }
-.subtitle {
-  margin-top: -10px;
-  margin-bottom: 20px;
-  font-size: 14px;
-  color: #6b7280; /* gray-500 */
-}
-.subtitle {
-  margin-top: -6px;
-  margin-bottom: 20px;
-  font-size: 18px;        /* bigger */
-  color: #6b7280;         /* gray-500 */
-  text-align: center;     /* center it */
+
+/* ---------- Mobile adjustments ---------- */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .title {
+    font-size: 1.6rem;
+  }
+
+  .createBtn {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.95rem;
+  }
+
+  .subtitle {
+    font-size: 16px;
+  }
 }
