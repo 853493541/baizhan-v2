@@ -1,4 +1,6 @@
-/* --- Modal container --- */
+/* ==========================================================
+   Overlay
+========================================================== */
 .overlay {
   position: fixed;
   top: 0;
@@ -12,32 +14,37 @@
   z-index: 1000;
 }
 
+/* ==========================================================
+   Modal
+========================================================== */
 .modal {
   background: #fff;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 24px;
   width: 400px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  max-width: 90%;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
 }
 
 .title {
   font-size: 18px;
   margin-bottom: 16px;
-  font-weight: bold;
+  font-weight: 700;
   color: #333;
 }
 
-/* --- Labels + inputs --- */
+/* ==========================================================
+   Form Elements
+========================================================== */
 .label {
   display: block;
   margin-bottom: 12px;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 14px;
   color: #333;
 }
 
-.input,
-.select {
+.input {
   width: 100%;
   padding: 8px;
   margin-top: 4px;
@@ -46,11 +53,14 @@
   font-size: 14px;
 }
 
-/* --- Server buttons --- */
+/* ==========================================================
+   Server Buttons
+========================================================== */
 .serverButtons {
   display: flex;
   gap: 8px;
   margin: 8px 0 16px;
+  flex-wrap: wrap;
 }
 
 .serverBtn {
@@ -60,6 +70,7 @@
   background: #f9f9f9;
   cursor: pointer;
   transition: all 0.2s;
+  font-size: 14px;
 }
 
 .serverBtn:hover {
@@ -73,7 +84,9 @@
   border-color: #0059c1;
 }
 
-/* --- Actions + buttons --- */
+/* ==========================================================
+   Action Buttons
+========================================================== */
 .actions {
   display: flex;
   justify-content: flex-end;
@@ -108,4 +121,54 @@
 
 .btnSecondary:hover {
   background-color: #ddd;
+}
+
+/* ==========================================================
+   Mobile Optimization
+========================================================== */
+@media (max-width: 600px) {
+  .modal {
+    padding: 18px;
+  }
+
+  .serverBtn {
+    flex: 1 1 calc(50% - 8px);
+    text-align: center;
+  }
+
+  .title {
+    font-size: 16px;
+  }
+
+  .input {
+    font-size: 13px;
+  }
+
+  .btnPrimary,
+  .btnSecondary {
+    font-size: 13px;
+    padding: 7px 14px;
+  }
+}
+/* Disable hover effects on mobile / touch devices */
+/* Normally selected */
+.selected {
+  background: #0070f3;
+  color: white;
+  border-color: #0059c1;
+}
+
+/* Prevent mobile hover reset from overriding selection */
+@media (hover: none) {
+  .serverBtn:hover {
+    background: #f9f9f9;    /* reset non-selected hover */
+    border-color: #ccc;
+  }
+
+  .serverBtn.selected,
+  .serverBtn.selected:hover {
+    background: #0070f3;    /* keep selected dark blue */
+    color: white;
+    border-color: #0059c1;
+  }
 }

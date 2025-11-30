@@ -1,4 +1,4 @@
-/* ---------- Layout ---------- */
+/* ---------- Layout (wrapper used by pages) ---------- */
 .container {
   max-width: 1000px;
   margin: 0 auto;
@@ -15,7 +15,7 @@
   color: #2c3e50;
 }
 
-/* ---------- Button Row ---------- */
+/* ---------- Button Row (used on current-week page) ---------- */
 .buttonRow {
   display: flex;
   justify-content: center;
@@ -44,22 +44,7 @@
   box-shadow: 0 3px 7px rgba(0, 0, 0, 0.1);
 }
 
-/* ---------- Section Titles ---------- */
-.subtitle {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 2rem 0 1rem;
-  color: #34495e;
-}
-
-/* ---------- Card Grid ---------- */
-.cardGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
+/* ---------- Card Grid & Cards ---------- */
 .cardWrapper {
   position: relative;
 }
@@ -78,22 +63,22 @@
 }
 
 .card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* no transform effect */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .cardTitle {
   font-size: 1.2rem;
   font-weight: 700;
-  margin-bottom: 0.8rem;
+  margin: 0;
   color: #2c3e50;
 }
 
-/* ---------- Standard Schedule Accent ---------- */
+/* Accent bar on top of standard schedule */
 .standard {
   border-top: 4px solid #4facfe;
 }
 
-/* ---------- Card Content ---------- */
+/* Card content */
 .cardContent p {
   margin: 0.35rem 0;
   font-size: 0.95rem;
@@ -105,15 +90,7 @@
   color: #2c3e50;
 }
 
-/* ---------- Date ---------- */
-.date {
-  margin-top: 0.8rem;
-  font-size: 0.8rem;
-  color: #888;
-  text-align: right;
-}
-
-/* ---------- Empty State ---------- */
+/* Empty state text */
 .empty {
   font-style: italic;
   text-align: center;
@@ -121,17 +98,48 @@
   margin: 1rem 0 2rem;
 }
 
-/* ---------- Gear Button ---------- */
+/* ---------- Week grouping ---------- */
+.weekRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  width: 100%;
+}
+
+.weekDivider {
+  margin: 35px 0;
+  border: none;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* Responsive columns */
+@media (max-width: 900px) {
+  .weekRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .weekRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Card header (title + gear) ---------- */
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
 .gearBtn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
   background: transparent;
   border: none;
   cursor: pointer;
   color: #666;
-  padding: 6px; /* bigger click area */
-  border-radius: 50%;
+  padding: 4px;
+  border-radius: 6px;
   transition: background 0.2s, color 0.2s;
 }
 
@@ -140,13 +148,24 @@
   color: #000;
 }
 
-/* ---------- Modal ---------- */
+.gearIcon {
+  width: 24px;
+  height: 24px;
+}
+
+/* ---------- Footer text in card ---------- */
+.serverFooter {
+  text-align: right;
+  font-size: 0.85rem;
+  color: #999;
+  margin-top: 12px;
+  font-style: italic;
+}
+
+/* ---------- Modal overlay ---------- */
 .modalOverlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
+  inset: 0;
   background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
@@ -154,19 +173,19 @@
   z-index: 100;
 }
 
+/* ---------- Modal ---------- */
 .modal {
   background: #fff;
-  padding: 20px;
+  padding: 24px 24px 20px;
   border-radius: 12px;
-  min-width: 320px;
-  max-width: 400px;
+  width: 360px;
+  max-width: calc(100% - 32px);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
   position: relative;
 }
 
 .modal h3 {
-  margin-top: 0;
-  margin-bottom: 1rem;
+  margin: 0 0 12px;
   font-size: 1.25rem;
   font-weight: 600;
   color: #2c3e50;
@@ -177,11 +196,12 @@
   font-weight: 500;
   color: #34495e;
   display: block;
-  margin-bottom: 0.5rem;
+  margin-top: 8px;
 }
 
 .modal input {
   width: 100%;
+  margin-top: 6px;
   padding: 8px 10px;
   border: 1px solid #ccc;
   border-radius: 6px;
@@ -194,38 +214,58 @@
   box-shadow: 0 0 4px rgba(79, 172, 254, 0.6);
 }
 
-/* ---------- Modal Actions ---------- */
+/* ---------- Modal actions (buttons) ---------- */
 .modalActions {
-  margin-top: 16px;
+  margin-top: 18px;
   display: flex;
-  gap: 10px;
   justify-content: flex-end;
+  gap: 12px;
 }
 
 .modalActions button {
-  padding: 6px 14px;
-  border-radius: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
   border: none;
   cursor: pointer;
   font-size: 0.9rem;
+  font-weight: 500;
 }
 
-.modalActions button:hover {
-  opacity: 0.9;
-}
-
-/* Delete button */
+/* Delete button (normal state) */
 .deleteBtn {
-  background: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
 }
 
 .deleteBtn:hover {
-  background: #f5c6cb;
+  background: #fecaca;
 }
 
-/* Close button (X) */
+/* Disabled delete button */
+.disabledBtn {
+  background: #f3f4f6;
+  color: #9ca3af;
+  border-color: #e5e7eb;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Save button */
+.saveBtn {
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  color: #fff;
+  font-weight: 600;
+}
+
+.saveBtn:hover {
+  opacity: 0.9;
+}
+
+/* Close (X) button */
 .closeBtn {
   position: absolute;
   top: 12px;
@@ -243,27 +283,72 @@
   background: #f0f0f0;
   color: #000;
 }
-.saveBtn {
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
-  color: #fff;
-  font-weight: 600;
-  border: none;
+
+/* Icon sizes in modal buttons */
+.closeIcon {
+  width: 20px;
+  height: 20px;
 }
 
-.saveBtn:hover {
-  opacity: 0.9;
+.lockIcon {
+  width: 14px;
+  height: 14px;
+}
+/* Inline progress bar layout */
+.progressLine {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 8px;
 }
 
-.disabledBtn {
-  opacity: 0.5;           /* make it look dim */
-  background-color: #ccc; /* light gray background */
-  color: #666;            /* darker gray text */
-  border: none;
-  cursor: not-allowed;    /* show disabled cursor */
-  pointer-events: none;   /* no hover or click */
+.progressText {
+  font-size: 0.9rem;
+  color: #333;
 }
 
-.disabledBtn:hover {
-  background-color: #ccc; /* no hover color change */
-  color: #666;
+/* Small inline bar */
+.progressInlineBar {
+  flex: 1;
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progressInlineFill {
+  height: 100%;
+  background: #4facfe;
+  transition: width 0.3s ease;
+}
+/* INLINE BAR FIRST, TEXT AFTER */
+.progressLine {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0 10px;
+}
+
+/* Lower text slightly */
+.progressText {
+  font-size: 0.9rem;
+  color: #333;
+  margin-top: 2px;
+}
+
+/* The bar background */
+.progressInlineBar {
+  flex: 1;
+  height: 7px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 4px;  /* 🔥 lowers the bar a bit */
+}
+
+/* The filled part */
+.progressInlineFill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
 }
