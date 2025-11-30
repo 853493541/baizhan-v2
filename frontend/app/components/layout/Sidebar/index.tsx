@@ -64,7 +64,7 @@ export default function Sidebar() {
           {openMap && (
             <div className={styles.folderItems}>
               <NavLink href="/map">🗺️ 本周</NavLink>
-              <div className={styles.placeholderItem}>🗂️ 历史</div>
+              <NavLink href="/map/history">🗂️ 历史</NavLink>
             </div>
           )}
         </div>
@@ -94,11 +94,12 @@ export default function Sidebar() {
             onClick={() => setOpenRanking(!openRanking)}
           >
             <span>{openRanking ? "▾" : "▸"}</span>
-            <span style={{ marginLeft: 6 }}>排行榜</span>
+            <span style={{ marginLeft: 6 }}>数据</span>
           </div>
 
           {openRanking && (
             <div className={styles.folderItems}>
+              <NavLink href="/stats/appearances">📊 上班统计</NavLink>
               <div className={styles.placeholderItem}>📈 技能</div>
             </div>
           )}

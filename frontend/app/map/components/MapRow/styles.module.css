@@ -1,41 +1,223 @@
+/* === Row: fixed 10-column grid === */
 .row {
   display: grid;
-  grid-template-columns: repeat(10, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+/* === Card === */
+.card {
+  background: #fafafa;
+  border: 1px solid #e4e4e4;
+  border-radius: 10px;
+  padding: 10px 8px;
+  min-height: 72px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Hover when clickable */
+.clickable {
+  cursor: pointer;
+}
+.clickable:hover {
+  background: #f3f3f3;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+/* === Highlight special boss using original elite style === */
+.eliteCard {
+  background: #fff8e1;
+  border-color: #cfa124;
+  box-shadow: 0 0 6px rgba(207, 161, 36, 0.25);
+}
+
+/* === Floor number === */
+.floorLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+/* === Value (boss name or placeholder) === */
+.value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  word-break: keep-all;
+}
+
+/* Red placeholder */
+.emptyRed {
+  color: #d93025;
+  font-weight: 600;
+}
+
+/* ============================================================
+   Section layout (CurrentWeek)
+============================================================ */
+.section {
+  margin-top: 20px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: bold;
   margin-bottom: 16px;
 }
 
-.card {
-  border: 1px solid #ccc;
+.footer {
+  margin-top: 16px;
+}
+
+.counter {
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.actionRow {
+  display: flex;
+  gap: 10px;
+}
+
+/* Clear button */
+.deleteBtn {
+  padding: 6px 14px;
+  background: #f5f5f5;
+  border: 1px solid #c9c9c9;
   border-radius: 6px;
-  padding: 8px;
-  background: #f9f9f9;
-  text-align: center;
+  cursor: pointer;
   font-size: 14px;
 }
-
-.floorLabel {
-  font-weight: bold;
-  margin-bottom: 6px;
-  font-size: 13px;
+.deleteBtn:hover {
+  background: #e8e8e8;
 }
 
-.readonlyValue {
-  font-size: 13px;
-  color: #444;
-  padding: 4px 0;
+/* Edit / Save button */
+.lockBtn {
+  padding: 6px 16px;
+  background: #e3f2fd;
+  border: 1px solid #90caf9;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.lockBtn:hover {
+  background: #d2e9fb;
 }
 
-.dropdown {
-  width: 100%;
-  padding: 6px;
-  border: 1px solid #aaa;
-  border-radius: 4px;
-  background: #fff;
-  font-size: 13px;
+/* Save button (same style — kept separate for clarity) */
+.confirmLockBtn {
+  padding: 6px 16px;
+  background: #e3f2fd;
+  border: 1px solid #90caf9;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
 }
+.confirmLockBtn:hover {
+  background: #d2e9fb;
+}
+/* =========================================================
+   📱 MOBILE VIEW (Option B — Horizontal Scroll)
+========================================================= */
+@media (max-width: 768px) {
 
-.dropdownElite {
-  border-color: #d32f2f;
-  box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.12);
+  /* === Container & Section === */
+  .section {
+    padding: 12px 8px;
+  }
+
+  .title {
+    font-size: 18px;
+    margin-bottom: 14px;
+    text-align: center;
+  }
+
+  /* === Horizontal scroll map row === */
+  .row {
+    display: grid;
+    grid-template-columns: repeat(10, 80px); /* each card has fixed width */
+    gap: 10px;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    padding-bottom: 8px;
+    margin-bottom: 16px;
+
+    /* Hide scrollbar (Chrome & Safari) */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .row::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar (Firefox) */
+  .row {
+    scrollbar-width: none;
+  }
+
+  /* === Card sizing on mobile === */
+  .card {
+    min-width: 80px;
+    min-height: 70px;
+    padding: 8px 6px;
+    border-radius: 8px;
+
+    /* More touch-friendly */
+    touch-action: manipulation;
+  }
+
+  .floorLabel {
+    font-size: 11px;
+    margin-bottom: 2px;
+  }
+
+  .value {
+    font-size: 13px;
+    line-height: 1.2;
+  }
+
+  .emptyRed {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* === Footer changes === */
+  .footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  .counter {
+    font-size: 13px;
+  }
+
+  .actionRow {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  /* Buttons take equal width */
+  .deleteBtn,
+  .lockBtn,
+  .confirmLockBtn {
+    flex: 1;
+    padding: 10px 0;
+    font-size: 14px;
+    text-align: center;
+  }
 }

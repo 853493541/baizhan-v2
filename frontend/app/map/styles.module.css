@@ -1,5 +1,159 @@
+/* =========================================================
+   DESKTOP LAYOUT
+========================================================= */
 .container {
-  max-width: 1024px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 24px 20px;
+}
+
+.section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+/* footer area under the map */
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.counter {
+  font-size: 14px;
+  color: #555;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.actionRow {
+  display: flex;
+  gap: 12px;
+}
+
+/* Buttons */
+.deleteBtn {
+  padding: 8px 16px;
+  background: #f44336;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.deleteBtn:disabled {
+  background: #e0e0e0;
+  cursor: not-allowed;
+}
+.deleteBtn:hover:not(:disabled) {
+  background: #d32f2f;
+}
+
+.lockBtn {
+  padding: 8px 16px;
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.lockBtn:disabled {
+  background: #90caf9;
+  cursor: not-allowed;
+}
+.lockBtn:hover:not(:disabled) {
+  background: #1565c0;
+}
+
+.confirmLockBtn {
+  padding: 8px 16px;
+  background: #388e3c;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.confirmLockBtn:hover {
+  background: #2e7d32;
+}
+
+.lockedText {
+  font-weight: 600;
+  color: #444;
+}
+
+/* =========================================================
+   📱 MOBILE VIEW (max-width: 768px)
+========================================================= */
+@media (max-width: 768px) {
+
+  /* Remove outer wrapper padding (remove first layer of border/box) */
+  .container {
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    max-width: 100% !important;
+  }
+
+  /* Remove second layer border/padding from .section */
+  .section {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    max-width: 100% !important;
+  }
+
+  .title {
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+
+  /* Footer becomes vertical */
+  .footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .counter {
+    font-size: 13px;
+  }
+
+  .actionRow {
+    width: 100%;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .deleteBtn,
+  .lockBtn,
+  .confirmLockBtn,
+  .unlockBtn {
+    flex: 1;
+    padding: 10px 0;
+    font-size: 14px;
+    text-align: center;
+  }
+
+  /* Optional: if MapRow uses a grid, force tighter spacing */
+  .mapRow {
+    gap: 6px !important;
+  }
 }
