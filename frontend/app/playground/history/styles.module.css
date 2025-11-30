@@ -122,16 +122,3 @@
   background-color: #d6d6d6;
   transform: translateY(0);
 }
-.subtitle {
-  margin-top: -10px;
-  margin-bottom: 20px;
-  font-size: 14px;
-  color: #6b7280; /* gray-500 */
-}
-.subtitle {
-  margin-top: -6px;
-  margin-bottom: 20px;
-  font-size: 18px;        /* bigger */
-  color: #6b7280;         /* gray-500 */
-  text-align: center;     /* center it */
-}
