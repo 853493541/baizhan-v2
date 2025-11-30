@@ -8,48 +8,59 @@ interface Props {
   floorAssignments?: Record<number, string>;
   data?: Record<number, { boss: string }>;
   readonly?: boolean;
-  onSelect?: (floor: number, boss: string) => void;
-  getAvailableBosses?: (floor: number) => string[];
+  onClickFloor?: (floor: number) => void;
 }
+
+const highlightBosses = new Set(["鬼影小次郎", "秦雷", "冯度", "阿依努尔"]);
 
 export default function MapRow({
   floors,
   floorAssignments = {},
   data,
   readonly = false,
-  onSelect,
-  getAvailableBosses,
+  onClickFloor,
 }: Props) {
   return (
     <div className={styles.row}>
-      {floors.map((floor) => (
-        <div key={floor} className={styles.card}>
-          <div className={styles.floorLabel}>{floor}</div>
-          {readonly ? (
-            <div className={styles.readonlyValue}>
-              {data?.[floor]?.boss || "未选择"}
+      {floors.map((floor) => {
+        const bossName =
+          data?.[floor]?.boss ??
+          (floorAssignments ? floorAssignments[floor] : undefined);
+
+        const isClickable = !readonly && typeof onClickFloor === "function";
+
+        const displayText = bossName
+          ? bossName
+          : readonly
+          ? "未选择"
+          : "请选择";
+
+        // 🔥 red text for empty floors
+        const emptyClass = !bossName ? styles.emptyRed : "";
+
+        // ⭐ use original eliteCard styling, but based on bossName
+        const eliteClass =
+          bossName && highlightBosses.has(bossName)
+            ? styles.eliteCard
+            : "";
+
+        return (
+          <div
+            key={floor}
+            className={`${styles.card} ${eliteClass} ${
+              isClickable ? styles.clickable : ""
+            }`}
+            onClick={() => {
+              if (isClickable) onClickFloor!(floor);
+            }}
+          >
+            <div className={styles.floorLabel}>{floor}</div>
+            <div className={`${styles.value} ${emptyClass}`}>
+              {displayText}
             </div>
-          ) : (
-            <select
-              className={
-                floor === 90 || floor === 100
-                  ? `${styles.dropdown} ${styles.dropdownElite}`
-                  : styles.dropdown
-              }
-              value={floorAssignments[floor] || ""}
-              onChange={(e) => onSelect && onSelect(floor, e.target.value)}
-            >
-              <option value="">-- 请选择 --</option>
-              {getAvailableBosses &&
-                getAvailableBosses(floor).map((boss) => (
-                  <option key={boss} value={boss}>
-                    {boss}
-                  </option>
-                ))}
-            </select>
-          )}
-        </div>
-      ))}
+          </div>
+        );
+      })}
     </div>
   );
 }

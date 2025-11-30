@@ -3,101 +3,135 @@
 import React, { useState, useEffect } from "react";
 import bossData from "../data/boss_skills_collection_map.json";
 import styles from "./styles.module.css";
-import CurrentWeek from "./components/CurrentWeek";
-import HistorySection from "./components/HistorySection";
-import StatsSection from "./components/Stats";
 
-const specialBosses = [
-  "武雪散",
-  "萧武宗",
-  "悉达罗摩",
-  "阿基修斯",
-  "提多罗吒",
-  "萧沙",
-  "谢云流",
-  "卫栖梧",
-  "牡丹",
-  "迟驻",
-];
+/* COMPONENTS */
+import MapRow from "./components/MapRow";
+import BossSelectModal from "./components/BossSelectModal";
 
+/* HELPERS */
+import {
+  specialBosses,
+  row1,
+  row2,
+  parseFloorsFromAPI,
+  getFullPool,
+  applySelectionToFloors,
+} from "./mapHelpers";
+
+/* ============================================================
+   INTERNAL CurrentWeek component — combined 编辑/保存
+============================================================ */
+function CurrentWeek({
+  floorAssignments,
+  onFloorClick,
+  onDelete,
+  status,
+  isEditing,
+  onEditToggle,
+  onSave,
+}: {
+  floorAssignments: Record<number, string>;
+  onFloorClick: (floor: number) => void;
+  onDelete: () => void;
+  status: "idle" | "saving" | "success" | "error";
+  isEditing: boolean;
+  onEditToggle: () => void;
+  onSave: () => void;
+}) {
+  const totalFloors = row1.length + row2.length;
+  const selectedCount = Object.keys(floorAssignments).filter(
+    (k) => floorAssignments[Number(k)]
+  ).length;
+
+  const handleRowClick = (floor: number) => {
+    if (isEditing) onFloorClick(floor);
+  };
+
+  return (
+    <section className={styles.section}>
+      <h1 className={styles.title}>本周地图</h1>
+
+      <MapRow
+        floors={row1}
+        floorAssignments={floorAssignments}
+        readonly={!isEditing}
+        onClickFloor={handleRowClick}
+      />
+
+      <MapRow
+        floors={row2}
+        floorAssignments={floorAssignments}
+        readonly={!isEditing}
+        onClickFloor={handleRowClick}
+      />
+
+      <div className={styles.footer}>
+        <p className={styles.counter}>
+          已选择 {selectedCount} / {totalFloors}
+          {status === "saving" && <span> 💾</span>}
+          {status === "success" && <span> ✅</span>}
+          {status === "error" && <span> ❌</span>}
+        </p>
+
+        <div className={styles.actionRow}>
+          {/* 清空：只有在编辑时显示 */}
+          {isEditing && (
+            <button
+              onClick={onDelete}
+              className={styles.deleteBtn}
+              disabled={selectedCount === 0}
+            >
+              清空
+            </button>
+          )}
+
+          {/* 单按钮逻辑：编辑 / 保存 */}
+          <button
+            className={styles.lockBtn}
+            onClick={() => {
+              if (!isEditing) {
+                onEditToggle();        // 进入编辑模式
+              } else {
+                onSave();              // 保存并退出编辑
+              }
+            }}
+          >
+            {isEditing ? "保存" : "编辑"}
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================================
+   MAIN PAGE — cleaned & simplified
+============================================================ */
 export default function MapPage() {
   const normalBosses = Object.keys(bossData).filter(
     (b) => !specialBosses.includes(b)
   );
 
-  const row1 = [81, 82, 83, 84, 85, 86, 87, 88, 89, 90];
-  const row2 = [100, 99, 98, 97, 96, 95, 94, 93, 92, 91];
+  const [floorAssignments, setFloorAssignments] =
+    useState<Record<number, string>>({});
 
-  const [floorAssignments, setFloorAssignments] = useState<Record<number, string>>({});
-  const [status, setStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
-  const [locked, setLocked] = useState(false); // ✅ track lock state
+  const [status, setStatus] =
+    useState<"idle" | "saving" | "success" | "error">("idle");
 
-  // 🔹 Save to DB
-  const persistToDB = async (floors: Record<number, string>) => {
-    setStatus("saving");
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          floors: Object.fromEntries(
-            Object.entries(floors).map(([k, v]) => [k, { boss: v }])
-          ),
-        }),
-      });
-      if (!res.ok) throw new Error("Request failed");
-      setStatus("success");
-      setTimeout(() => setStatus("idle"), 2000);
-    } catch (err) {
-      console.error("❌ Failed to save weekly map:", err);
-      setStatus("error");
-      setTimeout(() => setStatus("idle"), 3000);
-    }
-  };
+  const [isEditing, setIsEditing] = useState(false);
 
-  // 🔹 Delete current week
-  const deleteCurrentWeek = async () => {
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map`, {
-        method: "DELETE",
-      });
-      if (!res.ok) throw new Error("Delete failed");
-      setFloorAssignments({});
-      setLocked(false); // ✅ reset lock when deleting
-    } catch (err) {
-      console.error("❌ Failed to delete weekly map:", err);
-    }
-  };
+  const [selectingFloor, setSelectingFloor] = useState<number | null>(null);
 
-  // 🔹 Fetch current week
+  /* ---------------- FETCH MAP ---------------- */
   const fetchMap = async () => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map`);
-      if (res.ok) {
-        const data = await res.json();
-        const floors: Record<number, string> = {};
-        for (const [floor, obj] of Object.entries(data.floors)) {
-          floors[Number(floor)] = (obj as any).boss;
-        }
-        setFloorAssignments(floors);
-        setLocked(data.locked ?? false); // ✅ read locked state
-        localStorage.setItem("weeklyFloors", JSON.stringify(floors));
-      }
-    } catch (err) {
-      console.error("❌ Failed to load weekly map:", err);
-    }
-  };
+      if (!res.ok) return;
 
-  // 🔹 Lock current week
-  const lockMap = async () => {
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map/lock`, {
-        method: "POST",
-      });
-      if (!res.ok) throw new Error("Lock failed");
-      setLocked(true);
+      const data = await res.json();
+      setFloorAssignments(parseFloorsFromAPI(data.floors));
     } catch (err) {
-      console.error("❌ Failed to lock weekly map:", err);
+      console.error("❌ fetchMap failed:", err);
     }
   };
 
@@ -105,57 +139,77 @@ export default function MapPage() {
     fetchMap();
   }, []);
 
-  // 🔹 Handle dropdown select
-  const handleSelect = (floor: number, boss: string) => {
-    setFloorAssignments((prev) => {
-      const updated = { ...prev, [floor]: boss };
-      localStorage.setItem("weeklyFloors", JSON.stringify(updated));
-      persistToDB(updated);
-      return updated;
-    });
+  /* ---------------- SAVE MAP ---------------- */
+  const persistToDB = async () => {
+    setStatus("saving");
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            floors: Object.fromEntries(
+              Object.entries(floorAssignments).map(([k, v]) => [k, { boss: v }])
+            ),
+          }),
+        }
+      );
+
+      if (!res.ok) throw new Error();
+
+      setStatus("success");
+      setTimeout(() => setStatus("idle"), 800);
+      setIsEditing(false);
+    } catch {
+      setStatus("error");
+      setTimeout(() => setStatus("idle"), 1200);
+    }
   };
 
-  // 🔹 Boss options filtering
-  const getAvailableBosses = (floor: number) => {
-    if (floor === 90 || floor === 100) {
-      return specialBosses.filter(
-        (b) =>
-          !new Set([90, 100].map((f) => floorAssignments[f])).has(b) ||
-          floorAssignments[floor] === b
-      );
+  /* ---------------- DELETE WEEK MAP ---------------- */
+  const deleteCurrentWeek = async () => {
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map`, {
+        method: "DELETE",
+      });
+
+      setFloorAssignments({});
+    } catch {
+      console.error("❌ delete failed");
     }
-    if (floor >= 81 && floor <= 89) {
-      return normalBosses.filter(
-        (b) =>
-          !new Set(row1.filter((f) => f !== floor).map((f) => floorAssignments[f])).has(b) ||
-          floorAssignments[floor] === b
-      );
-    }
-    if (floor >= 91 && floor <= 99) {
-      return normalBosses.filter(
-        (b) =>
-          !new Set(row2.filter((f) => f !== floor).map((f) => floorAssignments[f])).has(b) ||
-          floorAssignments[floor] === b
-      );
-    }
-    return normalBosses;
   };
 
+  /* ---------------- HANDLE BOSS PICK ---------------- */
+  const applyBossSelection = (floor: number, boss: string) => {
+    const updated = applySelectionToFloors(floor, boss, floorAssignments);
+    setFloorAssignments(updated);
+    setSelectingFloor(null);
+  };
+
+  /* ---------------- RENDER ---------------- */
   return (
     <div className={styles.container}>
       <CurrentWeek
-        row1={row1}
-        row2={row2}
         floorAssignments={floorAssignments}
-        onSelect={handleSelect}
-        getAvailableBosses={getAvailableBosses}
+        onFloorClick={(f) => setSelectingFloor(f)}
         onDelete={deleteCurrentWeek}
         status={status}
-        locked={locked}       // ✅ pass lock state
-        onLock={lockMap}      // ✅ lock handler
+        isEditing={isEditing}
+        onEditToggle={() => setIsEditing((v) => !v)}
+        onSave={persistToDB}
       />
-      <StatsSection />  
-      {/* <HistorySection row1={row1} row2={row2} /> */}
+
+      {selectingFloor !== null && (
+        <BossSelectModal
+          floor={selectingFloor}
+          pool={getFullPool(selectingFloor, specialBosses, normalBosses)}
+          floorAssignments={floorAssignments}
+          onClose={() => setSelectingFloor(null)}
+          onPick={applyBossSelection}
+        />
+      )}
     </div>
   );
 }

@@ -1,8 +1,17 @@
-# =========================
-# Node.js / Frontend
-# =========================
+# =====================================
+# Node.js / Next.js (Frontend + Backend)
+# =====================================
+
 node_modules/
-frontend/node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+
+# Yarn / pnpm / npm
 .pnp
 .pnp.*
 .yarn/*
@@ -10,33 +19,16 @@ frontend/node_modules/
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
-
-# Next.js
-.next/
-out/
-
-# Build outputs
-/build
-/dist
-
-# Testing
-coverage/
-
-# Debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# Misc
-.DS_Store
-*.pem
-
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
 
-# Env files (opt-in if needed)
+# Environment files
 .env
 .env.*
 frontend/.env.local
@@ -45,55 +37,50 @@ backend/.env
 # Vercel
 .vercel
 
-# =========================
-# Python / Backend
-# =========================
+# =====================================
+# Python Related
+# =====================================
+
 # Virtual environments
+venv/
 .venv/
-.venv*/
-backend/.venv/
-backend/.venv*/
+**/.venv/
 
 # Python cache
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-*.pdb
 *.egg-info/
-# === Python virtual environment ===
-backend/venv/
-venv/
 
-# === Node build output ===
-frontend/Build/
-frontend/.next/
-frontend/out/
-frontend/node_modules/
+# =====================================
+# Logs / Cache / OS junk
+# =====================================
 
-# === Logs, caches ===
 *.log
-__pycache__/
-*.pyc
 .DS_Store
+*.bak
+*.swp
 
-# === Env files ===
-.env
-.env.local
-# PM2 process files
+# ESLint cache
+.eslintcache
+frontend/.eslintcache
+
+# SQLite / DB
+*.sqlite3
+*.db
+
+# =====================================
+# PM2 / Deployment files
+# =====================================
+
 ecosystem.config.js
 pm2.log
 pm2.pid
 
-# IDE/editor configs
+# =====================================
+# IDE / Editor
+# =====================================
+
 .vscode/
 .idea/
-
-# Local runtime or debug outputs
-*.sqlite3
-*.db
-frontend/.eslintcache
-
-# Optional: backup files
-*.bak
-*.swp

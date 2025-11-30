@@ -2,6 +2,11 @@ import { Request, Response } from "express";
 import WeeklyMap from "../../models/WeeklyMap";
 import { getCurrentGameWeek } from "../../utils/weekUtils"; // ✅ updated import name
 
+function weekToNumber(week: string): number {
+  const [year, w] = week.split("-W").map(Number);
+  return year * 52 + w;
+}
+
 // Save or update this week's map
 export const saveWeeklyMap = async (req: Request, res: Response) => {
   try {
@@ -70,15 +75,21 @@ export const getPastWeeklyMap = async (req: Request, res: Response) => {
 };
 
 // Get all past weeks (history, newest → oldest)
-export const getWeeklyMapHistory = async (_req: Request, res: Response) => {
+export const getWeeklyMapHistory = async (req: Request, res: Response) => {
   try {
-    const currentWeek = getCurrentGameWeek(); // ✅ updated
+    const currentWeek = getCurrentGameWeek();
 
-    const maps = await WeeklyMap.find({ week: { $ne: currentWeek } })
-      .sort({ week: -1 })
-      .limit(5);
+    const loadAll = req.query.all === "1"; // check for ?all=1
 
+    let query = WeeklyMap.find({ week: { $ne: currentWeek } }).sort({ week: -1 });
+
+    if (!loadAll) {
+      query = query.limit(5);  // default 5 weeks
+    }
+
+    const maps = await query;
     res.json(maps);
+
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -103,83 +114,156 @@ export const lockWeeklyMap = async (_req: Request, res: Response) => {
 // ⬇️ NEW CONTROLLER
 export const getWeeklyMapStats = async (_req: Request, res: Response) => {
   try {
-    const allWeeks = await WeeklyMap.find().lean();
-    const currentWeek = getCurrentGameWeek(); // "2025-W16"
-    const [currentYear, currentW] = currentWeek.split("-W").map(Number);
-    const currentWeekNumber = currentYear * 52 + currentW;
+    const allMaps = await WeeklyMap.find().lean();
+    if (!allMaps.length) {
+      return res.json({
+        nineStage: { pool: {}, floor90: {} },
+        tenStage: { pool: {}, floor100: {} }
+      });
+    }
 
-    const floor90: Record<string, any> = {};
-    const floor100: Record<string, any> = {};
+    const currentWeek = getCurrentGameWeek();
+    const currentWeekNum = weekToNumber(currentWeek);
 
-    for (const week of allWeeks) {
-      const [year, w] = week.week.split("-W").map(Number);
-      const weekNumber = year * 52 + w;
+    // ---------- Storage ----------
+    const pool9: Record<string, any> = {};      // 81–89
+    const special90: Record<string, any> = {};  // 90
 
-      const f90 = week.floors?.["90"]?.boss;
-      const f100 = week.floors?.["100"]?.boss;
+    const pool10: Record<string, any> = {};      // 91–99
+    const special100: Record<string, any> = {};  // 100
 
-      if (f90) {
-        if (!floor90[f90]) {
-          floor90[f90] = {
+    // ---------- Process each map ----------
+    for (const weekDoc of allMaps) {
+      const weekId = weekDoc.week;
+      const weekNum = weekToNumber(weekId);
+
+      // floors is a plain object because .lean() was used
+      const floors = weekDoc.floors as Record<string, { boss: string }>;
+
+      // ----- 9阶 pool (81–89) -----
+      for (let f = 81; f <= 89; f++) {
+        const boss = floors[String(f)]?.boss;
+        if (!boss) continue;
+
+        if (!pool9[boss]) {
+          pool9[boss] = {
             count: 0,
             weeks: [],
             lastWeek: null,
             weeksAgo: null,
-            _weekNumbers: []
+            _lastWeekNumber: 0
           };
         }
-        floor90[f90].count++;
-        floor90[f90].weeks.push(week.week);
-        floor90[f90]._weekNumbers.push(weekNumber);
 
-        if (!floor90[f90].lastWeek || weekNumber > floor90[f90]._lastWeekNumber) {
-          floor90[f90].lastWeek = week.week;
-          floor90[f90]._lastWeekNumber = weekNumber;
+        pool9[boss].count += 1;
+        pool9[boss].weeks.push(weekId);
+
+        if (weekNum > pool9[boss]._lastWeekNumber) {
+          pool9[boss]._lastWeekNumber = weekNum;
+          pool9[boss].lastWeek = weekId;
         }
       }
 
-      if (f100) {
-        if (!floor100[f100]) {
-          floor100[f100] = {
+      // ----- Floor 90 special -----
+      const boss90 = floors["90"]?.boss;
+      if (boss90) {
+        if (!special90[boss90]) {
+          special90[boss90] = {
             count: 0,
             weeks: [],
             lastWeek: null,
             weeksAgo: null,
-            _weekNumbers: []
+            _lastWeekNumber: 0
           };
         }
-        floor100[f100].count++;
-        floor100[f100].weeks.push(week.week);
-        floor100[f100]._weekNumbers.push(weekNumber);
 
-        if (!floor100[f100].lastWeek || weekNumber > floor100[f100]._lastWeekNumber) {
-          floor100[f100].lastWeek = week.week;
-          floor100[f100]._lastWeekNumber = weekNumber;
+        special90[boss90].count += 1;
+        special90[boss90].weeks.push(weekId);
+
+        if (weekNum > special90[boss90]._lastWeekNumber) {
+          special90[boss90]._lastWeekNumber = weekNum;
+          special90[boss90].lastWeek = weekId;
+        }
+      }
+
+      // ----- 十阶 pool (91–99) -----
+      for (let f = 91; f <= 99; f++) {
+        const boss = floors[String(f)]?.boss;
+        if (!boss) continue;
+
+        if (!pool10[boss]) {
+          pool10[boss] = {
+            count: 0,
+            weeks: [],
+            lastWeek: null,
+            weeksAgo: null,
+            _lastWeekNumber: 0
+          };
+        }
+
+        pool10[boss].count += 1;
+        pool10[boss].weeks.push(weekId);
+
+        if (weekNum > pool10[boss]._lastWeekNumber) {
+          pool10[boss]._lastWeekNumber = weekNum;
+          pool10[boss].lastWeek = weekId;
+        }
+      }
+
+      // ----- Floor 100 special -----
+      const boss100 = floors["100"]?.boss;
+      if (boss100) {
+        if (!special100[boss100]) {
+          special100[boss100] = {
+            count: 0,
+            weeks: [],
+            lastWeek: null,
+            weeksAgo: null,
+            _lastWeekNumber: 0
+          };
+        }
+
+        special100[boss100].count += 1;
+        special100[boss100].weeks.push(weekId);
+
+        if (weekNum > special100[boss100]._lastWeekNumber) {
+          special100[boss100]._lastWeekNumber = weekNum;
+          special100[boss100].lastWeek = weekId;
         }
       }
     }
 
-    // Compute weeksAgo and clean internal data
-    for (const boss in floor90) {
-      floor90[boss].weeksAgo =
-        currentWeekNumber - floor90[boss]._lastWeekNumber;
+    // ---------- Compute weeksAgo + cleanup ----------
+    const finalize = (obj: Record<string, any>) => {
+      for (const boss in obj) {
+        const b = obj[boss];
 
-      floor90[boss].weeks.sort(); // chronological ascending
-      delete floor90[boss]._lastWeekNumber;
-      delete floor90[boss]._weekNumbers;
-    }
+        b.weeks.sort(); // chronological
+        b.weeksAgo = currentWeekNum - b._lastWeekNumber;
 
-    for (const boss in floor100) {
-      floor100[boss].weeksAgo =
-        currentWeekNumber - floor100[boss]._lastWeekNumber;
+        delete b._lastWeekNumber;
+      }
+    };
 
-      floor100[boss].weeks.sort();
-      delete floor100[boss]._lastWeekNumber;
-      delete floor100[boss]._weekNumbers;
-    }
+    finalize(pool9);
+    finalize(special90);
+    finalize(pool10);
+    finalize(special100);
 
-    res.json({ floor90, floor100 });
+    // ---------- Final Response ----------
+    res.json({
+      nineStage: {
+        pool: pool9,
+        floor90: special90
+      },
+      tenStage: {
+        pool: pool10,
+        floor100: special100
+      }
+    });
+
   } catch (err: any) {
+    console.error("Stats generation failed:", err);
     res.status(500).json({ error: err.message });
   }
 };
