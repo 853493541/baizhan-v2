@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./styles.module.css";
 import clsx from "clsx";
 
@@ -50,6 +50,13 @@ function inSamePoolGroup(f1: number, f2: number) {
   return false;
 }
 
+/* --------------------------------------------------------
+   MOBILE-ONLY trimming
+-------------------------------------------------------- */
+function trimToTwoCN(name: string) {
+  return name.slice(0, 2);
+}
+
 export default function BossSelectModal({
   floor,
   pool,
@@ -57,12 +64,21 @@ export default function BossSelectModal({
   onClose,
   onPick,
 }: Props) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile (match your CSS breakpoint)
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 768px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
   const poolSet = new Set(pool);
 
   return (
-    /* CLICK ANYWHERE OUTSIDE = CLOSE */
     <div className={styles.overlay} onClick={onClose}>
-      {/* prevent closing when clicking inside */}
       <div
         className={styles.modal}
         onClick={(e) => e.stopPropagation()}
@@ -116,11 +132,12 @@ export default function BossSelectModal({
                           onPick(floor, boss);
                         }}
                       >
-                        <div className={styles.bossName}>{boss}</div>
+                        {/* MOBILE ONLY: limit to two chars */}
+                        <div className={styles.bossName}>
+                          {isMobile ? trimToTwoCN(boss) : boss}
+                        </div>
 
-                        {isSelected && (
-                          <span className={styles.badgeSelected}>已选</span>
-                        )}
+                        {/* 已选 removed completely */}
                       </button>
                     );
                   })}
