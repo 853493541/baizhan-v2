@@ -3,3 +3,159 @@
   margin: 0 auto;
   padding: 24px 20px;
 }
+.section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+/* footer area under the map */
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.counter {
+  font-size: 14px;
+  color: #555;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.actionRow {
+  display: flex;
+  gap: 12px;
+}
+
+/* Buttons */
+.deleteBtn {
+  padding: 8px 16px;
+  background: #f44336;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.deleteBtn:disabled {
+  background: #e0e0e0;
+  cursor: not-allowed;
+}
+.deleteBtn:hover:not(:disabled) {
+  background: #d32f2f;
+}
+
+.lockBtn {
+  padding: 8px 16px;
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.lockBtn:disabled {
+  background: #90caf9;
+  cursor: not-allowed;
+}
+.lockBtn:hover:not(:disabled) {
+  background: #1565c0;
+}
+
+.confirmLockBtn {
+  padding: 8px 16px;
+  background: #388e3c;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.confirmLockBtn:hover {
+  background: #2e7d32;
+}
+
+.lockedText {
+  font-weight: 600;
+  color: #444;
+}
+.unlockBtn {
+  padding: 8px 16px;
+  background: #555;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.unlockBtn:hover {
+  background: #333;
+}
+/* =========================================================
+   📱 MOBILE VIEW (max-width: 768px)
+========================================================= */
+@media (max-width: 768px) {
+  .container {
+    padding: 16px 12px;
+  }
+
+  .section {
+    padding: 16px 12px;
+  }
+
+  .title {
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+
+  /* Footer becomes vertical */
+  .footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .counter {
+    font-size: 13px;
+  }
+
+  /* Buttons wrap nicely */
+  .actionRow {
+    width: 100%;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .deleteBtn,
+  .lockBtn,
+  .confirmLockBtn,
+  .unlockBtn {
+    flex: 1;
+    padding: 10px 0;
+    font-size: 14px;
+    text-align: center;
+  }
+
+  /* Optional: if MapRow uses a grid, force tighter spacing */
+  .mapRow {
+    gap: 6px !important;
+  }
+}
+@media (max-width: 768px) {
+  .section {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+}
