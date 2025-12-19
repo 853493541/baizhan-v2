@@ -14,11 +14,10 @@ import EditAllGroupsModal from "./EditAllGroupsModal";
 /* 🔥 ORDERED main character priority */
 const MAIN_CHARACTERS = [
   "剑心猫猫糕",
+  "五溪",
   "东海甜妹",
   "饲猫大桔",
-  "五溪",
   "唐宵风",
-  "程老黑",
 ] as const;
 
 const MAIN_ORDER_MAP = new Map(
