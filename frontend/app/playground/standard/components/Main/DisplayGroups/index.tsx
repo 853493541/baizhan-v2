@@ -61,6 +61,20 @@ export default function DisplayGroups({
         {groups.map(({ g, i }) => {
           const qaWarnings = checkGroupQA(g, conflictLevel, checkedAbilities);
 
+          // ✅ FRONTEND-ONLY: pick first main character (original order)
+          const firstMainIndex = g.characters.findIndex((c) =>
+            MAIN_CHARACTERS.has(c.name)
+          );
+
+          let orderedCharacters = g.characters;
+          if (firstMainIndex !== -1) {
+            const mainChar = g.characters[firstMainIndex];
+            const rest = g.characters.filter(
+              (_, idx) => idx !== firstMainIndex
+            );
+            orderedCharacters = [mainChar, ...rest];
+          }
+
           return (
             <div
               key={i}
@@ -75,21 +89,28 @@ export default function DisplayGroups({
               </div>
 
               <ul className={styles.memberList}>
-                {g.characters.map((c) => (
-                  <li
-                    key={c._id}
-                    className={`${styles.memberItem} ${
-                      c.role === "Tank"
-                        ? styles.tank
-                        : c.role === "Healer"
-                        ? styles.healer
-                        : styles.dps
-                    }`}
-                  >
-                    {MAIN_CHARACTERS.has(c.name) ? "★ " : ""}
-                    {c.name}
-                  </li>
-                ))}
+                {orderedCharacters.map((c, idx) => {
+                  const isMain =
+                    idx === 0 && MAIN_CHARACTERS.has(c.name);
+
+                  return (
+                    <li
+                      key={c._id}
+                      className={`${styles.memberItem} ${
+                        isMain
+                          ? styles.mainChar
+                          : c.role === "Tank"
+                          ? styles.tank
+                          : c.role === "Healer"
+                          ? styles.healer
+                          : styles.dps
+                      }`}
+                    >
+                      {isMain ? "★ " : ""}
+                      {c.name}
+                    </li>
+                  );
+                })}
               </ul>
 
               {qaWarnings.length > 0 && (
