@@ -6,11 +6,10 @@ import type { GroupResult, AbilityCheck } from "@/utils/solver";
 // ✅ hardcoded mains
 const MAIN_CHARACTERS = new Set([
   "剑心猫猫糕",
+  "五溪",
   "东海甜妹",
   "饲猫大桔",
-  "五溪",
   "唐宵风",
-  "程老黑",
 ]);
 
 interface Props {
