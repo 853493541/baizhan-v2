@@ -7,6 +7,11 @@ import Processed from "./Processed";
 import DropStats from "./DropStats";
 import type { GroupResult } from "@/utils/solver";
 
+import {
+  toastSuccess,
+  toastError,
+} from "@/app/components/toast/toast";
+
 export interface AssignedDrop {
   ability: string;
   level: number;
@@ -33,13 +38,10 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const lastLocalUpdate = useRef<number>(0);
 
-  /* 🟢 Instant lightweight refresh on open (with guard, runs once per group) */
+  /* 🟢 Instant lightweight refresh on open (guarded) */
   useEffect(() => {
     const fetchInstant = async () => {
-      if (isRefreshing) {
-        console.log("⏳ Skipping instant fetch — already in progress");
-        return;
-      }
+      if (isRefreshing) return;
 
       try {
         setIsRefreshing(true);
@@ -47,16 +49,15 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
           `${API_BASE}/api/standard-schedules/${scheduleId}/groups/${group.index}/kills`
         );
         if (!res.ok) return;
-        const data = await res.json();
 
-        const merged = {
+        const data = await res.json();
+        setLocalGroup({
           ...group,
           kills: data.kills || [],
           status: data.status || group.status,
-        };
-        setLocalGroup(merged);
+        });
+
         lastLocalUpdate.current = Date.now();
-        console.log("⚡ Instant refresh applied in ResultWindow");
       } catch (err) {
         console.error("❌ Instant refresh failed:", err);
       } finally {
@@ -65,23 +66,22 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
     };
 
     fetchInstant();
-  }, [scheduleId, group.index]); // ✅ only run once per group open
+  }, [scheduleId, group.index]);
 
-  /* 🧩 Smart merge – don’t overwrite fresher local data */
+  /* 🧩 Parent → local sync guard */
   useEffect(() => {
     if (!group) return;
+
     const parentKills = group.kills?.length || 0;
     const localKills = localGroup.kills?.length || 0;
     const timeSinceLocal = Date.now() - lastLocalUpdate.current;
 
     if (parentKills > localKills || timeSinceLocal > 5000) {
-      setLocalGroup(group); // parent likely newer
-    } else {
-      // console.log("🛡️ Ignoring parent overwrite (local newer)");
+      setLocalGroup(group);
     }
   }, [group]);
 
-  /* 🧮 Rebuild drop list whenever localGroup changes */
+  /* 🧮 Rebuild drop list */
   useEffect(() => {
     if (!localGroup.kills) return;
 
@@ -117,22 +117,20 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
       (a, b) =>
         a.char.localeCompare(b.char, "zh-CN") || a.floor - b.floor
     );
+
     setDrops(parsed);
   }, [localGroup]);
 
-  /* 🔧 Helper for safe text read */
-  const readTextSafe = async (res: Response) => {
-    try {
-      return await res.text();
-    } catch {
-      return "";
-    }
-  };
-
-  /* ✅ 使用：升级角色技能 + 标记为 used */
+  /* ✅ 使用：升级技能 + 标记 used */
   const handleUse = async (drop: AssignedDrop) => {
-    if (!drop.characterId) return alert("角色信息缺失");
-    if (!scheduleId) return alert("未能找到排表ID");
+    if (!drop.characterId) {
+      toastError("角色信息缺失");
+      return;
+    }
+    if (!scheduleId) {
+      toastError("未能找到排表 ID");
+      return;
+    }
 
     setLoading(drop.ability);
     setDrops((prev) =>
@@ -144,33 +142,38 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
     );
 
     try {
-      const charUrl = `${API_BASE}/api/characters/${drop.characterId}/abilities`;
-      const charRes = await fetch(charUrl, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ abilities: { [drop.ability]: drop.level } }),
-      });
+      const charRes = await fetch(
+        `${API_BASE}/api/characters/${drop.characterId}/abilities`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ abilities: { [drop.ability]: drop.level } }),
+        }
+      );
       if (!charRes.ok) throw new Error("更新角色技能失败");
 
       const boss =
         localGroup.kills?.find((k: any) => k.floor === drop.floor)?.boss;
-      const schedUrl = `${API_BASE}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/floor/${drop.floor}`;
-      const schedRes = await fetch(schedUrl, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          boss,
-          selection: {
-            ability: drop.ability,
-            level: drop.level,
-            characterId: drop.characterId,
-            status: "used",
-          },
-        }),
-      });
+
+      const schedRes = await fetch(
+        `${API_BASE}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/floor/${drop.floor}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            boss,
+            selection: {
+              ability: drop.ability,
+              level: drop.level,
+              characterId: drop.characterId,
+              status: "used",
+            },
+          }),
+        }
+      );
       if (!schedRes.ok) throw new Error("更新排表状态失败");
 
-      alert(`✅ 已使用 ${drop.ability} (${drop.level}重)`);
+      toastSuccess(`已使用 ${drop.ability}（${drop.level}重）`);
       lastLocalUpdate.current = Date.now();
       setDrops((p) => [...p]);
       await onRefresh?.();
@@ -183,16 +186,22 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
             : d
         )
       );
-      alert("使用失败，请稍后再试。");
+      toastError("使用失败，请稍后再试");
     } finally {
       setLoading(null);
     }
   };
 
-  /* ✅ 存入仓库：保存 storage + 标记为 saved */
+  /* ✅ 存入仓库 */
   const handleStore = async (drop: AssignedDrop) => {
-    if (!drop.characterId) return alert("角色信息缺失");
-    if (!scheduleId) return alert("未能找到排表ID");
+    if (!drop.characterId) {
+      toastError("角色信息缺失");
+      return;
+    }
+    if (!scheduleId) {
+      toastError("未能找到排表 ID");
+      return;
+    }
 
     setLoading(drop.ability);
     setDrops((p) =>
@@ -206,34 +215,40 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
     try {
       const sourceBoss =
         localGroup.kills?.find((k: any) => k.floor === drop.floor)?.boss || "";
-      const storeUrl = `${API_BASE}/api/characters/${drop.characterId}/storage`;
-      const storeRes = await fetch(storeUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ability: drop.ability,
-          level: drop.level,
-          sourceBoss,
-        }),
-      });
-      if (!storeRes.ok) throw new Error("存入仓库失败");
 
-      const schedUrl = `${API_BASE}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/floor/${drop.floor}`;
-      const schedRes = await fetch(schedUrl, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          boss: sourceBoss || undefined,
-          selection: {
+      const storeRes = await fetch(
+        `${API_BASE}/api/characters/${drop.characterId}/storage`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
             ability: drop.ability,
             level: drop.level,
-            characterId: drop.characterId,
-            status: "saved",
-          },
-        }),
-      });
+            sourceBoss,
+          }),
+        }
+      );
+      if (!storeRes.ok) throw new Error("存入仓库失败");
+
+      const schedRes = await fetch(
+        `${API_BASE}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/floor/${drop.floor}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            boss: sourceBoss || undefined,
+            selection: {
+              ability: drop.ability,
+              level: drop.level,
+              characterId: drop.characterId,
+              status: "saved",
+            },
+          }),
+        }
+      );
       if (!schedRes.ok) throw new Error("更新排表状态失败");
 
+      toastSuccess(`已存入 ${drop.ability}（${drop.level}重）`);
       lastLocalUpdate.current = Date.now();
       setDrops((p) => [...p]);
       await onRefresh?.();
@@ -246,13 +261,12 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
             : d
         )
       );
-      alert("存入失败，请稍后再试。");
+      toastError("存入失败，请稍后再试");
     } finally {
       setLoading(null);
     }
   };
 
-  /* ✅ Split assigned vs processed */
   const assignedDrops = drops.filter(
     (d) => d.status === "assigned" || d.status === "pending"
   );
