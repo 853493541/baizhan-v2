@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React from "react";
 import styles from "./styles.module.css";
 import type { AssignedDrop } from "../index";
 import type { GroupResult } from "@/utils/solver";
@@ -12,6 +12,11 @@ import {
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 const getAbilityIcon = (ability: string) => `/icons/${ability}.png`;
 
+toastSuccess("成功：技能已使用");
+
+toastError("错误：操作失败");
+
+// toastInfo("提示：正在处理中");
 interface Character {
   _id: string;
   name: string;
@@ -34,15 +39,6 @@ export default function Assigned({
   onStore,
   loading,
 }: Props) {
-
-  /* =======================================================
-     DEBUG: component mount (safe)
-  ======================================================= */
-  useEffect(() => {
-    console.log("🧪 [DEBUG] Assigned.tsx mounted");
-    toastSuccess("🧪 Assigned mounted (toast OK)");
-  }, []);
-
   const getRoleColorClass = (role?: string) => {
     switch (role) {
       case "Tank":
@@ -78,22 +74,18 @@ export default function Assigned({
   };
 
   /* =======================================================
-     SINGLE BUTTON · OPTION A FLOW
+     SINGLE BUTTON · OPTION A FLOW (CLEAN)
   ======================================================= */
   const handleUseClick = async (drop: AssignedDrop) => {
-    console.log("🟦 [DEBUG] handleUseClick START", drop);
-
     const currentLevel = getLevelFromCharacter(drop);
     let useStorageAfter = false;
 
-    // 🔔 Ask ONCE if level 10 exists in storage
+    // 🔔 Ask once if storage 10 exists
     if (drop.level === 9 && hasLevel10InStorage(drop)) {
-      console.log("🟨 [DEBUG] Level 10 found in storage");
       useStorageAfter = window.confirm("包里找到十重，是否一起使用？");
-      console.log("🟨 [DEBUG] User choice:", useStorageAfter);
     }
 
-    // ⚠️ Existing validation logic (unchanged)
+    // ⚠️ Validation (unchanged behavior)
     if (drop.level === 10 && (currentLevel ?? 0) < 9) {
       const ok = window.confirm(
         "数据显示该技能没有达到9重，是否直接修改该技能到10重？"
@@ -106,18 +98,15 @@ export default function Assigned({
       if (!ok) return;
     }
 
-    // ✅ STEP 1: use assigned drop (normal flow)
+    // ✅ STEP 1: use assigned drop
     try {
-      console.log("🟦 [DEBUG] Calling onUse()");
       await onUse(drop);
-      console.log("🟦 [DEBUG] onUse() finished");
-    } catch (err) {
-      console.error("❌ onUse failed:", err);
+    } catch {
       toastError("使用失败，请稍后再试");
       return;
     }
 
-    // ✅ STEP 2: add-on storage use (no second prompt)
+    // ✅ STEP 2: auto-use storage 10 (no second prompt)
     if (useStorageAfter) {
       const char = drop.character as Character | undefined;
       if (!char?._id) {
@@ -126,8 +115,6 @@ export default function Assigned({
       }
 
       try {
-        console.log("🟪 [DEBUG] Auto-using storage 10");
-
         const res = await fetch(
           `${API_BASE}/api/characters/${char._id}/storage/use`,
           {
@@ -140,17 +127,13 @@ export default function Assigned({
           }
         );
 
-        if (!res.ok) throw new Error(await res.text());
+        if (!res.ok) throw new Error();
 
         toastSuccess(`已一起使用 ${drop.ability} 十重`);
-        console.log("🟪 [DEBUG] Storage 10 used");
-      } catch (err) {
-        console.error("❌ 使用背包10重失败:", err);
+      } catch {
         toastError("使用背包技能失败，请稍后再试");
       }
     }
-
-    console.log("🟦 [DEBUG] handleUseClick END");
   };
 
   /* =======================================================
