@@ -1,8 +1,13 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import styles from "./styles.module.css";
 import type { AssignedDrop } from "../index";
 import type { GroupResult } from "@/utils/solver";
+
+import {
+  toastSuccess,
+  toastError,
+} from "@/app/components/toast/toast";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 const getAbilityIcon = (ability: string) => `/icons/${ability}.png`;
@@ -17,7 +22,7 @@ interface Character {
 interface Props {
   drops: AssignedDrop[];
   group: GroupResult;
-  onUse: (drop: AssignedDrop) => void;
+  onUse: (drop: AssignedDrop) => Promise<void>;
   onStore: (drop: AssignedDrop) => void;
   loading?: string | null;
 }
@@ -29,9 +34,15 @@ export default function Assigned({
   onStore,
   loading,
 }: Props) {
-  /* -------------------------------------------------------
-     Helpers
-  ------------------------------------------------------- */
+
+  /* =======================================================
+     DEBUG: component mount (safe)
+  ======================================================= */
+  useEffect(() => {
+    console.log("🧪 [DEBUG] Assigned.tsx mounted");
+    toastSuccess("🧪 Assigned mounted (toast OK)");
+  }, []);
+
   const getRoleColorClass = (role?: string) => {
     switch (role) {
       case "Tank":
@@ -48,6 +59,7 @@ export default function Assigned({
   const getLevelFromCharacter = (drop: AssignedDrop): number | null => {
     const char = drop.character as Character | undefined;
     if (!char?.abilities) return null;
+
     const raw = char.abilities[drop.ability];
     const parsed = typeof raw === "string" ? parseInt(raw, 10) : Number(raw);
     return Number.isFinite(parsed) ? parsed : null;
@@ -56,18 +68,32 @@ export default function Assigned({
   const hasLevel10InStorage = (drop: AssignedDrop): boolean => {
     const char = drop.character as Character | undefined;
     if (!char?.storage) return false;
+
     return char.storage.some(
-      (i) => i.ability === drop.ability && i.level === 10 && i.used === false
+      (i) =>
+        i.ability === drop.ability &&
+        i.level === 10 &&
+        i.used === false
     );
   };
 
-  /* -------------------------------------------------------
-     MAIN SINGLE-BUTTON FLOW
-  ------------------------------------------------------- */
+  /* =======================================================
+     SINGLE BUTTON · OPTION A FLOW
+  ======================================================= */
   const handleUseClick = async (drop: AssignedDrop) => {
-    const currentLevel = getLevelFromCharacter(drop);
+    console.log("🟦 [DEBUG] handleUseClick START", drop);
 
-    // ---- pre-checks (unchanged) ----
+    const currentLevel = getLevelFromCharacter(drop);
+    let useStorageAfter = false;
+
+    // 🔔 Ask ONCE if level 10 exists in storage
+    if (drop.level === 9 && hasLevel10InStorage(drop)) {
+      console.log("🟨 [DEBUG] Level 10 found in storage");
+      useStorageAfter = window.confirm("包里找到十重，是否一起使用？");
+      console.log("🟨 [DEBUG] User choice:", useStorageAfter);
+    }
+
+    // ⚠️ Existing validation logic (unchanged)
     if (drop.level === 10 && (currentLevel ?? 0) < 9) {
       const ok = window.confirm(
         "数据显示该技能没有达到9重，是否直接修改该技能到10重？"
@@ -80,20 +106,28 @@ export default function Assigned({
       if (!ok) return;
     }
 
-    // ---- STEP 1: always use the assigned drop ----
-    await onUse(drop);
+    // ✅ STEP 1: use assigned drop (normal flow)
+    try {
+      console.log("🟦 [DEBUG] Calling onUse()");
+      await onUse(drop);
+      console.log("🟦 [DEBUG] onUse() finished");
+    } catch (err) {
+      console.error("❌ onUse failed:", err);
+      toastError("使用失败，请稍后再试");
+      return;
+    }
 
-    // ---- STEP 2: optional add-on (storage) ----
-    if (drop.level === 9 && hasLevel10InStorage(drop)) {
+    // ✅ STEP 2: add-on storage use (no second prompt)
+    if (useStorageAfter) {
       const char = drop.character as Character | undefined;
-      if (!char?._id) return;
-
-      const confirmStorage = window.confirm(
-        `已使用九重 ${drop.ability}。\n是否继续使用背包中的10重？`
-      );
-      if (!confirmStorage) return;
+      if (!char?._id) {
+        toastError("无法找到角色 ID");
+        return;
+      }
 
       try {
+        console.log("🟪 [DEBUG] Auto-using storage 10");
+
         const res = await fetch(
           `${API_BASE}/api/characters/${char._id}/storage/use`,
           {
@@ -105,18 +139,23 @@ export default function Assigned({
             }),
           }
         );
+
         if (!res.ok) throw new Error(await res.text());
-        alert(`✅ 已继续使用背包 ${drop.ability} 10重`);
+
+        toastSuccess(`已一起使用 ${drop.ability} 十重`);
+        console.log("🟪 [DEBUG] Storage 10 used");
       } catch (err) {
         console.error("❌ 使用背包10重失败:", err);
-        alert("使用背包技能失败，请稍后再试。");
+        toastError("使用背包技能失败，请稍后再试");
       }
     }
+
+    console.log("🟦 [DEBUG] handleUseClick END");
   };
 
-  /* -------------------------------------------------------
-     EMPTY
-  ------------------------------------------------------- */
+  /* =======================================================
+     RENDER
+  ======================================================= */
   if (!drops?.length) {
     return (
       <div className={styles.box}>
@@ -126,9 +165,6 @@ export default function Assigned({
     );
   }
 
-  /* -------------------------------------------------------
-     RENDER
-  ------------------------------------------------------- */
   return (
     <div className={styles.box}>
       <h3 className={styles.title}>已分配</h3>
@@ -142,14 +178,14 @@ export default function Assigned({
       ).map(([charName, list]) => {
         const charRole = list[0]?.role;
         const sortedList = [...list].sort(
-          (a, b) => ({ 9: 1, 10: 2 }[a.level] - ({ 9: 1, 10: 2 }[b.level]))
+          (a, b) =>
+            ({ 9: 1, 10: 2 }[a.level] ?? 99) -
+            ({ 9: 1, 10: 2 }[b.level] ?? 99)
         );
 
         return (
           <div key={charName} className={styles.charSection}>
-            <span
-              className={`${styles.charBubble} ${getRoleColorClass(charRole)}`}
-            >
+            <span className={`${styles.charBubble} ${getRoleColorClass(charRole)}`}>
               {charName}
             </span>
 
@@ -178,6 +214,7 @@ export default function Assigned({
                       <img
                         src={getAbilityIcon(a.ability)}
                         className={styles.assignmentIcon}
+                        alt={a.ability}
                       />
                       <span className={styles.assignmentText}>
                         {a.level === 9 ? "九重" : "十重"} · {a.ability}
