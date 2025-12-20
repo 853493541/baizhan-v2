@@ -5,7 +5,6 @@ import styles from "./styles.module.css";
 import type { GroupResult, AbilityCheck } from "@/utils/solver";
 
 import GroupInfo from "./GroupInfo";
-import CoreAbilityChart from "./CoreAbilityChart";
 import ResultWindow from "./ResultModal";
 import BossMap from "./BossMap";
 
@@ -54,10 +53,6 @@ export default function GroupDetailModal({
     return { year: y, week: w, weekCode: code };
   }, [createdAt]);
 
-  console.log("📅 schedule.createdAt:", createdAt);
-  console.log(`📌 GAME WEEK derived: ${year}-W${week} (=${weekCode})`);
-
-
   /* -------------------------------------------------------
      ⭐ 2) Auto refresh group kills every 5 sec
   ------------------------------------------------------- */
@@ -85,8 +80,9 @@ export default function GroupDetailModal({
     }
   }, [isRefreshing, scheduleId, groupIndex, onRefresh]);
 
-
-  /* Countdown timer */
+  /* -------------------------------------------------------
+     ⭐ Countdown timer (UI + trigger only)
+  ------------------------------------------------------- */
   useEffect(() => {
     const timer = setInterval(() => {
       setCountdown((prev) => {
@@ -97,55 +93,40 @@ export default function GroupDetailModal({
         return prev - 1;
       });
     }, 1000);
+
     return () => clearInterval(timer);
   }, [fetchGroupKills]);
 
-
   /* -------------------------------------------------------
-     ⭐ 3) Load the correct HISTORICAL weekly map for this schedule
+     ⭐ 3) Load the correct HISTORICAL weekly map
   ------------------------------------------------------- */
   useEffect(() => {
     const fetchMap = async () => {
       try {
-        console.log(`🗺 Fetching map for historical week: ${weekCode}`);
-
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map/past?week=${weekCode}`
         );
 
         if (!res.ok) {
-          console.warn(
-            `⚠️ No historical map found for week ${weekCode}. Falling back to CURRENT WEEK.`
-          );
-
-          // fallback: current week's map
           const fallback = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map`
           );
-
           if (fallback.ok) {
             const data: WeeklyMapResponse = await fallback.json();
             const floors: Record<number, string> = {};
             for (const [floor, obj] of Object.entries(data.floors)) {
               floors[Number(floor)] = obj.boss;
             }
-            console.log("🗺 Loaded fallback CURRENT weekly map:", floors);
             setWeeklyMap(floors);
           }
-
           return;
         }
 
         const data: WeeklyMapResponse = await res.json();
-
-        console.log("🗺 Historical map loaded:", data);
-
         const floors: Record<number, string> = {};
         for (const [floor, obj] of Object.entries(data.floors)) {
           floors[Number(floor)] = obj.boss;
         }
-
-        console.log("🗺 Parsed historical weeklyMap floors:", floors);
         setWeeklyMap(floors);
       } catch (err) {
         console.error("❌ Failed to load historical weekly map:", err);
@@ -155,29 +136,6 @@ export default function GroupDetailModal({
     fetchMap();
   }, [weekCode]);
 
-
-  /* -------------------------------------------------------
-     ⭐ 4) Build ability list based on weeklyMap
-  ------------------------------------------------------- */
-  const weeklyAbilities = useMemo(() => {
-    const result: { name: string; level: number }[] = [];
-
-    for (const [floorStr, boss] of Object.entries(weeklyMap)) {
-      const floor = Number(floorStr);
-      const dropLevel = floor >= 81 && floor <= 90 ? 9 : 10;
-
-      if (boss && bossData[boss]) {
-        bossData[boss].forEach((ability) => {
-          result.push({ name: ability, level: dropLevel });
-        });
-      }
-    }
-
-    console.log("🔵 weeklyAbilities (from correct week):", result);
-    return result;
-  }, [weeklyMap]);
-
-
   /* -------------------------------------------------------
      ⭐ RENDER
   ------------------------------------------------------- */
@@ -186,6 +144,11 @@ export default function GroupDetailModal({
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <button className={styles.closeBtn} onClick={onClose}>✖</button>
 
+        {/* 🔁 Parent-owned refresh countdown */}
+        <div className={styles.refreshHint}>
+          {countdown} 秒后自动刷新
+        </div>
+
         <GroupInfo
           group={groupData}
           checkedAbilities={checkedAbilities}
@@ -193,13 +156,6 @@ export default function GroupDetailModal({
         />
 
         <div className={styles.midSection}>
-          <CoreAbilityChart
-            group={groupData}
-            checkedAbilities={checkedAbilities}
-            conflictLevel={conflictLevel}
-            weeklyAbilities={weeklyAbilities}
-          />
-
           <ResultWindow
             scheduleId={scheduleId}
             group={groupData}
@@ -213,7 +169,6 @@ export default function GroupDetailModal({
           group={groupData as any}
           weeklyMap={weeklyMap}
           onRefresh={fetchGroupKills}
-          countdown={countdown}
           onGroupUpdate={(updated) => setGroupData(updated)}
         />
       </div>
