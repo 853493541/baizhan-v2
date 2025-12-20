@@ -1,0 +1,62 @@
+/* container handled by react-hot-toast (top-center) */
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  min-width: 320px;
+  max-width: 420px;
+
+  padding: 14px 16px;
+  border-radius: 10px;
+
+  background: #f7f7f7;
+  color: #333;
+
+  font-size: 14px;
+  line-height: 1.4;
+
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+
+  position: relative;
+}
+
+/* left accent bar */
+.toast::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 4px;
+  border-radius: 4px;
+  background: #cfcfcf;
+}
+
+/* success */
+.toast-success {
+  background: #dff7e6;
+}
+
+.toast-success::before {
+  background: #34c759;
+}
+
+/* error */
+.toast-error {
+  background: #f9d6d5;
+}
+
+.toast-error::before {
+  background: #e5533d;
+}
+
+/* optional: neutral/info */
+.toast-info {
+  background: #e3f2ff;
+}
+
+.toast-info::before {
+  background: #4da3ff;
+}
