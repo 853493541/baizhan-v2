@@ -18,26 +18,32 @@ interface Props {
 
 function formatTime(t?: string | Date | null) {
   if (!t) return "—";
+
   const d = new Date(t);
   if (isNaN(d.getTime())) return "—";
-  return d.toLocaleString();
+
+  const month = d.getMonth() + 1;
+  const day = d.getDate();
+  const hour = d.getHours().toString().padStart(2, "0");
+  const minute = d.getMinutes().toString().padStart(2, "0");
+
+  return `${month}/${day} ${hour}:${minute}`;
 }
 
-function formatDuration(start?: string | Date | null, end?: string | Date | null) {
+function formatDuration(
+  start?: string | Date | null,
+  end?: string | Date | null
+) {
   if (!start) return "—";
 
   const s = new Date(start).getTime();
   const e = end ? new Date(end).getTime() : Date.now();
+
   if (isNaN(s) || isNaN(e) || e < s) return "—";
 
-  const diff = Math.floor((e - s) / 1000);
-  const h = Math.floor(diff / 3600);
-  const m = Math.floor((diff % 3600) / 60);
-  const sec = diff % 60;
+  const minutes = Math.ceil((e - s) / 60000);
 
-  if (h > 0) return `${h}小时 ${m}分`;
-  if (m > 0) return `${m}分 ${sec}秒`;
-  return `${sec}秒`;
+  return `${Math.max(minutes, 1)}分钟`;
 }
 
 /* ===============================
@@ -80,7 +86,7 @@ export default function DropStats({ group, assigned }: Props) {
         <h3 className={styles.title}>掉落统计</h3>
       </div>
 
-      {/* ===== Drop rate section (ALWAYS render) ===== */}
+      {/* ===== Drop rate section ===== */}
       <StatRow
         label="九阶首领掉率"
         ratio={`${lv9Assigned} / ${totalLv9Boss}`}
@@ -100,16 +106,19 @@ export default function DropStats({ group, assigned }: Props) {
         isLast
       />
 
-      {/* ===== Divider (single, clean) ===== */}
+      {/* ===== Divider ===== */}
       <div className={styles.divider} />
 
-      {/* ===== Lifecycle section ===== */}
+      {/* ===== Lifecycle ===== */}
       <div className={styles.lifecycle}>
         <div className={styles.lifeRow}>
           <span className={styles.lifeLabel}>开始时间</span>
           <span>{formatTime(group.startTime)}</span>
         </div>
-
+        <div className={styles.lifeRow}>
+          <span className={styles.lifeLabel}>结束时间</span>
+          <span>{formatTime(group.endTime)}</span>
+        </div>
         <div className={styles.lifeRow}>
           <span className={styles.lifeLabel}>用时</span>
           <span>
@@ -120,10 +129,7 @@ export default function DropStats({ group, assigned }: Props) {
           </span>
         </div>
 
-        <div className={styles.lifeRow}>
-          <span className={styles.lifeLabel}>结束时间</span>
-          <span>{formatTime(group.endTime)}</span>
-        </div>
+
       </div>
     </div>
   );
