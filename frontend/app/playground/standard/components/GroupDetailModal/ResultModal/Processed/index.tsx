@@ -6,7 +6,13 @@ import type { GroupResult } from "@/utils/solver";
 
 const getAbilityIcon = (ability: string) => `/icons/${ability}.png`;
 
-export default function Processed({ drops, group }: { drops: AssignedDrop[]; group: GroupResult }) {
+export default function Processed({
+  drops,
+  group,
+}: {
+  drops: AssignedDrop[];
+  group: GroupResult;
+}) {
   const getRoleColorClass = (role?: string) => {
     switch (role) {
       case "Tank":
@@ -24,25 +30,37 @@ export default function Processed({ drops, group }: { drops: AssignedDrop[]; gro
     <div className={styles.box}>
       <h3 className={styles.title}>已处理</h3>
 
-      {(!drops || drops.length === 0) ? (
+      {!drops || drops.length === 0 ? (
         <div className={styles.emptyBox}>暂无处理记录</div>
       ) : (
         Object.entries(
-          drops.reduce((acc: Record<string, AssignedDrop[]>, d: AssignedDrop) => {
+          drops.reduce((acc: Record<string, AssignedDrop[]>, d) => {
             if (!acc[d.char]) acc[d.char] = [];
             acc[d.char].push(d);
             return acc;
           }, {})
         ).map(([charName, list]) => {
           const charRole = list[0]?.role;
+
           const sortedList = [...list].sort((a, b) => {
             const order = { 9: 1, 10: 2 };
             return (order[a.level] || 99) - (order[b.level] || 99);
           });
 
           return (
-            <div key={charName} className={styles.charSection}>
-              <span className={`${styles.charBubble} ${getRoleColorClass(charRole)}`}>{charName}</span>
+            <div key={charName} className={styles.charRow}>
+              {/* character column (fixed width, white space allowed) */}
+              <div className={styles.charCol}>
+                <div
+                  className={`${styles.charBubble} ${getRoleColorClass(
+                    charRole
+                  )}`}
+                >
+                  {charName}
+                </div>
+              </div>
+
+              {/* abilities */}
               <ul className={styles.assignmentList}>
                 {sortedList.map((a, i) => (
                   <li key={i} className={styles.assignmentItem}>
@@ -53,9 +71,18 @@ export default function Processed({ drops, group }: { drops: AssignedDrop[]; gro
                         className={styles.assignmentIcon}
                       />
                       <span className={styles.assignmentText}>
-                        {a.level === 9 ? "九重" : a.level === 10 ? "十重" : ""} · {a.ability}
+                        {a.level === 9
+                          ? "九重"
+                          : a.level === 10
+                          ? "十重"
+                          : ""}{" "}
+                        · {a.ability}
                       </span>
-                      <span className={`${styles.badge} ${styles[a.status || "saved"]}`}>
+                      <span
+                        className={`${styles.badge} ${
+                          styles[a.status || "saved"]
+                        }`}
+                      >
                         {a.status === "used"
                           ? "已使用"
                           : a.status === "saved"

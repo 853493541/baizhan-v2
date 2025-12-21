@@ -144,10 +144,10 @@ export default function GroupDetailModal({
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <button className={styles.closeBtn} onClick={onClose}>✖</button>
 
-        {/* 🔁 Parent-owned refresh countdown */}
+        {/* 🔁 Parent-owned refresh countdown
         <div className={styles.refreshHint}>
           {countdown} 秒后自动刷新
-        </div>
+        </div> */}
 
         <GroupInfo
           group={groupData}

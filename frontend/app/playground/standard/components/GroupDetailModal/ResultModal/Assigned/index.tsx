@@ -9,14 +9,11 @@ import {
   toastError,
 } from "@/app/components/toast/toast";
 
+import ConfirmModal from "@/app/components/ConfirmModal";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 const getAbilityIcon = (ability: string) => `/icons/${ability}.png`;
 
-toastSuccess("成功：技能已使用");
-
-toastError("错误：操作失败");
-
-// toastInfo("提示：正在处理中");
 interface Character {
   _id: string;
   name: string;
@@ -39,6 +36,28 @@ export default function Assigned({
   onStore,
   loading,
 }: Props) {
+
+  /* =======================================================
+     confirmation state
+  ======================================================= */
+  const [confirmOpen, setConfirmOpen] = React.useState(false);
+  const [confirmConfig, setConfirmConfig] = React.useState<{
+    title: string;
+    message: string;
+    intent: "danger" | "warning" | "neutral";
+    onConfirm: () => void;
+  } | null>(null);
+
+  const requestConfirm = (
+    title: string,
+    message: string,
+    intent: "danger" | "warning" | "neutral" | "success",
+    onConfirm: () => void
+  ) => {
+    setConfirmConfig({ title, message, intent, onConfirm });
+    setConfirmOpen(true);
+  };
+
   const getRoleColorClass = (role?: string) => {
     switch (role) {
       case "Tank":
@@ -74,31 +93,12 @@ export default function Assigned({
   };
 
   /* =======================================================
-     SINGLE BUTTON · OPTION A FLOW (CLEAN)
+     real execution logic
   ======================================================= */
-  const handleUseClick = async (drop: AssignedDrop) => {
-    const currentLevel = getLevelFromCharacter(drop);
-    let useStorageAfter = false;
-
-    // 🔔 Ask once if storage 10 exists
-    if (drop.level === 9 && hasLevel10InStorage(drop)) {
-      useStorageAfter = window.confirm("包里找到十重，是否一起使用？");
-    }
-
-    // ⚠️ Validation (unchanged behavior)
-    if (drop.level === 10 && (currentLevel ?? 0) < 9) {
-      const ok = window.confirm(
-        "数据显示该技能没有达到9重，是否直接修改该技能到10重？"
-      );
-      if (!ok) return;
-    }
-
-    if (drop.level === 9 && (currentLevel ?? 0) < 8) {
-      const ok = window.confirm("是否消耗通本和这本书升级？");
-      if (!ok) return;
-    }
-
-    // ✅ STEP 1: use assigned drop
+  const proceedUse = async (
+    drop: AssignedDrop,
+    useStorageAfter: boolean
+  ) => {
     try {
       await onUse(drop);
     } catch {
@@ -106,7 +106,6 @@ export default function Assigned({
       return;
     }
 
-    // ✅ STEP 2: auto-use storage 10 (no second prompt)
     if (useStorageAfter) {
       const char = drop.character as Character | undefined;
       if (!char?._id) {
@@ -134,6 +133,57 @@ export default function Assigned({
         toastError("使用背包技能失败，请稍后再试");
       }
     }
+  };
+
+  /* =======================================================
+     orchestrator
+  ======================================================= */
+  const handleUseClick = (drop: AssignedDrop) => {
+    const currentLevel = getLevelFromCharacter(drop);
+
+    // 🟠 warning: unusual but allowed
+    if (drop.level === 9 && hasLevel10InStorage(drop)) {
+      requestConfirm(
+        "确认使用",
+        "包里找到十重，是否一起使用？",
+        "warning",
+        () => {
+          setConfirmOpen(false);
+          proceedUse(drop, true);
+        }
+      );
+      return;
+    }
+
+    // 🔴 danger: override data
+    if (drop.level === 10 && (currentLevel ?? 0) < 9) {
+      requestConfirm(
+        "确认修改",
+        "数据显示该技能没有达到9重，是否直接修改该技能到10重？",
+        "danger",
+        () => {
+          setConfirmOpen(false);
+          proceedUse(drop, false);
+        }
+      );
+      return;
+    }
+
+    // 🔵 neutral: normal upgrade
+    if (drop.level === 9 && (currentLevel ?? 0) < 8) {
+      requestConfirm(
+        "确认升级",
+        "是否消耗通本和这本书升级？",
+        "neutral",
+        () => {
+          setConfirmOpen(false);
+          proceedUse(drop, false);
+        }
+      );
+      return;
+    }
+
+    proceedUse(drop, false);
   };
 
   /* =======================================================
@@ -230,6 +280,23 @@ export default function Assigned({
           </div>
         );
       })}
+
+      {/* confirmation modal */}
+      {confirmOpen && confirmConfig && (
+        <ConfirmModal
+          title={confirmConfig.title}
+          message={confirmConfig.message}
+          intent={confirmConfig.intent}
+          onCancel={() => {
+            setConfirmOpen(false);
+            setConfirmConfig(null);
+          }}
+          onConfirm={() => {
+            confirmConfig.onConfirm();
+            setConfirmConfig(null);
+          }}
+        />
+      )}
     </div>
   );
 }

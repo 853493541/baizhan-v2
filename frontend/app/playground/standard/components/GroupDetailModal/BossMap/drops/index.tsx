@@ -4,6 +4,7 @@ import styles from "./styles.module.css";
 import { buildOptions } from "./drophelpers";
 import AbilityList from "./AbilityList";
 import MemberList from "./MemberList";
+import ConfirmModal from "@/app/components/ConfirmModal";
 
 export default function Drops(props: any) {
   const {
@@ -28,7 +29,6 @@ export default function Drops(props: any) {
   const hasKillRecord = group.kills?.some((k: any) => k.floor === floor);
   const modalRef = useRef<HTMLDivElement>(null);
 
-  /** 🧠 Debug: check incoming data from BossCard */
   useEffect(() => {
     console.log(
       `[purple] Drops opened → floor ${floor} boss ${boss}`,
@@ -41,7 +41,6 @@ export default function Drops(props: any) {
     );
   }, [floor, boss, dropList, tradableList]);
 
-  /** 🧭 Click outside main modal → close */
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const modalEl = modalRef.current;
@@ -57,12 +56,8 @@ export default function Drops(props: any) {
     if (groupStatus === "not_started" && onMarkStarted) onMarkStarted();
   };
 
-  /** 🧩 Build full drop options for this floor */
   const options = buildOptions(dropList, floor);
 
-  /**
-   * ⚔️ Ability relationships
-   */
   const TRANSFER_MAP: Record<string, string> = {
     "蛮熊碎颅击": "水遁水流闪",
   };
@@ -76,7 +71,6 @@ export default function Drops(props: any) {
   const getTransferDest = (src: string) => TRANSFER_MAP[src] || null;
   const getMirror = (name: string) => MIRROR_PAIRS[name] || null;
 
-  /** 🧠 Compute effective level including transfer/mirror rules */
   const getEffectiveLevel = (char: any, ability: string) => {
     const baseLevel = char.abilities?.[ability] ?? 0;
     const gender = char.gender;
@@ -103,11 +97,9 @@ export default function Drops(props: any) {
     return baseLevel;
   };
 
-  /** 🧠 Check if all members already have a specific ability */
   const allHaveAbility = (ability: string, level: 9 | 10) =>
     group.characters.every((c: any) => getEffectiveLevel(c, ability) >= level);
 
-  /** 🩵 Build “all have” lists */
   let allHave9Options = options.filter(
     (opt: any) => opt.level === 9 && allHaveAbility(opt.ability, 9)
   );
@@ -115,7 +107,6 @@ export default function Drops(props: any) {
     (opt: any) => opt.level === 10 && allHaveAbility(opt.ability, 10)
   );
 
-  /** 🔄 Reset logic */
   const doReset = async () => {
     try {
       setErrMsg(null);
@@ -200,42 +191,16 @@ export default function Drops(props: any) {
           </button>
         </div>
 
-        {/* === Confirm Modal === */}
+        {/* === Confirm Modal (RED / danger) === */}
         {showConfirm && (
-          <div
-            className={styles.confirmOverlay}
-            onClick={() => !resetting && setShowConfirm(false)}
-          >
-            <div
-              className={styles.confirmModal}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className={styles.confirmTitle}>确认删除</div>
-              <div className={styles.confirmText}>
-                确定要删除{" "}
-                <b>
-                  {floor}层 - {boss}
-                </b>{" "}
-                的掉落记录吗？
-              </div>
-              <div className={styles.confirmActions}>
-                <button
-                  onClick={() => setShowConfirm(false)}
-                  disabled={resetting}
-                  className={styles.closeBtn}
-                >
-                  取消
-                </button>
-                <button
-                  onClick={doReset}
-                  disabled={resetting}
-                  className={styles.deleteBtn}
-                >
-                  {resetting ? "删除中…" : "确认删除"}
-                </button>
-              </div>
-            </div>
-          </div>
+          <ConfirmModal
+            title="确认删除"
+            message={`确定要删除 ${floor}层 - ${boss} 的掉落记录吗？`}
+            intent="danger"
+            confirmText={resetting ? "删除中…" : "确认删除"}
+            onCancel={() => !resetting && setShowConfirm(false)}
+            onConfirm={doReset}
+          />
         )}
       </div>
     </div>

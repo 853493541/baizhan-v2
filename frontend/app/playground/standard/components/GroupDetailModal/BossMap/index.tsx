@@ -5,6 +5,7 @@ import styles from "./styles.module.css";
 import type { GroupResult } from "@/utils/solver";
 import Drops from "./drops";
 import BossCard from "./BossCard";
+import ConfirmModal from "@/app/components/ConfirmModal";
 
 import rawBossData from "@/app/data/boss_drop.json";
 const bossData: Record<string, string[]> = rawBossData;
@@ -71,6 +72,9 @@ export default function BossMap({
   const [localGroup, setLocalGroup] = useState(group);
   const lastLocalUpdate = useRef<number>(Date.now());
 
+  /* ================= confirmation state (NEW) ================= */
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
   // ✅ keep local in sync but don't overwrite fresher local
   useEffect(() => {
     const parentKillCount = group.kills?.length || 0;
@@ -87,8 +91,8 @@ export default function BossMap({
   const [selected, setSelected] = useState<{
     floor: number;
     boss: string;
-    dropList: string[];       // 🟢 normal abilities
-    tradableList: string[];   // 🟣 紫书 abilities
+    dropList: string[];
+    tradableList: string[];
     dropLevel: 9 | 10;
   } | null>(null);
 
@@ -201,10 +205,9 @@ export default function BossMap({
     instantFetch();
   }, [scheduleId, localGroup.index]);
 
-  const handleFinish = async () => {
-    if (window.confirm("确认要结束吗？")) {
-      await updateGroupStatus("finished");
-    }
+  /* ================= updated finish handler ================= */
+  const handleFinish = () => {
+    setConfirmOpen(true);
   };
 
   return (
@@ -301,7 +304,7 @@ export default function BossMap({
           floor={selected.floor}
           boss={selected.boss}
           dropList={selected.dropList}
-          tradableList={selected.tradableList}  // 🟣 now actually passed
+          tradableList={selected.tradableList}
           dropLevel={selected.dropLevel}
           group={localGroup}
           onClose={() => setSelected(null)}
@@ -324,6 +327,20 @@ export default function BossMap({
             onRefresh?.();
             onGroupUpdate?.(newGroup);
             setSelected(null);
+          }}
+        />
+      )}
+
+      {/* ================= confirmation modal ================= */}
+      {confirmOpen && (
+        <ConfirmModal
+          title="确认结束"
+          message="是否确认结束？"
+          intent="success"
+          onCancel={() => setConfirmOpen(false)}
+          onConfirm={async () => {
+            setConfirmOpen(false);
+            await updateGroupStatus("finished");
           }}
         />
       )}
