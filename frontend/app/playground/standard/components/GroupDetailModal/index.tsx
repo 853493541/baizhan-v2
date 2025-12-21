@@ -6,9 +6,10 @@ import type { GroupResult, AbilityCheck } from "@/utils/solver";
 
 import GroupInfo from "./GroupInfo";
 import ResultWindow from "./ResultModal";
+import GroupDetail from "./ResultModal/GroupDetail"; // ⭐ NEW
 import BossMap from "./BossMap";
 
-import { getGameWeekFromDate } from "@/utils/weekUtils";  // ⭐ unified week logic
+import { getGameWeekFromDate } from "@/utils/weekUtils";
 
 import rawBossData from "../../../../data/boss_skills_collection_map.json";
 const bossData: Record<string, string[]> = rawBossData;
@@ -21,7 +22,7 @@ interface Props {
   conflictLevel: number;
   onClose: () => void;
   onRefresh?: () => void;
-  createdAt: string;      // ⭐ receives schedule createdAt
+  createdAt: string;
 }
 
 interface WeeklyMapResponse {
@@ -48,7 +49,7 @@ export default function GroupDetailModal({
      ⭐ 1) Unified GAME-WEEK for this schedule's createdAt
   ------------------------------------------------------- */
   const { year, week, weekCode } = useMemo(() => {
-    const code = getGameWeekFromDate(createdAt);   // e.g., "2025-W48"
+    const code = getGameWeekFromDate(createdAt);
     const [y, w] = code.split("-W").map(Number);
     return { year: y, week: w, weekCode: code };
   }, [createdAt]);
@@ -58,14 +59,18 @@ export default function GroupDetailModal({
   ------------------------------------------------------- */
   const fetchGroupKills = useCallback(async () => {
     if (isRefreshing) return;
+
     try {
       setIsRefreshing(true);
+
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${groupIndex + 1}/kills`
       );
+
       if (!res.ok) return;
 
       const data = await res.json();
+
       setGroupData((prev) => ({
         ...prev,
         kills: data.kills || prev.kills,
@@ -81,7 +86,7 @@ export default function GroupDetailModal({
   }, [isRefreshing, scheduleId, groupIndex, onRefresh]);
 
   /* -------------------------------------------------------
-     ⭐ Countdown timer (UI + trigger only)
+     ⭐ Countdown timer
   ------------------------------------------------------- */
   useEffect(() => {
     const timer = setInterval(() => {
@@ -98,7 +103,7 @@ export default function GroupDetailModal({
   }, [fetchGroupKills]);
 
   /* -------------------------------------------------------
-     ⭐ 3) Load the correct HISTORICAL weekly map
+     ⭐ 3) Load correct HISTORICAL weekly map
   ------------------------------------------------------- */
   useEffect(() => {
     const fetchMap = async () => {
@@ -107,26 +112,26 @@ export default function GroupDetailModal({
           `${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map/past?week=${weekCode}`
         );
 
-        if (!res.ok) {
+        let data: WeeklyMapResponse | null = null;
+
+        if (res.ok) {
+          data = await res.json();
+        } else {
           const fallback = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map`
           );
           if (fallback.ok) {
-            const data: WeeklyMapResponse = await fallback.json();
-            const floors: Record<number, string> = {};
-            for (const [floor, obj] of Object.entries(data.floors)) {
-              floors[Number(floor)] = obj.boss;
-            }
-            setWeeklyMap(floors);
+            data = await fallback.json();
           }
-          return;
         }
 
-        const data: WeeklyMapResponse = await res.json();
+        if (!data) return;
+
         const floors: Record<number, string> = {};
         for (const [floor, obj] of Object.entries(data.floors)) {
           floors[Number(floor)] = obj.boss;
         }
+
         setWeeklyMap(floors);
       } catch (err) {
         console.error("❌ Failed to load historical weekly map:", err);
@@ -142,12 +147,9 @@ export default function GroupDetailModal({
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <button className={styles.closeBtn} onClick={onClose}>✖</button>
-
-        {/* 🔁 Parent-owned refresh countdown
-        <div className={styles.refreshHint}>
-          {countdown} 秒后自动刷新
-        </div> */}
+        <button className={styles.closeBtn} onClick={onClose}>
+          ✖
+        </button>
 
         <GroupInfo
           group={groupData}
@@ -155,7 +157,12 @@ export default function GroupDetailModal({
           conflictLevel={conflictLevel}
         />
 
+        {/* ⭐ MID SECTION */}
         <div className={styles.midSection}>
+          {/* ⭐ FIRST CARD */}
+          <GroupDetail group={groupData} />
+
+          {/* EXISTING RESULT WINDOW */}
           <ResultWindow
             scheduleId={scheduleId}
             group={groupData}
