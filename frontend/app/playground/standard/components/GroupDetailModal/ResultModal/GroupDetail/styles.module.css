@@ -1,0 +1,96 @@
+.box {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 12px;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+  width: fit-content;
+  min-width: 260px;
+  max-width: 480px;
+}
+
+/* main header */
+.title {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+/* top info rows */
+.body {
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  font-size: 14px;
+  border-bottom: 1px solid #eee;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.label {
+  color: #666;
+  white-space: nowrap;
+}
+
+.value {
+  font-weight: 600;
+  color: #222;
+}
+
+/* divider */
+.divider {
+  margin: 10px 0;
+  border-top: 1px solid #eee;
+}
+
+/* section titles */
+.sectionTitle {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+/* ability grid */
+.abilityGrid {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  gap: 6px 16px;
+}
+
+.abilityItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.abilityIcon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.abilityText {
+  font-weight: 600;
+}
+
+/* empty state */
+.emptyBox {
+  padding: 12px 0;
+  font-size: 14px;
+  font-style: italic;
+  font-weight: 600;
+  color: #999;
+  text-align: center;
+}
