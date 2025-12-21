@@ -12,14 +12,12 @@
   max-width: 480px;
 }
 
-/* main header */
 .title {
   font-size: 16px;
   font-weight: bold;
   margin-bottom: 6px;
 }
 
-/* top info rows */
 .body {
   display: flex;
   flex-direction: column;
@@ -48,20 +46,18 @@
   color: #222;
 }
 
-/* divider */
 .divider {
   margin: 10px 0;
   border-top: 1px solid #eee;
 }
 
-/* section titles */
 .sectionTitle {
   font-size: 14px;
   font-weight: 600;
   margin-bottom: 6px;
 }
 
-/* ability grid */
+/* ability grid (core skills) */
 .abilityGrid {
   display: grid;
   grid-template-columns: repeat(2, auto);
@@ -85,7 +81,29 @@
   font-weight: 600;
 }
 
-/* empty state */
+/* === NEW: shared pill row layout === */
+.pillRow {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* character-style pill (used for wasted abilities) */
+.charBubble {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+
+  background-color: #f8d7da; /* healer color */
+  color: #721c24;
+}
+
 .emptyBox {
   padding: 12px 0;
   font-size: 14px;
@@ -93,4 +111,17 @@
   font-weight: 600;
   color: #999;
   text-align: center;
+}
+/* existing */
+.abilityGrid {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  gap: 6px 16px;
+}
+
+/* 🔽 ONLY used by 浪费技能 */
+.wastedGrid {
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  gap: 6px 16px;
 }

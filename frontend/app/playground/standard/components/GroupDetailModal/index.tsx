@@ -160,7 +160,9 @@ export default function GroupDetailModal({
         {/* ⭐ MID SECTION */}
         <div className={styles.midSection}>
           {/* ⭐ FIRST CARD */}
-          <GroupDetail group={groupData} />
+          <GroupDetail group={groupData}
+           checkedAbilities={checkedAbilities}
+            />
 
           {/* EXISTING RESULT WINDOW */}
           <ResultWindow
