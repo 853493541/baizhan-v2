@@ -88,19 +88,13 @@ export default function GroupDetailModal({
   /* -------------------------------------------------------
      ⭐ Countdown timer
   ------------------------------------------------------- */
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          fetchGroupKills();
-          return 5;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+useEffect(() => {
+  const timer = setInterval(() => {
+    fetchGroupKills();
+  }, 5000);
 
-    return () => clearInterval(timer);
-  }, [fetchGroupKills]);
+  return () => clearInterval(timer);
+}, [fetchGroupKills]);
 
   /* -------------------------------------------------------
      ⭐ 3) Load correct HISTORICAL weekly map
