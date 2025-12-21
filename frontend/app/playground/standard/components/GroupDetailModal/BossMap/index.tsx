@@ -72,8 +72,34 @@ export default function BossMap({
   const [localGroup, setLocalGroup] = useState(group);
   const lastLocalUpdate = useRef<number>(Date.now());
 
-  /* ================= confirmation state (NEW) ================= */
+  /* ================= confirmation state ================= */
   const [confirmOpen, setConfirmOpen] = useState(false);
+
+  /* ================= lifecycle timestamp helpers (NEW) ================= */
+
+  const markGroupStartedTime = async () => {
+    try {
+      await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/start`,
+        { method: "POST" }
+      );
+    } catch (err) {
+      console.error("❌ markGroupStartedTime error:", err);
+    }
+  };
+
+  const markGroupFinishedTime = async () => {
+    try {
+      await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/end`,
+        { method: "POST" }
+      );
+    } catch (err) {
+      console.error("❌ markGroupFinishedTime error:", err);
+    }
+  };
+
+  /* ===================================================================== */
 
   // ✅ keep local in sync but don't overwrite fresher local
   useEffect(() => {
@@ -205,7 +231,6 @@ export default function BossMap({
     instantFetch();
   }, [scheduleId, localGroup.index]);
 
-  /* ================= updated finish handler ================= */
   const handleFinish = () => {
     setConfirmOpen(true);
   };
@@ -311,10 +336,17 @@ export default function BossMap({
           onSave={async (floor, data) => {
             await updateGroupKill(floor, selected.boss, data);
             setSelected(null);
-            if (status === "not_started") await updateGroupStatus("started");
+
+            if (status === "not_started") {
+              await markGroupStartedTime();   // ⭐ startTime
+              await updateGroupStatus("started");
+            }
           }}
           groupStatus={status}
-          onMarkStarted={() => updateGroupStatus("started")}
+         onMarkStarted={async () => {
+  await markGroupStartedTime();
+  await updateGroupStatus("started");
+}}
           onAfterReset={() => {
             const newGroup = {
               ...localGroup,
@@ -331,7 +363,6 @@ export default function BossMap({
         />
       )}
 
-      {/* ================= confirmation modal ================= */}
       {confirmOpen && (
         <ConfirmModal
           title="确认结束"
@@ -340,6 +371,7 @@ export default function BossMap({
           onCancel={() => setConfirmOpen(false)}
           onConfirm={async () => {
             setConfirmOpen(false);
+            await markGroupFinishedTime();   // ⭐ endTime
             await updateGroupStatus("finished");
           }}
         />

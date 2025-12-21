@@ -51,11 +51,13 @@ export default function ResultWindow({ scheduleId, group, onRefresh }: Props) {
         if (!res.ok) return;
 
         const data = await res.json();
-        setLocalGroup({
-          ...group,
-          kills: data.kills || [],
-          status: data.status || group.status,
-        });
+setLocalGroup((prev) => ({
+  ...prev,
+  kills: data.kills ?? prev.kills,
+  status: data.status ?? prev.status,
+  startTime: data.startTime ?? prev.startTime,
+  endTime: data.endTime ?? prev.endTime,
+}));
 
         lastLocalUpdate.current = Date.now();
       } catch (err) {
