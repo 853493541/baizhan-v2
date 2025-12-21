@@ -4,11 +4,7 @@ import styles from "./styles.module.css";
 import type { AssignedDrop } from "../index";
 import type { GroupResult } from "@/utils/solver";
 
-import {
-  toastSuccess,
-  toastError,
-} from "@/app/components/toast/toast";
-
+import { toastSuccess, toastError } from "@/app/components/toast/toast";
 import ConfirmModal from "@/app/components/ConfirmModal";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
@@ -36,10 +32,7 @@ export default function Assigned({
   onStore,
   loading,
 }: Props) {
-
-  /* =======================================================
-     confirmation state
-  ======================================================= */
+  /* ================= confirmation state ================= */
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [confirmConfig, setConfirmConfig] = React.useState<{
     title: string;
@@ -74,7 +67,6 @@ export default function Assigned({
   const getLevelFromCharacter = (drop: AssignedDrop): number | null => {
     const char = drop.character as Character | undefined;
     if (!char?.abilities) return null;
-
     const raw = char.abilities[drop.ability];
     const parsed = typeof raw === "string" ? parseInt(raw, 10) : Number(raw);
     return Number.isFinite(parsed) ? parsed : null;
@@ -83,22 +75,13 @@ export default function Assigned({
   const hasLevel10InStorage = (drop: AssignedDrop): boolean => {
     const char = drop.character as Character | undefined;
     if (!char?.storage) return false;
-
     return char.storage.some(
-      (i) =>
-        i.ability === drop.ability &&
-        i.level === 10 &&
-        i.used === false
+      (i) => i.ability === drop.ability && i.level === 10 && i.used === false
     );
   };
 
-  /* =======================================================
-     real execution logic
-  ======================================================= */
-  const proceedUse = async (
-    drop: AssignedDrop,
-    useStorageAfter: boolean
-  ) => {
+  /* ================= real execution logic ================= */
+  const proceedUse = async (drop: AssignedDrop, useStorageAfter: boolean) => {
     try {
       await onUse(drop);
     } catch {
@@ -119,15 +102,11 @@ export default function Assigned({
           {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              ability: drop.ability,
-              level: 10,
-            }),
+            body: JSON.stringify({ ability: drop.ability, level: 10 }),
           }
         );
 
         if (!res.ok) throw new Error();
-
         toastSuccess(`已一起使用 ${drop.ability} 十重`);
       } catch {
         toastError("使用背包技能失败，请稍后再试");
@@ -135,27 +114,18 @@ export default function Assigned({
     }
   };
 
-  /* =======================================================
-     orchestrator
-  ======================================================= */
+  /* ================= orchestrator ================= */
   const handleUseClick = (drop: AssignedDrop) => {
     const currentLevel = getLevelFromCharacter(drop);
 
-    // 🟠 warning: unusual but allowed
     if (drop.level === 9 && hasLevel10InStorage(drop)) {
-      requestConfirm(
-        "确认使用",
-        "包里找到十重，是否一起使用？",
-        "warning",
-        () => {
-          setConfirmOpen(false);
-          proceedUse(drop, true);
-        }
-      );
+      requestConfirm("确认使用", "包里找到十重，是否一起使用？", "warning", () => {
+        setConfirmOpen(false);
+        proceedUse(drop, true);
+      });
       return;
     }
 
-    // 🔴 danger: override data
     if (drop.level === 10 && (currentLevel ?? 0) < 9) {
       requestConfirm(
         "确认修改",
@@ -169,26 +139,18 @@ export default function Assigned({
       return;
     }
 
-    // 🔵 neutral: normal upgrade
     if (drop.level === 9 && (currentLevel ?? 0) < 8) {
-      requestConfirm(
-        "确认升级",
-        "是否消耗通本和这本书升级？",
-        "neutral",
-        () => {
-          setConfirmOpen(false);
-          proceedUse(drop, false);
-        }
-      );
+      requestConfirm("确认升级", "是否消耗通本和这本书升级？", "neutral", () => {
+        setConfirmOpen(false);
+        proceedUse(drop, false);
+      });
       return;
     }
 
     proceedUse(drop, false);
   };
 
-  /* =======================================================
-     RENDER
-  ======================================================= */
+  /* ================= render ================= */
   if (!drops?.length) {
     return (
       <div className={styles.box}>
@@ -217,11 +179,19 @@ export default function Assigned({
         );
 
         return (
-          <div key={charName} className={styles.charSection}>
-            <span className={`${styles.charBubble} ${getRoleColorClass(charRole)}`}>
-              {charName}
-            </span>
+          <div key={charName} className={styles.charRow}>
+            {/* character column */}
+            <div className={styles.charCol}>
+              <span
+                className={`${styles.charBubble} ${getRoleColorClass(
+                  charRole
+                )}`}
+              >
+                {charName}
+              </span>
+            </div>
 
+            {/* abilities */}
             <ul className={styles.assignmentList}>
               {sortedList.map((a, i) => {
                 const currentLevel = getLevelFromCharacter(a);
@@ -281,7 +251,6 @@ export default function Assigned({
         );
       })}
 
-      {/* confirmation modal */}
       {confirmOpen && confirmConfig && (
         <ConfirmModal
           title={confirmConfig.title}

@@ -12,43 +12,52 @@
   max-width: 480px;
 }
 
-/* === Title === */
 .title {
   font-size: 16px;
   font-weight: bold;
-  margin-bottom: 12px;
+  margin-bottom: 2px;
 }
 
-/* === Character section === */
-.charSection {
+/* === compact row layout === */
+.charRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 6px 0;
   border-bottom: 1px solid #eee;
-  padding: 10px 0;
 }
-.charSection:last-child {
+.charRow:last-child {
   border-bottom: none;
+}
+
+/* 🔒 fixed column width (white space only) */
+.charCol {
+  padding-top:5px;
+  width: 104px;
+  flex-shrink: 0;
 }
 
 /* === Character bubble === */
 .charBubble {
   display: inline-block;
-  padding: 4px 10px;
+  padding: 6px 10px;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  margin-bottom: 6px;
+  white-space: nowrap;
 }
 
-/* ✅ Role colors */
+/* role colors */
 .tank {
-  background-color: #fff3cd; /* light yellow */
+  background-color: #fff3cd;
   color: #8b4513;
 }
 .dps {
-  background-color: #d4edda; /* light green */
+  background-color: #d4edda;
   color: #155724;
 }
 .healer {
-  background-color: #f8d7da; /* light pink */
+  background-color: #f8d7da;
   color: #721c24;
 }
 
@@ -57,20 +66,22 @@
   list-style: none;
   padding: 0;
   margin: 0;
+  flex: 1;
 }
 
 .assignmentItem {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 4px;
+  padding: 4px 4px;
   border-bottom: 1px solid #eee;
+
 }
 .assignmentItem:last-child {
   border-bottom: none;
 }
 
-/* === Left part: icon + text === */
+/* === Left part === */
 .leftContent {
   display: flex;
   align-items: center;
@@ -88,26 +99,20 @@
   white-space: nowrap;
 }
 
-/* === Right side: warning + buttons === */
+/* === Right side === */
 .rightContent {
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  gap: 4px; /* compact but readable */
+  gap: 4px;
   margin-left: auto;
 }
 
 .warning {
-  color: #e07b00;           /* warm amber tone */
+  color: #e07b00;
   font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
-  writing-mode: horizontal-tb;
-  display: inline-flex;
-  align-items: center;
-  margin-right: 0;           /* ✅ no gap before buttons */
-  margin-left: -2px;         /* ✅ slightly overlap with text edge */
-  margin-top: -1px;          /* ✅ vertically aligned with buttons */
 }
 
 /* === Buttons === */
@@ -115,13 +120,12 @@
 .storeBtn {
   border: none;
   border-radius: 4px;
-  padding: 3px 8px;
+  padding: 4px 8px;
   color: #fff;
   cursor: pointer;
   font-size: 13px;
   white-space: nowrap;
 }
-
 .useBtn {
   background: #4caf50;
 }
@@ -139,39 +143,22 @@
   cursor: not-allowed;
 }
 
-/* === Status badges (if any) === */
-.badge {
-  display: inline-block;
-  padding: 2px 6px;
-  border-radius: 6px;
-  font-size: 12px;
-  margin-left: 6px;
-}
-.assigned { background: #eee; color: #333; }
-.pending { background: #fff3cd; color: #8b6b00; }
-.used { background: #d4edda; color: #155724; }
-.saved { background: #e2d5f9; color: #452c80; }
-
-/* === Empty placeholder box === */
+/* === Empty box === */
 .emptyBox {
-  border: 1px dashed #ccc;
-  border-radius: 6px;
-  padding: 24px;
-  text-align: center;
+  padding: 20px 0;          /* same vertical rhythm as rows */
   font-size: 14px;
-  color: #888;
-  background-color: #fafafa;
-  min-height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-style: italic;
+  font-weight: 600;
+  color: #999;
+   text-align: center;
 }
-.yellowBtn {
-  background-color: #ffc107;
-  color: #212529;
-}
-.debugText {
-  color: #aaa;
-  font-size: 11px;
-  margin-left: 4px;
+/* subtle vertical divider to give the gap meaning */
+.assignmentList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex: 1;
+
+  border-left: 1px solid #eee;   /* 👈 the divider */
+  padding-left: 12px;            /* spacing from divider */
 }
