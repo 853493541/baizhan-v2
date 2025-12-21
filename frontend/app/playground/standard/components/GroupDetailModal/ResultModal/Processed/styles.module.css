@@ -18,44 +18,60 @@
   margin-bottom: 12px;
 }
 
-.charSection {
-  border-bottom: 1px solid #eee;
+/* === compact row layout === */
+.charRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
   padding: 10px 0;
+  border-bottom: 1px solid #eee;
 }
 
-.charSection:last-child {
+.charRow:last-child {
   border-bottom: none;
 }
 
+/* 🔒 fixed column width for names (white space only) */
+.charCol {
+  width: 104px;
+  flex-shrink: 0;
+}
+
+/* character bubble (natural size, NOT stretched) */
 .charBubble {
   display: inline-block;
-  padding: 4px 10px;
+  padding: 6px 10px;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
-  margin-bottom: 6px;
+  white-space: nowrap;
 }
 
-/* ✅ import your role colors */
+/* role colors */
 .tank {
   background-color: #fff3cd;
   color: #8b4513;
 }
+
 .dps {
   background-color: #d4edda;
   color: #155724;
 }
+
 .healer {
   background-color: #f8d7da;
   color: #721c24;
 }
 
+/* ability list */
 .assignmentList {
   list-style: none;
   padding: 0;
   margin: 0;
+  flex: 1;
 }
 
+/* ability row */
 .assignmentItem {
   display: flex;
   justify-content: flex-start;
@@ -73,7 +89,7 @@
   align-items: center;
   gap: 8px;
   flex: 1;
-  min-width: 180px;
+  min-width: 0;
 }
 
 .assignmentIcon {
@@ -87,18 +103,36 @@
   white-space: nowrap;
 }
 
-/* ✅ keep badges for processed display */
+/* badges */
 .badge {
+  margin-left: auto;
   display: inline-block;
-  padding: 2px 6px;
+  padding: 2px 8px;
   border-radius: 6px;
   font-size: 12px;
-  margin-left: 6px;
+  font-weight: 500;
 }
-.assigned { background: #eee; color: #333; }
-.pending { background: #fff3cd; color: #8b6b00; }
-.used { background: #d4edda; color: #155724; }
-.saved { background: #e2d5f9; color: #452c80; }
+
+.assigned {
+  background: #eee;
+  color: #333;
+}
+
+.pending {
+  background: #fff3cd;
+  color: #8b6b00;
+}
+
+.used {
+  background: #d4edda;
+  color: #155724;
+}
+
+.saved {
+  background: #e2d5f9;
+  color: #452c80;
+}
+
 .emptyBox {
   border: 1px dashed #ccc;
   border-radius: 6px;
@@ -111,20 +145,4 @@
   display: flex;
   align-items: center;
   justify-content: center;
-}
-.leftContent {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-  min-width: 180px;
-}
-
-/* ✅ move badge to right side of its row */
-.badge {
-  margin-left: auto;        /* pushes badge to the right */
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
 }
