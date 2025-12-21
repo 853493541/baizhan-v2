@@ -336,17 +336,33 @@ export default function BossMap({
           onSave={async (floor, data) => {
             await updateGroupKill(floor, selected.boss, data);
             setSelected(null);
-
-            if (status === "not_started") {
+console.log("🧪 [BossMap] onSave floor received:", floor);
+if (status === "not_started" && floor !== 100) {
               await markGroupStartedTime();   // ⭐ startTime
               await updateGroupStatus("started");
             }
           }}
           groupStatus={status}
-         onMarkStarted={async () => {
-  await markGroupStartedTime();
-  await updateGroupStatus("started");
+
+
+
+onMarkStarted={async (floor?: number) => {
+  console.log("[BossMap] onMarkStarted called, floor =", floor);
+
+  // 🚨 Guard invalid calls
+  if (typeof floor !== "number") return;
+
+  // 🚨 Guard floor 100
+  if (status === "not_started" && floor !== 100) {
+    await markGroupStartedTime();
+    await updateGroupStatus("started");
+  }
 }}
+
+
+
+
+
           onAfterReset={() => {
             const newGroup = {
               ...localGroup,
