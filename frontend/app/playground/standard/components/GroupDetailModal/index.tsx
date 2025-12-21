@@ -189,7 +189,6 @@ export default function GroupDetailModal({
           <ResultWindow
             scheduleId={scheduleId}
             group={groupData}
-            countdown={countdown}
             onRefresh={fetchGroupKills}
           />
         </div>
