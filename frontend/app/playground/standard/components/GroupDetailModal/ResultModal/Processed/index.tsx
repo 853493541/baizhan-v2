@@ -84,9 +84,9 @@ export default function Processed({
                         }`}
                       >
                         {a.status === "used"
-                          ? "已使用"
+                          ? "已用"
                           : a.status === "saved"
-                          ? "已存入"
+                          ? "已存"
                           : a.status === "assigned"
                           ? "已分配"
                           : "已处理"}
