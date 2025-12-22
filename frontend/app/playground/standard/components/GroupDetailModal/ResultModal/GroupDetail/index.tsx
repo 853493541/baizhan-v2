@@ -15,12 +15,12 @@ const getAbilityIcon = (fullName: string) => `/icons/${fullName}.png`;
    Core abilities (fixed set)
 ================================ */
 const CORE_ABILITIES = [
-  { fullName: "黑煞落贪狼", shortName: "黑煞" },
-  { fullName: "花钱消灾", shortName: "花钱" },
-  { fullName: "引燃", shortName: "引燃" },
-  { fullName: "一闪天诛", shortName: "天诛" },
-  { fullName: "斗转金移", shortName: "斗转" },
-  { fullName: "飞云回转刀", shortName: "飞刀" },
+  { fullName: "黑煞落贪狼" },
+  { fullName: "花钱消灾" },
+  { fullName: "引燃" },
+  { fullName: "一闪天诛" },
+  { fullName: "斗转金移" },
+  { fullName: "飞云回转刀" },
 ];
 
 /* ===============================
@@ -56,10 +56,7 @@ const HIGHLIGHT_ABILITIES = [
   "泉映幻歌",
 ];
 
-export default function GroupDetail({
-  group,
-  checkedAbilities,
-}: Props) {
+export default function GroupDetail({ group, checkedAbilities }: Props) {
   /* ===============================
      Server resolution
   ================================ */
@@ -69,9 +66,7 @@ export default function GroupDetail({
     }
 
     const servers = new Set(
-      group.characters
-        .map((c: any) => c.server)
-        .filter(Boolean)
+      group.characters.map((c: any) => c.server).filter(Boolean)
     );
 
     if (servers.size === 1) {
@@ -103,45 +98,46 @@ export default function GroupDetail({
   }, [group.characters]);
 
   /* ===============================
-     Core ability summary
-  ================================ */
-  const coreAbilitySummary = useMemo(() => {
-    return CORE_ABILITIES.map((core) => ({
-      fullName: core.fullName,
-      shortName: core.shortName,
-      count: allAbilityCounts[core.fullName] || 0,
-    }));
-  }, [allAbilityCounts]);
-
-  /* ===============================
      Checked level-10 abilities
   ================================ */
-  const checkedLv10Set = useMemo(() => {
-    return new Set(
-      checkedAbilities
-        .filter((a) => a.level === 10)
-        .map((a) => a.name)
-    );
-  }, [checkedAbilities]);
+  const checkedLv10Set = useMemo(
+    () =>
+      new Set(
+        checkedAbilities
+          .filter((a) => a.level === 10)
+          .map((a) => a.name)
+      ),
+    [checkedAbilities]
+  );
+
+  /* ===============================
+     Core abilities with counts
+  ================================ */
+  const coreAbilities = useMemo(
+    () =>
+      CORE_ABILITIES.map((ab) => ({
+        name: ab.fullName,
+        count: allAbilityCounts[ab.fullName] || 0,
+      })),
+    [allAbilityCounts]
+  );
 
   /* ===============================
      Wasted abilities
   ================================ */
-  const wastedAbilities = useMemo(() => {
-    return HIGHLIGHT_ABILITIES
-      .filter(
+  const wastedAbilities = useMemo(
+    () =>
+      HIGHLIGHT_ABILITIES.filter(
         (name) =>
           allAbilityCounts[name] === 3 &&
           checkedLv10Set.has(name)
-      )
-      .map((name) => ({
-        fullName: name,
-      }));
-  }, [allAbilityCounts, checkedLv10Set]);
+      ),
+    [allAbilityCounts, checkedLv10Set]
+  );
 
   return (
     <div className={styles.box}>
-      <div className={styles.title}>分组信息</div>
+      <div className={styles.title}>信息</div>
 
       <div className={styles.body}>
         <div className={styles.row}>
@@ -157,56 +153,52 @@ export default function GroupDetail({
 
       <div className={styles.divider} />
 
-      <div className={styles.sectionTitle}>
-        已有十重核心技能
-      </div>
+      {/* ===============================
+          核心技能
+      ================================ */}
+      <div className={styles.sectionTitle}>核心技能</div>
 
-      <div className={styles.abilityGrid}>
-        {coreAbilitySummary.map((ab) => {
-          let color: string | undefined;
-          if (ab.count === 0) color = "#c0392b";
-          if (ab.count === 3) color = "#1e8449";
-
-          return (
-            <div key={ab.fullName} className={styles.abilityItem}>
-              <img
-                src={getAbilityIcon(ab.fullName)}
-                alt={ab.fullName}
-                className={styles.abilityIcon}
-              />
-              <span
-                className={styles.abilityText}
-                style={{ color }}
-              >
-                {ab.shortName} × {ab.count}
-              </span>
-            </div>
-          );
-        })}
+      <div className={`${styles.abilityGrid} ${styles.coreGrid}`}>
+        {coreAbilities.map((ab) => (
+          <div
+            key={ab.name}
+            className={styles.abilityItem}
+            title={`${ab.name} × ${ab.count}`}
+          >
+            <img
+              src={getAbilityIcon(ab.name)}
+              alt={ab.name}
+              className={styles.coreIcon}
+            />
+            <span className={styles.abilityText}>
+              × {ab.count}
+            </span>
+          </div>
+        ))}
       </div>
 
       <div className={styles.divider} />
 
-      <div className={styles.sectionTitle}>十重浪费技能</div>
+      {/* ===============================
+          浪费技能
+      ================================ */}
+      <div className={styles.sectionTitle}>浪费</div>
 
       {wastedAbilities.length === 0 ? (
-        <div className={styles.emptyBox}>暂无浪费技能</div>
+        <div className={styles.emptyBox}>无浪费技能</div>
       ) : (
-        /* ✅ 2 per row, full name */
-        <div className={styles.abilityGrid}>
-          {wastedAbilities.map((ab) => (
-            <div key={ab.fullName} className={styles.abilityItem}>
+        <div className={`${styles.abilityGrid} ${styles.wastedGrid}`}>
+          {wastedAbilities.map((name) => (
+            <div
+              key={name}
+              className={styles.abilityItem}
+              title={name}
+            >
               <img
-                src={getAbilityIcon(ab.fullName)}
-                alt={ab.fullName}
-                className={styles.abilityIcon}
+                src={getAbilityIcon(name)}
+                alt={name}
+                className={styles.wastedIcon}
               />
-              <span
-                className={styles.abilityText}
-                style={{ color: "#c0392b" }}
-              >
-                {ab.fullName}
-              </span>
             </div>
           ))}
         </div>
