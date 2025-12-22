@@ -1,4 +1,4 @@
-/* processed section shares same base */
+/* processed section */
 .box {
   display: flex;
   flex-direction: column;
@@ -15,35 +15,44 @@
 .title {
   font-size: 16px;
   font-weight: bold;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 
-/* === compact row layout === */
+/* ⭐ shared grid */
+.rowsGrid {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 12px;
+}
+
+/* each character consumes two grid cells */
 .charRow {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 6px 0;
+  display: contents;
+}
+
+/* 🔑 FULL-WIDTH horizontal divider between characters */
+.charRow::after {
+  content: "";
+  grid-column: 1 / -1;
   border-bottom: 1px solid #eee;
 }
 
-.charRow:last-child {
+/* remove divider after last character */
+.charRow[data-last="true"]::after {
   border-bottom: none;
 }
 
-/* 🔒 fixed column width for names (white space only) */
+/* character column */
 .charCol {
-    padding-top:5px;
-  width: 104px;
-  flex-shrink: 0;
+  padding-top: 5px;
 }
 
-/* character bubble (natural size, NOT stretched) */
+/* character pill — content-sized */
 .charBubble {
   display: inline-block;
-  padding: 4px 10px;
+  padding: 4px 8px;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -53,38 +62,36 @@
   background-color: #fff3cd;
   color: #8b4513;
 }
-
 .dps {
   background-color: #d4edda;
   color: #155724;
 }
-
 .healer {
   background-color: #f8d7da;
   color: #721c24;
 }
 
-/* ability list */
+/* abilities list */
 .assignmentList {
   list-style: none;
-  padding: 0;
+  padding: 0 0 6px 12px;
   margin: 0;
-  flex: 1;
+
+  border-left: 1px solid #eee; /* vertical divider */
 }
 
 /* ability row */
 .assignmentItem {
   display: flex;
-  justify-content: flex-start;
   align-items: center;
   padding: 4px 4px;
   border-bottom: 1px solid #eee;
 }
-
 .assignmentItem:last-child {
   border-bottom: none;
 }
 
+/* left content */
 .leftContent {
   display: flex;
   align-items: center;
@@ -118,36 +125,24 @@
   background: #eee;
   color: #333;
 }
-
 .pending {
   background: #fff3cd;
   color: #8b6b00;
 }
-
 .used {
   background: #d4edda;
   color: #155724;
 }
-
 .saved {
   background: #e2d5f9;
   color: #452c80;
 }
 
 .emptyBox {
-  padding: 20px 0;          /* same vertical rhythm as rows */
+  padding: 20px 0;
   font-size: 14px;
   font-style: italic;
   font-weight: 600;
   color: #999;
-   text-align: center;
-}
-.assignmentList {
-  list-style: none;
-  margin: 0;
-  flex: 1;
-
-  border-left: 1px solid #eee;
-  padding-left: 12px;
-  padding-top: 4px;
+  text-align: center;
 }

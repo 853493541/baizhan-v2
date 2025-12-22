@@ -18,29 +18,39 @@
   margin-bottom: 2px;
 }
 
-/* === compact row layout === */
+/* ⭐ ONE shared grid for all character blocks */
+.rowsGrid {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 12px;
+}
+
+/* each character is "two grid cells": charCol + assignmentList */
 .charRow {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 6px 0;
+  display: contents;
+}
+
+/* ✅ FULL-WIDTH horizontal divider */
+.charRow::after {
+  content: "";
+  grid-column: 1 / -1;
   border-bottom: 1px solid #eee;
 }
-.charRow:last-child {
+
+/* last character should not have divider */
+.charRow[data-last="true"]::after {
   border-bottom: none;
 }
 
-/* 🔒 fixed column width (white space only) */
+/* character column */
 .charCol {
-  padding-top:5px;
-  width: 104px;
-  flex-shrink: 0;
+  padding-top: 5px;
 }
 
-/* === Character bubble === */
+/* character pill (compact, no stretch) */
 .charBubble {
   display: inline-block;
-  padding: 6px 10px;
+  padding: 6px 8px;
   border-radius: 8px;
   font-size: 13px;
   font-weight: 600;
@@ -61,21 +71,22 @@
   color: #721c24;
 }
 
-/* === Ability list === */
+/* === Ability list (per character) === */
 .assignmentList {
   list-style: none;
-  padding: 0;
+  padding: 0 0 6px 12px;
   margin: 0;
-  flex: 1;
+
+  border-left: 1px solid #eee; /* keep vertical divider */
 }
 
+/* ability rows */
 .assignmentItem {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 4px 4px;
   border-bottom: 1px solid #eee;
-
 }
 .assignmentItem:last-child {
   border-bottom: none;
@@ -108,13 +119,6 @@
   margin-left: auto;
 }
 
-.warning {
-  color: #e07b00;
-  font-size: 13px;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
 /* === Buttons === */
 .useBtn,
 .storeBtn {
@@ -145,20 +149,10 @@
 
 /* === Empty box === */
 .emptyBox {
-  padding: 20px 0;          /* same vertical rhythm as rows */
+  padding: 20px 0;
   font-size: 14px;
   font-style: italic;
   font-weight: 600;
   color: #999;
-   text-align: center;
-}
-/* subtle vertical divider to give the gap meaning */
-.assignmentList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  flex: 1;
-
-  border-left: 1px solid #eee;   /* 👈 the divider */
-  padding-left: 12px;            /* spacing from divider */
+  text-align: center;
 }
