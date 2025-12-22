@@ -83,18 +83,18 @@ export default function DropStats({ group, assigned }: Props) {
     <div className={styles.card}>
       {/* ===== Header ===== */}
       <div className={styles.header}>
-        <h3 className={styles.title}>掉落统计</h3>
+        <h3 className={styles.title}>统计</h3>
       </div>
 
       {/* ===== Drop rate section ===== */}
       <StatRow
-        label="九阶首领掉率"
+        label="九阶掉率"
         ratio={`${lv9Assigned} / ${totalLv9Boss}`}
         percent={percent(lv9Assigned, totalLv9Boss)}
       />
 
       <StatRow
-        label="十阶首领掉率"
+        label="十阶掉率"
         ratio={`${lv10Assigned} / ${totalLv10Boss}`}
         percent={percent(lv10Assigned, totalLv10Boss)}
       />
@@ -112,11 +112,11 @@ export default function DropStats({ group, assigned }: Props) {
       {/* ===== Lifecycle ===== */}
       <div className={styles.lifecycle}>
         <div className={styles.lifeRow}>
-          <span className={styles.lifeLabel}>开始时间</span>
+          <span className={styles.lifeLabel}>开始</span>
           <span>{formatTime(group.startTime)}</span>
         </div>
         <div className={styles.lifeRow}>
-          <span className={styles.lifeLabel}>结束时间</span>
+          <span className={styles.lifeLabel}>结束</span>
           <span>{formatTime(group.endTime)}</span>
         </div>
         <div className={styles.lifeRow}>

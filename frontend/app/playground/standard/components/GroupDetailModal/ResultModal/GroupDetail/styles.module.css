@@ -8,8 +8,8 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 
   width: fit-content;
-  min-width: 260px;
-  max-width: 480px;
+  min-width: 240px;
+  max-width: 240px;
 }
 
 .title {
@@ -57,13 +57,28 @@
   margin-bottom: 6px;
 }
 
-/* ability grid (core skills) */
+/* ===============================
+   Ability grid (base)
+================================ */
 .abilityGrid {
   display: grid;
-  grid-template-columns: repeat(2, auto);
-  gap: 6px 16px;
+  gap: 6px 12px;
 }
 
+/* 核心技能：固定 3 列 */
+.coreGrid {
+  grid-template-columns: repeat(3, auto);
+}
+
+/* 浪费技能：自动流式排列（不限制每行数量） */
+.wastedGrid {
+  grid-auto-flow: row;
+  grid-template-columns: repeat(auto-fill, minmax(28px, 1fr));
+}
+
+/* ===============================
+   Ability item
+================================ */
 .abilityItem {
   display: flex;
   align-items: center;
@@ -71,39 +86,38 @@
   font-size: 14px;
 }
 
-.abilityIcon {
-  width: 20px;
-  height: 20px;
+/* ===============================
+   核心技能 icon（单独控制）
+================================ */
+.coreIcon {
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
 }
 
+/* ===============================
+   浪费技能 icon（单独控制）
+================================ */
+.wastedIcon {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+
+  border: 2px solid #c0392b;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+/* ===============================
+   Text
+================================ */
 .abilityText {
   font-weight: 600;
 }
 
-/* === NEW: shared pill row layout === */
-.pillRow {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-/* character-style pill (used for wasted abilities) */
-.charBubble {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-
-  background-color: #f8d7da; /* healer color */
-  color: #721c24;
-}
-
+/* ===============================
+   Empty state
+================================ */
 .emptyBox {
   padding: 12px 0;
   font-size: 14px;
@@ -111,17 +125,4 @@
   font-weight: 600;
   color: #999;
   text-align: center;
-}
-/* existing */
-.abilityGrid {
-  display: grid;
-  grid-template-columns: repeat(2, auto);
-  gap: 6px 16px;
-}
-
-/* 🔽 ONLY used by 浪费技能 */
-.wastedGrid {
-  display: grid;
-  grid-template-columns: repeat(4, auto);
-  gap: 6px 16px;
 }
