@@ -32,7 +32,6 @@ export default function Assigned({
   onStore,
   loading,
 }: Props) {
-  /* ================= confirmation state ================= */
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [confirmConfig, setConfirmConfig] = React.useState<{
     title: string;
@@ -80,7 +79,6 @@ export default function Assigned({
     );
   };
 
-  /* ================= real execution logic ================= */
   const proceedUse = async (drop: AssignedDrop, useStorageAfter: boolean) => {
     try {
       await onUse(drop);
@@ -114,7 +112,6 @@ export default function Assigned({
     }
   };
 
-  /* ================= orchestrator ================= */
   const handleUseClick = (drop: AssignedDrop) => {
     const currentLevel = getLevelFromCharacter(drop);
 
@@ -150,7 +147,6 @@ export default function Assigned({
     proceedUse(drop, false);
   };
 
-  /* ================= render ================= */
   if (!drops?.length) {
     return (
       <div className={styles.box}>
@@ -160,96 +156,100 @@ export default function Assigned({
     );
   }
 
+  const grouped = Object.entries(
+    drops.reduce((acc: Record<string, AssignedDrop[]>, d) => {
+      if (!acc[d.char]) acc[d.char] = [];
+      acc[d.char].push(d);
+      return acc;
+    }, {})
+  );
+
   return (
     <div className={styles.box}>
       <h3 className={styles.title}>已分配</h3>
 
-      {Object.entries(
-        drops.reduce((acc: Record<string, AssignedDrop[]>, d) => {
-          if (!acc[d.char]) acc[d.char] = [];
-          acc[d.char].push(d);
-          return acc;
-        }, {})
-      ).map(([charName, list]) => {
-        const charRole = list[0]?.role;
-        const sortedList = [...list].sort(
-          (a, b) =>
-            ({ 9: 1, 10: 2 }[a.level] ?? 99) -
-            ({ 9: 1, 10: 2 }[b.level] ?? 99)
-        );
+      <div className={styles.rowsGrid}>
+        {grouped.map(([charName, list], idx) => {
+          const charRole = list[0]?.role;
+          const isLastChar = idx === grouped.length - 1;
 
-        return (
-          <div key={charName} className={styles.charRow}>
-            {/* character column */}
-            <div className={styles.charCol}>
-              <span
-                className={`${styles.charBubble} ${getRoleColorClass(
-                  charRole
-                )}`}
+          return (
+            <div
+              key={charName}
+              className={styles.charRow}
+              data-last={isLastChar ? "true" : "false"}
+            >
+              <div className={styles.charCol}>
+                <span
+                  className={`${styles.charBubble} ${getRoleColorClass(
+                    charRole
+                  )}`}
+                  title={charName}
+                >
+                  {charName.slice(0, 4)}
+                </span>
+              </div>
+
+              <ul
+                className={`${styles.assignmentList} ${
+                  isLastChar ? styles.lastChar : ""
+                }`}
               >
-                {charName}
-              </span>
+                {list.map((a, i) => {
+                  const currentLevel = getLevelFromCharacter(a);
+                  const has10 = a.level === 9 && hasLevel10InStorage(a);
+
+                  let btnText = "使用";
+                  let btnStyle = styles.useBtn;
+
+                  if (a.level === 9 && (currentLevel ?? 0) < 8) {
+                    btnText = "未八";
+                    btnStyle = `${styles.useBtn} ${styles.yellowBtn}`;
+                  } else if (a.level === 10 && (currentLevel ?? 0) < 9) {
+                    btnText = "未九";
+                    btnStyle = `${styles.useBtn} ${styles.yellowBtn}`;
+                  } else if (has10) {
+                    btnText = "有十";
+                    btnStyle = `${styles.useBtn} ${styles.yellowBtn}`;
+                  }
+
+                  return (
+                    <li key={i} className={styles.assignmentItem}>
+                      <div className={styles.leftContent}>
+                        <img
+                          src={getAbilityIcon(a.ability)}
+                          className={styles.assignmentIcon}
+                          alt={a.ability}
+                        />
+                        <span className={styles.assignmentText}>
+                          {a.level === 9 ? "九重" : "十重"} · {a.ability}
+                        </span>
+                      </div>
+
+                      <div className={styles.rightContent}>
+                        <button
+                          disabled={loading === a.ability}
+                          onClick={() => handleUseClick(a)}
+                          className={btnStyle}
+                        >
+                          {btnText}
+                        </button>
+                        <button
+                          disabled={loading === a.ability}
+                          onClick={() => onStore(a)}
+                          className={styles.storeBtn}
+                        >
+                          存入
+                        </button>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
-
-            {/* abilities */}
-            <ul className={styles.assignmentList}>
-              {sortedList.map((a, i) => {
-                const currentLevel = getLevelFromCharacter(a);
-                const has10 = a.level === 9 && hasLevel10InStorage(a);
-
-                let warningText = "";
-                let btnStyle = styles.useBtn;
-
-                if (a.level === 9 && (currentLevel ?? 0) < 8) {
-                  warningText = "未到8重";
-                  btnStyle = `${styles.useBtn} ${styles.yellowBtn}`;
-                } else if (a.level === 10 && (currentLevel ?? 0) < 9) {
-                  warningText = "未到9重";
-                  btnStyle = `${styles.useBtn} ${styles.yellowBtn}`;
-                } else if (has10) {
-                  warningText = "拥有10重";
-                  btnStyle = `${styles.useBtn} ${styles.yellowBtn}`;
-                }
-
-                return (
-                  <li key={i} className={styles.assignmentItem}>
-                    <div className={styles.leftContent}>
-                      <img
-                        src={getAbilityIcon(a.ability)}
-                        className={styles.assignmentIcon}
-                        alt={a.ability}
-                      />
-                      <span className={styles.assignmentText}>
-                        {a.level === 9 ? "九重" : "十重"} · {a.ability}
-                      </span>
-                    </div>
-
-                    <div className={styles.rightContent}>
-                      {warningText && (
-                        <span className={styles.warning}>{warningText}</span>
-                      )}
-                      <button
-                        disabled={loading === a.ability}
-                        onClick={() => handleUseClick(a)}
-                        className={btnStyle}
-                      >
-                        使用
-                      </button>
-                      <button
-                        disabled={loading === a.ability}
-                        onClick={() => onStore(a)}
-                        className={styles.storeBtn}
-                      >
-                        存入
-                      </button>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
 
       {confirmOpen && confirmConfig && (
         <ConfirmModal
