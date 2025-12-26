@@ -11,14 +11,18 @@ import SolverButtons from "./SolverButtons";
 import DisplayGroups from "./DisplayGroups";
 import EditAllGroupsModal from "./EditAllGroupsModal";
 
-const MAIN_CHARACTERS = new Set([
+/* 🔥 ORDERED main character priority */
+const MAIN_CHARACTERS = [
   "剑心猫猫糕",
+  "五溪",
   "东海甜妹",
   "饲猫大桔",
-  "五溪",
   "唐宵风",
-  "程老黑",
-]);
+] as const;
+
+const MAIN_ORDER_MAP = new Map(
+  MAIN_CHARACTERS.map((name, idx) => [name, idx])
+);
 
 interface Props {
   schedule: {
@@ -106,14 +110,28 @@ export default function MainSection({
   };
 
   /* ---------------------------------------------------
-     🔥 Automatic reordering (main → alt)
+     🔥 Automatic reordering (main → alt, priority-aware)
   --------------------------------------------------- */
   const reorderGroups = (inputGroups: GroupResult[]) => {
-    const main = inputGroups.filter((g) =>
-      g.characters.some((c) => MAIN_CHARACTERS.has(c.name))
-    );
+    const getPriority = (g: GroupResult) => {
+      let best = Infinity;
+      for (const c of g.characters) {
+        const order = MAIN_ORDER_MAP.get(c.name);
+        if (order !== undefined) {
+          best = Math.min(best, order);
+        }
+      }
+      return best;
+    };
+
+    const main = inputGroups
+      .map((g) => ({ g, priority: getPriority(g) }))
+      .filter(({ priority }) => priority !== Infinity)
+      .sort((a, b) => a.priority - b.priority)
+      .map(({ g }) => g);
+
     const alt = inputGroups.filter(
-      (g) => !g.characters.some((c) => MAIN_CHARACTERS.has(c.name))
+      (g) => !g.characters.some((c) => MAIN_ORDER_MAP.has(c.name))
     );
 
     return [...main, ...alt].map((g, idx) => ({ ...g, index: idx + 1 }));
@@ -139,11 +157,11 @@ export default function MainSection({
   --------------------------------------------------- */
   const mainPairs = groups
     .map((g, i) => ({ g, i }))
-    .filter(({ g }) => g.characters.some((c) => MAIN_CHARACTERS.has(c.name)));
+    .filter(({ g }) => g.characters.some((c) => MAIN_ORDER_MAP.has(c.name)));
 
   const altPairs = groups
     .map((g, i) => ({ g, i }))
-    .filter(({ g }) => !g.characters.some((c) => MAIN_CHARACTERS.has(c.name)));
+    .filter(({ g }) => !g.characters.some((c) => MAIN_ORDER_MAP.has(c.name)));
 
   const finishedCount = groups.filter((g) => g.status === "finished").length;
 
@@ -211,11 +229,10 @@ export default function MainSection({
       {showEditAll && (
         <EditAllGroupsModal
           groups={groups}
-          scheduleId={schedule._id}      // <-- REQUIRED
+          scheduleId={schedule._id}
           onClose={() => setShowEditAll(false)}
           onSave={(updatedGroups) => {
             setGroups(updatedGroups);
-            // ❗ DO NOT CALL saveGroups here — manual edit already saves safely
           }}
         />
       )}
