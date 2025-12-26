@@ -69,7 +69,7 @@ export default function GroupInfo({ group, checkedAbilities, conflictLevel }: Pr
             </span>
           ))
         ) : (
-          <span className={styles.inlineSafe}>✅ 无警告</span>
+          <span className={styles.inlineSafe}>✅ 无</span>
         )}
       </div>
 

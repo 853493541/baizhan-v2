@@ -11,7 +11,7 @@ interface Props {
   onClickFloor?: (floor: number) => void;
 }
 
-const highlightBosses = new Set(["鬼影小次郎", "秦雷", "冯度", "阿依努尔"]);
+const highlightBosses = new Set(["鬼影小次郎", "秦雷", "冯度", "阿依努尔","卫栖梧"]);
 
 export default function MapRow({
   floors,

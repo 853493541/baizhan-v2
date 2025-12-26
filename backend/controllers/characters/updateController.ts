@@ -2,9 +2,10 @@ import { Request, Response } from "express";
 import mongoose from "mongoose";
 import Character from "../../models/Character";
 import AbilityHistory from "../../models/AbilityHistory";
+import { normalizeDefenseAbilities } from "../../utils/normalizeDefenseAbilities";
 
 // =====================================================
-// ✅ Ability Management (existing functionality)
+// ✅ Ability Management
 // =====================================================
 
 // ✅ Update abilities + record every change
@@ -18,7 +19,6 @@ export const updateCharacterAbilities = async (req: Request, res: Response) => {
     const char = await Character.findById(req.params.id);
     if (!char) return res.status(404).json({ error: "Character not found" });
 
-    const setOps: Record<string, number> = {};
     const updated: Array<{ name: string; old: number; new: number }> = [];
     const historyEntries: any[] = [];
 
@@ -29,11 +29,13 @@ export const updateCharacterAbilities = async (req: Request, res: Response) => {
         (char.abilities as any)?.[name] ??
         0;
 
-      setOps[`abilities.${name}`] = newVal;
-      updated.push({ name, old: Number(oldVal), new: newVal });
-
-      // ✅ only log if changed
       if (newVal !== oldVal) {
+        (char.abilities as any).set
+          ? (char.abilities as any).set(name, newVal)
+          : ((char.abilities as any)[name] = newVal);
+
+        updated.push({ name, old: Number(oldVal), new: newVal });
+
         historyEntries.push({
           characterId: char._id,
           characterName: char.name,
@@ -44,18 +46,16 @@ export const updateCharacterAbilities = async (req: Request, res: Response) => {
       }
     }
 
-    if (Object.keys(setOps).length === 0) {
-      return res.status(400).json({ error: "No abilities provided" });
+    if (updated.length === 0) {
+      return res.status(400).json({ error: "No abilities changed" });
     }
 
-    // ✅ perform ability update
-    const newDoc = await Character.findByIdAndUpdate(
-      req.params.id,
-      { $set: setOps },
-      { new: true }
-    );
+    // 🔑 Normalize derived defense abilities (ALWAYS)
+    normalizeDefenseAbilities(char);
 
-    // ✅ insert history logs (if any)
+    await char.save();
+
+    // ✅ insert history logs (explicit user changes only)
     if (historyEntries.length > 0) {
       await AbilityHistory.insertMany(historyEntries);
       console.log(
@@ -63,7 +63,7 @@ export const updateCharacterAbilities = async (req: Request, res: Response) => {
       );
     }
 
-    return res.json({ character: newDoc, updated });
+    return res.json({ character: char, updated });
   } catch (err: any) {
     console.error("❌ updateCharacterAbilities error:", err);
     return res.status(500).json({ error: err.message });
@@ -113,7 +113,7 @@ export const deleteCharacter = async (req: Request, res: Response) => {
 };
 
 // =====================================================
-// ✅ Storage System (存入仓库 / 从仓库使用)
+// ✅ Storage System
 // =====================================================
 
 // ➕ Add a drop to storage
@@ -169,7 +169,7 @@ export const useStoredAbility = async (req: Request, res: Response) => {
     const char = await Character.findById(req.params.id);
     if (!char) return res.status(404).json({ error: "Character not found" });
 
-    // 1️⃣ Upgrade the ability level
+    // 1️⃣ Apply ability level
     const oldLevel =
       (char.abilities as any)?.get?.(ability) ??
       (char.abilities as any)?.[ability] ??
@@ -186,10 +186,13 @@ export const useStoredAbility = async (req: Request, res: Response) => {
     );
     const removed = before - (char as any).storage.length;
 
-    // 3️⃣ Save the character
+    // 🔑 Normalize derived defense abilities
+    normalizeDefenseAbilities(char);
+
+    // 3️⃣ Save
     await char.save();
 
-    // 4️⃣ Log to ability history
+    // 4️⃣ Log user-triggered history
     await AbilityHistory.create({
       characterId: char._id,
       characterName: char.name,

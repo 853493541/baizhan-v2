@@ -294,28 +294,36 @@ export const updateScheduleName = async (req: Request, res: Response) => {
 export const getGroupKills = async (req: Request, res: Response) => {
   try {
     const { id, index } = req.params;
+    const groupIndex = parseInt(index, 10);
 
-    const schedule = await StandardSchedule.findById(id, { groups: 1 }); // only pull groups
+    // Only fetch groups (efficient)
+    const schedule = await StandardSchedule.findById(id, { groups: 1 }).lean();
     if (!schedule) {
       return res.status(404).json({ error: "Schedule not found" });
     }
 
-    const group = schedule.groups.find((g: any) => g.index === parseInt(index));
+    const group = schedule.groups?.find(
+      (g: any) => g.index === groupIndex
+    );
+
     if (!group) {
       return res.status(404).json({ error: "Group not found" });
     }
 
-    // ✅ Return only minimal fields
+    // ✅ Return minimal + lifecycle fields
     res.json({
       index: group.index,
       status: group.status,
       kills: group.kills || [],
+      startTime: group.startTime || null,
+      endTime: group.endTime || null,
     });
   } catch (err) {
     console.error("❌ Error fetching group kills:", err);
     res.status(500).json({ error: "Failed to fetch group kills" });
   }
 };
+
 export const updateScheduleCharacters = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;

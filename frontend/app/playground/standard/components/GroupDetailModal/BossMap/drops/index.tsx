@@ -54,7 +54,8 @@ export default function Drops(props: any) {
   }, [onClose]);
 
   const markStartedIfNeeded = () => {
-    if (groupStatus === "not_started" && onMarkStarted) onMarkStarted();
+if (groupStatus === "not_started" && onMarkStarted) onMarkStarted(floor);
+
   };
 
   /** 🧩 Build full drop options for this floor */

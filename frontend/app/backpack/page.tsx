@@ -21,6 +21,7 @@ interface Character {
   server: string;
   role: string;
   class: string;
+  active?: boolean; // ✅ NEW (only addition)
   abilities?: Record<string, number>;
   storage?: StorageItem[];
 }
@@ -61,7 +62,6 @@ export default function BackpackPage() {
       const saved = localStorage.getItem("backpackFilters");
       if (!saved) return {};
       const parsed = JSON.parse(saved);
-      // drop the cached name
       delete parsed.name;
       return parsed;
     } catch {
@@ -108,7 +108,7 @@ export default function BackpackPage() {
     if (pinyinReady || characters.length === 0) return;
     try {
       const names = characters.map((c) => c.name);
-      const map = await createPinyinMap(names); // triggers lazy import
+      const map = await createPinyinMap(names);
       setPinyinMap(map);
       setPinyinReady(true);
       console.log("✅ Pinyin map loaded on user interaction");
@@ -134,7 +134,8 @@ export default function BackpackPage() {
      🧩 Apply filters
   ---------------------------------------------------------------------- */
   const filtered = useMemo(() => {
-    let list = characters;
+    // ✅ FILTER OUT INACTIVE CHARACTERS HERE (correct place)
+    let list = characters.filter((c) => c.active !== false);
 
     if (ownerFilter) list = list.filter((char) => char.owner === ownerFilter);
     if (serverFilter) list = list.filter((char) => char.server === serverFilter);
@@ -150,7 +151,11 @@ export default function BackpackPage() {
 
     if (nameFilter.trim() && Object.keys(pinyinMap).length > 0) {
       const allNames = list.map((c) => c.name);
-      const matchedNames = pinyinFilter(allNames, pinyinMap, nameFilter.trim());
+      const matchedNames = pinyinFilter(
+        allNames,
+        pinyinMap,
+        nameFilter.trim()
+      );
       list = list.filter((c) => matchedNames.includes(c.name));
     }
 

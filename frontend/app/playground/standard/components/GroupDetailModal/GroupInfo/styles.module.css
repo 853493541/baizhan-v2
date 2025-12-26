@@ -3,8 +3,9 @@
   display: flex;
   align-items: center;
   justify-content: center; /* center characters across full width */
-  margin: 8px 0 12px 0;
+  margin: 4px 0 12px 0;
   width: 100%;
+  /* border:2px red solid; */
 }
 
 /* === Warning section (absolute left) === */
