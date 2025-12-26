@@ -11,9 +11,6 @@ import BossMap from "./BossMap";
 
 import { getGameWeekFromDate } from "@/utils/weekUtils";
 
-import rawBossData from "../../../../data/boss_skills_collection_map.json";
-const bossData: Record<string, string[]> = rawBossData;
-
 /* ======================================================
    TYPES
 ====================================================== */
@@ -76,93 +73,50 @@ export default function GroupDetailModal({
     try {
       setIsRefreshing(true);
 
-      const url = `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${groupIndex + 1}/kills`;
-
-      console.log("🔵 [Kills] fetching:", url);
-
-      const res = await fetch(url);
-
-      console.log("🔵 [Kills] status:", res.status);
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${groupIndex + 1}/kills`
+      );
 
       if (!res.ok) return;
 
       const data = await res.json();
 
-      console.log("🔵 [Kills] payload:", data);
-
-      setGroupData((prev) => {
-        const next = {
-          ...prev,
-          kills: data.kills ?? prev.kills,
-          status: data.status ?? prev.status,
-          startTime: data.startTime ?? prev.startTime,
-          endTime: data.endTime ?? prev.endTime,
-        };
-
-        console.log("🧠 [Kills] state merge:", {
-          prevStatus: prev.status,
-          nextStatus: next.status,
-        });
-
-        return next;
-      });
+      setGroupData((prev) => ({
+        ...prev,
+        kills: data.kills ?? prev.kills,
+        status: data.status ?? prev.status,
+        startTime: data.startTime ?? prev.startTime,
+        endTime: data.endTime ?? prev.endTime,
+      }));
 
       onRefresh?.();
     } catch (err) {
-      console.error("❌ [Kills] auto refresh failed:", err);
+      console.error("❌ Auto refresh (kills) failed:", err);
     } finally {
       setIsRefreshing(false);
     }
   }, [isRefreshing, scheduleId, groupIndex, onRefresh]);
 
   /* -------------------------------------------------------
-     ⭐ 3) Auto refresh boss overrides (DEBUG)
+     ⭐ 3) Auto refresh boss overrides
   ------------------------------------------------------- */
   const fetchAdjustedBoss = useCallback(async () => {
     try {
-      const url = `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${groupIndex + 1}/adjusted-boss`;
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${groupIndex + 1}/adjusted-boss`
+      );
 
-      console.log("🟣 [Adjusted] fetching:", url);
-
-      const res = await fetch(url);
-
-      console.log("🟣 [Adjusted] status:", res.status);
-
-      if (!res.ok) {
-        console.warn("🟡 [Adjusted] response not OK");
-        return;
-      }
+      if (!res.ok) return;
 
       const data = await res.json();
 
-      console.log("🟣 [Adjusted] RAW payload:", data);
-      console.log("🟣 [Adjusted] parsed:", {
-        adjusted90: data.adjusted90,
-        adjusted100: data.adjusted100,
-      });
-
-      setGroupData((prev) => {
-        const next = {
-          ...prev,
-          adjusted90: data.adjusted90 ?? prev.adjusted90,
-          adjusted100: data.adjusted100 ?? prev.adjusted100,
-        };
-
-        console.log("🧠 [Adjusted] state merge:", {
-          prev: {
-            adjusted90: prev.adjusted90,
-            adjusted100: prev.adjusted100,
-          },
-          next: {
-            adjusted90: next.adjusted90,
-            adjusted100: next.adjusted100,
-          },
-        });
-
-        return next;
-      });
+      setGroupData((prev) => ({
+        ...prev,
+        adjusted90: data.adjusted90 ?? prev.adjusted90,
+        adjusted100: data.adjusted100 ?? prev.adjusted100,
+      }));
     } catch (err) {
-      console.error("❌ [Adjusted] fetch failed:", err);
+      console.error("❌ Auto refresh (adjusted boss) failed:", err);
     }
   }, [scheduleId, groupIndex]);
 

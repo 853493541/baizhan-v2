@@ -133,6 +133,7 @@ export default function BossCard({
           />
           <div>{sel.ability}</div>
           <div>{sel.level}重</div>
+          <div>(无)</div>
         </div>
       );
 
