@@ -22,11 +22,8 @@ import { toggleScheduleCharacter } from "../controllers/playground/standardSched
 // ⭐ NEW: safe manual-edit controller
 import { manualEditGroups } from "../controllers/playground/standardSchedules/manualEditGroups";
 
-// ⭐ NEW: group lifecycle (start / end timestamps)
-import {
-  markGroupStarted,
-  markGroupFinished,
-} from "../controllers/playground/standardSchedules/groupLifecycleController";
+// ⭐ NEW: boss adjustment controller
+import { updateGroupAdjustedBoss } from "../controllers/playground/standardSchedules/bossAdjustController";
 
 const router = Router();
 
@@ -74,20 +71,17 @@ router.patch("/:id/manual-groups", manualEditGroups);
 // Update only group status
 router.patch("/:id/groups/:index/status", updateGroupStatus);
 
+// ⭐ NEW: adjust boss for floor 90 / 100
+router.patch(
+  "/:id/groups/:index/adjust-boss",
+  updateGroupAdjustedBoss
+);
+
 // Update a kill record
 router.put("/:id/groups/:index/floor/:floor", updateGroupKill);
 
 // Delete kill record
 router.delete("/:id/groups/:index/floor/:floor", deleteGroupKill);
-
-/* -----------------------------------------------------
-   🔹 GROUP LIFECYCLE (timestamps only)
------------------------------------------------------ */
-// ▶️ Mark group start time (idempotent)
-router.post("/:id/groups/:index/start", markGroupStarted);
-
-// ⏹️ Mark group end time (idempotent)
-router.post("/:id/groups/:index/end", markGroupFinished);
 
 /* -----------------------------------------------------
    🔹 SCHEDULE NAME / DELETE

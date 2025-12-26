@@ -1,5 +1,9 @@
 import mongoose, { Schema, Document } from "mongoose";
 
+/* =====================================================
+   Types
+===================================================== */
+
 interface CheckedAbility {
   name: string;
   level: number;
@@ -11,7 +15,7 @@ interface KillSelection {
   level?: number;
   characterId?: mongoose.Types.ObjectId;
   noDrop?: boolean;
-  status?: "assigned" | "pending" | "used" | "saved"; // ✅ new
+  status?: "assigned" | "pending" | "used" | "saved";
 }
 
 interface Kill {
@@ -28,9 +32,13 @@ interface Group {
   status: "not_started" | "started" | "finished";
   kills: Kill[];
 
-  // ⭐ NEW — lifecycle timestamps
-  startTime?: Date;
-  endTime?: Date;
+  // ⭐ lifecycle timestamps
+  startTime?: Date | null;
+  endTime?: Date | null;
+
+  // ⭐ boss overrides (NEW)
+  adjusted90?: string | null;
+  adjusted100?: string | null;
 }
 
 export interface IStandardSchedule extends Document {
@@ -43,6 +51,10 @@ export interface IStandardSchedule extends Document {
   characters: mongoose.Types.ObjectId[];
   groups: Group[];
 }
+
+/* =====================================================
+   Schemas
+===================================================== */
 
 const AbilitySchema = new Schema<CheckedAbility>(
   {
@@ -58,6 +70,7 @@ const KillSchema = new Schema<Kill>(
     floor: { type: Number, required: true },
     boss: { type: String },
     completed: { type: Boolean, default: false },
+
     selection: {
       ability: { type: String },
       level: { type: Number },
@@ -67,8 +80,9 @@ const KillSchema = new Schema<Kill>(
         type: String,
         enum: ["assigned", "pending", "used", "saved"],
         default: "assigned",
-      }, // ✅ new field
+      },
     },
+
     recordedAt: { type: Date, default: Date.now },
   },
   { _id: false }
@@ -77,17 +91,24 @@ const KillSchema = new Schema<Kill>(
 const GroupSchema = new Schema<Group>(
   {
     index: { type: Number, required: true },
+
     characters: [{ type: Schema.Types.ObjectId, ref: "Character" }],
+
     status: {
       type: String,
       enum: ["not_started", "started", "finished"],
       default: "not_started",
     },
+
     kills: { type: [KillSchema], default: [] },
 
-    // ⭐ NEW — lifecycle timestamps
-    startTime: { type: Date },
-    endTime: { type: Date },
+    // ⭐ lifecycle
+    startTime: { type: Date, default: null },
+    endTime: { type: Date, default: null },
+
+    // ⭐ boss overrides
+    adjusted90: { type: String, default: null },
+    adjusted100: { type: String, default: null },
   },
   { _id: false }
 );
@@ -97,11 +118,19 @@ const StandardScheduleSchema = new Schema<IStandardSchedule>({
   server: { type: String, required: true },
   conflictLevel: { type: Number, enum: [9, 10] },
   createdAt: { type: Date, default: Date.now },
-  checkedAbilities: [AbilitySchema],
+
+  checkedAbilities: { type: [AbilitySchema], default: [] },
+
   characterCount: { type: Number, default: 0 },
+
   characters: [{ type: Schema.Types.ObjectId, ref: "Character" }],
-  groups: [GroupSchema],
+
+  groups: { type: [GroupSchema], default: [] },
 });
+
+/* =====================================================
+   Export
+===================================================== */
 
 export default mongoose.model<IStandardSchedule>(
   "StandardSchedule",

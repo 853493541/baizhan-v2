@@ -8,6 +8,7 @@
   font-size: 12px;
   line-height: 1.4;
   min-height: 100px;
+  /* border:2px red solid; */
 }
 
 .needList {
@@ -147,4 +148,27 @@
   text-align: center;
   gap: 2px;
   line-height: 1.2;
+}
+/* ⭐ 换 boss 圆形按钮 */
+.changeBtn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: #007bff;
+  color: #fff;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.changeBtn:hover {
+  background: #0056b3;
 }
