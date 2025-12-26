@@ -40,7 +40,7 @@
   z-index: 1;
 }
 
-.cardInteractive:hover,
+
 .cardInteractive:focus {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0,0,0,0.15);
@@ -150,25 +150,86 @@
   line-height: 1.2;
 }
 /* ⭐ 换 boss 圆形按钮 */
+/* ⭐ 换 boss 圆形按钮 */
 .changeBtn {
   position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 22px;
-  height: 22px;
+  top: -10px;          /* was 6px */
+  right: -8px;        /* was 6px */
+
+  width: 28px;       /* was 22px */
+  height: 28px;      /* was 22px */
+
   border-radius: 50%;
   border: none;
-  background: #007bff;
+
+  background: orange;
   color: #fff;
-  font-size: 12px;
-  font-weight: bold;
+
+  font-size: 13px;   /* was 12px */
+  font-weight: 600;
+
   cursor: pointer;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   z-index: 2;
+
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
 }
 
 .changeBtn:hover {
-  background: #0056b3;
+  background: orange;
+  transform: scale(1.05);
+}
+/* ===============================
+   SelectionModal boss preview grid
+================================= */
+
+.bossGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  align-content: start;
+}
+
+.previewCard {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 10px;
+  background: #fff;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+  min-height: 120px;
+}
+
+.previewCard:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.10);
+  border-color: #007bff;
+}
+
+.previewActive {
+  border-color: #007bff;
+  box-shadow: 0 4px 12px rgba(0,123,255,0.20);
+}
+
+.previewHeader {
+  font-weight: 800;
+  font-size: 14px;
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.previewNeedList {
+  margin: 0;
+  padding: 0;
+}
+
+.previewNeedList li {
+  list-style: none;
+  font-size: 12px;
+  text-align: center;
+  width: 100%;
 }

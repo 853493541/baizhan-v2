@@ -1,4 +1,3 @@
-// BossMap/index.tsx
 "use client";
 
 import React, { useMemo } from "react";
@@ -7,12 +6,18 @@ import ConfirmModal from "@/app/components/ConfirmModal";
 
 import type { BossMapProps } from "./types";
 import { useBossMapController } from "./useBossMapController";
-import { bossData, tradableSet, highlightAbilities, row1, row2 } from "./constants";
+import {
+  bossData,
+  tradableSet,
+  highlightAbilities,
+  row1,
+  row2,
+} from "./constants";
 
-import BossMapHeader from "./BossMapHeader";
-import BossRows from "./BossRows";
-import BossDropsController from "./BossDropsController";
-import BossOverrideController from "./BossOverrideController";
+import BossMapHeader from "./MapHeader";
+import BossRows from "./Rows";
+import BossDropsController from "./DropsController";
+import BossOverrideController from "./OverrideController";
 
 export default function BossMap({
   scheduleId,
@@ -22,6 +27,9 @@ export default function BossMap({
   onRefresh,
   onGroupUpdate,
 }: BossMapProps) {
+  /* -----------------------------------------------------
+     CONTROLLER (single source of truth)
+  ----------------------------------------------------- */
   const c = useBossMapController({
     scheduleId,
     group,
@@ -30,6 +38,9 @@ export default function BossMap({
     onGroupUpdate,
   });
 
+  /* -----------------------------------------------------
+     STATUS DOT
+  ----------------------------------------------------- */
   const statusCircleClass = useMemo(() => {
     return {
       not_started: styles.statusIdleDot,
@@ -38,6 +49,9 @@ export default function BossMap({
     }[c.status];
   }, [c.status]);
 
+  /* -----------------------------------------------------
+     ROLE COLOR
+  ----------------------------------------------------- */
   const getRoleClass = (role: string) => {
     if (!role) return "";
     switch (role.toLowerCase()) {
@@ -52,8 +66,12 @@ export default function BossMap({
     }
   };
 
+  /* =====================================================
+     RENDER
+  ===================================================== */
   return (
     <>
+      {/* ================= HEADER ================= */}
       <BossMapHeader
         title="本周地图"
         countdown={countdown}
@@ -66,6 +84,7 @@ export default function BossMap({
             {c.localGroup.characters?.map((cc: any, i: number) => {
               const isActive = c.activeMembers.includes(i);
               const roleClass = getRoleClass(cc.role);
+
               return (
                 <button
                   key={i}
@@ -82,7 +101,7 @@ export default function BossMap({
         }
       />
 
-      {/* Row 1: allow boss override */}
+      {/* ================= ROW 1 (81–90) ================= */}
       <BossRows
         floors={row1}
         localGroup={c.localGroup}
@@ -92,13 +111,10 @@ export default function BossMap({
         tradableSet={tradableSet}
         activeMembers={c.activeMembers}
         onSelect={c.handleSelectBossCard}
-        onChangeBoss={(floor) => {
-          // keep your original behavior (only opens for 90/100 anyway)
-          c.openBossModal(floor);
-        }}
+        onChangeBoss={c.openBossModal}   // ✅ FIX
       />
 
-      {/* Row 2: no override button (same as your original) */}
+      {/* ================= ROW 2 (100–91) ================= */}
       <BossRows
         floors={row2}
         localGroup={c.localGroup}
@@ -108,8 +124,10 @@ export default function BossMap({
         tradableSet={tradableSet}
         activeMembers={c.activeMembers}
         onSelect={c.handleSelectBossCard}
+        onChangeBoss={c.openBossModal}   // ✅ FIX
       />
 
+      {/* ================= DROPS ================= */}
       <BossDropsController
         scheduleId={scheduleId}
         localGroup={c.localGroup}
@@ -121,14 +139,19 @@ export default function BossMap({
         onMarkStarted={c.onMarkStarted}
       />
 
-      <BossOverrideController
-        scheduleId={scheduleId}
-        groupIndex={c.localGroup.index}
-        bossModal={c.bossModal}
-        onClose={c.closeBossModal}
-        onSuccess={c.onBossOverrideSuccess}
-      />
+      {/* ================= BOSS OVERRIDE MODAL ================= */}
+<BossOverrideController
+  scheduleId={scheduleId}
+  groupIndex={c.localGroup.index}
+  bossModal={c.bossModal}
+  group={c.localGroup}
+  bossData={bossData}
+  highlightAbilities={highlightAbilities}
+  onClose={c.closeBossModal}
+  onSuccess={c.onBossOverrideSuccess}
+/>
 
+      {/* ================= FINISH CONFIRM ================= */}
       {c.confirmOpen && (
         <ConfirmModal
           title="确认结束"

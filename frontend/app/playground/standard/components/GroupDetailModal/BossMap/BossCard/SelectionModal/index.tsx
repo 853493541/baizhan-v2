@@ -3,12 +3,18 @@
 import React, { useState } from "react";
 import styles from "./styles.module.css";
 import bossSelection from "./boss_selection.json";
+import { calcBossNeeds } from "../calcBossNeeds";
 
 interface Props {
   scheduleId: string;
   groupIndex: number;
   floor: 90 | 100;
   currentBoss?: string;
+
+  group: any;
+  bossData: Record<string, string[]>;
+  highlightAbilities: string[];
+
   onClose: () => void;
   onSuccess: (boss: string) => void;
 }
@@ -20,18 +26,23 @@ export default function SelectionModal({
   groupIndex,
   floor,
   currentBoss,
+  group,
+  bossData,
+  highlightAbilities,
   onClose,
   onSuccess,
 }: Props) {
-  const [selectedBoss, setSelectedBoss] = useState<string | null>(
-    currentBoss || null
-  );
   const [saving, setSaving] = useState(false);
 
   const bossNames = Object.keys(bossSelection);
+  const dropLevel: 9 | 10 = floor === 90 ? 9 : 10;
 
-  const handleConfirm = async () => {
-    if (!selectedBoss || saving) return;
+  /* ===============================
+     Click boss card = confirm
+  ================================= */
+  const handleSelectBoss = async (boss: string) => {
+    if (saving) return;
+    if (boss === currentBoss) return;
 
     try {
       setSaving(true);
@@ -41,23 +52,17 @@ export default function SelectionModal({
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            floor,
-            boss: selectedBoss,
-          }),
+          body: JSON.stringify({ floor, boss }),
         }
       );
 
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
-      }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-      onSuccess(selectedBoss);
+      onSuccess(boss);
       onClose();
     } catch (err) {
       console.error("❌ Failed to update adjusted boss:", err);
       alert("更新失败，请重试");
-    } finally {
       setSaving(false);
     }
   };
@@ -65,6 +70,7 @@ export default function SelectionModal({
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
         <div className={styles.header}>
           <h3>选择 {floor} 层首领</h3>
           <button className={styles.closeBtn} onClick={onClose}>
@@ -72,50 +78,58 @@ export default function SelectionModal({
           </button>
         </div>
 
-        <div className={styles.content}>
-          <div className={styles.bossList}>
-            {bossNames.map((boss) => (
-              <button
+        {/* Boss Grid */}
+        <div className={styles.bossGrid}>
+          {bossNames.map((boss) => {
+            const needs = calcBossNeeds({
+              boss,
+              bossData,
+              group,
+              activeMembers: [0, 1, 2],
+              dropLevel,
+              highlightAbilities,
+            });
+
+            const isActive = boss === currentBoss;
+
+            return (
+              <div
                 key={boss}
-                className={`${styles.bossItem} ${
-                  selectedBoss === boss ? styles.active : ""
+                className={`${styles.bossCard} ${
+                  isActive ? styles.active : ""
                 }`}
-                onClick={() => setSelectedBoss(boss)}
+                onClick={() => handleSelectBoss(boss)}
+                style={{
+                  opacity: saving ? 0.6 : 1,
+                  pointerEvents: saving ? "none" : "auto",
+                }}
               >
-                {boss}
-              </button>
-            ))}
-          </div>
+                {/* ✅ Checkmark */}
+                {isActive && (
+                  <div className={styles.checkmark}>
+                    ✓
+                  </div>
+                )}
 
-          <div className={styles.preview}>
-            {selectedBoss ? (
-              <>
-                <h4>{selectedBoss} · 技能预览</h4>
-                <ul>
-                  {bossSelection[selectedBoss as keyof typeof bossSelection].map(
-                    (skill) => (
-                      <li key={skill}>{skill}</li>
-                    )
-                  )}
-                </ul>
-              </>
-            ) : (
-              <div className={styles.placeholder}>请选择一个首领</div>
-            )}
-          </div>
-        </div>
+                <div className={styles.bossTitle}>{boss}</div>
 
-        <div className={styles.footer}>
-          <button className={styles.cancelBtn} onClick={onClose}>
-            取消
-          </button>
-          <button
-            className={styles.confirmBtn}
-            disabled={!selectedBoss || saving}
-            onClick={handleConfirm}
-          >
-            {saving ? "保存中..." : "确认更换"}
-          </button>
+                {needs.length > 0 ? (
+                  <ul className={styles.needList}>
+                    {needs.map((n) => (
+                      <li
+                        key={n.ability}
+                        className={n.isHighlight ? styles.coreHighlight : ""}
+                      >
+                        {n.ability} ({n.needCount})
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className={styles.noNeed}>无需求</div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
