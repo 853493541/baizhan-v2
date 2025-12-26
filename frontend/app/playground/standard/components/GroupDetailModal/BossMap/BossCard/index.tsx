@@ -2,7 +2,7 @@
 
 import React, { useEffect } from "react";
 import styles from "./styles.module.css";
-import { canUseAbility } from "@/utils/genderCheck";
+import { calcBossNeeds } from "./calcBossNeeds";
 
 interface BossCardProps {
   floor: number;
@@ -20,8 +20,6 @@ interface BossCardProps {
     tradableList: string[],
     dropLevel: 9 | 10
   ) => void;
-
-  // ⭐ NEW: trigger boss change (parent handles modal)
   onChangeBoss?: (floor: 90 | 100) => void;
 }
 
@@ -39,9 +37,7 @@ export default function BossCard({
   onSelect,
   onChangeBoss,
 }: BossCardProps) {
-  useEffect(() => {
-    // debug placeholder
-  }, [floor, kill]);
+  useEffect(() => {}, [floor, kill]);
 
   if (!boss) {
     return (
@@ -55,46 +51,16 @@ export default function BossCard({
   const fullDropList: string[] = bossData[boss] || [];
   const tradableList = fullDropList.filter((a) => tradableSet.has(a));
   const dropList = fullDropList.filter((a) => !tradableSet.has(a));
-  const dropLevel = floor >= 81 && floor <= 90 ? 9 : 10;
+  const dropLevel: 9 | 10 = floor >= 81 && floor <= 90 ? 9 : 10;
 
-  const includedChars = group.characters.filter((_: any, i: number) =>
-    activeMembers.includes(i)
-  );
-
-  const healerAbilities = ["万花金创药", "特制金创药", "毓秀灵药", "霞月长针"];
-
-  let needs = dropList
-    .map((ability) => {
-      const needers = includedChars.filter((c: any) => {
-        const lvl = c.abilities?.[ability] ?? 0;
-        const usable = canUseAbility(c, ability);
-        return usable && lvl < dropLevel;
-      });
-      const needCount = needers.length;
-      if (needCount > 0) {
-        const isHighlightBase = highlightAbilities.includes(ability);
-        let isHighlight = isHighlightBase;
-
-        if (isHighlightBase && healerAbilities.includes(ability)) {
-          isHighlight = needers.some(
-            (c: any) => c.role?.toLowerCase() === "healer"
-          );
-        }
-
-        return { ability, needCount, isHighlight };
-      }
-      return null;
-    })
-    .filter(Boolean) as {
-    ability: string;
-    needCount: number;
-    isHighlight: boolean;
-  }[];
-
-  needs.sort((a, b) => {
-    if (a.isHighlight && !b.isHighlight) return -1;
-    if (!a.isHighlight && b.isHighlight) return 1;
-    return 0;
+  // ✅ SINGLE SOURCE OF TRUTH
+  const needs = calcBossNeeds({
+    boss,
+    bossData,
+    group,
+    activeMembers,
+    dropLevel,
+    highlightAbilities,
   });
 
   const content =
@@ -138,9 +104,7 @@ export default function BossCard({
       );
     } else if (sel.purpleBook) {
       dropDisplay = (
-        <div
-          className={`${styles.dropResult} ${styles.wasted} ${styles.purpleBookResult}`}
-        >
+        <div className={`${styles.dropResult} ${styles.wasted}`}>
           <img
             src={getAbilityIcon(sel.ability)}
             alt={sel.ability}
@@ -152,9 +116,7 @@ export default function BossCard({
       );
     } else if (sel.ability && !sel.characterId) {
       dropDisplay = (
-        <div
-          className={`${styles.dropResult} ${styles.wasted} ${styles.stackCenter}`}
-        >
+        <div className={`${styles.dropResult} ${styles.wasted}`}>
           <img
             src={getAbilityIcon(sel.ability)}
             alt={sel.ability}
@@ -184,20 +146,11 @@ export default function BossCard({
   return (
     <div
       key={floor}
-      className={`${styles.card} ${styles.cardInteractive} ${
-        kill?.selection?.ability && kill?.selection?.characterId
-          ? styles.cardNormal
-          : (kill?.selection?.noDrop ||
-              kill?.selection?.purpleBook ||
-              (kill?.selection?.ability && !kill?.selection?.characterId))
-          ? styles.cardHealer
-          : ""
-      }`}
+      className={`${styles.card} ${styles.cardInteractive}`}
       onClick={() =>
-        onSelect(floor, boss, dropList, tradableList, dropLevel as 9 | 10)
+        onSelect(floor, boss, dropList, tradableList, dropLevel)
       }
     >
-      {/* ⭐ 换 按钮（只给 90 / 100） */}
       {(floor === 90 || floor === 100) && onChangeBoss && (
         <button
           className={styles.changeBtn}
