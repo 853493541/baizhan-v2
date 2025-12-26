@@ -36,6 +36,10 @@ interface WeeklyMapResponse {
 type GroupWithLifecycle = GroupResult & {
   startTime?: string | null;
   endTime?: string | null;
+
+  // ⭐ boss overrides
+  adjusted90?: string | null;
+  adjusted100?: string | null;
 };
 
 /* ======================================================
@@ -54,7 +58,6 @@ export default function GroupDetailModal({
   const [weeklyMap, setWeeklyMap] = useState<Record<number, string>>({});
   const [groupData, setGroupData] = useState<GroupWithLifecycle>(group);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [countdown, setCountdown] = useState(5);
 
   /* -------------------------------------------------------
      ⭐ 1) Unified GAME-WEEK
@@ -65,7 +68,7 @@ export default function GroupDetailModal({
   }, [createdAt]);
 
   /* -------------------------------------------------------
-     ⭐ 2) Auto refresh group kills (DEBUG ENABLED)
+     ⭐ 2) Auto refresh group kills
   ------------------------------------------------------- */
   const fetchGroupKills = useCallback(async () => {
     if (isRefreshing) return;
@@ -73,23 +76,19 @@ export default function GroupDetailModal({
     try {
       setIsRefreshing(true);
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${groupIndex + 1}/kills`
-      );
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${groupIndex + 1}/kills`;
+
+      console.log("🔵 [Kills] fetching:", url);
+
+      const res = await fetch(url);
+
+      console.log("🔵 [Kills] status:", res.status);
 
       if (!res.ok) return;
 
       const data = await res.json();
 
-      // 🔍 DEBUG: raw payload
-      console.log("📥 [GroupKills RAW]:", data);
-
-      // 🔍 DEBUG: lifecycle fields
-      console.log("⏱ [Lifecycle fields]:", {
-        status: data.status,
-        startTime: data.startTime,
-        endTime: data.endTime,
-      });
+      console.log("🔵 [Kills] payload:", data);
 
       setGroupData((prev) => {
         const next = {
@@ -100,12 +99,9 @@ export default function GroupDetailModal({
           endTime: data.endTime ?? prev.endTime,
         };
 
-        // 🔍 DEBUG: state merge
-        console.log("🧠 [GroupState MERGE]:", {
-          prevStart: prev.startTime,
-          nextStart: next.startTime,
-          prevEnd: prev.endTime,
-          nextEnd: next.endTime,
+        console.log("🧠 [Kills] state merge:", {
+          prevStatus: prev.status,
+          nextStatus: next.status,
         });
 
         return next;
@@ -113,22 +109,78 @@ export default function GroupDetailModal({
 
       onRefresh?.();
     } catch (err) {
-      console.error("❌ Auto refresh failed:", err);
+      console.error("❌ [Kills] auto refresh failed:", err);
     } finally {
       setIsRefreshing(false);
     }
   }, [isRefreshing, scheduleId, groupIndex, onRefresh]);
 
   /* -------------------------------------------------------
-     ⭐ Polling timer
+     ⭐ 3) Auto refresh boss overrides (DEBUG)
   ------------------------------------------------------- */
-  useEffect(() => {
-    const timer = setInterval(fetchGroupKills, 5000);
-    return () => clearInterval(timer);
-  }, [fetchGroupKills]);
+  const fetchAdjustedBoss = useCallback(async () => {
+    try {
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${groupIndex + 1}/adjusted-boss`;
+
+      console.log("🟣 [Adjusted] fetching:", url);
+
+      const res = await fetch(url);
+
+      console.log("🟣 [Adjusted] status:", res.status);
+
+      if (!res.ok) {
+        console.warn("🟡 [Adjusted] response not OK");
+        return;
+      }
+
+      const data = await res.json();
+
+      console.log("🟣 [Adjusted] RAW payload:", data);
+      console.log("🟣 [Adjusted] parsed:", {
+        adjusted90: data.adjusted90,
+        adjusted100: data.adjusted100,
+      });
+
+      setGroupData((prev) => {
+        const next = {
+          ...prev,
+          adjusted90: data.adjusted90 ?? prev.adjusted90,
+          adjusted100: data.adjusted100 ?? prev.adjusted100,
+        };
+
+        console.log("🧠 [Adjusted] state merge:", {
+          prev: {
+            adjusted90: prev.adjusted90,
+            adjusted100: prev.adjusted100,
+          },
+          next: {
+            adjusted90: next.adjusted90,
+            adjusted100: next.adjusted100,
+          },
+        });
+
+        return next;
+      });
+    } catch (err) {
+      console.error("❌ [Adjusted] fetch failed:", err);
+    }
+  }, [scheduleId, groupIndex]);
 
   /* -------------------------------------------------------
-     ⭐ 3) Load historical weekly map
+     ⭐ Polling timers
+  ------------------------------------------------------- */
+  useEffect(() => {
+    const killTimer = setInterval(fetchGroupKills, 5000);
+    return () => clearInterval(killTimer);
+  }, [fetchGroupKills]);
+
+  useEffect(() => {
+    const bossTimer = setInterval(fetchAdjustedBoss, 5000);
+    return () => clearInterval(bossTimer);
+  }, [fetchAdjustedBoss]);
+
+  /* -------------------------------------------------------
+     ⭐ 4) Load historical weekly map
   ------------------------------------------------------- */
   useEffect(() => {
     const fetchMap = async () => {

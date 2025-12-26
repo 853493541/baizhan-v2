@@ -23,7 +23,8 @@ import { toggleScheduleCharacter } from "../controllers/playground/standardSched
 import { manualEditGroups } from "../controllers/playground/standardSchedules/manualEditGroups";
 
 // ⭐ NEW: boss adjustment controller
-import { updateGroupAdjustedBoss } from "../controllers/playground/standardSchedules/bossAdjustController";
+import { updateGroupAdjustedBoss, getGroupAdjustedBoss } from "../controllers/playground/standardSchedules/bossAdjustController";
+// ⭐ NEW: lightweight boss override fetch
 
 const router = Router();
 
@@ -70,7 +71,10 @@ router.patch("/:id/manual-groups", manualEditGroups);
 
 // Update only group status
 router.patch("/:id/groups/:index/status", updateGroupStatus);
-
+router.get(
+  "/:id/groups/:index/adjusted-boss",
+  getGroupAdjustedBoss
+);
 // ⭐ NEW: adjust boss for floor 90 / 100
 router.patch(
   "/:id/groups/:index/adjust-boss",
