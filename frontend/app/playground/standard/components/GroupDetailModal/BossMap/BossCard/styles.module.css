@@ -1,3 +1,6 @@
+/* ===============================
+   Base card
+================================= */
 .card {
   position: relative;
   border: 1px solid #ddd;
@@ -8,11 +11,14 @@
   font-size: 12px;
   line-height: 1.4;
   min-height: 100px;
-  /* border:2px red solid; */
 }
 
+/* ===============================
+   Needs list
+================================= */
 .needList {
   margin: 0;
+  padding: 0;
 }
 
 .needList li {
@@ -34,12 +40,17 @@
   font-weight: bold;
 }
 
+/* ===============================
+   Card interaction
+================================= */
 .cardInteractive {
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
   z-index: 1;
 }
-
 
 .cardInteractive:focus {
   transform: translateY(-2px);
@@ -52,21 +63,15 @@
   opacity: 0.7;
 }
 
-.checkmark {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  color: green;
-  font-weight: bold;
-}
-
-/* ✅ Drop results */
+/* ===============================
+   Drop result layout
+================================= */
 .dropResult {
   margin-top: 6px;
   font-size: 12px;
   font-weight: bold;
   display: flex;
-  flex-direction: column; /* stack icon, ability, level, name */
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
@@ -79,31 +84,58 @@
   color: #555;
 }
 
-/* ✅ Drop result colors */
+/* ===============================
+   Drop result text colors
+================================= */
 .noDrop,
 .wasted {
-  color: #721c24; /* dark red text */
+  color: #721c24; /* dark red */
   font-weight: bold;
 }
 
 .normal {
-  color: #155724; /* dark green, high contrast */
+  color: #155724; /* dark green */
   font-weight: bold;
 }
 
-/* ✅ Normal drop card background */
-.cardNormal {
-  background-color: #d4edda; /* light green */
-  border: 1px solid #c3e6cb;
+.purple {
+  color: #6f42c1; /* purple text */
+  font-weight: bold;
 }
 
-/* ✅ Wasted + NoDrop card background (healer color) */
-.cardHealer {
-  background-color: #f8d7da; /* light pink */
-  border: 1px solid #f5c6cb;
+/* ===============================
+   Card background states
+================================= */
+.card.cardNormal {
+  background-color: #d4edda; /* green */
+  border-color: #c3e6cb;
 }
 
-/* ✅ Header (floor + boss centered together) */
+.card.cardHealer {
+  background-color: #f8d7da; /* red / wasted */
+  border-color: #f5c6cb;
+}
+
+/* 🟣 Purple book (FIXED – specificity safe) */
+/* 🟣 Purple book card (matched to purpleBookBtn) */
+.card.cardPurple {
+  background-color: #e9d5ff; /* SAME as button bg */
+  /* border-color: #9333ea; */
+}
+
+/* Purple book content text */
+.card.cardPurple .dropResult {
+  color: #4c1d95; /* SAME as button text */
+  font-weight: bold;
+}
+
+.card.cardPurple .iconLarge {
+  filter: none;
+}
+
+/* ===============================
+   Header
+================================= */
 .header {
   text-align: center;
   font-size: 14px;
@@ -123,24 +155,28 @@
   text-align: center;
 }
 
-/* ✅ Icons */
+/* ===============================
+   Icons
+================================= */
 .iconLarge {
   width: 36px;
   height: 36px;
   display: block;
   margin: 0 auto 2px;
-  border-radius: 8px; /* rounded corners */
+  border-radius: 8px;
 }
 
 .iconWasted {
   filter: grayscale(70%);
 }
 
-/* no drop icon slightly grayed */
 .iconNoDrop {
   filter: grayscale(20%);
 }
 
+/* ===============================
+   Utility
+================================= */
 .stackCenter {
   display: flex;
   flex-direction: column;
@@ -149,87 +185,30 @@
   gap: 2px;
   line-height: 1.2;
 }
-/* ⭐ 换 boss 圆形按钮 */
-/* ⭐ 换 boss 圆形按钮 */
+
+/* ===============================
+   Change boss button
+================================= */
 .changeBtn {
   position: absolute;
-  top: -10px;          /* was 6px */
-  right: -8px;        /* was 6px */
-
-  width: 28px;       /* was 22px */
-  height: 28px;      /* was 22px */
-
+  top: -10px;
+  right: -8px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   border: none;
-
   background: orange;
   color: #fff;
-
-  font-size: 13px;   /* was 12px */
+  font-size: 13px;
   font-weight: 600;
-
   cursor: pointer;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   z-index: 2;
-
   box-shadow: 0 1px 3px rgba(0,0,0,0.25);
 }
 
 .changeBtn:hover {
-  background: orange;
   transform: scale(1.05);
-}
-/* ===============================
-   SelectionModal boss preview grid
-================================= */
-
-.bossGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  align-content: start;
-}
-
-.previewCard {
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  padding: 10px;
-  background: #fff;
-  cursor: pointer;
-  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
-  min-height: 120px;
-}
-
-.previewCard:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.10);
-  border-color: #007bff;
-}
-
-.previewActive {
-  border-color: #007bff;
-  box-shadow: 0 4px 12px rgba(0,123,255,0.20);
-}
-
-.previewHeader {
-  font-weight: 800;
-  font-size: 14px;
-  text-align: center;
-  margin-bottom: 6px;
-}
-
-.previewNeedList {
-  margin: 0;
-  padding: 0;
-}
-
-.previewNeedList li {
-  list-style: none;
-  font-size: 12px;
-  text-align: center;
-  width: 100%;
 }

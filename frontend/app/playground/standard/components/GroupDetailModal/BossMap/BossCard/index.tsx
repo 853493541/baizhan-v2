@@ -1,8 +1,11 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import styles from "./styles.module.css";
 import { calcBossNeeds } from "./calcBossNeeds";
+
+/* ✅ SINGLE SOURCE OF TRUTH (IMPORT HERE) */
+import tradableAbilities from "@/app/data/tradable_abilities.json";
 
 interface BossCardProps {
   floor: number;
@@ -10,7 +13,6 @@ interface BossCardProps {
   group: any;
   bossData: Record<string, string[]>;
   highlightAbilities: string[];
-  tradableSet: Set<string>;
   kill?: any;
   activeMembers?: number[];
   onSelect: (
@@ -31,13 +33,20 @@ export default function BossCard({
   group,
   bossData,
   highlightAbilities,
-  tradableSet,
   kill,
   activeMembers = [0, 1, 2],
   onSelect,
   onChangeBoss,
 }: BossCardProps) {
   useEffect(() => {}, [floor, kill]);
+
+  /* ===============================
+     Tradable set (local, reliable)
+  ================================= */
+  const tradableSet = useMemo(
+    () => new Set<string>(tradableAbilities),
+    []
+  );
 
   if (!boss) {
     return (
@@ -49,11 +58,13 @@ export default function BossCard({
   }
 
   const fullDropList: string[] = bossData[boss] || [];
-  const tradableList = fullDropList.filter((a) => tradableSet.has(a));
-  const dropList = fullDropList.filter((a) => !tradableSet.has(a));
+  const tradableList = fullDropList.filter(a => tradableSet.has(a));
+  const dropList = fullDropList.filter(a => !tradableSet.has(a));
   const dropLevel: 9 | 10 = floor >= 81 && floor <= 90 ? 9 : 10;
 
-  // ✅ SINGLE SOURCE OF TRUTH
+  /* ===============================
+     Needs (single source of truth)
+  ================================= */
   const needs = calcBossNeeds({
     boss,
     bossData,
@@ -66,7 +77,7 @@ export default function BossCard({
   const content =
     needs.length > 0 ? (
       <ul className={styles.needList}>
-        {needs.map((n) => (
+        {needs.map(n => (
           <li
             key={n.ability}
             className={n.isHighlight ? styles.coreHighlight : ""}
@@ -79,21 +90,23 @@ export default function BossCard({
       <p className={styles.noNeed}>无需求</p>
     );
 
-  let assignedName = "";
-  if (kill?.selection?.characterId) {
-    const char = group.characters.find(
-      (c: any) => c._id === kill.selection.characterId
-    );
-    assignedName = char ? char.name : kill.selection.characterId;
-  }
+  /* ===============================
+     Drop + card state (FINAL)
+  ================================= */
+  let dropDisplay: React.ReactNode = null;
+  let cardStateClass = "";
+  let dropResultClass = "";
 
-  let dropDisplay = null;
   if (kill?.selection) {
     const sel = kill.selection;
 
-    if (sel.noDrop || (!sel.ability && !sel.purpleBook)) {
+    /* ❌ No drop */
+    if (sel.noDrop || (!sel.ability && !sel.characterId)) {
+      cardStateClass = styles.cardHealer;
+      dropResultClass = styles.noDrop;
+
       dropDisplay = (
-        <div className={`${styles.dropResult} ${styles.noDrop}`}>
+        <div className={`${styles.dropResult} ${dropResultClass}`}>
           <img
             src="/icons/no_drop.svg"
             alt="无掉落"
@@ -102,21 +115,34 @@ export default function BossCard({
           <div>无掉落</div>
         </div>
       );
-    } else if (sel.purpleBook) {
+
+    /* 🟣 Purple book — FINAL FIX */
+    } else if (
+      sel.ability &&
+      tradableSet.has(sel.ability)
+    ) {
+      cardStateClass = styles.cardPurple;
+      dropResultClass = styles.purple;
+
       dropDisplay = (
-        <div className={`${styles.dropResult} ${styles.wasted}`}>
+        <div className={`${styles.dropResult} ${dropResultClass}`}>
           <img
             src={getAbilityIcon(sel.ability)}
             alt={sel.ability}
-            className={`${styles.iconLarge} ${styles.iconWasted}`}
+            className={styles.iconLarge}
           />
           <div>{sel.ability}</div>
-          <div>{sel.level}重（紫书）</div>
+          <div>{sel.level}重</div>
         </div>
       );
+
+    /* ❌ Wasted */
     } else if (sel.ability && !sel.characterId) {
+      cardStateClass = styles.cardHealer;
+      dropResultClass = styles.wasted;
+
       dropDisplay = (
-        <div className={`${styles.dropResult} ${styles.wasted}`}>
+        <div className={`${styles.dropResult} ${dropResultClass}`}>
           <img
             src={getAbilityIcon(sel.ability)}
             alt={sel.ability}
@@ -127,9 +153,19 @@ export default function BossCard({
           <div>(无)</div>
         </div>
       );
-    } else {
+
+    /* ✅ Normal assigned */
+    } else if (sel.ability && sel.characterId) {
+      cardStateClass = styles.cardNormal;
+      dropResultClass = styles.normal;
+
+      const char = group.characters.find(
+        (c: any) => c._id === sel.characterId
+      );
+      const assignedName = char ? char.name : sel.characterId;
+
       dropDisplay = (
-        <div className={`${styles.dropResult} ${styles.normal}`}>
+        <div className={`${styles.dropResult} ${dropResultClass}`}>
           <img
             src={getAbilityIcon(sel.ability)}
             alt={sel.ability}
@@ -146,7 +182,7 @@ export default function BossCard({
   return (
     <div
       key={floor}
-      className={`${styles.card} ${styles.cardInteractive}`}
+      className={`${styles.card} ${styles.cardInteractive} ${cardStateClass}`}
       onClick={() =>
         onSelect(floor, boss, dropList, tradableList, dropLevel)
       }
