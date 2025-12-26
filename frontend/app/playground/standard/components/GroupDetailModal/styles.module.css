@@ -39,7 +39,7 @@
   justify-content: center;   /* ✅ center the whole row */
   align-items: stretch;      /* ✅ children match tallest */
   gap: 24px;
-  margin: 20px 0;
+  margin-bottom:20px;
   width: 100%;
   min-height: 350px;         /* ✅ baseline height */
 }

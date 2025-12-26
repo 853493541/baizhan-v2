@@ -27,6 +27,10 @@ interface Group {
   characters: mongoose.Types.ObjectId[];
   status: "not_started" | "started" | "finished";
   kills: Kill[];
+
+  // ⭐ NEW — lifecycle timestamps
+  startTime?: Date;
+  endTime?: Date;
 }
 
 export interface IStandardSchedule extends Document {
@@ -80,6 +84,10 @@ const GroupSchema = new Schema<Group>(
       default: "not_started",
     },
     kills: { type: [KillSchema], default: [] },
+
+    // ⭐ NEW — lifecycle timestamps
+    startTime: { type: Date },
+    endTime: { type: Date },
   },
   { _id: false }
 );

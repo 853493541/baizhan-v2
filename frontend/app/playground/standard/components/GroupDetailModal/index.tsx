@@ -5,15 +5,18 @@ import styles from "./styles.module.css";
 import type { GroupResult, AbilityCheck } from "@/utils/solver";
 
 import GroupInfo from "./GroupInfo";
-import CoreAbilityChart from "./CoreAbilityChart";
 import ResultWindow from "./ResultModal";
+import GroupDetail from "./ResultModal/GroupDetail";
 import BossMap from "./BossMap";
 
-import { getGameWeekFromDate } from "@/utils/weekUtils";  // ⭐ unified week logic
+import { getGameWeekFromDate } from "@/utils/weekUtils";
 
 import rawBossData from "../../../../data/boss_skills_collection_map.json";
 const bossData: Record<string, string[]> = rawBossData;
 
+/* ======================================================
+   TYPES
+====================================================== */
 interface Props {
   scheduleId: string;
   groupIndex: number;
@@ -22,7 +25,7 @@ interface Props {
   conflictLevel: number;
   onClose: () => void;
   onRefresh?: () => void;
-  createdAt: string;      // ⭐ receives schedule createdAt
+  createdAt: string;
 }
 
 interface WeeklyMapResponse {
@@ -30,6 +33,14 @@ interface WeeklyMapResponse {
   floors: Record<number, { boss: string }>;
 }
 
+type GroupWithLifecycle = GroupResult & {
+  startTime?: string | null;
+  endTime?: string | null;
+};
+
+/* ======================================================
+   COMPONENT
+====================================================== */
 export default function GroupDetailModal({
   scheduleId,
   groupIndex,
@@ -41,41 +52,64 @@ export default function GroupDetailModal({
   createdAt,
 }: Props) {
   const [weeklyMap, setWeeklyMap] = useState<Record<number, string>>({});
-  const [groupData, setGroupData] = useState<GroupResult>(group);
+  const [groupData, setGroupData] = useState<GroupWithLifecycle>(group);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [countdown, setCountdown] = useState(5);
 
   /* -------------------------------------------------------
-     ⭐ 1) Unified GAME-WEEK for this schedule's createdAt
+     ⭐ 1) Unified GAME-WEEK
   ------------------------------------------------------- */
-  const { year, week, weekCode } = useMemo(() => {
-    const code = getGameWeekFromDate(createdAt);   // e.g., "2025-W48"
-    const [y, w] = code.split("-W").map(Number);
-    return { year: y, week: w, weekCode: code };
+  const { weekCode } = useMemo(() => {
+    const code = getGameWeekFromDate(createdAt);
+    return { weekCode: code };
   }, [createdAt]);
 
-  console.log("📅 schedule.createdAt:", createdAt);
-  console.log(`📌 GAME WEEK derived: ${year}-W${week} (=${weekCode})`);
-
-
   /* -------------------------------------------------------
-     ⭐ 2) Auto refresh group kills every 5 sec
+     ⭐ 2) Auto refresh group kills (DEBUG ENABLED)
   ------------------------------------------------------- */
   const fetchGroupKills = useCallback(async () => {
     if (isRefreshing) return;
+
     try {
       setIsRefreshing(true);
+
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${groupIndex + 1}/kills`
       );
+
       if (!res.ok) return;
 
       const data = await res.json();
-      setGroupData((prev) => ({
-        ...prev,
-        kills: data.kills || prev.kills,
-        status: data.status || prev.status,
-      }));
+
+      // 🔍 DEBUG: raw payload
+      console.log("📥 [GroupKills RAW]:", data);
+
+      // 🔍 DEBUG: lifecycle fields
+      console.log("⏱ [Lifecycle fields]:", {
+        status: data.status,
+        startTime: data.startTime,
+        endTime: data.endTime,
+      });
+
+      setGroupData((prev) => {
+        const next = {
+          ...prev,
+          kills: data.kills ?? prev.kills,
+          status: data.status ?? prev.status,
+          startTime: data.startTime ?? prev.startTime,
+          endTime: data.endTime ?? prev.endTime,
+        };
+
+        // 🔍 DEBUG: state merge
+        console.log("🧠 [GroupState MERGE]:", {
+          prevStart: prev.startTime,
+          nextStart: next.startTime,
+          prevEnd: prev.endTime,
+          nextEnd: next.endTime,
+        });
+
+        return next;
+      });
 
       onRefresh?.();
     } catch (err) {
@@ -85,67 +119,42 @@ export default function GroupDetailModal({
     }
   }, [isRefreshing, scheduleId, groupIndex, onRefresh]);
 
-
-  /* Countdown timer */
+  /* -------------------------------------------------------
+     ⭐ Polling timer
+  ------------------------------------------------------- */
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          fetchGroupKills();
-          return 5;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    const timer = setInterval(fetchGroupKills, 5000);
     return () => clearInterval(timer);
   }, [fetchGroupKills]);
 
-
   /* -------------------------------------------------------
-     ⭐ 3) Load the correct HISTORICAL weekly map for this schedule
+     ⭐ 3) Load historical weekly map
   ------------------------------------------------------- */
   useEffect(() => {
     const fetchMap = async () => {
       try {
-        console.log(`🗺 Fetching map for historical week: ${weekCode}`);
-
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map/past?week=${weekCode}`
         );
 
-        if (!res.ok) {
-          console.warn(
-            `⚠️ No historical map found for week ${weekCode}. Falling back to CURRENT WEEK.`
-          );
+        let data: WeeklyMapResponse | null = null;
 
-          // fallback: current week's map
+        if (res.ok) {
+          data = await res.json();
+        } else {
           const fallback = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/api/weekly-map`
           );
-
-          if (fallback.ok) {
-            const data: WeeklyMapResponse = await fallback.json();
-            const floors: Record<number, string> = {};
-            for (const [floor, obj] of Object.entries(data.floors)) {
-              floors[Number(floor)] = obj.boss;
-            }
-            console.log("🗺 Loaded fallback CURRENT weekly map:", floors);
-            setWeeklyMap(floors);
-          }
-
-          return;
+          if (fallback.ok) data = await fallback.json();
         }
 
-        const data: WeeklyMapResponse = await res.json();
-
-        console.log("🗺 Historical map loaded:", data);
+        if (!data) return;
 
         const floors: Record<number, string> = {};
         for (const [floor, obj] of Object.entries(data.floors)) {
           floors[Number(floor)] = obj.boss;
         }
 
-        console.log("🗺 Parsed historical weeklyMap floors:", floors);
         setWeeklyMap(floors);
       } catch (err) {
         console.error("❌ Failed to load historical weekly map:", err);
@@ -155,36 +164,15 @@ export default function GroupDetailModal({
     fetchMap();
   }, [weekCode]);
 
-
-  /* -------------------------------------------------------
-     ⭐ 4) Build ability list based on weeklyMap
-  ------------------------------------------------------- */
-  const weeklyAbilities = useMemo(() => {
-    const result: { name: string; level: number }[] = [];
-
-    for (const [floorStr, boss] of Object.entries(weeklyMap)) {
-      const floor = Number(floorStr);
-      const dropLevel = floor >= 81 && floor <= 90 ? 9 : 10;
-
-      if (boss && bossData[boss]) {
-        bossData[boss].forEach((ability) => {
-          result.push({ name: ability, level: dropLevel });
-        });
-      }
-    }
-
-    console.log("🔵 weeklyAbilities (from correct week):", result);
-    return result;
-  }, [weeklyMap]);
-
-
   /* -------------------------------------------------------
      ⭐ RENDER
   ------------------------------------------------------- */
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <button className={styles.closeBtn} onClick={onClose}>✖</button>
+        <button className={styles.closeBtn} onClick={onClose}>
+          ✖
+        </button>
 
         <GroupInfo
           group={groupData}
@@ -193,17 +181,14 @@ export default function GroupDetailModal({
         />
 
         <div className={styles.midSection}>
-          <CoreAbilityChart
+          <GroupDetail
             group={groupData}
             checkedAbilities={checkedAbilities}
-            conflictLevel={conflictLevel}
-            weeklyAbilities={weeklyAbilities}
           />
 
           <ResultWindow
             scheduleId={scheduleId}
             group={groupData}
-            countdown={countdown}
             onRefresh={fetchGroupKills}
           />
         </div>
@@ -213,8 +198,9 @@ export default function GroupDetailModal({
           group={groupData as any}
           weeklyMap={weeklyMap}
           onRefresh={fetchGroupKills}
-          countdown={countdown}
-          onGroupUpdate={(updated) => setGroupData(updated)}
+          onGroupUpdate={(updated) =>
+            setGroupData(updated as GroupWithLifecycle)
+          }
         />
       </div>
     </div>
