@@ -5,6 +5,8 @@ import styles from "./styles.module.css";
 import bossSelection from "./boss_selection.json";
 import { calcBossNeeds } from "../calcBossNeeds";
 
+import { toastSuccess, toastError } from "@/app/components/toast/toast";
+
 interface Props {
   scheduleId: string;
   groupIndex: number;
@@ -34,11 +36,40 @@ export default function SelectionModal({
 }: Props) {
   const [saving, setSaving] = useState(false);
 
+  /* ===============================
+     ⭐ LOCAL ACTIVE MEMBERS
+  ================================= */
+  const [activeMembers, setActiveMembers] = useState<number[]>(() =>
+    group.characters?.map((_: any, i: number) => i) ?? []
+  );
+
+  const toggleMember = (i: number) => {
+    setActiveMembers((prev) =>
+      prev.includes(i)
+        ? prev.filter((x) => x !== i)
+        : [...prev, i]
+    );
+  };
+
   const bossNames = Object.keys(bossSelection);
   const dropLevel: 9 | 10 = floor === 90 ? 9 : 10;
 
+  const getRoleClass = (role?: string) => {
+    if (!role) return "";
+    switch (role.toLowerCase()) {
+      case "tank":
+        return styles.tank;
+      case "dps":
+        return styles.dps;
+      case "healer":
+        return styles.healer;
+      default:
+        return "";
+    }
+  };
+
   /* ===============================
-     Click boss card = confirm
+     ✅ HANDLE SELECT BOSS
   ================================= */
   const handleSelectBoss = async (boss: string) => {
     if (saving) return;
@@ -58,11 +89,17 @@ export default function SelectionModal({
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
+      // ✅ toast instead of confirm modal
+      toastSuccess(`${floor} 层已经修改为 ${boss}`);
+
+      // let parent update state
       onSuccess(boss);
+
+      // close modal
       onClose();
     } catch (err) {
       console.error("❌ Failed to update adjusted boss:", err);
-      alert("更新失败，请重试");
+      toastError("更新失败，请重试");
       setSaving(false);
     }
   };
@@ -70,22 +107,52 @@ export default function SelectionModal({
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
+        {/* ================= HEADER ================= */}
         <div className={styles.header}>
-          <h3>选择 {floor} 层首领</h3>
+          <div className={styles.headerTitle}>
+            自选 {floor} 层首领
+          </div>
           <button className={styles.closeBtn} onClick={onClose}>
             ✖
           </button>
         </div>
 
-        {/* Boss Grid */}
+        {/* ================= MEMBER FILTER ================= */}
+        <div className={styles.memberBar}>
+          <div className={styles.memberLine} />
+
+          <div className={styles.memberButtons}>
+            {group.characters?.map((c: any, i: number) => {
+              const isActive = activeMembers.includes(i);
+              const roleClass = getRoleClass(c.role);
+
+              return (
+                <button
+                  key={i}
+                  onClick={() => toggleMember(i)}
+                  className={`
+                    ${styles.memberBtn}
+                    ${roleClass}
+                    ${!isActive ? styles.inactiveBtn : ""}
+                  `}
+                >
+                  {c.name}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className={styles.memberLine} />
+        </div>
+
+        {/* ================= BOSS GRID ================= */}
         <div className={styles.bossGrid}>
           {bossNames.map((boss) => {
             const needs = calcBossNeeds({
               boss,
               bossData,
               group,
-              activeMembers: [0, 1, 2],
+              activeMembers,
               dropLevel,
               highlightAbilities,
             });
@@ -104,11 +171,8 @@ export default function SelectionModal({
                   pointerEvents: saving ? "none" : "auto",
                 }}
               >
-                {/* ✅ Checkmark */}
                 {isActive && (
-                  <div className={styles.checkmark}>
-                    ✓
-                  </div>
+                  <div className={styles.checkmark}>✓</div>
                 )}
 
                 <div className={styles.bossTitle}>{boss}</div>
@@ -118,7 +182,9 @@ export default function SelectionModal({
                     {needs.map((n) => (
                       <li
                         key={n.ability}
-                        className={n.isHighlight ? styles.coreHighlight : ""}
+                        className={
+                          n.isHighlight ? styles.coreHighlight : ""
+                        }
                       >
                         {n.ability} ({n.needCount})
                       </li>
