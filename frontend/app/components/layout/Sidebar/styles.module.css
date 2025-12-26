@@ -3,64 +3,37 @@
   background: #fff;
   border-right: 1px solid #e5e7eb;
   padding: 12px 8px;
+
   display: flex;
   flex-direction: column;
-  gap: 8px;
 }
+
+/* Optional brand (keep if still used) */
 .brand {
   padding: 8px 10px;
   margin: 4px 6px 12px;
   color: #64748b;
   font-weight: 600;
 }
-.nav { display: flex; flex-direction: column; gap: 4px; }
-.folder {
-  margin-top: 8px;
-}
 
-.folderHeader {
-  font-weight: 600;
-  padding: 6px 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  user-select: none;
-}
-
-.folderItems {
-  padding-left: 16px; /* indentation */
+.nav {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+
 }
-.placeholderItem {
-  padding: 6px 8px;
-  opacity: 0.5;
-  cursor: default;
-  user-select: none;
-}
-/* Mobile spacing adjustments */
+
+
+/* -----------------------------
+   Mobile adjustments
+------------------------------ */
 @media (max-width: 768px) {
-  .folder {
-    margin-top: 6px;
-  }
-
-  .folderHeader {
-    padding: 4px 6px;
-    font-size: 14px;
-  }
-
-  .folderItems {
-    padding-left: 12px;
-    gap: 2px;
+  .nav {
+    justify-content: flex-start; /* mobile: top-aligned */
+    gap: 4px;
   }
 
   .nav a {
-    padding: 4px 6px !important; /* override desktop */
-    font-size: 14px;
-  }
-
-  .placeholderItem {
     padding: 4px 6px !important;
     font-size: 14px;
   }
