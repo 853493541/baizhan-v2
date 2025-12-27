@@ -18,7 +18,7 @@
 .modal {
   background: #ffffff;
   border-radius: 18px;
-  width: 960px;
+  width: 1100px;
   max-width: 100%;
   max-height: 80vh;
   padding: 20px 24px 18px;
@@ -217,4 +217,13 @@
     white-space: nowrap;
     text-align: center;
   }
+}
+/* Mutated / 异变 (yibian) — darker muted purple-grey */
+.colMutated {
+  background: #e6dff0;
+}
+
+.colMutated .columnHeader {
+  color: #5f4b7a;
+  font-weight: 600;
 }
