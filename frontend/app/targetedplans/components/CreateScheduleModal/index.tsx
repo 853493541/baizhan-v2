@@ -1,8 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import styles from "./styles.module.css";
+
+import {
+  toastSuccess,
+  toastError,
+  toastInfo,
+} from "@/app/components/toast/toast";
 
 interface Props {
   onClose: () => void;
@@ -29,34 +35,28 @@ export default function CreateTargetedPlanModal({ onClose, onConfirm }: Props) {
   const [targetedBoss, setTargetedBoss] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
 
+  /* ✅ Instant guidance toast on modal open */
+  useEffect(() => {
+    toastInfo("请选择服务器和目标 Boss");
+  }, []);
+
   const handleSelectServer = (s: string) => {
     setServer(s);
   };
 
   const handleSelectBoss = (b: string) => {
     setTargetedBoss(b);
-    setName(generateTimestampName(b)); // only boss + timestamp
+    setName(generateTimestampName(b));
   };
 
   const handleSubmit = async () => {
     if (creating) {
-      console.warn("⚡ Prevented double submit");
+      toastError("操作过快，请稍候再试");
       return;
     }
     setCreating(true);
 
     try {
-      if (!server) {
-        alert("请选择服务器。");
-        setCreating(false);
-        return;
-      }
-      if (!targetedBoss) {
-        alert("请选择目标 Boss。");
-        setCreating(false);
-        return;
-      }
-
       const planId = uuidv4();
 
       const url =
@@ -70,7 +70,7 @@ export default function CreateTargetedPlanModal({ onClose, onConfirm }: Props) {
 
       const activeCharacters = characters.filter((c: any) => c.active);
       if (activeCharacters.length === 0) {
-        alert("没有角色，无法创建。");
+        toastError("没有角色，无法创建。");
         setCreating(false);
         return;
       }
@@ -78,7 +78,7 @@ export default function CreateTargetedPlanModal({ onClose, onConfirm }: Props) {
       const payload = {
         planId,
         type: "targeted",
-        name: name || generateTimestampName(targetedBoss),
+        name: name || generateTimestampName(targetedBoss!),
         server,
         targetedBoss,
         characterCount: activeCharacters.length,
@@ -105,11 +105,12 @@ export default function CreateTargetedPlanModal({ onClose, onConfirm }: Props) {
       const newPlan = await res.json();
       console.log("✅ Created targeted plan:", newPlan);
 
+      toastSuccess("创建成功");
       onConfirm(newPlan);
       onClose();
     } catch (err) {
       console.error("❌ [CreateTargetedPlanModal] Error:", err);
-      alert("创建失败，请重试。");
+      toastError("创建失败，请重试。");
     } finally {
       setCreating(false);
     }
@@ -138,7 +139,7 @@ export default function CreateTargetedPlanModal({ onClose, onConfirm }: Props) {
           ))}
         </div>
 
-        {/* === Boss 选择 (按钮组) === */}
+        {/* === Boss 选择 === */}
         <div className={styles.label}>目标 Boss</div>
         <div className={styles.serverButtons}>
           {BOSSES.map((b) => (

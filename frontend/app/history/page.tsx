@@ -7,6 +7,11 @@ import GroupedResult, {
 } from "./Components/GroupedResult";
 import { createPinyinMap, pinyinFilter } from "@/utils/pinyinSearch";
 
+import {
+  toastSuccess,
+  toastError,
+} from "@/app/components/toast/toast";
+
 function formatShortTime(dateStr: string) {
   const d = new Date(dateStr);
   const mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -27,10 +32,15 @@ export default function AbilityHistoryPage() {
   const [abilityMap, setAbilityMap] = useState<Record<string, any>>({});
 
   const GROUP_WINDOW = 10000; // 10s bundle window
-  const FETCH_LIMIT = 1000; // fetch once, up to 1000 history records
+  const FETCH_LIMIT = 1000;
 
-  // 🔹 Group nearby updates (same character within 10s)
-  const groupHistory = (items: HistoryItem[], maxGroups: number): GroupedItem[] => {
+  /* ===============================
+     Group nearby updates
+  =============================== */
+  const groupHistory = (
+    items: HistoryItem[],
+    maxGroups: number
+  ): GroupedItem[] => {
     if (!items.length) return [];
 
     const groups: GroupedItem[] = [];
@@ -59,7 +69,9 @@ export default function AbilityHistoryPage() {
     return groups;
   };
 
-  // 🔹 Fetch once on mount
+  /* ===============================
+     Fetch history
+  =============================== */
   const fetchHistory = async () => {
     setLoading(true);
     try {
@@ -72,23 +84,27 @@ export default function AbilityHistoryPage() {
       const json = await res.json();
       setRawData(json);
 
-      // ✅ Build Pinyin maps for fast filtering
       const uniqueNames = [...new Set(json.map((x: any) => x.characterName))];
       const uniqueAbilities = [...new Set(json.map((x: any) => x.abilityName))];
+
       const [nameMapBuilt, abilityMapBuilt] = await Promise.all([
         createPinyinMap(uniqueNames),
         createPinyinMap(uniqueAbilities),
       ]);
+
       setNameMap(nameMapBuilt);
       setAbilityMap(abilityMapBuilt);
     } catch (err) {
       console.error("❌ 获取技能记录失败:", err);
+      toastError("获取技能记录失败");
     } finally {
       setLoading(false);
     }
   };
 
-  // 🔹 Apply frontend filters + grouping (with pinyin support)
+  /* ===============================
+     Filter + grouping
+  =============================== */
   const filteredGroups = useMemo(() => {
     if (!rawData.length) return [];
 
@@ -97,7 +113,9 @@ export default function AbilityHistoryPage() {
     if (filterName.trim()) {
       const allNames = [...new Set(rawData.map((x) => x.characterName))];
       const matchedNames = pinyinFilter(allNames, nameMap, filterName.trim());
-      filtered = filtered.filter((x) => matchedNames.includes(x.characterName));
+      filtered = filtered.filter((x) =>
+        matchedNames.includes(x.characterName)
+      );
     }
 
     if (filterAbility.trim()) {
@@ -107,32 +125,45 @@ export default function AbilityHistoryPage() {
         abilityMap,
         filterAbility.trim()
       );
-      filtered = filtered.filter((x) => matchedAbilities.includes(x.abilityName));
+      filtered = filtered.filter((x) =>
+        matchedAbilities.includes(x.abilityName)
+      );
     }
 
     return groupHistory(filtered, limit);
   }, [rawData, filterName, filterAbility, limit, nameMap, abilityMap]);
 
-  // 🔹 单条撤回
+  /* ===============================
+     Single revert
+  =============================== */
   const handleRevert = async (id: string, item: HistoryItem) => {
     const confirmMsg = `确认将 ${item.characterName} 的 ${item.abilityName} 撤回到 ${item.beforeLevel}重 吗？`;
     if (!confirm(confirmMsg)) return;
+
     try {
       await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/characters/abilities/history/${id}/revert`,
         { method: "POST" }
       );
+      toastSuccess("撤回成功");
       await fetchHistory();
     } catch (err) {
-      alert("❌ 撤回失败");
       console.error(err);
+      toastError("撤回失败");
     }
   };
 
-  // 🔹 批量撤回
+  /* ===============================
+     Batch revert
+  =============================== */
   const handleRevertGroup = async (group: GroupedItem) => {
-    if (!confirm(`确定要撤回 ${group.characterName} 的 ${group.records.length} 项技能吗？`))
+    if (
+      !confirm(
+        `确定要撤回 ${group.characterName} 的 ${group.records.length} 项技能吗？`
+      )
+    )
       return;
+
     try {
       const ids = group.records.map((r) => r._id);
       await fetch(
@@ -143,10 +174,11 @@ export default function AbilityHistoryPage() {
           body: JSON.stringify({ ids }),
         }
       );
+      toastSuccess("批量撤回成功");
       await fetchHistory();
     } catch (err) {
-      alert("❌ 批量撤回失败");
       console.error(err);
+      toastError("批量撤回失败");
     }
   };
 
@@ -158,7 +190,7 @@ export default function AbilityHistoryPage() {
     <div className={styles.page}>
       <h2 className={styles.title}>技能更新记录</h2>
 
-      {/* 🔍 Filter bar */}
+      {/* Filters */}
       <div className={styles.filters}>
         <input
           type="text"
@@ -188,7 +220,7 @@ export default function AbilityHistoryPage() {
         </button>
       </div>
 
-      {/* 🧾 Data Table */}
+      {/* Table */}
       {loading ? (
         <p>加载中…</p>
       ) : filteredGroups.length === 0 ? (
@@ -217,20 +249,25 @@ export default function AbilityHistoryPage() {
                         alt={group.records[0].abilityName}
                         className={styles.skillIcon}
                         onError={(e) => {
-                          (e.currentTarget as HTMLImageElement).src = "/icons/default.png";
+                          (e.currentTarget as HTMLImageElement).src =
+                            "/icons/default.png";
                         }}
                       />
                       <span>{group.records[0].abilityName}</span>
                     </div>
                   </td>
                   <td>
-                    {group.records[0].beforeLevel}重 → {group.records[0].afterLevel}重
+                    {group.records[0].beforeLevel}重 →{" "}
+                    {group.records[0].afterLevel}重
                   </td>
                   <td>
                     <button
                       className={styles.revertBtn}
                       onClick={() =>
-                        handleRevert(group.records[0]._id, group.records[0])
+                        handleRevert(
+                          group.records[0]._id,
+                          group.records[0]
+                        )
                       }
                     >
                       撤回

@@ -4,8 +4,10 @@ import { useState, useEffect } from "react";
 import ComparisonModal from "../ComparisonModal";
 import { runOCR } from "@/lib/ocrService";
 import OCRHeader from "./Header";
-import ProcessingModal from "./ProcessingModal"; // ✅ new component
+import ProcessingModal from "./ProcessingModal";
 import styles from "./styles.module.css";
+
+import { toastError } from "@/app/components/toast/toast";
 
 interface Props {
   characterId: string;
@@ -33,7 +35,7 @@ export default function CharacterOCRSection({
         .then((result) => setCompareResult(result))
         .catch((err) => {
           console.error(err);
-          alert("OCR 请求失败");
+          toastError("OCR 连接失败");
         })
         .finally(() => setProcessing(false));
     }
@@ -41,7 +43,7 @@ export default function CharacterOCRSection({
 
   return (
     <div className={styles.wrapper}>
-      {/* 🔹 OCR Header (title + last update) */}
+      {/* 🔹 OCR Header */}
       <OCRHeader characterId={characterId} />
 
       {/* 🔹 Upload area */}
@@ -61,7 +63,6 @@ export default function CharacterOCRSection({
       >
         <p className={styles.uploadText}>上传或者粘贴枫影插件统计截图</p>
 
-        {/* Hidden input */}
         <input
           id="ocr-upload"
           type="file"
@@ -73,7 +74,6 @@ export default function CharacterOCRSection({
           }}
         />
 
-        {/* Custom button */}
         <label htmlFor="ocr-upload" className={styles.uploadButton}>
           选择文件
         </label>
@@ -82,7 +82,7 @@ export default function CharacterOCRSection({
         </span>
       </div>
 
-      {/* 🔹 Processing modal (moved to its own component) */}
+      {/* 🔹 Processing modal */}
       {processing && (
         <ProcessingModal
           previewImage={previewImage}
@@ -90,7 +90,7 @@ export default function CharacterOCRSection({
         />
       )}
 
-      {/* 🔹 Comparison modal (after OCR finished) */}
+      {/* 🔹 Comparison modal */}
       {compareResult && (
         <ComparisonModal
           characterId={characterId}

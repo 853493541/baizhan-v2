@@ -12,7 +12,8 @@ interface CharacterEditData {
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  onSave: () => void; // refresh parent list
+  onSave: () => void;     // ✅ refresh only
+  onDelete: () => void;   // ✅ trigger parent confirm
   characterId: string;
   initialData: CharacterEditData;
 }
@@ -28,6 +29,7 @@ export default function EditBasicInfoModal({
   isOpen,
   onClose,
   onSave,
+  onDelete,          // ✅ RECEIVE IT
   characterId,
   initialData,
 }: Props) {
@@ -35,6 +37,8 @@ export default function EditBasicInfoModal({
   const [role, setRole] = useState(initialData.role);
   const [active, setActive] = useState(initialData.active);
   const [saving, setSaving] = useState(false);
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
     setServer(initialData.server);
@@ -44,20 +48,21 @@ export default function EditBasicInfoModal({
 
   if (!isOpen) return null;
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
-  // ✅ Auto-save helper
+  /* ============================
+     Auto-save
+  ============================ */
   const autoSave = async (field: Partial<CharacterEditData>) => {
     if (!API_URL) return;
     setSaving(true);
+
     try {
       const res = await fetch(`${API_URL}/api/characters/${characterId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(field),
       });
-      if (!res.ok) throw new Error(`Save failed: ${res.status}`);
-      onSave(); // refresh parent data
+      if (!res.ok) throw new Error("Save failed");
+      onSave(); // refresh parent
     } catch (err) {
       console.error("Auto save failed:", err);
     } finally {
@@ -65,6 +70,9 @@ export default function EditBasicInfoModal({
     }
   };
 
+  /* ============================
+     Handlers
+  ============================ */
   const handleServerClick = (s: string) => {
     if (s !== server) {
       setServer(s);
@@ -85,20 +93,14 @@ export default function EditBasicInfoModal({
     autoSave({ active: newVal });
   };
 
-  const handleDelete = async () => {
-    if (!API_URL || !confirm("确定要删除这个角色吗？")) return;
-    try {
-      const res = await fetch(`${API_URL}/api/characters/${characterId}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) throw new Error(`Delete failed: ${res.status}`);
-      onSave();
-      onClose();
-    } catch (err) {
-      console.error("Delete failed:", err);
-    }
+  const handleDeleteClick = () => {
+    onClose();   // close edit modal FIRST
+    onDelete();  // let parent open ConfirmModal
   };
 
+  /* ============================
+     Render
+  ============================ */
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
@@ -106,7 +108,7 @@ export default function EditBasicInfoModal({
 
         {/* 区服 */}
         <div className={styles.field}>
-          <label className={styles.label}>区服/分组:</label>
+          <label className={styles.label}>区服:</label>
           <div className={styles.optionGroup}>
             {servers.map((s) => (
               <button
@@ -142,22 +144,22 @@ export default function EditBasicInfoModal({
           </div>
         </div>
 
-        {/* 是否启用 */}
+        {/* 启用 */}
         <div className={styles.field}>
           <label className={styles.label}>是否启用:</label>
           <div
             className={`${styles.toggle} ${active ? styles.on : ""}`}
             onClick={handleToggle}
           >
-            <div className={styles.knob}></div>
+            <div className={styles.knob} />
           </div>
         </div>
 
-        {/* 删除 / 关闭 */}
+        {/* Actions */}
         <div className={styles.actions}>
           <button
             type="button"
-            onClick={handleDelete}
+            onClick={handleDeleteClick}
             className={styles.delete}
             disabled={saving}
           >
@@ -173,8 +175,6 @@ export default function EditBasicInfoModal({
             关闭
           </button>
         </div>
-
-        {/* {saving && <p className={styles.saving}>正在保存...</p>} */}
       </div>
     </div>
   );

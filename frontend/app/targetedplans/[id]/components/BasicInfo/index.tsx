@@ -3,6 +3,11 @@
 import { useState, useRef, useEffect } from "react";
 import { Settings, X, Trash2, Lock } from "lucide-react";
 import styles from "./styles.module.css";
+import {
+  toastError,
+  toastSuccess,
+  toastInfo,
+} from "@/app/components/toast/toast";
 
 interface Props {
   schedule: {
@@ -64,7 +69,8 @@ export default function BasicInfoSection({
       setEditing(false);
     } catch (err) {
       console.error("❌ Rename failed:", err);
-      alert("更新失败，请稍后再试");
+      toastError("更新失败，请稍后再试");
+
     }
   };
 
@@ -95,7 +101,7 @@ export default function BasicInfoSection({
       setEditing(false);
     } catch (err) {
       console.error("❌ Delete failed:", err);
-      alert("删除失败，请稍后再试");
+      toastError("删除失败，请稍后再试");
     }
   };
 
@@ -115,13 +121,13 @@ export default function BasicInfoSection({
         onDelete?.();
       } catch (err) {
         console.error("❌ Confirmed delete failed:", err);
-        alert("删除失败，请稍后再试");
+        toastError("删除失败，请稍后再试");
       } finally {
         setConfirmingDelete(false);
         setEditing(false);
       }
     } else {
-      alert("请输入正确的确认文字：确认删除");
+      toastError("请输入正确的确认文字：确认删除");
     }
   };
 

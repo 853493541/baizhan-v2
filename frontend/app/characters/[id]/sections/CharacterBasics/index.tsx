@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { FaCog } from "react-icons/fa"; // ⚙️ gear icon
-import EditBasicInfoModal from "@/app/components/characters/EditBasicInfoModal"; // ✅ use shared modal
+import { FaCog } from "react-icons/fa";
+import EditBasicInfoModal from "@/app/components/characters/EditBasicInfoModal";
 import styles from "./styles.module.css";
 
 interface Character {
@@ -22,21 +22,19 @@ export interface CharacterEditData {
   active: boolean;
 }
 
-interface CharacterBasicsProps {
+interface Props {
   character: Character;
-  onSave: () => void; // ✅ we’ll just trigger parent refresh
-  onDelete: () => void;
+  onSave: (data: CharacterEditData) => void;
+  onDelete: () => void; // ✅ REQUIRED
 }
 
 export default function CharacterBasics({
   character,
   onSave,
   onDelete,
-}: CharacterBasicsProps) {
+}: Props) {
   const [isModalOpen, setModalOpen] = useState(false);
-  const genderLabel = character.gender === "男" ? "男 ♂" : "女 ♀";
 
-  // === Role color class ===
   const roleClass =
     character.role === "Tank"
       ? styles.tank
@@ -47,10 +45,9 @@ export default function CharacterBasics({
   return (
     <>
       <div className={`${styles.card} ${roleClass}`}>
-        {/* ⚙️ Edit button at top-right */}
         <button
-          onClick={() => setModalOpen(true)}
           className={styles.iconButton}
+          onClick={() => setModalOpen(true)}
           aria-label="编辑角色"
         >
           <FaCog />
@@ -59,18 +56,21 @@ export default function CharacterBasics({
         <div className={styles.info}>
           <h2 className={styles.name}>{character.name}</h2>
           <p>区服: {character.server}</p>
-          <p>性别: {genderLabel}</p>
+          <p>性别: {character.gender}</p>
           <p>门派: {character.class}</p>
         </div>
       </div>
 
-      {/* ✅ Shared modal for editing basic info */}
       {isModalOpen && (
         <EditBasicInfoModal
           isOpen={isModalOpen}
           onClose={() => setModalOpen(false)}
-          onSave={onSave} // refresh parent after save
-          onDelete={onDelete}
+          onSave={() => onSave({
+            server: character.server,
+            role: character.role,
+            active: character.active,
+          })}
+          onDelete={onDelete}   // ✅ THIS WAS MISSING AT RUNTIME
           characterId={character._id}
           initialData={{
             server: character.server,
