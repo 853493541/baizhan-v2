@@ -4,7 +4,7 @@ import React, { useEffect, useMemo } from "react";
 import styles from "./styles.module.css";
 import { calcBossNeeds } from "./calcBossNeeds";
 
-/* ✅ SINGLE SOURCE OF TRUTH (IMPORT HERE) */
+/* ✅ SINGLE SOURCE OF TRUTH */
 import tradableAbilities from "@/app/data/tradable_abilities.json";
 
 interface BossCardProps {
@@ -27,6 +27,13 @@ interface BossCardProps {
 
 const getAbilityIcon = (ability: string) => `/icons/${ability}.png`;
 
+/* 🧬 Mutated Boss（异类） */
+const mutatedBosses = new Set([
+  "肖红",
+  "青年程沐华",
+  "困境韦柔丝",
+]);
+
 export default function BossCard({
   floor,
   boss,
@@ -41,7 +48,7 @@ export default function BossCard({
   useEffect(() => {}, [floor, kill]);
 
   /* ===============================
-     Tradable set (local, reliable)
+     Tradable set
   ================================= */
   const tradableSet = useMemo(
     () => new Set<string>(tradableAbilities),
@@ -58,9 +65,15 @@ export default function BossCard({
   }
 
   const fullDropList: string[] = bossData[boss] || [];
-  const tradableList = fullDropList.filter(a => tradableSet.has(a));
-  const dropList = fullDropList.filter(a => !tradableSet.has(a));
-  const dropLevel: 9 | 10 = floor >= 81 && floor <= 90 ? 9 : 10;
+  const tradableList = fullDropList.filter((a) =>
+    tradableSet.has(a)
+  );
+  const dropList = fullDropList.filter(
+    (a) => !tradableSet.has(a)
+  );
+
+  const dropLevel: 9 | 10 =
+    floor >= 81 && floor <= 90 ? 9 : 10;
 
   /* ===============================
      Needs (single source of truth)
@@ -77,7 +90,7 @@ export default function BossCard({
   const content =
     needs.length > 0 ? (
       <ul className={styles.needList}>
-        {needs.map(n => (
+        {needs.map((n) => (
           <li
             key={n.ability}
             className={n.isHighlight ? styles.coreHighlight : ""}
@@ -91,7 +104,7 @@ export default function BossCard({
     );
 
   /* ===============================
-     Drop + card state (FINAL)
+     Drop + card state
   ================================= */
   let dropDisplay: React.ReactNode = null;
   let cardStateClass = "";
@@ -116,11 +129,8 @@ export default function BossCard({
         </div>
       );
 
-    /* 🟣 Purple book — FINAL FIX */
-    } else if (
-      sel.ability &&
-      tradableSet.has(sel.ability)
-    ) {
+    /* 🟣 Purple book */
+    } else if (sel.ability && tradableSet.has(sel.ability)) {
       cardStateClass = styles.cardPurple;
       dropResultClass = styles.purple;
 
@@ -180,6 +190,9 @@ export default function BossCard({
     }
   }
 
+  /* 🧬 Mutated boss check */
+  const isMutatedBoss = mutatedBosses.has(boss);
+
   return (
     <div
       key={floor}
@@ -188,6 +201,12 @@ export default function BossCard({
         onSelect(floor, boss, dropList, tradableList, dropLevel)
       }
     >
+      {/* 🧬 Mutated boss badge (display only) */}
+      {isMutatedBoss && (
+        <div className={styles.mutatedBossBadge}>异</div>
+      )}
+
+      {/* 🔁 Swap badge */}
       {(floor === 90 || floor === 100) && onChangeBoss && (
         <button
           className={styles.changeBtn}
