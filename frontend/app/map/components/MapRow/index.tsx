@@ -11,7 +11,21 @@ interface Props {
   onClickFloor?: (floor: number) => void;
 }
 
-const highlightBosses = new Set(["鬼影小次郎", "秦雷", "冯度", "阿依努尔","卫栖梧"]);
+/* ⭐ 精英 Boss */
+const highlightBosses = new Set([
+  "鬼影小次郎",
+  "秦雷",
+  "冯度",
+  "阿依努尔",
+  "卫栖梧",
+]);
+
+/* 🧬 Mutated Boss（异类） */
+const mutatedBosses = new Set([
+  "肖红",
+  "青年程沐华",
+  "困境韦柔丝",
+]);
 
 export default function MapRow({
   floors,
@@ -38,11 +52,19 @@ export default function MapRow({
         // 🔥 red text for empty floors
         const emptyClass = !bossName ? styles.emptyRed : "";
 
-        // ⭐ use original eliteCard styling, but based on bossName
+        // ⭐ elite style
         const eliteClass =
           bossName && highlightBosses.has(bossName)
             ? styles.eliteCard
             : "";
+
+        // 🧬 mutated boss
+        const isMutatedBoss =
+          bossName && mutatedBosses.has(bossName);
+
+        // 🔁 换标识：90 / 100 层 + 已选 Boss
+        const showSwapBadge =
+          !!bossName && (floor === 90 || floor === 100);
 
         return (
           <div
@@ -54,6 +76,16 @@ export default function MapRow({
               if (isClickable) onClickFloor!(floor);
             }}
           >
+            {/* 🧬 Mutated boss badge */}
+            {isMutatedBoss && (
+              <div className={styles.mutatedBossBadge}>异</div>
+            )}
+
+            {/* 🔁 Swap badge */}
+            {showSwapBadge && (
+              <div className={styles.swapBadge}>换</div>
+            )}
+
             <div className={styles.floorLabel}>{floor}</div>
             <div className={`${styles.value} ${emptyClass}`}>
               {displayText}
