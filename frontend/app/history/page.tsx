@@ -6,6 +6,7 @@ import GroupedResult, {
   HistoryItem,
 } from "./Components/GroupedResult";
 import { createPinyinMap, pinyinFilter } from "@/utils/pinyinSearch";
+import ConfirmModal from "@/app/components/ConfirmModal";
 
 import {
   toastSuccess,
@@ -31,7 +32,16 @@ export default function AbilityHistoryPage() {
   const [nameMap, setNameMap] = useState<Record<string, any>>({});
   const [abilityMap, setAbilityMap] = useState<Record<string, any>>({});
 
-  const GROUP_WINDOW = 10000; // 10s bundle window
+  /* ===============================
+     Confirm Modal State
+  =============================== */
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmMessage, setConfirmMessage] = useState("");
+  const [onConfirmAction, setOnConfirmAction] = useState<(() => void) | null>(
+    null
+  );
+
+  const GROUP_WINDOW = 10000;
   const FETCH_LIMIT = 1000;
 
   /* ===============================
@@ -134,52 +144,62 @@ export default function AbilityHistoryPage() {
   }, [rawData, filterName, filterAbility, limit, nameMap, abilityMap]);
 
   /* ===============================
-     Single revert
+     Single revert (CONFIRM MODAL)
   =============================== */
-  const handleRevert = async (id: string, item: HistoryItem) => {
-    const confirmMsg = `确认将 ${item.characterName} 的 ${item.abilityName} 撤回到 ${item.beforeLevel}重 吗？`;
-    if (!confirm(confirmMsg)) return;
+  const handleRevert = (id: string, item: HistoryItem) => {
+    setConfirmMessage(
+      `确认将 ${item.characterName} 的 ${item.abilityName} 撤回到 ${item.beforeLevel}重 吗？`
+    );
 
-    try {
-      await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/characters/abilities/history/${id}/revert`,
-        { method: "POST" }
-      );
-      toastSuccess("撤回成功");
-      await fetchHistory();
-    } catch (err) {
-      console.error(err);
-      toastError("撤回失败");
-    }
+    setOnConfirmAction(() => async () => {
+      try {
+        await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/characters/abilities/history/${id}/revert`,
+          { method: "POST" }
+        );
+        toastSuccess("撤回成功");
+        await fetchHistory();
+      } catch (err) {
+        console.error(err);
+        toastError("撤回失败");
+      } finally {
+        setConfirmOpen(false);
+      }
+    });
+
+    setConfirmOpen(true);
   };
 
   /* ===============================
-     Batch revert
+     Batch revert (CONFIRM MODAL)
   =============================== */
-  const handleRevertGroup = async (group: GroupedItem) => {
-    if (
-      !confirm(
-        `确定要撤回 ${group.characterName} 的 ${group.records.length} 项技能吗？`
-      )
-    )
-      return;
+  const handleRevertGroup = (group: GroupedItem) => {
+    setConfirmMessage(
+      `确定要撤回 ${group.characterName} 的 ${group.records.length} 项技能吗？`
+    );
 
-    try {
-      const ids = group.records.map((r) => r._id);
-      await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/characters/abilities/history/batch/revert`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ids }),
-        }
-      );
-      toastSuccess("批量撤回成功");
-      await fetchHistory();
-    } catch (err) {
-      console.error(err);
-      toastError("批量撤回失败");
-    }
+    setOnConfirmAction(() => async () => {
+      try {
+        const ids = group.records.map((r) => r._id);
+        await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/characters/abilities/history/batch/revert`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ids }),
+          }
+        );
+        toastSuccess("批量撤回成功");
+        await fetchHistory();
+      } catch (err) {
+        console.error(err);
+        toastError("批量撤回失败");
+      } finally {
+        setConfirmOpen(false);
+      }
+    });
+
+    setConfirmOpen(true);
   };
 
   useEffect(() => {
@@ -285,6 +305,20 @@ export default function AbilityHistoryPage() {
             )}
           </tbody>
         </table>
+      )}
+
+      {/* ✅ Confirm Modal */}
+      {confirmOpen && onConfirmAction && (
+        <ConfirmModal
+          title="确认操作"
+          message={confirmMessage}
+          confirmText="确认"
+          onCancel={() => {
+            setConfirmOpen(false);
+            setOnConfirmAction(null);
+          }}
+          onConfirm={onConfirmAction}
+        />
       )}
     </div>
   );
