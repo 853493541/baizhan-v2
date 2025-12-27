@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Settings, X, Lock } from "lucide-react";
 import styles from "./styles.module.css";
 import { getGameWeekFromDate } from "@/utils/weekUtils";
+import ConfirmModal from "@/app/components/ConfirmModal";
 
 interface Group {
   status?: "not_started" | "started" | "finished";
@@ -30,6 +31,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 export default function StandardScheduleList({ schedules, setSchedules }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [tempName, setTempName] = useState("");
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -39,7 +41,9 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
     }
   }, [editingId]);
 
-  // Group by createdAt week
+  /* ===============================
+     Group by week
+  =============================== */
   const grouped = schedules.reduce(
     (acc: Record<string, StandardSchedule[]>, s) => {
       const rawWeek = getGameWeekFromDate(new Date(s.createdAt));
@@ -131,30 +135,31 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
                         {s.characterCount}
                       </p>
 
-{/* 完成进度 row */}
-<div className={styles.progressLine}>
-  <span className={styles.label}>完成进度:</span>
+                      {/* 完成进度 */}
+                      <div className={styles.progressLine}>
+                        <span className={styles.label}>完成进度:</span>
 
-  <div className={styles.progressInlineBar}>
-    <div
-      className={styles.progressInlineFill}
-      style={{
-        width: `${progress}%`,
-        backgroundColor:
-          progress === 100
-            ? "#22c55e" // green
-            : progress <= 30
-            ? "#ef4444" // red
-            : "#eab308", // yellow
-      }}
-    />
-  </div>
+                        <div className={styles.progressInlineBar}>
+                          <div
+                            className={styles.progressInlineFill}
+                            style={{
+                              width: `${progress}%`,
+                              backgroundColor:
+                                progress === 100
+                                  ? "#22c55e"
+                                  : progress <= 30
+                                  ? "#ef4444"
+                                  : "#eab308",
+                            }}
+                          />
+                        </div>
 
-  <span className={styles.progressText}>
-    {totalGroups ? `${finishedCount} / ${totalGroups}` : "N/A"}
-  </span>
-</div>
-
+                        <span className={styles.progressText}>
+                          {totalGroups
+                            ? `${finishedCount} / ${totalGroups}`
+                            : "N/A"}
+                        </span>
+                      </div>
 
                       <p>
                         <span className={styles.label}>状态:</span>{" "}
@@ -175,7 +180,7 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
         </Fragment>
       ))}
 
-      {/* MODAL */}
+      {/* EDIT MODAL */}
       {editingId && (
         <div
           className={styles.modalOverlay}
@@ -217,9 +222,8 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
                     }`}
                     disabled={locked}
                     onClick={() => {
-                      if (!locked && confirm("⚠️ 确认删除？不可撤销")) {
-                        handleDelete(editingId);
-                        setEditingId(null);
+                      if (!locked) {
+                        setConfirmDeleteId(editingId);
                       }
                     }}
                   >
@@ -241,6 +245,21 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
             </div>
           </div>
         </div>
+      )}
+
+      {/* ✅ CONFIRM DELETE MODAL */}
+      {confirmDeleteId && (
+        <ConfirmModal
+          title="确认删除"
+          message="确认删除？此操作不可撤销"
+          confirmText="删除"
+          onCancel={() => setConfirmDeleteId(null)}
+          onConfirm={() => {
+            handleDelete(confirmDeleteId);
+            setConfirmDeleteId(null);
+            setEditingId(null);
+          }}
+        />
       )}
     </div>
   );

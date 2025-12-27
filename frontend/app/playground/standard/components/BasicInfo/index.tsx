@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Settings, X, Trash2, Lock, Plus } from "lucide-react";
 import styles from "./styles.module.css";
+import ConfirmModal from "@/app/components/ConfirmModal";
 
 interface Props {
   schedule: {
@@ -30,8 +31,14 @@ export default function BasicInfoSection({
   const [localSchedule, setLocalSchedule] = useState(schedule);
   const [editing, setEditing] = useState(false);
   const [tempName, setTempName] = useState(schedule.name);
+
+  // 🔹 ConfirmModal (quick delete)
+  const [showQuickConfirm, setShowQuickConfirm] = useState(false);
+
+  // 🔹 Typed confirm delete (LOCKED – untouched)
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleteInput, setDeleteInput] = useState("");
+
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -68,14 +75,14 @@ export default function BasicInfoSection({
     }
   };
 
+  /* ===============================================================
+     🗑 Delete handlers
+  =============================================================== */
   const handleDeleteClick = () => {
     if (locked) {
-      setConfirmingDelete(true);
+      setConfirmingDelete(true); // typed confirm (unchanged)
     } else {
-      if (confirm("确定要删除这个排表吗？")) {
-        onDelete?.();
-        setEditing(false);
-      }
+      setShowQuickConfirm(true); // ✅ ConfirmModal
     }
   };
 
@@ -84,6 +91,7 @@ export default function BasicInfoSection({
       onDelete?.();
       setConfirmingDelete(false);
       setEditing(false);
+      setDeleteInput("");
     } else {
       alert("请输入正确的确认文字：确认删除");
     }
@@ -92,6 +100,7 @@ export default function BasicInfoSection({
   const handleCancelDelete = () => {
     setConfirmingDelete(false);
     setEditing(false);
+    setDeleteInput("");
   };
 
   return (
@@ -106,14 +115,11 @@ export default function BasicInfoSection({
       <div className={styles.card}>
         <div className={styles.cardHeader}>
           <h3 className={styles.cardTitle}>基本信息</h3>
-
-          {/* ⚙️ Settings Button */}
           <button className={styles.gearBtn} onClick={() => setEditing(true)}>
             <Settings size={18} />
           </button>
         </div>
 
-        {/* 排表名称 */}
         <div className={styles.infoRow}>
           <span className={styles.label}>排表名称:</span>
           <span className={styles.value}>
@@ -121,19 +127,15 @@ export default function BasicInfoSection({
           </span>
         </div>
 
-        {/* 服务器 */}
         <div className={styles.infoRow}>
           <span className={styles.label}>服务器:</span>
           <span className={styles.value}>{localSchedule.server}</span>
         </div>
 
-        {/* ⭐ 角色数量 + Inline Add Button */}
         <div className={styles.infoRow}>
           <span className={styles.label}>角色数量:</span>
-
           <span className={styles.valueWithBtn}>
             {localSchedule.characterCount}
-
             <button
               className={styles.inlineAddBtn}
               onClick={onOpenEditCharacters}
@@ -144,7 +146,6 @@ export default function BasicInfoSection({
           </span>
         </div>
 
-        {/* 创建时间 */}
         <div className={styles.infoRow}>
           <span className={styles.label}>创建时间:</span>
           <span className={styles.value}>
@@ -153,7 +154,7 @@ export default function BasicInfoSection({
         </div>
       </div>
 
-      {/* Edit modal */}
+      {/* ================= Edit Modal ================= */}
       {editing && (
         <div
           className={styles.modalOverlay}
@@ -204,7 +205,7 @@ export default function BasicInfoSection({
         </div>
       )}
 
-      {/* Locked delete modal */}
+      {/* ================= Locked Typed Delete (UNCHANGED) ================= */}
       {confirmingDelete && (
         <div
           className={styles.modalOverlay}
@@ -244,6 +245,21 @@ export default function BasicInfoSection({
             </div>
           </div>
         </div>
+      )}
+
+      {/* ================= Quick Delete ConfirmModal ================= */}
+      {showQuickConfirm && (
+        <ConfirmModal
+          title="确认删除"
+          message="确定要删除这个排表吗？此操作不可撤销。"
+          confirmText="删除"
+          onCancel={() => setShowQuickConfirm(false)}
+          onConfirm={() => {
+            onDelete?.();
+            setShowQuickConfirm(false);
+            setEditing(false);
+          }}
+        />
       )}
     </section>
   );

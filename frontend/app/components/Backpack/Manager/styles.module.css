@@ -10,7 +10,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1200; /* lower than AddBackpackModal */
+  z-index: 300; /* lower than AddBackpackModal */
 }
 
 /* === Modal === */

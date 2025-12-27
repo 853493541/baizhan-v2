@@ -2,6 +2,7 @@
 
 import React, { useEffect } from "react";
 import styles from "./styles.module.css";
+import { toastError, toastSuccess } from "@/app/components/toast/toast";
 
 export interface ActionModalProps {
   tradables: { ability: string; requiredLevel: number }[];
@@ -27,7 +28,9 @@ const numToChinese = (num: number): string => {
 
 // --- Normalize + force level-10 names ---
 const normalize = (s: string) => (s || "").trim().replace(/\u200B/g, "");
-const FORCE_LV10_ABILITIES = new Set(["立剑势", "玉魄惊鸾", "剑飞惊天"].map(normalize));
+const FORCE_LV10_ABILITIES = new Set(
+  ["立剑势", "玉魄惊鸾", "剑飞惊天"].map(normalize)
+);
 
 export default function ActionModal({
   tradables,
@@ -50,37 +53,39 @@ export default function ActionModal({
   };
 
   /* ---------------------------------------------------------------
-     🧭 Handle Use (with forced LV10 + Chinese numeral)
+     🧭 Direct Use (NO CONFIRM)
   --------------------------------------------------------------- */
   const handleUse = async (ability: string, level: number) => {
     const name = normalize(ability);
     let finalLevel = level;
 
-    // ✅ Force LV10 for special abilities
     if (FORCE_LV10_ABILITIES.has(name)) {
       finalLevel = 10;
     }
 
-    // 🈶 Convert to Chinese numeral for display
-    const chineseLevel = numToChinese(finalLevel);
-
-    if (!confirm(`确定要使用 ${ability} · ${chineseLevel}重 吗？`)) return;
-
     try {
-      const res = await fetch(`${API_URL}/api/characters/${charId}/storage/use`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ability, level: finalLevel }),
-      });
+      const res = await fetch(
+        `${API_URL}/api/characters/${charId}/storage/use`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ability, level: finalLevel }),
+        }
+      );
+
       if (!res.ok) throw new Error("使用失败");
+
+      // ✅ 成功 toast（你要的文案）
+      toastSuccess(`已使用 ${name} · ${finalLevel}重`);
+
       await onRefresh();
     } catch {
-      alert("使用失败，请稍后再试");
+      toastError("使用失败，请稍后再试");
     }
   };
 
   /* ---------------------------------------------------------------
-     📋 Handle Copy (force-10 exceptions only)
+     📋 Copy text
   --------------------------------------------------------------- */
   const handleCopy = async (ability: string, requiredLevel: number) => {
     const name = normalize(ability);
@@ -97,9 +102,8 @@ export default function ActionModal({
 
     try {
       await navigator.clipboard.writeText(text);
-      // ✅ silent success
     } catch {
-      alert("复制失败，请手动复制");
+      toastError("复制失败，请手动复制");
     }
   };
 
@@ -122,7 +126,8 @@ export default function ActionModal({
                       alt={ability}
                       className={styles.abilityIcon}
                       onError={(e) =>
-                        ((e.currentTarget as HTMLImageElement).style.display = "none")
+                        ((e.currentTarget as HTMLImageElement).style.display =
+                          "none")
                       }
                     />
                     <span className={styles.abilityLine}>
@@ -137,10 +142,7 @@ export default function ActionModal({
                   </div>
                   <div className={styles.buttons}>
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleUse(ability, storedLevel);
-                      }}
+                      onClick={() => handleUse(ability, storedLevel)}
                       className={`${styles.btn} ${styles.useBtn}`}
                     >
                       使用
@@ -170,7 +172,8 @@ export default function ActionModal({
                       alt={ability}
                       className={styles.abilityIcon}
                       onError={(e) =>
-                        ((e.currentTarget as HTMLImageElement).style.display = "none")
+                        ((e.currentTarget as HTMLImageElement).style.display =
+                          "none")
                       }
                     />
                     <span className={styles.abilityLine}>
@@ -185,19 +188,13 @@ export default function ActionModal({
                   </div>
                   <div className={styles.buttons}>
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleUse(ability, requiredLevel);
-                      }}
+                      onClick={() => handleUse(ability, requiredLevel)}
                       className={`${styles.btn} ${styles.useBtn}`}
                     >
                       使用
                     </button>
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleCopy(ability, requiredLevel);
-                      }}
+                      onClick={() => handleCopy(ability, requiredLevel)}
                       className={`${styles.btn} ${styles.copyBtn}`}
                     >
                       复制

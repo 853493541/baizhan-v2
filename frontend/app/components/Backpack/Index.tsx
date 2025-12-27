@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import styles from "./styles.module.css";
-import Manager from "./Manager";
-import AddBackpackModal from "./AddBackpackModal";
+import ConfirmModal from "@/app/components/ConfirmModal";
 
 interface StorageItem {
   ability: string;
@@ -54,9 +53,23 @@ interface Props {
   onChanged?: () => void;
 }
 
-export default function BackpackWindow({ char: initialChar, API_URL, onChanged }: Props) {
+export default function BackpackWindow({
+  char: initialChar,
+  API_URL,
+  onChanged,
+}: Props) {
   const [char, setChar] = useState<Character>(initialChar);
   const [loading, setLoading] = useState(false);
+
+  /* ===============================
+     Confirm state
+  =============================== */
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<
+    | { type: "use"; item: StorageItem }
+    | { type: "delete"; item: StorageItem }
+    | null
+  >(null);
 
   useEffect(() => {
     setChar(initialChar);
@@ -69,10 +82,10 @@ export default function BackpackWindow({ char: initialChar, API_URL, onChanged }
       if (!res.ok) throw new Error("加载角色失败");
       const data = await res.json();
       setChar(data);
-      if (onChanged) onChanged();
+      onChanged?.();
     } catch (e) {
-      alert("刷新失败，请稍后再试");
       console.error(e);
+      alert("刷新失败，请稍后再试");
     } finally {
       setLoading(false);
     }
@@ -88,90 +101,163 @@ export default function BackpackWindow({ char: initialChar, API_URL, onChanged }
     }
   };
 
-  const handleUse = (item: StorageItem) =>
-    runWithRefresh(async () => {
-      if (!confirm(`确定要使用 ${item.ability}${item.level}重 吗？`)) return;
-      const res = await fetch(`${API_URL}/api/characters/${char._id}/storage/use`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ability: item.ability, level: item.level }),
-      });
-      if (!res.ok) throw new Error("使用失败");
-    });
+  /* ===============================
+     Step 1: request confirm
+  =============================== */
+  const requestUse = (item: StorageItem) => {
+    setPendingAction({ type: "use", item });
+    setConfirmOpen(true);
+  };
 
-  const handleDelete = (item: StorageItem) =>
-    runWithRefresh(async () => {
-      if (!confirm(`确定要删除 ${item.ability}${item.level}重 吗？`)) return;
-      const res = await fetch(`${API_URL}/api/characters/${char._id}/storage/delete`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ability: item.ability, level: item.level }),
-      });
-      if (!res.ok) throw new Error("删除失败");
-    });
+  const requestDelete = (item: StorageItem) => {
+    setPendingAction({ type: "delete", item });
+    setConfirmOpen(true);
+  };
 
+  /* ===============================
+     Step 2: confirmed
+  =============================== */
+  const confirmAction = async () => {
+    if (!pendingAction) return;
+
+    const { type, item } = pendingAction;
+    setConfirmOpen(false);
+    setPendingAction(null);
+
+    if (type === "use") {
+      await runWithRefresh(async () => {
+        const res = await fetch(
+          `${API_URL}/api/characters/${char._id}/storage/use`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ability: item.ability,
+              level: item.level,
+            }),
+          }
+        );
+        if (!res.ok) throw new Error("使用失败");
+      });
+    }
+
+    if (type === "delete") {
+      await runWithRefresh(async () => {
+        const res = await fetch(
+          `${API_URL}/api/characters/${char._id}/storage/delete`,
+          {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ability: item.ability,
+              level: item.level,
+            }),
+          }
+        );
+        if (!res.ok) throw new Error("删除失败");
+      });
+    }
+  };
+
+  /* ===============================
+     Render
+  =============================== */
   const allItems = char.storage || [];
   const sortedItems = [...allItems].sort((a, b) => {
     const aCore = CORE_ABILITIES.includes(a.ability);
     const bCore = CORE_ABILITIES.includes(b.ability);
     return aCore === bCore ? 0 : aCore ? -1 : 1;
   });
+
   const limitedItems = sortedItems.slice(0, 3);
 
   return (
-    <div className={styles.wrapper}>
-      {!limitedItems.length && <p className={styles.empty}>暂无背包记录</p>}
+    <>
+      <div className={styles.wrapper}>
+        {!limitedItems.length && (
+          <p className={styles.empty}>暂无背包记录</p>
+        )}
 
-      <ul className={styles.itemList}>
-        {limitedItems.map((item, idx) => {
-          const currentLevel = char.abilities?.[item.ability] ?? 0;
-          // ✅ show only first 4 characters, no ellipsis
-          const shortName = item.ability.slice(0, 4);
-          return (
-            <li
-              key={`${item.ability}-${idx}`}
-              className={`${styles.itemRow} ${item.used ? styles.itemUsed : ""}`}
-            >
-              {/* Left side */}
-              <div className={styles.itemLeft}>
-                <img
-                  src={getAbilityIcon(item.ability)}
-                  alt={item.ability}
-                  className={styles.abilityIcon}
-                  onError={(e) => (e.currentTarget.style.display = "none")}
-                />
+        <ul className={styles.itemList}>
+          {limitedItems.map((item, idx) => {
+            const currentLevel = char.abilities?.[item.ability] ?? 0;
+            const shortName = item.ability.slice(0, 4);
 
-                <div className={styles.abilityText} title={item.ability}>
-                  <span className={styles.abilityName}>
-                    {numToChinese(item.level)}重 • {shortName}
-                  </span>
-                  <span className={styles.currentLevelRight}>
-                    当前：{numToChinese(currentLevel)}重
-                  </span>
+            return (
+              <li
+                key={`${item.ability}-${idx}`}
+                className={`${styles.itemRow} ${
+                  item.used ? styles.itemUsed : ""
+                }`}
+              >
+                <div className={styles.itemLeft}>
+                  <img
+                    src={getAbilityIcon(item.ability)}
+                    alt={item.ability}
+                    className={styles.abilityIcon}
+                    onError={(e) =>
+                      ((e.currentTarget as HTMLImageElement).style.display =
+                        "none")
+                    }
+                  />
+                  <div className={styles.abilityText}>
+                    <span className={styles.abilityName}>
+                      {numToChinese(item.level)}重 • {shortName}
+                    </span>
+                    <span className={styles.currentLevelRight}>
+                      当前：{numToChinese(currentLevel)}重
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              {/* Right buttons */}
-              <div className={styles.buttons}>
-                {!item.used && (
+                <div className={styles.buttons}>
+                  {!item.used && (
+                    <button
+                      onClick={() => requestUse(item)}
+                      className={`${styles.btn} ${styles.useBtn}`}
+                    >
+                      使用
+                    </button>
+                  )}
                   <button
-                    onClick={() => handleUse(item)}
-                    className={`${styles.btn} ${styles.useBtn}`}
+                    onClick={() => requestDelete(item)}
+                    className={`${styles.btn} ${styles.deleteBtn}`}
                   >
-                    使用
+                    删除
                   </button>
-                )}
-                <button
-                  onClick={() => handleDelete(item)}
-                  className={`${styles.btn} ${styles.deleteBtn}`}
-                >
-                  删除
-                </button>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
-    </div>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+
+      {/* ================= Confirm Modal ================= */}
+      {confirmOpen && pendingAction && (
+        <ConfirmModal
+          title={
+            pendingAction.type === "use" ? "确认使用" : "确认删除"
+          }
+          message={
+            pendingAction.type === "use"
+              ? `确定要使用 ${pendingAction.item.ability} ${numToChinese(
+                  pendingAction.item.level
+                )}重 吗？`
+              : `确定要删除 ${pendingAction.item.ability} ${numToChinese(
+                  pendingAction.item.level
+                )}重 吗？`
+          }
+          intent="danger"
+          confirmText={
+            pendingAction.type === "use" ? "使用" : "删除"
+          }
+          onCancel={() => {
+            setConfirmOpen(false);
+            setPendingAction(null);
+          }}
+          onConfirm={confirmAction}
+        />
+      )}
+    </>
   );
 }

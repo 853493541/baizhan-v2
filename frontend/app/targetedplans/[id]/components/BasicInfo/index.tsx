@@ -5,9 +5,8 @@ import { Settings, X, Trash2, Lock } from "lucide-react";
 import styles from "./styles.module.css";
 import {
   toastError,
-  toastSuccess,
-  toastInfo,
 } from "@/app/components/toast/toast";
+import ConfirmModal from "@/app/components/ConfirmModal";
 
 interface Props {
   schedule: {
@@ -34,8 +33,14 @@ export default function BasicInfoSection({
   const [localSchedule, setLocalSchedule] = useState(schedule);
   const [editing, setEditing] = useState(false);
   const [tempName, setTempName] = useState(schedule.name);
+
+  // 🔴 confirm modal (UNLOCKED delete)
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  // 🔒 locked delete modal
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleteInput, setDeleteInput] = useState("");
+
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -53,87 +58,95 @@ export default function BasicInfoSection({
   const getPlanIdentifier = () =>
     localSchedule.planId || localSchedule._id || "";
 
-  /* ✏️ Rename targeted plan */
+  /* ✏️ Rename */
   const handleRename = async () => {
     const id = getPlanIdentifier();
     if (!id) return;
+
     try {
       const res = await fetch(`${API_BASE}/api/targeted-plans/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: tempName }),
       });
-      if (!res.ok) throw new Error("Failed to update name");
+
+      if (!res.ok) throw new Error("Rename failed");
 
       setLocalSchedule((prev) => ({ ...prev, name: tempName }));
       setEditing(false);
     } catch (err) {
-      console.error("❌ Rename failed:", err);
+      console.error(err);
       toastError("更新失败，请稍后再试");
-
     }
   };
 
-  /* 🗑️ Handle delete click */
+  /* 🗑️ Delete click */
   const handleDeleteClick = () => {
     if (locked) {
       setConfirmingDelete(true);
     } else {
-      if (confirm("确定要删除这个排表吗？")) {
-        handleDirectDelete();
-      }
+      setConfirmOpen(true); // ✅ FIX
     }
   };
 
-  /* 🧹 Direct delete for unlocked plans (tolerant to 404) */
+  /* 🗑️ Direct delete (unlocked) */
   const handleDirectDelete = async () => {
     const id = getPlanIdentifier();
     if (!id) return;
+
+    setConfirmOpen(false);
+
     try {
       const res = await fetch(`${API_BASE}/api/targeted-plans/${id}`, {
         method: "DELETE",
       });
-      // ✅ Ignore 404 since it just means "already deleted"
+
       if (res.status !== 200 && res.status !== 201 && res.status !== 204) {
         if (res.status !== 404) throw new Error("Delete failed");
       }
+
       onDelete?.();
       setEditing(false);
     } catch (err) {
-      console.error("❌ Delete failed:", err);
+      console.error(err);
       toastError("删除失败，请稍后再试");
     }
   };
 
-  /* 🔒 Confirm delete for locked plans (tolerant to 404) */
+  /* 🔒 Locked delete confirm */
   const handleConfirmDelete = async () => {
     const id = getPlanIdentifier();
     if (!id) return;
 
-    if (deleteInput.trim() === "确认删除") {
-      try {
-        const res = await fetch(`${API_BASE}/api/targeted-plans/${id}`, {
-          method: "DELETE",
-        });
-        if (res.status !== 200 && res.status !== 201 && res.status !== 204) {
-          if (res.status !== 404) throw new Error("Delete failed");
-        }
-        onDelete?.();
-      } catch (err) {
-        console.error("❌ Confirmed delete failed:", err);
-        toastError("删除失败，请稍后再试");
-      } finally {
-        setConfirmingDelete(false);
-        setEditing(false);
-      }
-    } else {
+    if (deleteInput.trim() !== "确认删除") {
       toastError("请输入正确的确认文字：确认删除");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/api/targeted-plans/${id}`, {
+        method: "DELETE",
+      });
+
+      if (res.status !== 200 && res.status !== 201 && res.status !== 204) {
+        if (res.status !== 404) throw new Error("Delete failed");
+      }
+
+      onDelete?.();
+    } catch (err) {
+      console.error(err);
+      toastError("删除失败，请稍后再试");
+    } finally {
+      setConfirmingDelete(false);
+      setEditing(false);
+      setDeleteInput("");
     }
   };
 
   const handleCancelDelete = () => {
     setConfirmingDelete(false);
     setEditing(false);
+    setDeleteInput("");
   };
 
   return (
@@ -155,9 +168,7 @@ export default function BasicInfoSection({
 
         <div className={styles.infoRow}>
           <span className={styles.label}>排表名称:</span>
-          <span className={styles.value}>
-            {localSchedule.name || "未命名排表"}
-          </span>
+          <span className={styles.value}>{localSchedule.name}</span>
         </div>
         <div className={styles.infoRow}>
           <span className={styles.label}>服务器:</span>
@@ -175,13 +186,11 @@ export default function BasicInfoSection({
         </div>
       </div>
 
-      {/* ✏️ Editing Modal */}
+      {/* ✏️ Edit Modal */}
       {editing && (
         <div
           className={styles.modalOverlay}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setEditing(false);
-          }}
+          onClick={(e) => e.target === e.currentTarget && setEditing(false)}
         >
           <div className={styles.modal}>
             <button className={styles.closeBtn} onClick={() => setEditing(false)}>
@@ -189,11 +198,11 @@ export default function BasicInfoSection({
             </button>
 
             <h3>编辑排表</h3>
+
             <label>
               排表名称:
               <input
                 ref={inputRef}
-                type="text"
                 value={tempName}
                 onChange={(e) => setTempName(e.target.value)}
               />
@@ -201,17 +210,7 @@ export default function BasicInfoSection({
 
             <div className={styles.modalActions}>
               <button className={styles.deleteBtn} onClick={handleDeleteClick}>
-                {locked ? (
-                  <>
-                    <Lock size={14} style={{ marginRight: 4 }} />
-                    删除
-                  </>
-                ) : (
-                  <>
-                    <Trash2 size={14} style={{ marginRight: 4 }} />
-                    删除
-                  </>
-                )}
+                {locked ? <Lock size={14} /> : <Trash2 size={14} />} 删除
               </button>
               <button className={styles.saveBtn} onClick={handleRename}>
                 保存
@@ -221,31 +220,26 @@ export default function BasicInfoSection({
         </div>
       )}
 
-      {/* 🔒 Delete Confirmation Modal */}
+      {/* 🔒 Locked delete modal (unchanged) */}
       {confirmingDelete && (
         <div
           className={styles.modalOverlay}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) handleCancelDelete();
-          }}
+          onClick={(e) => e.target === e.currentTarget && handleCancelDelete()}
         >
           <div className={styles.modal}>
             <button className={styles.closeBtn} onClick={handleCancelDelete}>
               <X size={20} />
             </button>
+
             <h3>确认删除</h3>
             <p className={styles.warningText}>
-              该排表已开始，是否确认删除？
-              <br />
-              请在下方输入 <strong>确认删除</strong> 以继续。
+              该排表已开始，请输入 <strong>确认删除</strong>
             </p>
 
             <input
               className={styles.confirmInput}
-              type="text"
               value={deleteInput}
               onChange={(e) => setDeleteInput(e.target.value)}
-              placeholder="请输入 确认删除"
             />
 
             <div className={styles.modalActions}>
@@ -258,6 +252,18 @@ export default function BasicInfoSection({
             </div>
           </div>
         </div>
+      )}
+
+      {/* ✅ NEW ConfirmModal (unlocked delete) */}
+      {confirmOpen && (
+        <ConfirmModal
+          title="删除排表"
+          message="确认要删除这个排表吗？"
+          intent="danger"
+          confirmText="删除"
+          onCancel={() => setConfirmOpen(false)}
+          onConfirm={handleDirectDelete}
+        />
       )}
     </section>
   );
