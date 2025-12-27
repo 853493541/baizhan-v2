@@ -4,7 +4,9 @@ import React, { useState, useMemo, useEffect } from "react";
 import { Plus, X } from "lucide-react";
 import styles from "./styles.module.css";
 import AddBackpackModal from "../AddBackpackModal";
+import ConfirmModal from "@/app/components/ConfirmModal";
 import { createPinyinMap, pinyinFilter } from "../../../../utils/pinyinSearch";
+import { toastError } from "@/app/components/toast/toast";
 
 interface StorageItem {
   ability: string;
@@ -43,12 +45,23 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
   const [search, setSearch] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  /* ===============================
+     Confirm modal state
+  =============================== */
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmTitle, setConfirmTitle] = useState("");
+  const [confirmMessage, setConfirmMessage] = useState("");
+  const [onConfirmAction, setOnConfirmAction] = useState<(() => void) | null>(
+    null
+  );
+
   const [pinyinMap, setPinyinMap] = useState<
     Record<string, { full: string; short: string }>
   >({});
 
   /* ===============================================================
-     🔍 Build Pinyin map once after load (async-safe)
+     🔍 Build Pinyin map
   =============================================================== */
   useEffect(() => {
     async function buildMap() {
@@ -60,7 +73,7 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
   }, [localChar]);
 
   /* ===============================================================
-     🔍 Pinyin-aware filtering
+     🔍 Filter
   =============================================================== */
   const filteredItems = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -72,7 +85,7 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
   }, [search, localChar, pinyinMap]);
 
   /* ===============================================================
-     🔄 Refresh character after actions
+     🔄 Refresh
   =============================================================== */
   const refreshCharacter = async () => {
     try {
@@ -83,7 +96,7 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
       setLocalChar(data);
       onUpdated(data);
     } catch (e) {
-      alert("刷新失败，请稍后再试");
+      toastError("刷新失败，请稍后再试");
       console.error(e);
     } finally {
       setLoading(false);
@@ -96,65 +109,89 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
       await refreshCharacter();
     } catch (err) {
       console.error("❌ action failed:", err);
-      alert("操作失败，请稍后再试");
+      toastError("操作失败，请稍后再试");
     }
   };
 
   /* ===============================================================
-     ⚔️ Handle Use / Delete
+     ⚔️ Use / Delete (ConfirmModal-based)
   =============================================================== */
-  const handleUse = (item: StorageItem) =>
-    runWithRefresh(async () => {
-      if (item.level === 9) {
-        const hasLv10 = localChar.storage?.some(
-          (s) =>
-            s.ability === item.ability &&
-            s.level === 10 &&
-            s.used === false
+  const requestUse = (item: StorageItem) => {
+    // Step 1: check LV10 override
+    if (item.level === 9) {
+      const hasLv10 = localChar.storage?.some(
+        (s) =>
+          s.ability === item.ability &&
+          s.level === 10 &&
+          s.used === false
+      );
+
+      if (hasLv10) {
+        setConfirmTitle("检测到更高等级书籍");
+        setConfirmMessage(
+          `检测到该角色背包中已有 ${item.ability} 的 10 重书籍。\n是否改为使用 10 重书籍？`
         );
-
-        if (hasLv10) {
-          const useLv10 = confirm(
-            `检测到该角色背包中已有 ${item.ability} 的 10 重书籍。\n是否改为使用 10 重书籍？`
-          );
-          if (useLv10) {
-            item = { ...item, level: 10 };
-          }
-        }
+        setOnConfirmAction(() => () => {
+          setConfirmOpen(false);
+          requestFinalUse({ ...item, level: 10 });
+        });
+        setConfirmOpen(true);
+        return;
       }
+    }
 
-      if (!confirm(`确定要使用 ${item.ability}：${item.level}重 吗？`)) return;
+    requestFinalUse(item);
+  };
 
-      const res = await fetch(
-        `${API_URL}/api/characters/${char._id}/storage/use`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ability: item.ability,
-            level: item.level,
-          }),
-        }
-      );
-      if (!res.ok) throw new Error("使用失败");
+  const requestFinalUse = (item: StorageItem) => {
+    setConfirmTitle("确认使用");
+    setConfirmMessage(
+      `确定要使用 ${item.ability} · ${numToChinese(item.level)}重 吗？`
+    );
+    setOnConfirmAction(() => async () => {
+      setConfirmOpen(false);
+      await runWithRefresh(async () => {
+        const res = await fetch(
+          `${API_URL}/api/characters/${char._id}/storage/use`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ability: item.ability,
+              level: item.level,
+            }),
+          }
+        );
+        if (!res.ok) throw new Error("使用失败");
+      });
     });
+    setConfirmOpen(true);
+  };
 
-  const handleDelete = (item: StorageItem) =>
-    runWithRefresh(async () => {
-      if (!confirm(`确定要删除 ${item.ability}：${item.level}重 吗？`)) return;
-      const res = await fetch(
-        `${API_URL}/api/characters/${char._id}/storage/delete`,
-        {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ability: item.ability,
-            level: item.level,
-          }),
-        }
-      );
-      if (!res.ok) throw new Error("删除失败");
+  const requestDelete = (item: StorageItem) => {
+    setConfirmTitle("确认删除");
+    setConfirmMessage(
+      `确定要删除 ${item.ability} · ${numToChinese(item.level)}重 吗？`
+    );
+    setOnConfirmAction(() => async () => {
+      setConfirmOpen(false);
+      await runWithRefresh(async () => {
+        const res = await fetch(
+          `${API_URL}/api/characters/${char._id}/storage/delete`,
+          {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ability: item.ability,
+              level: item.level,
+            }),
+          }
+        );
+        if (!res.ok) throw new Error("删除失败");
+      });
     });
+    setConfirmOpen(true);
+  };
 
   /* ===============================================================
      🖼️ Render
@@ -193,7 +230,9 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
 
           <ul className={styles.itemList}>
             {filteredItems.map((item, idx) => {
-              const currentLevel = localChar.abilities?.[item.ability] ?? 0;
+              const currentLevel =
+                localChar.abilities?.[item.ability] ?? 0;
+
               return (
                 <li
                   key={`${item.ability}-${idx}`}
@@ -207,7 +246,8 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
                       alt={item.ability}
                       className={styles.abilityIcon}
                       onError={(e) =>
-                        (e.currentTarget.style.display = "none")
+                        ((e.currentTarget as HTMLImageElement).style.display =
+                          "none")
                       }
                     />
                     <div className={styles.abilityText}>
@@ -223,14 +263,14 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
                   <div className={styles.buttons}>
                     {!item.used && (
                       <button
-                        onClick={() => handleUse(item)}
+                        onClick={() => requestUse(item)}
                         className={`${styles.btn} ${styles.useBtn}`}
                       >
                         使用
                       </button>
                     )}
                     <button
-                      onClick={() => handleDelete(item)}
+                      onClick={() => requestDelete(item)}
                       className={`${styles.btn} ${styles.deleteBtn}`}
                     >
                       删除
@@ -255,6 +295,16 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
           characterId={char._id}
           onClose={() => setShowAddModal(false)}
           onAdded={refreshCharacter}
+        />
+      )}
+
+      {confirmOpen && onConfirmAction && (
+        <ConfirmModal
+          title={confirmTitle}
+          message={confirmMessage}
+          confirmText="确认"
+          onCancel={() => setConfirmOpen(false)}
+          onConfirm={onConfirmAction}
         />
       )}
     </>
