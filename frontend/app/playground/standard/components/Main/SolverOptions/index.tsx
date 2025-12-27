@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { FaCog } from "react-icons/fa";
 import styles from "./styles.module.css";
+import { toastWarning } from "@/app/components/toast/toast";
 
 interface AbilityItem {
   name: string;
@@ -73,7 +74,7 @@ export default function SolverOptions({
 
     // 🔒 Locked: warn once per session
     if (!warned) {
-      alert("当前排表已锁定，调整技能可能无效。");
+      toastWarning("当前排表已锁定，调整技能可能无效。");
       setWarned(true);
     }
     setOpen(true);

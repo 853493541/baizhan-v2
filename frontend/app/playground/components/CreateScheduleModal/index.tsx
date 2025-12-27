@@ -3,7 +3,7 @@
 import { useState } from "react";
 import styles from "./styles.module.css";   // ✅ this points to the CSS file
 import { getDefaultAbilityPool } from "@/utils/playgroundHelpers";
-
+import { toastError } from "@/app/components/toast/toast";
 interface Ability {
   name: string;
   level: number;
@@ -39,7 +39,7 @@ export default function CreateScheduleModal({ onClose, onConfirm }: Props) {
 
   const handleSubmit = async () => {
     if (!server) {
-      alert("请选择服务器后再创建排表。");
+      toastError("请选择服务器后再创建排表。");
       return;
     }
 
@@ -55,7 +55,7 @@ export default function CreateScheduleModal({ onClose, onConfirm }: Props) {
 
       const activeCharacters = characters.filter((c: any) => c.active);
       if (activeCharacters.length === 0) {
-        alert("没有启用的角色，无法创建排表。");
+        toastError("没有角色，无法创建排表。");
         return;
       }
 

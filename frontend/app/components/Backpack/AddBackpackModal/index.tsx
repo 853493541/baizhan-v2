@@ -5,6 +5,10 @@ import { Plus } from "lucide-react";
 import styles from "./styles.module.css";
 import bossData from "@/app/data/boss_drop.json";
 import { createPinyinMap, pinyinFilter } from "@/utils/pinyinSearch"; // ✅ centralized helper
+import {
+  toastError,
+  toastSuccess,
+} from "@/app/components/toast/toast";
 
 interface Props {
   API_URL: string;
@@ -85,7 +89,7 @@ export default function AddBackpackModal({
      ✅ Confirm and send new skill to backend
   ---------------------------------------------------------------------- */
   const handleConfirm = async () => {
-    if (!selected) return alert("请选择技能");
+    if (!selected) return toastError("请选择技能");
     setLoading(true);
     try {
       const res = await fetch(
@@ -100,7 +104,7 @@ export default function AddBackpackModal({
       onAdded();
       onClose();
     } catch (e) {
-      alert("❌ 添加失败");
+      toastError("❌ 添加失败");
       console.error(e);
     } finally {
       setLoading(false);

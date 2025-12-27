@@ -6,7 +6,7 @@ import { Settings, X, Lock } from "lucide-react";
 import styles from "./styles.module.css";
 import { getGameWeekFromDate } from "@/utils/weekUtils";
 import ConfirmModal from "@/app/components/ConfirmModal";
-
+import { toastError } from "@/app/components/toast/toast";
 interface Group {
   status?: "not_started" | "started" | "finished";
 }
@@ -73,7 +73,7 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
         prev.map((s) => (s._id === id ? { ...s, name: updated.name } : s))
       );
     } catch {
-      alert("更新排表名字失败");
+      toastError("更新排表名字失败");
     }
   };
 
@@ -84,7 +84,7 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
       });
       setSchedules((prev) => prev.filter((s) => s._id !== id));
     } catch {
-      alert("删除排表失败");
+      toastError("删除排表失败");
     }
   };
 

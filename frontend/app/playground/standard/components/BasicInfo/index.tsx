@@ -4,6 +4,9 @@ import { useState, useRef, useEffect } from "react";
 import { Settings, X, Trash2, Lock, Plus } from "lucide-react";
 import styles from "./styles.module.css";
 import ConfirmModal from "@/app/components/ConfirmModal";
+import {
+  toastError,
+} from "@/app/components/toast/toast";
 
 interface Props {
   schedule: {
@@ -71,7 +74,7 @@ export default function BasicInfoSection({
       setLocalSchedule((p) => ({ ...p, name: tempName }));
       setEditing(false);
     } catch {
-      alert("更新失败，请稍后再试");
+      toastError("更新失败，请稍后再试");
     }
   };
 
@@ -93,7 +96,7 @@ export default function BasicInfoSection({
       setEditing(false);
       setDeleteInput("");
     } else {
-      alert("请输入正确的确认文字：确认删除");
+      toastError("请输入正确的确认文字：确认删除");
     }
   };
 

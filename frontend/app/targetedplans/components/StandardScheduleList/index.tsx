@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Settings, X, Lock } from "lucide-react";
 import styles from "./styles.module.css";
 import ConfirmModal from "@/app/components/ConfirmModal"; // ✅ added
+import { toastError } from "@/app/components/toast/toast";
 
 interface Group {
   status?: "not_started" | "started" | "finished";
@@ -76,7 +77,7 @@ export default function StandardScheduleList({
       );
     } catch (err) {
       console.error("❌ 更新单体计划名字失败:", err);
-      alert("更新单体计划名字失败");
+      toastError("更新单体计划名字失败");
     }
   };
 
@@ -90,7 +91,7 @@ export default function StandardScheduleList({
       setSchedules((prev) => prev.filter((p) => p.planId !== planId));
     } catch (err) {
       console.error("❌ 删除单体计划失败:", err);
-      alert("删除单体计划失败");
+      toastError("删除单体计划失败");
     }
   };
 
