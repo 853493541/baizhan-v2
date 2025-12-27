@@ -3,6 +3,10 @@
 import React, { useState, useEffect } from "react";
 import styles from "./styles.module.css";
 import ConfirmModal from "@/app/components/ConfirmModal";
+import {
+  toastError,
+  toastSuccess,
+} from "@/app/components/toast/toast";
 
 interface StorageItem {
   ability: string;
@@ -85,7 +89,8 @@ export default function BackpackWindow({
       onChanged?.();
     } catch (e) {
       console.error(e);
-      alert("刷新失败，请稍后再试");
+      toastError("刷新失败，请稍后再试");
+
     } finally {
       setLoading(false);
     }
@@ -97,7 +102,7 @@ export default function BackpackWindow({
       await refreshCharacter();
     } catch (err) {
       console.error("❌ action failed:", err);
-      alert("操作失败，请稍后再试");
+      toastError("操作失败，请稍后再试");
     }
   };
 

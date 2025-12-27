@@ -9,6 +9,7 @@ import { getReadableFromStorage } from "@/utils/readables";
 import { updateCharacterAbilities } from "@/lib/characterService";
 import Manager from "../../components/Backpack/Manager";
 import AddBackpackModal from "../../components/Backpack/AddBackpackModal";
+import { toastError } from "@/app/components/toast/toast";
 
 interface Character {
   _id: string;
@@ -54,7 +55,8 @@ export default function CharacterCard({
       return updated;
     } catch (err) {
       console.error("❌ refreshCharacter error:", err);
-      alert("刷新角色失败，请稍后再试");
+      toastError("刷新角色失败，请稍后再试");
+
       return null;
     } finally {
       setLoading(false);
