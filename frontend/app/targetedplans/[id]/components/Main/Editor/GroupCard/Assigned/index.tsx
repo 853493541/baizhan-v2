@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import styles from "./styles.module.css";
+import { toastError, toastSuccess } from "@/app/components/toast/toast";
 
 interface Character {
   _id: string;
@@ -95,7 +96,7 @@ export default function AssignedDrops({
       await fetchDrops(); // ✅ instantly refresh after deletion
     } catch (err) {
       console.error("❌ 删除失败:", err);
-      alert("❌ 删除失败，请稍后再试");
+      toastError("❌ 删除失败，请稍后再试");
     }
   };
 

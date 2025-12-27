@@ -5,7 +5,7 @@ import { runAdvancedSolver, GroupResult, Character, AbilityCheck } from "@/utils
 import { getDefaultModeChecklist, getDefaultAbilityPool } from "@/utils/playgroundHelpers";
 import tradableAbilities from "@/app/data/tradable_abilities.json"// ✅ import tradables
 import styles from "./styles.module.css";
-
+import { toastError } from "@/app/components/toast/toast";
 interface Props {
   schedule: {
     _id: string;
@@ -62,7 +62,7 @@ export default function AdvancedGroups({ schedule, groups, setGroups }: Props) {
 
   const handleRunSolver = (abilities: AbilityCheck[], label: string) => {
     if (abilities.length === 0) {
-      console.warn(`⚠️ No abilities loaded for ${label}`);
+      toastError(`没有可用技能（${label}）`);
       return;
     }
 

@@ -14,6 +14,7 @@ import {
   handleAbilityChange,
   saveChanges,
 } from "./editorHandlers";
+import { toastError, toastSuccess } from "@/app/components/toast/toast";
 
 /**
  * 🧩 Editor
@@ -128,7 +129,7 @@ export default function Editor({
     setResetting(false);
 
     if (!ok) {
-      alert("重置失败！");
+      toastError("重置失败！");
       return;
     }
 

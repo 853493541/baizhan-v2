@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 
 import BasicInfoSection from "./components/BasicInfo";
 import MainSection from "./components/Main";
-
+import { toastError } from "@/app/components/toast/toast";
 // 🧩 Import combined challenge boss drops
 import ChallengeBossDrops from "@/app/data/Challenge_Boss_Drops.json";
 
@@ -127,7 +127,7 @@ export default function TargetedPlanDetail({ planId }: Props) {
       router.push("/targetedplans");
     } catch (err) {
       console.error("❌ Failed to delete plan:", err);
-      alert("删除失败，请稍后再试");
+      toastError("删除失败，请稍后再试")
       setDeleting(false);
     }
   };
