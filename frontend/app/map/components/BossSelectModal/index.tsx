@@ -16,19 +16,35 @@ const GROUPS = {
     "提多罗吒",
     "卫栖梧",
     "迟驻",
+    "拓跋思南",
   ],
-  purple: ["冯度", "鬼影小次郎", "方宇谦", "谢云流"],
-  blue: ["恶战", "陆寻", "韦柔丝", "武雪散"],
+  purple: ["冯度", "鬼影小次郎", "方宇谦", "谢云流", "青年谢云流"],
+  blue: ["恶战", "陆寻", "韦柔丝", "武雪散", "公孙二娘"],
   green: ["肖童", "程沐华", "悉达罗摩"],
   red: ["罗翼", "源明雅", "司徒一一", "阿依努尔", "萧沙", "牡丹"],
+
+  /* ⭐ NEW — Mutated / 异变 (yibian) */
+  mutated: [
+    "肖红",
+    "青年程沐华",
+    "困境韦柔丝",
+  ],
 } as const;
 
+/* ========================================================
+   COLUMN META (display only)
+======================================================== */
 const COLUMN_META = [
   { key: "yellow" as const, label: "黄", className: styles.colYellow },
   { key: "purple" as const, label: "紫", className: styles.colPurple },
+
+  // ⭐ NEW COLUMN
+  
+
   { key: "blue" as const, label: "蓝", className: styles.colBlue },
   { key: "red" as const, label: "红", className: styles.colRed },
   { key: "green" as const, label: "绿", className: styles.colGreen },
+  { key: "mutated" as const, label: "异", className: styles.colMutated },
 ];
 
 interface Props {
@@ -40,7 +56,7 @@ interface Props {
 }
 
 /* --------------------------------------------------------
-   Pool group logic
+   Pool group logic (unchanged)
 -------------------------------------------------------- */
 function inSamePoolGroup(f1: number, f2: number) {
   if (f1 >= 81 && f1 <= 89 && f2 >= 81 && f2 <= 89) return true;
@@ -66,7 +82,7 @@ export default function BossSelectModal({
 }: Props) {
   const [isMobile, setIsMobile] = useState(false);
 
-  // Detect mobile (match your CSS breakpoint)
+  // Detect mobile (match CSS breakpoint)
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 768px)");
     const update = () => setIsMobile(mq.matches);
@@ -101,21 +117,30 @@ export default function BossSelectModal({
         {/* Boss columns */}
         <div className={styles.columns}>
           {COLUMN_META.map((col) => {
-            const bosses = GROUPS[col.key].filter((b) => poolSet.has(b));
+            const bosses = GROUPS[col.key].filter((b) =>
+              poolSet.has(b)
+            );
 
             return (
               <div
                 key={col.key}
                 className={clsx(styles.column, col.className)}
               >
-                <div className={styles.columnHeader}>{col.label}</div>
+                <div className={styles.columnHeader}>
+                  {col.label}
+                </div>
 
                 <div className={styles.bossList}>
                   {bosses.map((boss) => {
-                    const assigned = Object.entries(floorAssignments).find(
+                    const assigned = Object.entries(
+                      floorAssignments
+                    ).find(
                       ([otherFloor, b]) =>
                         b === boss &&
-                        inSamePoolGroup(Number(otherFloor), floor)
+                        inSamePoolGroup(
+                          Number(otherFloor),
+                          floor
+                        )
                     );
 
                     const isSelected = Boolean(assigned);
@@ -125,7 +150,8 @@ export default function BossSelectModal({
                         key={boss}
                         className={clsx(
                           styles.bossItem,
-                          isSelected && styles.bossBtnAssigned
+                          isSelected &&
+                            styles.bossBtnAssigned
                         )}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -134,10 +160,10 @@ export default function BossSelectModal({
                       >
                         {/* MOBILE ONLY: limit to two chars */}
                         <div className={styles.bossName}>
-                          {isMobile ? trimToTwoCN(boss) : boss}
+                          {isMobile
+                            ? trimToTwoCN(boss)
+                            : boss}
                         </div>
-
-                        {/* 已选 removed completely */}
                       </button>
                     );
                   })}
