@@ -76,7 +76,7 @@ export default function BossCard({
     floor >= 81 && floor <= 90 ? 9 : 10;
 
   /* ===============================
-     Needs (single source of truth)
+     Needs
   ================================= */
   const needs = calcBossNeeds({
     boss,
@@ -190,8 +190,14 @@ export default function BossCard({
     }
   }
 
-  /* 🧬 Mutated boss check */
+  /* 🧬 Mutated boss */
   const isMutatedBoss = mutatedBosses.has(boss);
+
+  /* ⭐ SPECIAL DISPLAY RULE
+     100 + 青年谢云流 → hide floor number
+  */
+  const hideFloorInHeader =
+    floor === 100 && boss === "青年谢云流";
 
   return (
     <div
@@ -201,7 +207,7 @@ export default function BossCard({
         onSelect(floor, boss, dropList, tradableList, dropLevel)
       }
     >
-      {/* 🧬 Mutated boss badge (display only) */}
+      {/* 🧬 Mutated boss badge */}
       {isMutatedBoss && (
         <div className={styles.mutatedBossBadge}>异</div>
       )}
@@ -221,7 +227,7 @@ export default function BossCard({
       )}
 
       <div className={styles.header}>
-        {floor} {boss}
+        {hideFloorInHeader ? boss : `${floor} ${boss}`}
       </div>
 
       {dropDisplay || content}
