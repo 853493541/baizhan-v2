@@ -6,7 +6,6 @@ import bossCatalog from "@/app/data/boss_catalog.json";
 import {
   getBossProgress,
   getMissingForNextTier,
-  getNextTier,
   calculateStats,
 } from "@/utils/collectionUtils";
 import styles from "./styles.module.css";
@@ -23,8 +22,11 @@ interface Props {
 }
 
 const getAbilityIcon = (ability: string) => `/icons/${ability}.png`;
+const FALLBACK_ICON = "/icons/app_icon.png";
+
 const formatAbilityName = (name: string) =>
   name.length === 5 ? name.slice(0, 4) : name;
+
 const formatBossName = (name: string) => {
   if (name.includes("武逸青、胡鞑、萧沙")) return "萧沙";
   if (name.includes("钱宗龙、杜姬欣")) return "钱宗龙";
@@ -32,72 +34,109 @@ const formatBossName = (name: string) => {
 };
 
 export default function CollectionStatus({ character }: Props) {
+  /* ===============================
+     Collection completion check
+  ================================= */
   const isFullyCollected = (abilities: string[]) => {
     const filtered = abilities.filter(
       (a) =>
-        !(character.gender === "男" && ["剑心通明", "帝骖龙翔"].includes(a)) &&
+        !(character.gender === "男" &&
+          ["剑心通明", "帝骖龙翔"].includes(a)) &&
         !(character.gender === "女" &&
           ["巨猿劈山", "顽抗", "蛮熊碎颅击"].includes(a))
     );
     return filtered.every((a) => (character.abilities[a] || 0) >= 10);
   };
 
+  /* ===============================
+     Boss grouping via catalog
+  ================================= */
   const bosses = Object.entries(bossData);
+
   const normalBosses = bosses.filter(([boss]) =>
-    bossCatalog.normal.includes(boss)
-  );
-  const eliteBosses = bosses.filter(([boss]) =>
-    bossCatalog.elite.includes(boss)
-  );
-  const challengeBosses = bosses.filter(([boss]) =>
-    bossCatalog.challenge.includes(boss)
+    bossCatalog.normal?.includes(boss)
   );
 
-  // 🧠 parse progress text like "3/4 九重"
+  const eliteBosses = bosses.filter(([boss]) =>
+    bossCatalog.elite?.includes(boss)
+  );
+
+  const mutatedBosses = bosses.filter(([boss]) =>
+    bossCatalog.mutated?.includes(boss)
+  );
+
+  /* ===============================
+     Progress parsing & sorting
+  ================================= */
   const parseProgress = (text: string) => {
     const match = text.match(/(\d+)\/(\d+)\s*([七八九十])重?/);
     if (!match) return { current: 0, total: 0, stageValue: 7 };
+
     const [, cur, total, stage] = match;
     const stageValue =
       stage === "十" ? 10 : stage === "九" ? 9 : stage === "八" ? 8 : 7;
-    return { current: Number(cur), total: Number(total), stageValue };
+
+    return {
+      current: Number(cur),
+      total: Number(total),
+      stageValue,
+    };
   };
 
-  // === Sorting: 八重 → 九重 → 十重 last ===
   const sortBosses = (list: [string, string[]][]) => {
-    const inProgress = list.filter(([_, abilities]) => !isFullyCollected(abilities));
-    const completed = list.filter(([_, abilities]) => isFullyCollected(abilities));
+    const inProgress = list.filter(
+      ([_, abilities]) => !isFullyCollected(abilities)
+    );
+    const completed = list.filter(([_, abilities]) =>
+      isFullyCollected(abilities)
+    );
 
     inProgress.sort((a, b) => {
-      const progressA = getBossProgress(a[1], character.abilities, character.gender);
-      const progressB = getBossProgress(b[1], character.abilities, character.gender);
-      const pa = parseProgress(progressA);
-      const pb = parseProgress(progressB);
+      const pa = parseProgress(
+        getBossProgress(a[1], character.abilities, character.gender)
+      );
+      const pb = parseProgress(
+        getBossProgress(b[1], character.abilities, character.gender)
+      );
 
-      if (pa.stageValue !== pb.stageValue) return pa.stageValue - pb.stageValue;
+      if (pa.stageValue !== pb.stageValue)
+        return pa.stageValue - pb.stageValue;
+
       const ratioA = pa.total ? pa.current / pa.total : 0;
       const ratioB = pb.total ? pb.current / pb.total : 0;
       if (ratioA !== ratioB) return ratioA - ratioB;
+
       return a[0].localeCompare(b[0], "zh");
     });
 
     completed.sort((a, b) => a[0].localeCompare(b[0], "zh"));
+
     return [...inProgress, ...completed];
   };
 
   const sortedNormal = sortBosses(normalBosses);
   const sortedElite = sortBosses(eliteBosses);
-  const sortedChallenge = sortBosses(challengeBosses);
+  const sortedMutated = sortBosses(mutatedBosses);
 
+  /* ===============================
+     Global stats
+  ================================= */
   const { energy, durability } = calculateStats(
     bossData,
     character.abilities,
     character.gender
   );
 
-  const renderBossSection = (title: string, list: [string, string[]][]) => (
+  /* ===============================
+     Render helpers
+  ================================= */
+  const renderBossSection = (
+    title: string,
+    list: [string, string[]][]
+  ) => (
     <div className={styles.sectionCard}>
       <h3 className={styles.sectionTitle}>{title}</h3>
+
       <div className={styles.cardGrid}>
         {list.map(([boss, abilities]) => {
           const progressRaw = getBossProgress(
@@ -112,10 +151,8 @@ export default function CollectionStatus({ character }: Props) {
           );
           const full = isFullyCollected(abilities);
 
-          // 🟢 Replace text for completed bosses
           const progress = full ? "全收集" : progressRaw;
 
-          // 🎨 Progress color logic
           let progressClass = "";
           if (progress.includes("十重") || full)
             progressClass = styles.progressGreen;
@@ -131,8 +168,12 @@ export default function CollectionStatus({ character }: Props) {
               }`}
             >
               <div className={styles.bossHeader}>
-                <h3 className={styles.bossName}>{formatBossName(boss)}</h3>
-                <span className={`${styles.bossProgress} ${progressClass}`}>
+                <h3 className={styles.bossName}>
+                  {formatBossName(boss)}
+                </h3>
+                <span
+                  className={`${styles.bossProgress} ${progressClass}`}
+                >
                   {progress}
                 </span>
               </div>
@@ -145,6 +186,10 @@ export default function CollectionStatus({ character }: Props) {
                         src={getAbilityIcon(ability)}
                         alt={ability}
                         className={styles.abilityIcon}
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = FALLBACK_ICON;
+                        }}
                       />
                       <span className={styles.abilityName}>
                         {formatAbilityName(ability)}
@@ -160,6 +205,9 @@ export default function CollectionStatus({ character }: Props) {
     </div>
   );
 
+  /* ===============================
+     Render
+  ================================= */
   return (
     <div className={styles.collectionStatus}>
       <div className={styles.headerRow}>
@@ -172,7 +220,8 @@ export default function CollectionStatus({ character }: Props) {
 
       {renderBossSection("普通 Boss", sortedNormal)}
       {renderBossSection("精英 Boss", sortedElite)}
-      {renderBossSection("挑战 Boss", sortedChallenge)}
+      {sortedMutated.length > 0 &&
+        renderBossSection("异象 Boss", sortedMutated)}
     </div>
   );
 }
