@@ -31,6 +31,8 @@ const CORE_ABILITIES = [
 
 type ViewLevel = 9 | 10;
 
+const REQUIRED = 2;
+
 interface HoverData {
   x: number;
   y: number;
@@ -41,7 +43,10 @@ interface HoverData {
   visible: boolean;
 }
 
-export default function AbilityCheckingSection({ checkedAbilities, groups }: Props) {
+export default function AbilityCheckingSection({
+  checkedAbilities,
+  groups,
+}: Props) {
   const [viewLevel, setViewLevel] = useState<ViewLevel>(10);
   const [hover, setHover] = useState<HoverData>({
     x: 0,
@@ -50,35 +55,43 @@ export default function AbilityCheckingSection({ checkedAbilities, groups }: Pro
     visible: false,
   });
 
-  // ✅ Filter relevant abilities
+  /* ===============================
+     Filter abilities
+  ================================ */
   const candidates = useMemo(() => {
     return checkedAbilities.filter(
-      (a) => a.available && a.level === viewLevel && CORE_ABILITIES.includes(a.name)
+      (a) =>
+        a.available &&
+        a.level === viewLevel &&
+        CORE_ABILITIES.includes(a.name)
     );
   }, [checkedAbilities, viewLevel]);
 
-  // ✅ Build table data
+  /* ===============================
+     Build matrix
+  ================================ */
   const qaMatrix = useMemo(() => {
     return candidates.map((a) => {
       const row: Record<string, any> = { name: a.name, level: a.level };
+
       for (let i = 0; i < groups.length; i++) {
         const g = groups[i];
+
         let count = 0;
-        const haveChars: Character[] = [];
         const missingChars: Character[] = [];
 
         for (const c of g.characters) {
           const charLvl = c.abilities?.[a.name] ?? 0;
           if (charLvl >= a.level) {
             count++;
-            haveChars.push(c);
           } else {
             missingChars.push(c);
           }
         }
 
-        row[`group${i + 1}`] = { count, haveChars, missingChars };
+        row[`group${i + 1}`] = { count, missingChars };
       }
+
       return row;
     });
   }, [candidates, groups, viewLevel]);
@@ -95,17 +108,23 @@ export default function AbilityCheckingSection({ checkedAbilities, groups }: Pro
         }));
       }}
     >
-      {/* === Header: level toggle (10重 first) === */}
+      {/* ===============================
+         Header
+      ================================ */}
       <div className={styles.headerRow}>
         <div className={styles.toggle}>
           <button
-            className={`${styles.toggleBtn} ${viewLevel === 10 ? styles.active : ""}`}
+            className={`${styles.toggleBtn} ${
+              viewLevel === 10 ? styles.active : ""
+            }`}
             onClick={() => setViewLevel(10)}
           >
             10重
           </button>
           <button
-            className={`${styles.toggleBtn} ${viewLevel === 9 ? styles.active : ""}`}
+            className={`${styles.toggleBtn} ${
+              viewLevel === 9 ? styles.active : ""
+            }`}
             onClick={() => setViewLevel(9)}
           >
             9重
@@ -113,7 +132,9 @@ export default function AbilityCheckingSection({ checkedAbilities, groups }: Pro
         </div>
       </div>
 
-      {/* === Chart Table === */}
+      {/* ===============================
+         Table
+      ================================ */}
       <div className={styles.tableWrapper}>
         <table className={styles.chartTable}>
           <thead>
@@ -124,9 +145,11 @@ export default function AbilityCheckingSection({ checkedAbilities, groups }: Pro
               ))}
             </tr>
           </thead>
+
           <tbody>
             {qaMatrix.map((row) => (
               <tr key={row.name}>
+                {/* Ability column */}
                 <td className={styles.abilityCell}>
                   <Image
                     src={`/icons/${row.name}.png`}
@@ -138,24 +161,21 @@ export default function AbilityCheckingSection({ checkedAbilities, groups }: Pro
                   <span>{row.name}</span>
                 </td>
 
+                {/* Group columns */}
                 {groups.map((_, i) => {
                   const { count, missingChars } = row[`group${i + 1}`];
-                  const over = count > 2;
-                  let content: React.ReactNode;
+
+                  const isOver = count > REQUIRED;
+
+                  let content: React.ReactNode = null;
                   let cellClass = styles.ok;
 
-                  if (over) {
-                    content = `${count}/2`;
+                  if (isOver) {
+                    content = <span className={styles.cross}>✖</span>;
                     cellClass = styles.over;
-                  } else if (count > 0) {
-                    content = <span className={styles.check}>✅</span>;
-                    cellClass = styles.ok;
-                  } else {
-                    content = "0/2";
-                    cellClass = styles.missing;
                   }
 
-                  const showHover = !over;
+                  const showHover = !isOver;
 
                   return (
                     <td
@@ -187,12 +207,14 @@ export default function AbilityCheckingSection({ checkedAbilities, groups }: Pro
         </table>
       </div>
 
-      {/* Hover Box */}
+      {/* ===============================
+         Hover Box
+      ================================ */}
       {hover.visible && (
         <div
           className={styles.hoverBox}
           style={{
-            position: "fixed", // ✅ pinned to viewport, no scroll offset issues
+            position: "fixed",
             left: hover.x,
             top: hover.y,
           }}
@@ -209,6 +231,7 @@ export default function AbilityCheckingSection({ checkedAbilities, groups }: Pro
               {hover.level}重 {hover.abilityName}
             </span>
           </div>
+
           <div className={styles.hoverContent}>
             <strong>缺少：</strong>
             {hover.text.length > 0 ? (
