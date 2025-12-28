@@ -49,11 +49,6 @@
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-.sectionCard:hover {
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
-  transform: translateY(-2px);
-}
-
 /* === Section Title === */
 .sectionTitle {
   font-size: 1.15rem;
@@ -106,10 +101,7 @@
   justify-content: flex-start;
 }
 
-.bossCard:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-}
+
 
 .bossCardComplete {
   background: #eaf8ec;

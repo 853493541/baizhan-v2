@@ -27,7 +27,7 @@ export const createCharacter = async (req: Request, res: Response) => {
     // Initialize abilities
     const abilities = await Ability.find({});
     const abilityLevels: Record<string, number> = {};
-    abilities.forEach((a) => (abilityLevels[a.name] = 0));
+    abilities.forEach((a) => (abilityLevels[a.name] = 8));
 
     const newCharacter = new Character({
       name: String(name).trim(),
