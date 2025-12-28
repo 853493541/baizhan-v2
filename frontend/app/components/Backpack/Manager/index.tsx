@@ -224,8 +224,16 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
   =============================== */
   return (
     <>
-      <div className={styles.overlay}>
-        <div className={styles.modal}>
+<div
+  className={styles.overlay}
+  onClick={(e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  }}
+>
+  <div className={styles.modal}>
+
           <div className={styles.header}>
             <h2>
               全部技能 {loading && <span>加载中...</span>}

@@ -100,8 +100,15 @@ export default function CreateCharacterModal({
   };
 
   return (
-    <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+    <div
+      className={styles.overlay}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+    >
+      <div className={styles.modal}>
         <button type="button" onClick={onClose} className={styles.close}>
           ✕
         </button>
@@ -224,7 +231,7 @@ export default function CreateCharacterModal({
             </select>
           </div>
 
-          {/* ✅ Toggle Switch for 是否启用 */}
+          {/* === Toggle Switch === */}
           <div className={styles.toggleRow}>
             <label className={styles.inputLabel}>是否启用</label>
             <label className={styles.toggleSwitch}>

@@ -15,6 +15,7 @@ export default function InfoCenterPage() {
         <IconLink href="/map/history" icon="🗺" label="历史地图" />
         <IconLink href="/history" icon="🕓" label="技能更新记录" />
         <IconLink href="/stats/appearances" icon="📈" label="上班统计" />
+        <IconLink href="/overallprogress" icon="🧮" label="全局进度" />
 
         {/* 🚫 Disabled */}
         <DisabledCard
