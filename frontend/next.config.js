@@ -6,14 +6,32 @@ const withBundleAnalyzer = require("@next/bundle-analyzer")({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
-    ignoreDuringBuilds: true, // ✅ skip lint errors during build
+    ignoreDuringBuilds: true,
   },
   typescript: {
-    ignoreBuildErrors: true, // ✅ skip TS errors during build
+    ignoreBuildErrors: true,
   },
+
   reactStrictMode: true,
+
+  // REQUIRED
+  output: "standalone",
+
+  // 🔴 STOP OCI KILLERS
+  swcMinify: false,        // ← CRITICAL
+  productionBrowserSourceMaps: false,
+
+  // Kill static optimization burst
   experimental: {
-    appDir: true, // ✅ ensure App Router analysis works
+    appDir: true,
+    optimizeCss: false,
+  },
+
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.parallelism = 1;
+    }
+    return config;
   },
 };
 
