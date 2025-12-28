@@ -11,7 +11,6 @@ import { toastError } from "@/app/components/toast/toast";
 interface StorageItem {
   ability: string;
   level: number;
-  used?: boolean;
 }
 
 interface Character {
@@ -60,9 +59,9 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
     Record<string, { full: string; short: string }>
   >({});
 
-  /* ===============================================================
+  /* ===============================
      🔍 Build Pinyin map
-  =============================================================== */
+  =============================== */
   useEffect(() => {
     async function buildMap() {
       const names = (localChar.storage || []).map((s) => s.ability);
@@ -72,9 +71,9 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
     if (localChar.storage?.length) buildMap();
   }, [localChar]);
 
-  /* ===============================================================
+  /* ===============================
      🔍 Filter
-  =============================================================== */
+  =============================== */
   const filteredItems = useMemo(() => {
     const q = search.trim().toLowerCase();
     const list = localChar.storage || [];
@@ -84,9 +83,9 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
     return list.filter((it) => filteredNames.includes(it.ability));
   }, [search, localChar, pinyinMap]);
 
-  /* ===============================================================
+  /* ===============================
      🔄 Refresh
-  =============================================================== */
+  =============================== */
   const refreshCharacter = async () => {
     try {
       setLoading(true);
@@ -113,33 +112,60 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
     }
   };
 
-  /* ===============================================================
-     ⚔️ Use / Delete (ConfirmModal-based)
-  =============================================================== */
+  /* ===============================
+     ⚔️ Use / Delete (FIXED)
+  =============================== */
   const requestUse = (item: StorageItem) => {
-    // Step 1: check LV10 override
+    // 🚨 FIX: if clicking 9 and 10 exists → consume BOTH
     if (item.level === 9) {
       const hasLv10 = localChar.storage?.some(
-        (s) =>
-          s.ability === item.ability &&
-          s.level === 10 &&
-          s.used === false
+        (s) => s.ability === item.ability && s.level === 10
       );
 
       if (hasLv10) {
         setConfirmTitle("检测到更高等级书籍");
         setConfirmMessage(
-          `检测到该角色背包中已有 ${item.ability} 的 10 重书籍。\n是否改为使用 10 重书籍？`
+          `背里有对应十重, \n是否一起使用？`
         );
-        setOnConfirmAction(() => () => {
+        setOnConfirmAction(() => async () => {
           setConfirmOpen(false);
-          requestFinalUse({ ...item, level: 10 });
+
+          await runWithRefresh(async () => {
+            // Step 1: use level 9
+            const res9 = await fetch(
+              `${API_URL}/api/characters/${char._id}/storage/use`,
+              {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  ability: item.ability,
+                  level: 9,
+                }),
+              }
+            );
+            if (!res9.ok) throw new Error("9重使用失败");
+
+            // Step 2: use level 10
+            const res10 = await fetch(
+              `${API_URL}/api/characters/${char._id}/storage/use`,
+              {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  ability: item.ability,
+                  level: 10,
+                }),
+              }
+            );
+            if (!res10.ok) throw new Error("10重使用失败");
+          });
         });
         setConfirmOpen(true);
         return;
       }
     }
 
+    // normal single-use
     requestFinalUse(item);
   };
 
@@ -193,9 +219,9 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
     setConfirmOpen(true);
   };
 
-  /* ===============================================================
+  /* ===============================
      🖼️ Render
-  =============================================================== */
+  =============================== */
   return (
     <>
       <div className={styles.overlay}>
@@ -234,12 +260,7 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
                 localChar.abilities?.[item.ability] ?? 0;
 
               return (
-                <li
-                  key={`${item.ability}-${idx}`}
-                  className={`${styles.itemRow} ${
-                    item.used ? styles.itemUsed : ""
-                  }`}
-                >
+                <li key={`${item.ability}-${idx}`} className={styles.itemRow}>
                   <div className={styles.itemLeft}>
                     <img
                       src={getAbilityIcon(item.ability)}
@@ -261,14 +282,12 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
                   </div>
 
                   <div className={styles.buttons}>
-                    {!item.used && (
-                      <button
-                        onClick={() => requestUse(item)}
-                        className={`${styles.btn} ${styles.useBtn}`}
-                      >
-                        使用
-                      </button>
-                    )}
+                    <button
+                      onClick={() => requestUse(item)}
+                      className={`${styles.btn} ${styles.useBtn}`}
+                    >
+                      使用
+                    </button>
                     <button
                       onClick={() => requestDelete(item)}
                       className={`${styles.btn} ${styles.deleteBtn}`}
