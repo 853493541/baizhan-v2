@@ -105,14 +105,13 @@
 }
 
 .useBtn {
-  background: #e0ecff;
-  color: #1e3a8a;
-}
-.useBtn:hover {
-  background: #1d4ed8;
+  background: #4caf50;
   color: #fff;
 }
 
+.useBtn:hover:not(:disabled) {
+  background: #43a047;
+}
 .deleteBtn {
   background: #ffe4e6;
   color: #b91c1c;
@@ -162,4 +161,17 @@
     padding: 2px 4px;
     font-size: 11px;
   }
+}
+.yellowBtn {
+  background: #ffc107;
+  color: #212529;
+}
+
+.yellowBtn:hover:not(:disabled) {
+  background: #e0a800;
+}
+
+.btn:disabled {
+  pointer-events: none;
+  opacity: 0.65;
 }

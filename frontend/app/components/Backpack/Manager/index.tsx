@@ -51,9 +51,8 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmTitle, setConfirmTitle] = useState("");
   const [confirmMessage, setConfirmMessage] = useState("");
-  const [onConfirmAction, setOnConfirmAction] = useState<(() => void) | null>(
-    null
-  );
+  const [onConfirmAction, setOnConfirmAction] =
+    useState<(() => void) | null>(null);
 
   const [pinyinMap, setPinyinMap] = useState<
     Record<string, { full: string; short: string }>
@@ -78,6 +77,7 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
     const q = search.trim().toLowerCase();
     const list = localChar.storage || [];
     if (!q) return list;
+
     const abilityNames = list.map((it) => it.ability);
     const filteredNames = pinyinFilter(abilityNames, pinyinMap, q);
     return list.filter((it) => filteredNames.includes(it.ability));
@@ -113,10 +113,47 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
   };
 
   /* ===============================
-     ⚔️ Use / Delete (FIXED)
+     🔘 Button label/state (UI ONLY)
+  =============================== */
+  const getUseButtonState = (
+    item: StorageItem,
+    currentLevel: number
+  ): { text: string; className: string; disabled?: boolean } => {
+    const currentText = `(${numToChinese(currentLevel)}重)`;
+
+    /* ✅ NEW LOGIC — already level 10 */
+    if (currentLevel >= 10) {
+      return {
+        text: "已十",
+        className: styles.deleteBtn,
+        disabled: true,
+      };
+    }
+
+    if (item.level === 9 && currentLevel < 8) {
+      return { text: "未八", className: styles.yellowBtn };
+    }
+
+    if (item.level === 10 && currentLevel < 9) {
+      return { text: "未九", className: styles.yellowBtn };
+    }
+
+    if (
+      item.level === 9 &&
+      localChar.storage?.some(
+        (s) => s.ability === item.ability && s.level === 10
+      )
+    ) {
+      return { text: `有十 ${currentText}`, className: styles.yellowBtn };
+    }
+
+    return { text: `使用 `, className: styles.useBtn };
+  };
+
+  /* ===============================
+     ⚔️ Use / Delete (UNCHANGED)
   =============================== */
   const requestUse = (item: StorageItem) => {
-    // 🚨 FIX: if clicking 9 and 10 exists → consume BOTH
     if (item.level === 9) {
       const hasLv10 = localChar.storage?.some(
         (s) => s.ability === item.ability && s.level === 10
@@ -124,40 +161,20 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
 
       if (hasLv10) {
         setConfirmTitle("检测到更高等级书籍");
-        setConfirmMessage(
-          `背里有对应十重, \n是否一起使用？`
-        );
+        setConfirmMessage(`背里有对应十重, \n是否一起使用？`);
         setOnConfirmAction(() => async () => {
           setConfirmOpen(false);
-
           await runWithRefresh(async () => {
-            // Step 1: use level 9
-            const res9 = await fetch(
-              `${API_URL}/api/characters/${char._id}/storage/use`,
-              {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  ability: item.ability,
-                  level: 9,
-                }),
-              }
-            );
-            if (!res9.ok) throw new Error("9重使用失败");
-
-            // Step 2: use level 10
-            const res10 = await fetch(
-              `${API_URL}/api/characters/${char._id}/storage/use`,
-              {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  ability: item.ability,
-                  level: 10,
-                }),
-              }
-            );
-            if (!res10.ok) throw new Error("10重使用失败");
+            await fetch(`${API_URL}/api/characters/${char._id}/storage/use`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ability: item.ability, level: 9 }),
+            });
+            await fetch(`${API_URL}/api/characters/${char._id}/storage/use`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ability: item.ability, level: 10 }),
+            });
           });
         });
         setConfirmOpen(true);
@@ -165,7 +182,6 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
       }
     }
 
-    // normal single-use
     requestFinalUse(item);
   };
 
@@ -177,18 +193,11 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
     setOnConfirmAction(() => async () => {
       setConfirmOpen(false);
       await runWithRefresh(async () => {
-        const res = await fetch(
-          `${API_URL}/api/characters/${char._id}/storage/use`,
-          {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              ability: item.ability,
-              level: item.level,
-            }),
-          }
-        );
-        if (!res.ok) throw new Error("使用失败");
+        await fetch(`${API_URL}/api/characters/${char._id}/storage/use`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ability: item.ability, level: item.level }),
+        });
       });
     });
     setConfirmOpen(true);
@@ -202,18 +211,11 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
     setOnConfirmAction(() => async () => {
       setConfirmOpen(false);
       await runWithRefresh(async () => {
-        const res = await fetch(
-          `${API_URL}/api/characters/${char._id}/storage/delete`,
-          {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              ability: item.ability,
-              level: item.level,
-            }),
-          }
-        );
-        if (!res.ok) throw new Error("删除失败");
+        await fetch(`${API_URL}/api/characters/${char._id}/storage/delete`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ability: item.ability, level: item.level }),
+        });
       });
     });
     setConfirmOpen(true);
@@ -224,16 +226,15 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
   =============================== */
   return (
     <>
-<div
-  className={styles.overlay}
-  onClick={(e) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  }}
->
-  <div className={styles.modal}>
-
+      <div
+        className={styles.overlay}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            onClose();
+          }
+        }}
+      >
+        <div className={styles.modal}>
           <div className={styles.header}>
             <h2>
               全部技能 {loading && <span>加载中...</span>}
@@ -264,8 +265,8 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
 
           <ul className={styles.itemList}>
             {filteredItems.map((item, idx) => {
-              const currentLevel =
-                localChar.abilities?.[item.ability] ?? 0;
+              const currentLevel = localChar.abilities?.[item.ability] ?? 0;
+              const state = getUseButtonState(item, currentLevel);
 
               return (
                 <li key={`${item.ability}-${idx}`} className={styles.itemRow}>
@@ -283,18 +284,16 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
                       <span className={styles.abilityName}>
                         {numToChinese(item.level)}重 • {item.ability}
                       </span>
-                      <span className={styles.currentLevelRight}>
-                        当前：{numToChinese(currentLevel)}重
-                      </span>
                     </div>
                   </div>
 
                   <div className={styles.buttons}>
                     <button
-                      onClick={() => requestUse(item)}
-                      className={`${styles.btn} ${styles.useBtn}`}
+                      disabled={state.disabled}
+                      onClick={() => !state.disabled && requestUse(item)}
+                      className={`${styles.btn} ${state.className}`}
                     >
-                      使用
+                      {state.text}
                     </button>
                     <button
                       onClick={() => requestDelete(item)}

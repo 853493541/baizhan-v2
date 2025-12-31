@@ -3,10 +3,7 @@
 import React, { useState, useEffect } from "react";
 import styles from "./styles.module.css";
 import ConfirmModal from "@/app/components/ConfirmModal";
-import {
-  toastError,
-  toastSuccess,
-} from "@/app/components/toast/toast";
+import { toastError } from "@/app/components/toast/toast";
 
 interface StorageItem {
   ability: string;
@@ -90,7 +87,6 @@ export default function BackpackWindow({
     } catch (e) {
       console.error(e);
       toastError("刷新失败，请稍后再试");
-
     } finally {
       setLoading(false);
     }
@@ -104,6 +100,34 @@ export default function BackpackWindow({
       console.error("❌ action failed:", err);
       toastError("操作失败，请稍后再试");
     }
+  };
+
+  /* ===============================
+     🔘 Button state (UI ONLY)
+  =============================== */
+  const getUseButtonState = (
+    item: StorageItem,
+    currentLevel: number
+  ): { text: string; className: string; disabled?: boolean } => {
+    const currentText = `(${numToChinese(currentLevel)}重)`;
+
+    if (currentLevel >= 10) {
+      return {
+        text: "已十重",
+        className: styles.deleteBtn,
+        disabled: true,
+      };
+    }
+
+    if (item.level === 9 && currentLevel < 8) {
+      return { text: "未八", className: styles.yellowBtn };
+    }
+
+    if (item.level === 10 && currentLevel < 9) {
+      return { text: "未九", className: styles.yellowBtn };
+    }
+
+    return { text: `使用`, className: styles.useBtn };
   };
 
   /* ===============================
@@ -187,14 +211,10 @@ export default function BackpackWindow({
           {limitedItems.map((item, idx) => {
             const currentLevel = char.abilities?.[item.ability] ?? 0;
             const shortName = item.ability.slice(0, 4);
+            const state = getUseButtonState(item, currentLevel);
 
             return (
-              <li
-                key={`${item.ability}-${idx}`}
-                className={`${styles.itemRow} ${
-                  item.used ? styles.itemUsed : ""
-                }`}
-              >
+              <li key={`${item.ability}-${idx}`} className={styles.itemRow}>
                 <div className={styles.itemLeft}>
                   <img
                     src={getAbilityIcon(item.ability)}
@@ -206,9 +226,6 @@ export default function BackpackWindow({
                     }
                   />
                   <div className={styles.abilityText}>
-                    <span className={styles.abilityName}>
-                      {numToChinese(item.level)}重 • {shortName}
-                    </span>
                     <span className={styles.currentLevelRight}>
                       当前：{numToChinese(currentLevel)}重
                     </span>
@@ -216,14 +233,13 @@ export default function BackpackWindow({
                 </div>
 
                 <div className={styles.buttons}>
-                  {!item.used && (
-                    <button
-                      onClick={() => requestUse(item)}
-                      className={`${styles.btn} ${styles.useBtn}`}
-                    >
-                      使用
-                    </button>
-                  )}
+                  <button
+                    disabled={state.disabled}
+                    onClick={() => !state.disabled && requestUse(item)}
+                    className={`${styles.btn} ${state.className}`}
+                  >
+                    {state.text}
+                  </button>
                   <button
                     onClick={() => requestDelete(item)}
                     className={`${styles.btn} ${styles.deleteBtn}`}
@@ -237,12 +253,9 @@ export default function BackpackWindow({
         </ul>
       </div>
 
-      {/* ================= Confirm Modal ================= */}
       {confirmOpen && pendingAction && (
         <ConfirmModal
-          title={
-            pendingAction.type === "use" ? "确认使用" : "确认删除"
-          }
+          title={pendingAction.type === "use" ? "确认使用" : "确认删除"}
           message={
             pendingAction.type === "use"
               ? `确定要使用 ${pendingAction.item.ability} ${numToChinese(
@@ -253,9 +266,7 @@ export default function BackpackWindow({
                 )}重 吗？`
           }
           intent="danger"
-          confirmText={
-            pendingAction.type === "use" ? "使用" : "删除"
-          }
+          confirmText={pendingAction.type === "use" ? "使用" : "删除"}
           onCancel={() => {
             setConfirmOpen(false);
             setPendingAction(null);
