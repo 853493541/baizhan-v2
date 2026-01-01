@@ -144,7 +144,7 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
         (s) => s.ability === item.ability && s.level === 10
       )
     ) {
-      return { text: `有十 ${currentText}`, className: styles.yellowBtn };
+      return { text: `有十`, className: styles.yellowBtn };
     }
 
     return { text: `使用 `, className: styles.useBtn };

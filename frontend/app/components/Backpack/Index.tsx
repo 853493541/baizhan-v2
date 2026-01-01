@@ -226,9 +226,9 @@ export default function BackpackWindow({
                     }
                   />
                   <div className={styles.abilityText}>
-                    <span className={styles.currentLevelRight}>
-                      当前：{numToChinese(currentLevel)}重
-                    </span>
+                    <span className={styles.abilityName}>
+    {numToChinese(item.level)}重 • {item.ability}
+  </span>
                   </div>
                 </div>
 
