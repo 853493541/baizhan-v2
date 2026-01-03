@@ -9,6 +9,9 @@ export interface ExtendedGroup extends GroupResult {
   // per-group boss overrides
   adjusted90?: string;
   adjusted100?: string;
+
+    downgradedFloors?: number[];
+    
 }
 
 export interface BossMapProps {

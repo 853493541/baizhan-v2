@@ -3,6 +3,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ExtendedGroup } from "./types";
+import { useBossAdjustments } from "./useBossAdjustments";
 
 type Status = "not_started" | "started" | "finished";
 
@@ -16,12 +17,12 @@ export function useBossMapController(args: {
   const { scheduleId, group, weeklyMap, onRefresh, onGroupUpdate } = args;
 
   const [localGroup, setLocalGroup] = useState<ExtendedGroup>(group);
-  const lastLocalUpdate = useRef<number>(Date.now());
+  const lastLocalUpdate = useRef(Date.now());
 
-  /* ================= confirmation state ================= */
+  /* ================= confirmation ================= */
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  /* ================= selection state ================= */
+  /* ================= selection ================= */
   const [selected, setSelected] = useState<{
     floor: number;
     boss: string;
@@ -42,7 +43,7 @@ export function useBossMapController(args: {
       p.includes(i) ? p.filter((x) => x !== i) : [...p, i]
     );
 
-  /* ================= status helpers ================= */
+  /* ================= status ================= */
   const status = (localGroup.status ?? "not_started") as Status;
 
   const statusLabel = useMemo(
@@ -54,30 +55,10 @@ export function useBossMapController(args: {
     []
   );
 
-  /* ================= resolve boss ================= */
-  const resolveBoss = (floor: number) => {
-    if (floor === 90 && localGroup.adjusted90) return localGroup.adjusted90;
-    if (floor === 100 && localGroup.adjusted100) return localGroup.adjusted100;
-    return weeklyMap[floor];
-  };
+  /* ================= boss resolving (delegated) ================= */
+  const { resolveBoss } = useBossAdjustments(localGroup, weeklyMap);
 
-  const applyAdjustedBossLocal = (floor: 90 | 100, boss: string) => {
-    setLocalGroup((prev) => {
-      const next = { ...prev };
-      if (floor === 90) next.adjusted90 = boss;
-      if (floor === 100) next.adjusted100 = boss;
-      return next;
-    });
-
-    if (onGroupUpdate) {
-      const next = { ...localGroup } as ExtendedGroup;
-      if (floor === 90) next.adjusted90 = boss;
-      if (floor === 100) next.adjusted100 = boss;
-      onGroupUpdate(next);
-    }
-  };
-
-  /* ================= NEW: mutation toggle ================= */
+  /* ================= mutation toggle ================= */
   const toggleMutationFloor = async (floor: number) => {
     try {
       const res = await fetch(
@@ -92,9 +73,7 @@ export function useBossMapController(args: {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
       const data = await res.json();
-
-      const updatedGroup: ExtendedGroup =
-        data.group ?? localGroup;
+      const updatedGroup: ExtendedGroup = data.group ?? localGroup;
 
       setLocalGroup(updatedGroup);
       lastLocalUpdate.current = Date.now();
@@ -104,36 +83,28 @@ export function useBossMapController(args: {
     }
   };
 
-  /* ================= lifecycle timestamp helpers ================= */
+  /* ================= lifecycle ================= */
   const markGroupStartedTime = async () => {
-    try {
-      await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/start`,
-        { method: "POST" }
-      );
-    } catch (err) {
-      console.error("❌ markGroupStartedTime error:", err);
-    }
+    await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/start`,
+      { method: "POST" }
+    );
   };
 
   const markGroupFinishedTime = async () => {
-    try {
-      await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/end`,
-        { method: "POST" }
-      );
-    } catch (err) {
-      console.error("❌ markGroupFinishedTime error:", err);
-    }
+    await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/end`,
+      { method: "POST" }
+    );
   };
 
   /* ================= keep local in sync ================= */
   useEffect(() => {
-    const parentKillCount = group.kills?.length || 0;
-    const localKillCount = localGroup.kills?.length || 0;
+    const parentKills = group.kills?.length || 0;
+    const localKills = localGroup.kills?.length || 0;
 
     if (
-      parentKillCount >= localKillCount ||
+      parentKills >= localKills ||
       Date.now() - lastLocalUpdate.current > 3000
     ) {
       setLocalGroup(group);
@@ -141,88 +112,75 @@ export function useBossMapController(args: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [group, localGroup.kills]);
 
-  /* ================= update group status ================= */
+  /* ================= group status ================= */
   const updateGroupStatus = async (next: Status) => {
-    try {
-      await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/status`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: next }),
-        }
-      );
+    await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/status`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: next }),
+      }
+    );
 
-      setLocalGroup((p) => ({ ...p, status: next }));
-      onRefresh?.();
-      onGroupUpdate?.({ ...localGroup, status: next });
-    } catch (err) {
-      console.error("❌ updateGroupStatus error:", err);
-    }
+    setLocalGroup((p) => ({ ...p, status: next }));
+    onRefresh?.();
+    onGroupUpdate?.({ ...localGroup, status: next });
   };
 
-  /* ================= update kills ================= */
+  /* ================= kills ================= */
   const updateGroupKill = async (
     floor: number,
     boss: string,
     selection: any
   ) => {
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/floor/${floor}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ boss, selection }),
-        }
-      );
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const updated = await res.json();
-
-      const newGroup: ExtendedGroup = {
-        ...localGroup,
-        kills: updated.updatedGroup?.kills || localGroup.kills,
-      };
-
-      setLocalGroup(newGroup);
-      lastLocalUpdate.current = Date.now();
-      onRefresh?.();
-      onGroupUpdate?.(newGroup);
-    } catch (err) {
-      console.error("❌ updateGroupKill error:", err);
-    }
-  };
-
-  /* ================= instant fetch on open ================= */
-  useEffect(() => {
-    const instantFetch = async () => {
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/kills`
-        );
-        if (!res.ok) return;
-
-        const data = await res.json();
-        const newGroup: ExtendedGroup = {
-          ...localGroup,
-          kills: data.kills || localGroup.kills,
-          status: data.status || localGroup.status,
-        };
-
-        setLocalGroup(newGroup);
-        lastLocalUpdate.current = Date.now();
-        onGroupUpdate?.(newGroup);
-      } catch (err) {
-        console.error("❌ Instant fetch failed:", err);
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/floor/${floor}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ boss, selection }),
       }
+    );
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const data = await res.json();
+
+    const newGroup: ExtendedGroup = {
+      ...localGroup,
+      kills: data.updatedGroup?.kills || localGroup.kills,
     };
 
-    instantFetch();
+    setLocalGroup(newGroup);
+    lastLocalUpdate.current = Date.now();
+    onRefresh?.();
+    onGroupUpdate?.(newGroup);
+  };
+
+  /* ================= initial fetch ================= */
+  useEffect(() => {
+    const fetchKills = async () => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/kills`
+      );
+      if (!res.ok) return;
+
+      const data = await res.json();
+      setLocalGroup((prev) => ({
+        ...prev,
+        kills: data.kills ?? prev.kills,
+        status: data.status ?? prev.status,
+      }));
+    };
+
+    fetchKills();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scheduleId, localGroup.index]);
 
-  /* ================= header / modal / drop handlers ================= */
+  /* ================= UI handlers ================= */
   const handleFinish = () => setConfirmOpen(true);
+
   const handleSelectBossCard = (
     floor: number,
     boss: string,
@@ -245,40 +203,34 @@ export function useBossMapController(args: {
     }
   };
 
-  const onMarkStarted = async (floor?: number) => {
-    if (typeof floor !== "number") return;
-    if (status === "not_started" && floor !== 100) {
-      await markGroupStartedTime();
-      await updateGroupStatus("started");
-    }
-  };
-
   const onAfterReset = () => {
-    const floorToRemove = selected?.floor;
-    const newGroup: ExtendedGroup = {
-      ...localGroup,
-      kills:
-        localGroup.kills?.filter((k) => k.floor !== floorToRemove) || [],
-    };
+    const floor = selected?.floor;
+    if (!floor) return;
 
-    setLocalGroup(newGroup);
-    onRefresh?.();
-    onGroupUpdate?.(newGroup);
+    setLocalGroup((prev) => ({
+      ...prev,
+      kills: prev.kills?.filter((k) => k.floor !== floor) || [],
+    }));
+
     setSelected(null);
+    onRefresh?.();
   };
 
   const openBossModal = (floor: 90 | 100) => {
-    setBossModal({
-      floor,
-      currentBoss: resolveBoss(floor),
-    });
+    setBossModal({ floor, currentBoss: resolveBoss(floor) });
   };
 
   const closeBossModal = () => setBossModal(null);
 
-  const onBossOverrideSuccess = (newBoss: string) => {
+  const onBossOverrideSuccess = (boss: string) => {
     if (!bossModal) return;
-    applyAdjustedBossLocal(bossModal.floor, newBoss);
+
+    setLocalGroup((prev) => ({
+      ...prev,
+      ...(bossModal.floor === 90 && { adjusted90: boss }),
+      ...(bossModal.floor === 100 && { adjusted100: boss }),
+    }));
+
     setBossModal(null);
     onRefresh?.();
   };
@@ -292,7 +244,6 @@ export function useBossMapController(args: {
   };
 
   return {
-    // state
     localGroup,
     selected,
     bossModal,
@@ -301,29 +252,21 @@ export function useBossMapController(args: {
     status,
     statusLabel,
 
-    // helpers
     toggleMember,
     resolveBoss,
-
-    // mutation
     toggleMutationFloor,
 
-    // selection
     handleSelectBossCard,
     setSelected,
 
-    // boss override
     openBossModal,
     closeBossModal,
     onBossOverrideSuccess,
 
-    // drops
     closeDrops,
     onDropsSave,
     onAfterReset,
-    onMarkStarted,
 
-    // lifecycle
     handleFinish,
     cancelConfirm,
     confirmFinish,
