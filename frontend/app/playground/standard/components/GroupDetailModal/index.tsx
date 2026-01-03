@@ -37,6 +37,9 @@ type GroupWithLifecycle = GroupResult & {
   // ⭐ boss overrides
   adjusted90?: string | null;
   adjusted100?: string | null;
+
+  // ⭐ mutation state
+  downgradedFloors?: number[];
 };
 
 /* ======================================================
@@ -98,7 +101,7 @@ export default function GroupDetailModal({
   }, [isRefreshing, scheduleId, groupIndex, onRefresh]);
 
   /* -------------------------------------------------------
-     ⭐ 3) Auto refresh boss overrides
+     ⭐ 3) Auto refresh boss overrides (90 / 100)
   ------------------------------------------------------- */
   const fetchAdjustedBoss = useCallback(async () => {
     try {
@@ -121,6 +124,29 @@ export default function GroupDetailModal({
   }, [scheduleId, groupIndex]);
 
   /* -------------------------------------------------------
+     ⭐ 3.5) Auto refresh downgraded floors (异)
+  ------------------------------------------------------- */
+  const fetchDowngradedFloors = useCallback(async () => {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${groupIndex + 1}/downgraded-floors`
+      );
+
+      if (!res.ok) return;
+
+      const data = await res.json();
+
+      setGroupData((prev) => ({
+        ...prev,
+        downgradedFloors:
+          data.downgradedFloors ?? prev.downgradedFloors,
+      }));
+    } catch (err) {
+      console.error("❌ Auto refresh (downgraded floors) failed:", err);
+    }
+  }, [scheduleId, groupIndex]);
+
+  /* -------------------------------------------------------
      ⭐ Polling timers
   ------------------------------------------------------- */
   useEffect(() => {
@@ -132,6 +158,11 @@ export default function GroupDetailModal({
     const bossTimer = setInterval(fetchAdjustedBoss, 5000);
     return () => clearInterval(bossTimer);
   }, [fetchAdjustedBoss]);
+
+  useEffect(() => {
+    const downgradeTimer = setInterval(fetchDowngradedFloors, 5000);
+    return () => clearInterval(downgradeTimer);
+  }, [fetchDowngradedFloors]);
 
   /* -------------------------------------------------------
      ⭐ 4) Load historical weekly map

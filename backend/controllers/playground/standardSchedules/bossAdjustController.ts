@@ -163,3 +163,32 @@ export const toggleGroupDowngradedFloor = async (
     });
   }
 };
+export const getGroupDowngradedFloors = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { id, index } = req.params;
+    const groupIndex = parseInt(index, 10);
+
+    const schedule = await StandardSchedule.findOne(
+      { _id: id, "groups.index": groupIndex },
+      { "groups.$": 1 } // 🔥 fetch only this group
+    ).lean();
+
+    if (!schedule || !schedule.groups?.length) {
+      return res.status(404).json({ error: "Group not found" });
+    }
+
+    const group = schedule.groups[0];
+
+    res.json({
+      downgradedFloors: group.downgradedFloors ?? [],
+    });
+  } catch (err) {
+    console.error("❌ getGroupDowngradedFloors error:", err);
+    res.status(500).json({
+      error: "Failed to fetch downgraded floors",
+    });
+  }
+};

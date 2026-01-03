@@ -12,6 +12,7 @@ import {
   updateScheduleName,
   getGroupKills,
   updateScheduleCharacters,
+
 } from "../controllers/playground/standardScheduleController";
 
 import { getScheduleSummaryByWeek } from "../controllers/playground/standardSchedules/getScheduleSummaryByWeek";
@@ -36,6 +37,7 @@ import {
 // ⭐ NEW: group downgraded floor toggle controller
 import {
   toggleGroupDowngradedFloor,
+   getGroupDowngradedFloors,
 } from "../controllers/playground/standardSchedules/bossAdjustController";
 
 const router = Router();
@@ -123,7 +125,10 @@ router.patch(
   "/:id/groups/:index/downgrade-floor",
   toggleGroupDowngradedFloor
 );
-
+router.get(
+  "/:id/groups/:index/downgraded-floors",
+  getGroupDowngradedFloors
+);
 /* -----------------------------------------------------
    🔹 SCHEDULE NAME / DELETE
 ----------------------------------------------------- */
