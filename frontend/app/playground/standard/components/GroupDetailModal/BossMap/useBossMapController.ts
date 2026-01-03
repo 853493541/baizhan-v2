@@ -93,7 +93,7 @@ export function useBossMapController(args: {
 
   const markGroupFinishedTime = async () => {
     await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/end`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/finish`,
       { method: "POST" }
     );
   };
