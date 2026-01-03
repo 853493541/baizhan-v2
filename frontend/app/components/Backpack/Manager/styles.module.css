@@ -10,7 +10,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1200; /* lower than AddBackpackModal */
+  z-index: 300;
 }
 
 /* === Modal === */
@@ -24,9 +24,9 @@
   flex-direction: column;
   gap: 10px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-  position: relative;
 }
 
+/* === Header === */
 .header {
   display: flex;
   justify-content: space-between;
@@ -38,13 +38,12 @@
   background: none;
   cursor: pointer;
   color: #666;
-  transition: color 0.2s;
 }
 .closeBtn:hover {
   color: #000;
 }
 
-/* === Search + Button Row === */
+/* === Search + Add === */
 .topBar {
   display: flex;
   gap: 10px;
@@ -57,7 +56,6 @@
   border-radius: 6px;
   padding: 6px 8px;
   font-size: 14px;
-  transition: border 0.2s;
 }
 .search:focus {
   outline: none;
@@ -75,7 +73,6 @@
   padding: 6px 10px;
   font-size: 14px;
   cursor: pointer;
-  transition: background 0.2s;
 }
 .addBtn:hover {
   background: #22963a;
@@ -101,23 +98,18 @@
   background: #f8fafc;
   border-radius: 8px;
   padding: 6px 10px;
-  transition: background 0.15s;
 }
 .itemRow:hover {
   background: #eef3f9;
 }
-.itemUsed {
-  opacity: 0.6;
-  text-decoration: line-through;
-}
 
-/* === Left Column (flex grow) === */
+/* === Left side === */
 .itemLeft {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 1 1 auto;            /* ✅ grow to take available space */
-  min-width: 0;              /* ✅ allow text to ellipsis */
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .abilityIcon {
@@ -129,11 +121,9 @@
   background: #fff;
 }
 
-/* === Ability text: name left, 当前 right === */
 .abilityText {
   display: flex;
   align-items: center;
-  gap: 8px;
   width: 100%;
 }
 
@@ -147,55 +137,69 @@
   white-space: nowrap;
 }
 
-.currentLevelRight {
-  white-space: nowrap;
-  font-size: 13px;
-  color: #555;
-  text-align: right;
-  font-weight: 500;
-}
-
-/* === Right Buttons (fixed) === */
+/* === Buttons === */
 .buttons {
   display: flex;
   gap: 6px;
-  flex: 0 0 auto;    
-  margin-left: 6px;         
+  flex: 0 0 auto;
+  margin-left: 6px;
 }
 
+/* ===============================
+   Button styles (single source)
+=============================== */
 .btn {
   border: none;
-  border-radius: 8px;
-  padding: 3px 10px;
-  font-size: 12px;
-  font-weight: 500;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  white-space: nowrap;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
+/* Normal use */
 .useBtn {
-  background: #e0ecff;
-  color: #1e3a8a;
-}
-.useBtn:hover {
-  background: #1d4ed8;
+  background: #4caf50;
   color: #fff;
+}
+.useBtn:hover:not(:disabled) {
+  background: #43a047;
 }
 
-.deleteBtn {
-  background: #ffe4e6;
-  color: #b91c1c;
+/* Warning (未八 / 未九 / 有十) */
+.yellowBtn {
+  background: #ffc107;
+  color: #212529;
 }
-.deleteBtn:hover {
-  background: #dc2626;
+.yellowBtn:hover:not(:disabled) {
+  background: #e0a800;
+}
+
+/* Delete + 已十重 */
+.deleteBtn {
+  background: #dc3545;
   color: #fff;
+}
+.deleteBtn:hover:not(:disabled) {
+  background: #c82333;
+}
+
+/* Disabled (已十重) */
+.deleteBtn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.btn:disabled {
+  pointer-events: none;
 }
 
 /* === Footer === */
 .footer {
   display: flex;
   justify-content: flex-end;
-  margin-top: 6px;
   padding-top: 4px;
 }
 
@@ -206,12 +210,12 @@
   padding: 6px 14px;
   font-size: 14px;
   cursor: pointer;
-  transition: background 0.2s;
 }
 .cancelBtn:hover {
   background: #ddd;
 }
 
+/* === Empty === */
 .empty {
   color: #555;
   text-align: center;
@@ -223,20 +227,14 @@
 @media (max-width: 600px) {
   .modal {
     width: 92%;
-    height: auto;
     max-height: 85vh;
+    height: auto;
     padding: 16px;
-  }
-
-  .search,
-  .addBtn,
-  .abilityText {
-    font-size: 15px;
   }
 
   .btn {
     font-size: 14px;
-    padding: 5px 12px;
+    padding: 6px 12px;
   }
 
   .cancelBtn {

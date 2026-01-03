@@ -11,3 +11,6 @@ export const toastError = (message: string) => {
 export const toastInfo = (message: string) => {
   toast(message);
 };
+export function toastWarning(message: string) {
+  toast.error(message);
+}

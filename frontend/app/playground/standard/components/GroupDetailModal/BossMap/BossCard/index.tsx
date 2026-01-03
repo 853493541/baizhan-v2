@@ -1,8 +1,11 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import styles from "./styles.module.css";
-import { canUseAbility } from "@/utils/genderCheck";
+import { calcBossNeeds } from "./calcBossNeeds";
+
+/* ✅ SINGLE SOURCE OF TRUTH */
+import tradableAbilities from "@/app/data/tradable_abilities.json";
 
 interface BossCardProps {
   floor: number;
@@ -10,7 +13,6 @@ interface BossCardProps {
   group: any;
   bossData: Record<string, string[]>;
   highlightAbilities: string[];
-  tradableSet: Set<string>;
   kill?: any;
   activeMembers?: number[];
   onSelect: (
@@ -20,9 +22,17 @@ interface BossCardProps {
     tradableList: string[],
     dropLevel: 9 | 10
   ) => void;
+  onChangeBoss?: (floor: 90 | 100) => void;
 }
 
 const getAbilityIcon = (ability: string) => `/icons/${ability}.png`;
+
+/* 🧬 Mutated Boss（异类） */
+const mutatedBosses = new Set([
+  "肖红",
+  "青年程沐华",
+  "困境韦柔丝",
+]);
 
 export default function BossCard({
   floor,
@@ -30,14 +40,20 @@ export default function BossCard({
   group,
   bossData,
   highlightAbilities,
-  tradableSet,
   kill,
   activeMembers = [0, 1, 2],
   onSelect,
+  onChangeBoss,
 }: BossCardProps) {
-  useEffect(() => {
-    // console.log(`[BossCard] floor=${floor}`, { kill, selection: kill?.selection });
-  }, [floor, kill]);
+  useEffect(() => {}, [floor, kill]);
+
+  /* ===============================
+     Tradable set
+  ================================= */
+  const tradableSet = useMemo(
+    () => new Set<string>(tradableAbilities),
+    []
+  );
 
   if (!boss) {
     return (
@@ -49,57 +65,26 @@ export default function BossCard({
   }
 
   const fullDropList: string[] = bossData[boss] || [];
-
-  // ✅ Split into tradable vs. normal abilities
-  const tradableList = fullDropList.filter((a) => tradableSet.has(a));
-  const dropList = fullDropList.filter((a) => !tradableSet.has(a));
-
-  const dropLevel = floor >= 81 && floor <= 90 ? 9 : 10;
-
-  // ✅ Only include selected members
-  const includedChars = group.characters.filter((_: any, i: number) =>
-    activeMembers.includes(i)
+  const tradableList = fullDropList.filter((a) =>
+    tradableSet.has(a)
+  );
+  const dropList = fullDropList.filter(
+    (a) => !tradableSet.has(a)
   );
 
-  // ✅ Healer abilities
-  const healerAbilities = ["万花金创药", "特制金创药", "毓秀灵药", "霞月长针"];
+  const dropLevel: 9 | 10 =
+    floor >= 81 && floor <= 90 ? 9 : 10;
 
-  // ✅ Calculate needs
-  let needs = dropList
-    .map((ability) => {
-      const needers = includedChars.filter((c: any) => {
-        const lvl = c.abilities?.[ability] ?? 0;
-        const usable = canUseAbility(c, ability);
-        return usable && lvl < dropLevel;
-      });
-      const needCount = needers.length;
-      if (needCount > 0) {
-        const isHighlightBase = highlightAbilities.includes(ability);
-
-        // Healer-specific highlight
-        let isHighlight = isHighlightBase;
-        if (isHighlightBase && healerAbilities.includes(ability)) {
-          const healerNeed = needers.some(
-            (c: any) => c.role?.toLowerCase() === "healer"
-          );
-          isHighlight = healerNeed;
-        }
-
-        return { ability, needCount, isHighlight };
-      }
-      return null;
-    })
-    .filter(Boolean) as {
-    ability: string;
-    needCount: number;
-    isHighlight: boolean;
-  }[];
-
-  // ✅ Sort highlights first
-  needs.sort((a, b) => {
-    if (a.isHighlight && !b.isHighlight) return -1;
-    if (!a.isHighlight && b.isHighlight) return 1;
-    return 0;
+  /* ===============================
+     Needs
+  ================================= */
+  const needs = calcBossNeeds({
+    boss,
+    bossData,
+    group,
+    activeMembers,
+    dropLevel,
+    highlightAbilities,
   });
 
   const content =
@@ -118,24 +103,23 @@ export default function BossCard({
       <p className={styles.noNeed}>无需求</p>
     );
 
-  // ✅ Resolve assigned character name
-  let assignedName = "";
-  if (kill?.selection?.characterId) {
-    const char = group.characters.find(
-      (c: any) => c._id === kill.selection.characterId
-    );
-    assignedName = char ? char.name : kill.selection.characterId;
-  }
+  /* ===============================
+     Drop + card state
+  ================================= */
+  let dropDisplay: React.ReactNode = null;
+  let cardStateClass = "";
+  let dropResultClass = "";
 
-  // ✅ Drop display logic
-  let dropDisplay = null;
   if (kill?.selection) {
     const sel = kill.selection;
 
-    if (sel.noDrop || (!sel.ability && !sel.purpleBook)) {
-      // === 无掉落 ===
+    /* ❌ No drop */
+    if (sel.noDrop || (!sel.ability && !sel.characterId)) {
+      cardStateClass = styles.cardHealer;
+      dropResultClass = styles.noDrop;
+
       dropDisplay = (
-        <div className={`${styles.dropResult} ${styles.noDrop}`}>
+        <div className={`${styles.dropResult} ${dropResultClass}`}>
           <img
             src="/icons/no_drop.svg"
             alt="无掉落"
@@ -144,25 +128,32 @@ export default function BossCard({
           <div>无掉落</div>
         </div>
       );
-    } else if (sel.purpleBook) {
-      // === 紫书掉落 ===
+
+    /* 🟣 Purple book */
+    } else if (sel.ability && tradableSet.has(sel.ability)) {
+      cardStateClass = styles.cardPurple;
+      dropResultClass = styles.purple;
+
       dropDisplay = (
-        <div className={`${styles.dropResult} ${styles.wasted} ${styles.purpleBookResult}`}>
+        <div className={`${styles.dropResult} ${dropResultClass}`}>
           <img
             src={getAbilityIcon(sel.ability)}
             alt={sel.ability}
-            className={`${styles.iconLarge} ${styles.iconWasted}`}
+            className={styles.iconLarge}
           />
           <div>{sel.ability}</div>
-          <div>{sel.level}重（紫书）</div>
+          <div>{sel.level}重</div>
+          <div>(无)</div>
         </div>
       );
+
+    /* ❌ Wasted */
     } else if (sel.ability && !sel.characterId) {
-      // === 有掉落但无人领 ===
+      cardStateClass = styles.cardHealer;
+      dropResultClass = styles.wasted;
+
       dropDisplay = (
-        <div
-          className={`${styles.dropResult} ${styles.wasted} ${styles.stackCenter}`}
-        >
+        <div className={`${styles.dropResult} ${dropResultClass}`}>
           <img
             src={getAbilityIcon(sel.ability)}
             alt={sel.ability}
@@ -173,10 +164,19 @@ export default function BossCard({
           <div>(无)</div>
         </div>
       );
-    } else {
-      // === 正常掉落 ===
+
+    /* ✅ Normal assigned */
+    } else if (sel.ability && sel.characterId) {
+      cardStateClass = styles.cardNormal;
+      dropResultClass = styles.normal;
+
+      const char = group.characters.find(
+        (c: any) => c._id === sel.characterId
+      );
+      const assignedName = char ? char.name : sel.characterId;
+
       dropDisplay = (
-        <div className={`${styles.dropResult} ${styles.normal}`}>
+        <div className={`${styles.dropResult} ${dropResultClass}`}>
           <img
             src={getAbilityIcon(sel.ability)}
             alt={sel.ability}
@@ -190,24 +190,44 @@ export default function BossCard({
     }
   }
 
+  /* 🧬 Mutated boss */
+  const isMutatedBoss = mutatedBosses.has(boss);
+
+  /* ⭐ SPECIAL DISPLAY RULE
+     100 + 青年谢云流 → hide floor number
+  */
+  const hideFloorInHeader =
+    floor === 100 && boss === "青年谢云流";
+
   return (
     <div
       key={floor}
-      className={`${styles.card} ${styles.cardInteractive} ${
-        kill?.selection?.ability && kill?.selection?.characterId
-          ? styles.cardNormal
-          : (kill?.selection?.noDrop ||
-              kill?.selection?.purpleBook ||
-              (kill?.selection?.ability && !kill?.selection?.characterId))
-          ? styles.cardHealer
-          : ""
-      }`}
+      className={`${styles.card} ${styles.cardInteractive} ${cardStateClass}`}
       onClick={() =>
-        onSelect(floor, boss, dropList, tradableList, dropLevel as 9 | 10)
+        onSelect(floor, boss, dropList, tradableList, dropLevel)
       }
     >
+      {/* 🧬 Mutated boss badge */}
+      {isMutatedBoss && (
+        <div className={styles.mutatedBossBadge}>异</div>
+      )}
+
+      {/* 🔁 Swap badge */}
+      {(floor === 90 || floor === 100) && onChangeBoss && (
+        <button
+          className={styles.changeBtn}
+          title="更换首领"
+          onClick={(e) => {
+            e.stopPropagation();
+            onChangeBoss(floor);
+          }}
+        >
+          换
+        </button>
+      )}
+
       <div className={styles.header}>
-        {floor} {boss}
+        {hideFloorInHeader ? boss : `${floor} ${boss}`}
       </div>
 
       {dropDisplay || content}

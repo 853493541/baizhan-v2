@@ -1,19 +1,42 @@
-// next.config.js
 const withBundleAnalyzer = require("@next/bundle-analyzer")({
   enabled: process.env.ANALYZE === "true",
 });
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Skip lint & type errors during production builds
   eslint: {
-    ignoreDuringBuilds: true, // ✅ skip lint errors during build
+    ignoreDuringBuilds: true,
   },
   typescript: {
-    ignoreBuildErrors: true, // ✅ skip TS errors during build
+    ignoreBuildErrors: true,
   },
+
   reactStrictMode: true,
-  experimental: {
-    appDir: true, // ✅ ensure App Router analysis works
+
+  /**
+   * ❗ DO NOT set `outputFileTracing: false`
+   * This option DOES NOT EXIST in Next 15.
+   *
+   * Tracing is only triggered when:
+   *   output === "standalone"
+   *
+   * Since we are NOT using standalone,
+   * tracing will NOT run.
+   */
+
+  // ✅ Default output (no tracing, no standalone)
+  // output: undefined  ← implicit default, do NOT set
+
+  /**
+   * Reduce build parallelism to avoid memory spikes
+   * on constrained VMs
+   */
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.parallelism = 1;
+    }
+    return config;
   },
 };
 

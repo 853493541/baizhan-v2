@@ -120,17 +120,18 @@ export default function AbilityCoverage({ groups }: Props) {
                 </td>
 
                 {groups.map((_, i) => {
-                  const { count, haveChars, missingChars } = row[`group${i + 1}`];
-                  let cellClass = styles.ok;
-                  let content: React.ReactNode = "";
+                  const { count, haveChars, missingChars } =
+                    row[`group${i + 1}`];
 
+                  let cellClass = styles.ok;
+                  let content: React.ReactNode = null;
+
+                  // ❌ Only true error: none have the ability
                   if (count === 0) {
-                    cellClass = styles.danger;
-                    content = "❗";
-                  } else if (count === 3) {
-                    cellClass = styles.warning;
-                    content = "⚠️";
+                    cellClass = styles.over;
+                    content = <span className={styles.cross}>✖</span>;
                   }
+                  // 🟢 count === 3 is now treated as OK (no icon)
 
                   return (
                     <td
@@ -166,7 +167,7 @@ export default function AbilityCoverage({ groups }: Props) {
         <div
           className={styles.hoverBox}
           style={{
-            position: "fixed", // ✅ fixed relative to viewport
+            position: "fixed",
             left: hover.x,
             top: hover.y,
           }}
@@ -179,43 +180,43 @@ export default function AbilityCoverage({ groups }: Props) {
               height={20}
               className={styles.hoverIcon}
             />
-            <span className={styles.hoverTitle}>10重 {hover.abilityName}</span>
+            <span className={styles.hoverTitle}>
+              10重 {hover.abilityName}
+            </span>
           </div>
 
           <div className={styles.hoverContent}>
             <strong>拥有：</strong>
-{hover.text.length > 0 ? (
-  hover.text.map((m, idx) => (
-    <div
-      key={idx}
-      className={`${styles.roleBadge} ${
-        m.role === "Tank"
-          ? styles.tank
-          : m.role === "Healer"
-          ? styles.healer
-          : styles.dps
-      }`}
-    >
-      {m.name}
-    </div>
-  ))
-) : (
-  <span>（无）</span> 
-)}
-
+            {hover.text.length > 0 ? (
+              hover.text.map((m, idx) => (
+                <div
+                  key={idx}
+                  className={`${styles.roleBadge} ${
+                    m.role === "Tank"
+                      ? styles.tank
+                      : m.role === "Healer"
+                      ? styles.healer
+                      : styles.dps
+                  }`}
+                >
+                  {m.name}
+                </div>
+              ))
+            ) : (
+              <span>（无）</span>
+            )}
 
             <br />
             <strong>缺少：</strong>
-{hover.missing.length > 0 ? (
-  hover.missing.map((m, idx) => (
-    <div key={idx} className={styles.missingBadge}>
-      {m.name}
-    </div>
-  ))
-) : (
-  <span>（全有）</span>
-)}
-
+            {hover.missing.length > 0 ? (
+              hover.missing.map((m, idx) => (
+                <div key={idx} className={styles.missingBadge}>
+                  {m.name}
+                </div>
+              ))
+            ) : (
+              <span>（全有）</span>
+            )}
           </div>
         </div>
       )}

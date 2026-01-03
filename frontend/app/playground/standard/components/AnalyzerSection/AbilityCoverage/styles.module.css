@@ -197,3 +197,18 @@
     transform: translateY(0);
   }
 }
+.ok {
+  background: #f7fff9;
+  color: #2f855a;
+}
+
+.over {
+  background-color: #ffecee;
+  color: #dc2626;
+}
+
+.cross {
+  color: #dc2626;
+  font-size: 14px;
+  font-weight: 700;
+}

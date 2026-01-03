@@ -1,5 +1,7 @@
 "use client";
+import { useState } from "react";
 import styles from "./styles.module.css";
+import ConfirmModal from "@/app/components/ConfirmModal";
 
 export default function ActionPanel({
   API_URL,
@@ -14,6 +16,9 @@ export default function ActionPanel({
   onClose,
   onSaved,
 }: any) {
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingLv10Use, setPendingLv10Use] = useState(false);
+
   const fullChar =
     selectedCharacter &&
     (allCharacters.find((c: any) => c._id === selectedCharacter._id) ||
@@ -39,27 +44,19 @@ export default function ActionPanel({
 
   const markGroupAsDone = async () => {
     const groupIndex = Number(group.index ?? 0);
-    try {
-      await fetch(
-        `${API_URL}/api/targeted-plans/${planId}/groups/${groupIndex}/status`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: "finished" }),
-        }
-      );
-      group.status = "finished";
-      console.log(`✅ Group ${groupIndex} marked as finished after action.`);
-    } catch (err) {
-      console.error("❌ Failed to mark group as finished:", err);
-    }
+    await fetch(
+      `${API_URL}/api/targeted-plans/${planId}/groups/${groupIndex}/status`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "finished" }),
+      }
+    );
+    group.status = "finished";
   };
 
   const saveToBackpack = async () => {
     if (!fullChar || !selectedAbility || !selectedLevel) return;
-    if (selectedLevel === 9 && hasLevel10InStorage(fullChar, selectedAbility)) {
-      return;
-    }
 
     setLoading(true);
     try {
@@ -70,8 +67,6 @@ export default function ActionPanel({
         body: JSON.stringify({ ability: selectedAbility, level: selectedLevel }),
       });
       await markGroupAsDone();
-
-      alert("✅ 已存入背包！");
       onSaved();
       onClose();
     } finally {
@@ -91,26 +86,17 @@ export default function ActionPanel({
         body: JSON.stringify({ ability: selectedAbility, level: selectedLevel }),
       });
 
-      alert(`✅ ${fullChar.name} 已使用${selectedAbility}（${selectedLevel}重）`);
-
+      // 🔑 Instead of window.confirm
       if (
         selectedLevel === 9 &&
         hasLevel10InStorage(fullChar, selectedAbility)
       ) {
-        const useTen = confirm(
-          `${fullChar.name} 的背包中有 ${selectedAbility}（十重）, 是否使用？`
-        );
-        if (useTen) {
-          await fetch(`${API_URL}/api/characters/${fullChar._id}/storage/use`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ability: selectedAbility, level: 10 }),
-          });
-        }
+        setPendingLv10Use(true);
+        setConfirmOpen(true);
+        return;
       }
 
       await markGroupAsDone();
-
       onSaved();
       onClose();
     } finally {
@@ -118,31 +104,64 @@ export default function ActionPanel({
     }
   };
 
+  const confirmUseLv10 = async () => {
+    setConfirmOpen(false);
+    setPendingLv10Use(false);
+
+    await fetch(`${API_URL}/api/characters/${fullChar._id}/storage/use`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ability: selectedAbility, level: 10 }),
+    });
+
+    await markGroupAsDone();
+    onSaved();
+    onClose();
+  };
+
   const disabled =
     !selectedAbility || !selectedLevel || !fullChar || loading;
 
   return (
-    <div className={styles.column}>
-      {/* === Section Divider Header === */}
-      <div className={styles.sectionDivider}>操作</div>
+    <>
+      <div className={styles.column}>
+        <div className={styles.sectionDivider}>操作</div>
 
-      <div className={styles.btnCol}>
-        <button
-          onClick={useImmediately}
-          disabled={disabled}
-          className={`${styles.useBtn} ${disabled ? styles.disabled : ""}`}
-        >
-          使用
-        </button>
+        <div className={styles.btnCol}>
+          <button
+            onClick={useImmediately}
+            disabled={disabled}
+            className={`${styles.useBtn} ${disabled ? styles.disabled : ""}`}
+          >
+            使用
+          </button>
 
-        <button
-          onClick={saveToBackpack}
-          disabled={disabled}
-          className={`${styles.saveBtn} ${disabled ? styles.disabled : ""}`}
-        >
-          存入背包
-        </button>
+          <button
+            onClick={saveToBackpack}
+            disabled={disabled}
+            className={`${styles.saveBtn} ${disabled ? styles.disabled : ""}`}
+          >
+            存入背包
+          </button>
+        </div>
       </div>
-    </div>
+
+      {/* ✅ Custom Confirm Modal */}
+      {confirmOpen && pendingLv10Use && (
+        <ConfirmModal
+          title="确认使用"
+          message={`${fullChar.name} 的背包中已有 ${selectedAbility}（十重），是否继续使用？`}
+          confirmText="使用十重"
+          cancelText="取消"
+          onConfirm={confirmUseLv10}
+          onCancel={() => {
+            setConfirmOpen(false);
+            setPendingLv10Use(false);
+            onSaved();
+            onClose();
+          }}
+        />
+      )}
+    </>
   );
 }

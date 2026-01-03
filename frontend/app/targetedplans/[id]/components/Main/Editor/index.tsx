@@ -14,6 +14,8 @@ import {
   handleAbilityChange,
   saveChanges,
 } from "./editorHandlers";
+import { toastError } from "@/app/components/toast/toast";
+import ConfirmModal from "@/app/components/ConfirmModal";
 
 /**
  * 🧩 Editor
@@ -40,14 +42,23 @@ export default function Editor({
   const [resetting, setResetting] = useState(false);
   const [localGroups, setLocalGroups] = useState<GroupResult[]>(groups);
 
+  // 🔴 Confirm modal state
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+
   /* 🧠 Merge characters with DB data */
   useEffect(() => {
     if (!groups?.length || !allCharacters?.length) return;
+
     const merged = groups.map((g) => ({
       ...g,
       characters: g.characters.map((c: any) => {
-        const realId = (c._id || c.characterId?._id || c.characterId) as string | undefined;
-        const full = realId ? allCharacters.find((ac) => ac._id === realId) : undefined;
+        const realId = (c._id ||
+          c.characterId?._id ||
+          c.characterId) as string | undefined;
+
+        const full = realId
+          ? allCharacters.find((ac) => ac._id === realId)
+          : undefined;
 
         return {
           ...full,
@@ -73,7 +84,7 @@ export default function Editor({
   }, [groups]);
 
   /* ----------------------------------------------------------------------
-     🟢 GLOBAL usedMap — KEY FIX
+     🟢 GLOBAL usedMap
   ---------------------------------------------------------------------- */
   const usedMap = useMemo(() => {
     const m: Record<string, number> = {};
@@ -82,13 +93,13 @@ export default function Editor({
         if (c?._id) m[c._id] = gi;
       });
     });
-    console.log("DEBUG usedMap:", m);
     return m;
   }, [localGroups]);
 
   /* 💾 Auto-save (debounced) */
   useEffect(() => {
     if (!editing || !localGroups.length) return;
+
     const timer = setTimeout(async () => {
       setSaving(true);
       await saveChanges(scheduleId, localGroups, setGroups, () => {});
@@ -103,9 +114,14 @@ export default function Editor({
     setEditing((prev) => !prev);
   };
 
-  /* 🔄 Reset all groups */
-  const handleResetPlan = async () => {
-    if (!confirm("重置所有掉落记录和完成状态？")) return;
+  /* 🔄 Reset (STEP 1 → open modal) */
+  const handleResetPlan = () => {
+    setShowResetConfirm(true);
+  };
+
+  /* 🔄 Reset (STEP 2 → confirmed) */
+  const confirmResetPlan = async () => {
+    setShowResetConfirm(false);
 
     const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
     const candidates = [
@@ -116,6 +132,7 @@ export default function Editor({
 
     setResetting(true);
     let ok = false;
+
     for (const url of candidates) {
       try {
         const res = await fetch(url, { method: "POST" });
@@ -125,10 +142,11 @@ export default function Editor({
         }
       } catch {}
     }
+
     setResetting(false);
 
     if (!ok) {
-      alert("重置失败！");
+      toastError("重置失败！");
       return;
     }
 
@@ -142,81 +160,111 @@ export default function Editor({
     setLocalGroups(resetGroups);
     setGroups(resetGroups);
 
+    // Keep original behavior
     window.location.reload();
   };
 
   /* ---------- Render ---------- */
   return (
-    <div className={styles.groupsGrid}>
-      {/* Toolbar */}
-      <div className={styles.toolbar}>
-        <button
-          onClick={toggleEditing}
-          disabled={saving}
-          className={`${styles.editToggleBtn} ${
-            saving ? styles.saving : editing ? styles.exit : styles.enter
-          }`}
-        >
-          {saving ? "保存中..." : editing ? "退出编辑" : "编辑全表"}
-        </button>
+    <>
+      <div className={styles.groupsGrid}>
+        {/* Toolbar */}
+        <div className={styles.toolbar}>
+          <button
+            onClick={toggleEditing}
+            disabled={saving}
+            className={`${styles.editToggleBtn} ${
+              saving ? styles.saving : editing ? styles.exit : styles.enter
+            }`}
+          >
+            {saving ? "保存中..." : editing ? "退出编辑" : "编辑全表"}
+          </button>
 
-        {/* Reset Button */}
-        <button
-          onClick={handleResetPlan}
-          disabled={resetting}
-          className={styles.resetBtn ?? styles.editToggleBtn}
-          style={{ marginLeft: 8 }}
-          title="重置所有小组状态并清空掉落（保留角色与技能）"
-        >
-          {resetting ? "重置中..." : "重置"}
-        </button>
-      </div>
-
-      {/* Groups */}
-      {localGroups.map((group, gi) => (
-        <GroupCard
-          key={gi}
-          group={group}
-          groupIndex={gi}
-          editing={editing}
-          allCharacters={allCharacters}
-          abilityColorMap={abilityColorMap}
-          checkedAbilities={checkedAbilities}
-          targetedBoss={targetedBoss}
-          usedMap={usedMap}  
-          onRemoveGroup={(i) => handleRemoveGroup(setLocalGroups, i)}
-          onRemoveCharacter={(gi, cid) => handleRemoveCharacter(setLocalGroups, gi, cid)}
-          onAddCharacter={(gi, c) => handleAddCharacter(setLocalGroups, gi, c, allCharacters)}
-          onReplaceCharacter={(gi, oldId, c) =>
-            handleReplaceCharacter(setLocalGroups, gi, oldId, c, allCharacters)
-          }
-          onAbilityChange={(gi, charId, slot, ability) =>
-            handleAbilityChange(
-              setLocalGroups,
-              () => {},
-              () => {},
-              () => {},
-              gi,
-              charId,
-              slot,
-              ability
-            )
-          }
-          onAddGroup={() => handleAddGroup(setLocalGroups)}
-          API_URL={process.env.NEXT_PUBLIC_API_URL || ""}
-          planId={scheduleId}
-          refreshPlan={() => saveChanges(scheduleId, localGroups, setGroups, () => {})}
-        />
-      ))}
-
-      {/* Add Group Button */}
-      {editing && (
-        <div className={styles.addGroupWrapper}>
-          <button onClick={() => handleAddGroup(setLocalGroups)} className={styles.addGroupBtn}>
-            <span className={styles.addGroupIcon}>+</span> 新增小组
+          {/* Reset Button */}
+          <button
+            onClick={handleResetPlan}
+            disabled={resetting}
+            className={styles.resetBtn ?? styles.editToggleBtn}
+            style={{ marginLeft: 8 }}
+            title="重置所有小组状态并清空掉落（保留角色与技能）"
+          >
+            {resetting ? "重置中..." : "重置"}
           </button>
         </div>
+
+        {/* Groups */}
+        {localGroups.map((group, gi) => (
+          <GroupCard
+            key={gi}
+            group={group}
+            groupIndex={gi}
+            editing={editing}
+            allCharacters={allCharacters}
+            abilityColorMap={abilityColorMap}
+            checkedAbilities={checkedAbilities}
+            targetedBoss={targetedBoss}
+            usedMap={usedMap}
+            onRemoveGroup={(i) => handleRemoveGroup(setLocalGroups, i)}
+            onRemoveCharacter={(gi, cid) =>
+              handleRemoveCharacter(setLocalGroups, gi, cid)
+            }
+            onAddCharacter={(gi, c) =>
+              handleAddCharacter(setLocalGroups, gi, c, allCharacters)
+            }
+            onReplaceCharacter={(gi, oldId, c) =>
+              handleReplaceCharacter(
+                setLocalGroups,
+                gi,
+                oldId,
+                c,
+                allCharacters
+              )
+            }
+            onAbilityChange={(gi, charId, slot, ability) =>
+              handleAbilityChange(
+                setLocalGroups,
+                () => {},
+                () => {},
+                () => {},
+                gi,
+                charId,
+                slot,
+                ability
+              )
+            }
+            onAddGroup={() => handleAddGroup(setLocalGroups)}
+            API_URL={process.env.NEXT_PUBLIC_API_URL || ""}
+            planId={scheduleId}
+            refreshPlan={() =>
+              saveChanges(scheduleId, localGroups, setGroups, () => {})
+            }
+          />
+        ))}
+
+        {/* Add Group Button */}
+        {editing && (
+          <div className={styles.addGroupWrapper}>
+            <button
+              onClick={() => handleAddGroup(setLocalGroups)}
+              className={styles.addGroupBtn}
+            >
+              <span className={styles.addGroupIcon}>+</span> 新增小组
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ✅ Confirm Reset Modal */}
+      {showResetConfirm && (
+        <ConfirmModal
+          title="确认重置"
+          message="重置所有掉落记录和完成状态？此操作不可撤销。"
+          intent="danger"
+          confirmText="确认重置"
+          onCancel={() => setShowResetConfirm(false)}
+          onConfirm={confirmResetPlan}
+        />
       )}
-    </div>
+    </>
   );
 }

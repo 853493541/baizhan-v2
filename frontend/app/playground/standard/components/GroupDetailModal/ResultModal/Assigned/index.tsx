@@ -14,7 +14,7 @@ interface Character {
   _id: string;
   name: string;
   abilities?: Record<string, number>;
-  storage?: { ability: string; level: number; used?: boolean }[];
+  storage?: { ability: string; level: number }[];
 }
 
 interface Props {
@@ -71,15 +71,17 @@ export default function Assigned({
     return Number.isFinite(parsed) ? parsed : null;
   };
 
+  // ✅ no `used` semantics anymore
   const hasLevel10InStorage = (drop: AssignedDrop): boolean => {
     const char = drop.character as Character | undefined;
     if (!char?.storage) return false;
     return char.storage.some(
-      (i) => i.ability === drop.ability && i.level === 10 && i.used === false
+      (i) => i.ability === drop.ability && i.level === 10
     );
   };
 
   const proceedUse = async (drop: AssignedDrop, useStorageAfter: boolean) => {
+    // Step 1: use assigned book (existing logic)
     try {
       await onUse(drop);
     } catch {
@@ -87,6 +89,7 @@ export default function Assigned({
       return;
     }
 
+    // Step 2: consume backpack level 10 (upgrade + delete handled by backend)
     if (useStorageAfter) {
       const char = drop.character as Character | undefined;
       if (!char?._id) {
@@ -100,12 +103,15 @@ export default function Assigned({
           {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ability: drop.ability, level: 10 }),
+            body: JSON.stringify({
+              ability: drop.ability,
+              level: 10,
+            }),
           }
         );
 
         if (!res.ok) throw new Error();
-        toastSuccess(`已一起使用 ${drop.ability} 十重`);
+        toastSuccess(`已使用 ${drop.ability} (10重)`);
       } catch {
         toastError("使用背包技能失败，请稍后再试");
       }
@@ -116,17 +122,22 @@ export default function Assigned({
     const currentLevel = getLevelFromCharacter(drop);
 
     if (drop.level === 9 && hasLevel10InStorage(drop)) {
-      requestConfirm("确认使用", "包里找到十重，是否一起使用？", "warning", () => {
-        setConfirmOpen(false);
-        proceedUse(drop, true);
-      });
+      requestConfirm(
+        "确认使用",
+        "包里找到十重，是否一起使用？",
+        "warning",
+        () => {
+          setConfirmOpen(false);
+          proceedUse(drop, true);
+        }
+      );
       return;
     }
 
     if (drop.level === 10 && (currentLevel ?? 0) < 9) {
       requestConfirm(
         "确认修改",
-        "数据显示该技能没有达到9重，是否直接修改该技能到10重？",
+        "该技能没有达到九重，是否直接修改该技能到十重？",
         "danger",
         () => {
           setConfirmOpen(false);
@@ -137,10 +148,15 @@ export default function Assigned({
     }
 
     if (drop.level === 9 && (currentLevel ?? 0) < 8) {
-      requestConfirm("确认升级", "是否消耗通本和这本书升级？", "neutral", () => {
-        setConfirmOpen(false);
-        proceedUse(drop, false);
-      });
+      requestConfirm(
+        "确认升级",
+        "是否消耗通本和这本书升级？",
+        "neutral",
+        () => {
+          setConfirmOpen(false);
+          proceedUse(drop, false);
+        }
+      );
       return;
     }
 

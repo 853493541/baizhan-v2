@@ -1,4 +1,5 @@
 import type { Character, GroupResult } from "@/utils/solver";
+import { toastError } from "@/app/components/toast/toast";
 
 /* ---------------- Group Operations ---------------- */
 
@@ -243,7 +244,7 @@ export const saveChanges = async (
     console.log("✅ [trace][saveChanges] Success!");
   } catch (err) {
     console.error("❌ Save failed:", err);
-    alert("保存失败，请查看控制台日志。");
+    toastError("保存失败");
   }
 
   setEditing(false);

@@ -11,9 +11,6 @@ import BossMap from "./BossMap";
 
 import { getGameWeekFromDate } from "@/utils/weekUtils";
 
-import rawBossData from "../../../../data/boss_skills_collection_map.json";
-const bossData: Record<string, string[]> = rawBossData;
-
 /* ======================================================
    TYPES
 ====================================================== */
@@ -36,6 +33,10 @@ interface WeeklyMapResponse {
 type GroupWithLifecycle = GroupResult & {
   startTime?: string | null;
   endTime?: string | null;
+
+  // ⭐ boss overrides
+  adjusted90?: string | null;
+  adjusted100?: string | null;
 };
 
 /* ======================================================
@@ -54,7 +55,6 @@ export default function GroupDetailModal({
   const [weeklyMap, setWeeklyMap] = useState<Record<number, string>>({});
   const [groupData, setGroupData] = useState<GroupWithLifecycle>(group);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [countdown, setCountdown] = useState(5);
 
   /* -------------------------------------------------------
      ⭐ 1) Unified GAME-WEEK
@@ -65,7 +65,7 @@ export default function GroupDetailModal({
   }, [createdAt]);
 
   /* -------------------------------------------------------
-     ⭐ 2) Auto refresh group kills (DEBUG ENABLED)
+     ⭐ 2) Auto refresh group kills
   ------------------------------------------------------- */
   const fetchGroupKills = useCallback(async () => {
     if (isRefreshing) return;
@@ -81,54 +81,60 @@ export default function GroupDetailModal({
 
       const data = await res.json();
 
-      // 🔍 DEBUG: raw payload
-      console.log("📥 [GroupKills RAW]:", data);
-
-      // 🔍 DEBUG: lifecycle fields
-      console.log("⏱ [Lifecycle fields]:", {
-        status: data.status,
-        startTime: data.startTime,
-        endTime: data.endTime,
-      });
-
-      setGroupData((prev) => {
-        const next = {
-          ...prev,
-          kills: data.kills ?? prev.kills,
-          status: data.status ?? prev.status,
-          startTime: data.startTime ?? prev.startTime,
-          endTime: data.endTime ?? prev.endTime,
-        };
-
-        // 🔍 DEBUG: state merge
-        console.log("🧠 [GroupState MERGE]:", {
-          prevStart: prev.startTime,
-          nextStart: next.startTime,
-          prevEnd: prev.endTime,
-          nextEnd: next.endTime,
-        });
-
-        return next;
-      });
+      setGroupData((prev) => ({
+        ...prev,
+        kills: data.kills ?? prev.kills,
+        status: data.status ?? prev.status,
+        startTime: data.startTime ?? prev.startTime,
+        endTime: data.endTime ?? prev.endTime,
+      }));
 
       onRefresh?.();
     } catch (err) {
-      console.error("❌ Auto refresh failed:", err);
+      console.error("❌ Auto refresh (kills) failed:", err);
     } finally {
       setIsRefreshing(false);
     }
   }, [isRefreshing, scheduleId, groupIndex, onRefresh]);
 
   /* -------------------------------------------------------
-     ⭐ Polling timer
+     ⭐ 3) Auto refresh boss overrides
   ------------------------------------------------------- */
-  useEffect(() => {
-    const timer = setInterval(fetchGroupKills, 5000);
-    return () => clearInterval(timer);
-  }, [fetchGroupKills]);
+  const fetchAdjustedBoss = useCallback(async () => {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${groupIndex + 1}/adjusted-boss`
+      );
+
+      if (!res.ok) return;
+
+      const data = await res.json();
+
+      setGroupData((prev) => ({
+        ...prev,
+        adjusted90: data.adjusted90 ?? prev.adjusted90,
+        adjusted100: data.adjusted100 ?? prev.adjusted100,
+      }));
+    } catch (err) {
+      console.error("❌ Auto refresh (adjusted boss) failed:", err);
+    }
+  }, [scheduleId, groupIndex]);
 
   /* -------------------------------------------------------
-     ⭐ 3) Load historical weekly map
+     ⭐ Polling timers
+  ------------------------------------------------------- */
+  useEffect(() => {
+    const killTimer = setInterval(fetchGroupKills, 5000);
+    return () => clearInterval(killTimer);
+  }, [fetchGroupKills]);
+
+  useEffect(() => {
+    const bossTimer = setInterval(fetchAdjustedBoss, 5000);
+    return () => clearInterval(bossTimer);
+  }, [fetchAdjustedBoss]);
+
+  /* -------------------------------------------------------
+     ⭐ 4) Load historical weekly map
   ------------------------------------------------------- */
   useEffect(() => {
     const fetchMap = async () => {

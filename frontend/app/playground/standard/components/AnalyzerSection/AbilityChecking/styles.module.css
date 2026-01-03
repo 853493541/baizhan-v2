@@ -1,4 +1,6 @@
-/* === Main Wrapper === */
+/* ===============================
+   Main Wrapper
+================================ */
 .previewBox {
   border: none;
   border-radius: 0;
@@ -7,7 +9,9 @@
   background: transparent;
 }
 
-/* === Header Row === */
+/* ===============================
+   Header Row
+================================ */
 .headerRow {
   display: flex;
   align-items: center;
@@ -31,10 +35,12 @@
   font-weight: 500;
   transition: all 0.2s ease;
 }
+
 .toggleBtn:hover {
   background: #eee;
   border-color: #999;
 }
+
 .toggleBtn.active {
   background: #0070f3;
   color: #fff;
@@ -43,7 +49,9 @@
   box-shadow: 0 1px 4px rgba(0, 112, 243, 0.3);
 }
 
-/* === Table === */
+/* ===============================
+   Table
+================================ */
 .tableWrapper {
   overflow-x: auto;
   background: transparent;
@@ -78,7 +86,9 @@
   background: #fcfcfc;
 }
 
-/* === Ability Cells === */
+/* ===============================
+   Ability Cells
+================================ */
 .abilityCell {
   display: flex;
   align-items: center;
@@ -92,44 +102,39 @@
   background: #fff;
 }
 
-/* === Cell States === */
+/* ===============================
+   Cell States (FIRST-GLANCE ONLY)
+================================ */
 .cell {
-  transition: background 0.2s, color 0.2s;
   font-size: 15px;
   font-weight: 600;
   white-space: pre-line;
 }
 
+/* ✅ OK — fades into background */
 .ok {
-  color: #28a745;
-  background: #f6fff8;
-}
-.ok:hover {
-  background: #e8fbe8;
-  cursor: help;
+  color: #2f855a;
+  background: #f7fff9;
 }
 
+/* ❌ OVER — subtle, calm, visible */
 .over {
-  color: #d9534f;
-  background: #fff6f6;
+  background-color: #ffecee; /* extremely light red */
+  color: #dc2626;
+}
+
+/* ❌ icon — restrained */
+.cross {
+  color: #dc2626;
+  font-size: 14px;
   font-weight: 600;
+  opacity: 0.85;
 }
 
-.missing {
-  color: #b8860b;
-  background: #fffef5;
-  font-weight: 500;
-}
-.missing:hover {
-  background: #fffbe3;
-  cursor: help;
-}
-
-.check {
-  font-size: 16px;
-}
-
-/* === Hover Tooltip === */
+/* ===============================
+   Hover Tooltip (unchanged logic)
+   (still allowed, but NOT required)
+================================ */
 .hoverBox {
   position: fixed;
   display: inline-block;
@@ -143,9 +148,6 @@
   line-height: 1.5;
   pointer-events: none;
   z-index: 2000;
-  width: auto;
-  max-width: none;
-  overflow: visible;
   white-space: nowrap;
   animation: fadeIn 0.15s ease-out;
 }
@@ -162,17 +164,17 @@
   color: #0070f3;
 }
 
-/* === Hover Content (single-line badges) === */
 .hoverContent {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   color: #444;
   white-space: nowrap;
-  width: auto;
 }
 
-/* === Role Badges === */
+/* ===============================
+   Role Badges
+================================ */
 .roleBadge {
   display: inline-block;
   padding: 2px 8px;
@@ -187,16 +189,20 @@
   background-color: #fff3cd;
   color: #8b4513;
 }
+
 .dps {
   background-color: #d4edda;
   color: #155724;
 }
+
 .healer {
   background-color: #f8d7da;
   color: #721c24;
 }
 
-/* === Animation === */
+/* ===============================
+   Animation
+================================ */
 @keyframes fadeIn {
   from {
     opacity: 0;

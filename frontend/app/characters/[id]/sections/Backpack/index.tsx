@@ -10,6 +10,8 @@ import { updateCharacterAbilities } from "@/lib/characterService";
 import Manager from "../../../../components/Backpack/Manager";
 import AddBackpackModal from "../../../../components/Backpack/AddBackpackModal";
 
+import { toastError } from "@/app/components/toast/toast"; // ✅ added
+
 interface BackpackProps {
   character: any;
   API_URL: string;
@@ -48,7 +50,7 @@ export default function Backpack({
       return updated;
     } catch (err) {
       console.error("❌ refreshCharacterLocal error:", err);
-      alert("刷新角色失败，请稍后再试");
+      toastError("刷新角色失败，请稍后再试"); // ✅ replaced alert
       return null;
     } finally {
       setLoading(false);
@@ -102,14 +104,14 @@ export default function Backpack({
       </div>
 
       {/* === Backpack Window (always mounted + stable) === */}
-<div className={styles.backpackWrapper}>
-  <BackpackWindow
-    char={currentChar}
-    API_URL={API_URL}
-    onChanged={refreshCharacterLocal} // 🔥 new line
-  />
-  {loading && <div className={styles.invisibleLoading}></div>}
-</div>
+      <div className={styles.backpackWrapper}>
+        <BackpackWindow
+          char={currentChar}
+          API_URL={API_URL}
+          onChanged={refreshCharacterLocal} // 🔥 new line
+        />
+        {loading && <div className={styles.invisibleLoading}></div>}
+      </div>
 
       {/* === Orange Action Button === */}
       <div className={styles.tradeableWrapper}>

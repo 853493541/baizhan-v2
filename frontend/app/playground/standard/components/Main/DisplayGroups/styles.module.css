@@ -107,7 +107,7 @@
    FINAL VERSION (single source of truth)
    ========================================= */
 
-.mainChar {
+ .mainChar {
   position: relative;
   background: linear-gradient(
     135deg,
@@ -131,7 +131,6 @@
   text-shadow: 0 0 2px rgba(120, 160, 220, 0.25);
 }
 
-/* Faceted directional light plane (quiet, systemic) */
 .mainChar::before {
   content: "";
   position: absolute;
@@ -150,8 +149,8 @@
   pointer-events: none;
 }
 
-/* Sharp crystalline inner rim */
-.mainChar::after {
+
+ .mainChar::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -160,6 +159,64 @@
     inset 0 0 0 1px rgba(230, 240, 255, 1),
     inset 0 0 6px rgba(170, 200, 240, 0.25);
   pointer-events: none;
+} 
+/* =========================================
+   🔶 Main Character – Warm Foil (No Dark Base)
+   救世主风格 · 明亮版
+   ========================================= */
+
+/* =========================================
+   🌈 Main Character – Global Hue Gradient
+   (whole block shifts color together)
+   ========================================= */
+
+/* .mainChar {
+  position: relative;
+  border-radius: 8px;
+  padding: 8px 12px;
+  overflow: hidden;
+
+  /* Text */
+  /* color: #3b2b2b;
+  font-weight: 700;
+
+  /* Base soft gradient texture (neutral) */
+  /* background: linear-gradient(
+    135deg,
+    #ffe6e6,
+    #fff3d6
+  ); */
+
+  /* border: 1px solid rgba(0, 0, 0, 0.06);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    0 2px 6px rgba(0, 0, 0, 0.08); */ 
+
+  /* 🔁 whole-block color shift */
+  /* animation: globalHueShift 14s linear infinite;
+} */
+
+/* 🔄 Hue rotates the ENTIRE block */
+/* @keyframes globalHueShift {
+  0% {
+    filter: hue-rotate(0deg);
+  }
+  33% {
+    filter: hue-rotate(60deg);
+  }
+  66% {
+    filter: hue-rotate(120deg);
+  }
+  100% {
+    filter: hue-rotate(180deg);
+  }
+} */ 
+
+   /*========================================= */
+@keyframes warmFoilSweep {
+  0%   { background-position: -45% 50%; }
+  100% { background-position: 145% 50%; }
 }
 
 /* One-direction system sweep */
