@@ -38,7 +38,9 @@ export function useBossMapController(args: {
   /* ================= active members ================= */
   const [activeMembers, setActiveMembers] = useState<number[]>([0, 1, 2]);
   const toggleMember = (i: number) =>
-    setActiveMembers((p) => (p.includes(i) ? p.filter((x) => x !== i) : [...p, i]));
+    setActiveMembers((p) =>
+      p.includes(i) ? p.filter((x) => x !== i) : [...p, i]
+    );
 
   /* ================= status helpers ================= */
   const status = (localGroup.status ?? "not_started") as Status;
@@ -60,7 +62,6 @@ export function useBossMapController(args: {
   };
 
   const applyAdjustedBossLocal = (floor: 90 | 100, boss: string) => {
-    // update local
     setLocalGroup((prev) => {
       const next = { ...prev };
       if (floor === 90) next.adjusted90 = boss;
@@ -68,12 +69,38 @@ export function useBossMapController(args: {
       return next;
     });
 
-    // update parent sync
     if (onGroupUpdate) {
       const next = { ...localGroup } as ExtendedGroup;
       if (floor === 90) next.adjusted90 = boss;
       if (floor === 100) next.adjusted100 = boss;
       onGroupUpdate(next);
+    }
+  };
+
+  /* ================= NEW: mutation toggle ================= */
+  const toggleMutationFloor = async (floor: number) => {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/downgrade-floor`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ floor }),
+        }
+      );
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const data = await res.json();
+
+      const updatedGroup: ExtendedGroup =
+        data.group ?? localGroup;
+
+      setLocalGroup(updatedGroup);
+      lastLocalUpdate.current = Date.now();
+      onGroupUpdate?.(updatedGroup);
+    } catch (err) {
+      console.error("❌ toggleMutationFloor error:", err);
     }
   };
 
@@ -100,15 +127,17 @@ export function useBossMapController(args: {
     }
   };
 
-  /* ================= keep local in sync but don't overwrite fresher local ================= */
+  /* ================= keep local in sync ================= */
   useEffect(() => {
     const parentKillCount = group.kills?.length || 0;
     const localKillCount = localGroup.kills?.length || 0;
 
-    if (parentKillCount >= localKillCount || Date.now() - lastLocalUpdate.current > 3000) {
+    if (
+      parentKillCount >= localKillCount ||
+      Date.now() - lastLocalUpdate.current > 3000
+    ) {
       setLocalGroup(group);
     }
-    // NOTE: this matches your original behavior (it intentionally checks localGroup.kills)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [group, localGroup.kills]);
 
@@ -133,7 +162,11 @@ export function useBossMapController(args: {
   };
 
   /* ================= update kills ================= */
-  const updateGroupKill = async (floor: number, boss: string, selection: any) => {
+  const updateGroupKill = async (
+    floor: number,
+    boss: string,
+    selection: any
+  ) => {
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/floor/${floor}`,
@@ -188,10 +221,8 @@ export function useBossMapController(args: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scheduleId, localGroup.index]);
 
-  /* ================= header actions ================= */
+  /* ================= header / modal / drop handlers ================= */
   const handleFinish = () => setConfirmOpen(true);
-
-  /* ================= Drops handlers ================= */
   const handleSelectBossCard = (
     floor: number,
     boss: string,
@@ -208,8 +239,6 @@ export function useBossMapController(args: {
     await updateGroupKill(floor, selected.boss, data);
     setSelected(null);
 
-    console.log("🧪 [BossMap] onSave floor received:", floor);
-
     if (status === "not_started" && floor !== 100) {
       await markGroupStartedTime();
       await updateGroupStatus("started");
@@ -217,10 +246,7 @@ export function useBossMapController(args: {
   };
 
   const onMarkStarted = async (floor?: number) => {
-    console.log("[BossMap] onMarkStarted called, floor =", floor);
-
     if (typeof floor !== "number") return;
-
     if (status === "not_started" && floor !== 100) {
       await markGroupStartedTime();
       await updateGroupStatus("started");
@@ -229,10 +255,10 @@ export function useBossMapController(args: {
 
   const onAfterReset = () => {
     const floorToRemove = selected?.floor;
-
     const newGroup: ExtendedGroup = {
       ...localGroup,
-      kills: localGroup.kills?.filter((k: any) => k.floor !== floorToRemove) || [],
+      kills:
+        localGroup.kills?.filter((k) => k.floor !== floorToRemove) || [],
     };
 
     setLocalGroup(newGroup);
@@ -241,7 +267,6 @@ export function useBossMapController(args: {
     setSelected(null);
   };
 
-  /* ================= boss override modal handlers ================= */
   const openBossModal = (floor: 90 | 100) => {
     setBossModal({
       floor,
@@ -253,13 +278,11 @@ export function useBossMapController(args: {
 
   const onBossOverrideSuccess = (newBoss: string) => {
     if (!bossModal) return;
-
     applyAdjustedBossLocal(bossModal.floor, newBoss);
     setBossModal(null);
     onRefresh?.();
   };
 
-  /* ================= confirm finish handlers ================= */
   const cancelConfirm = () => setConfirmOpen(false);
 
   const confirmFinish = async () => {
@@ -278,24 +301,31 @@ export function useBossMapController(args: {
     status,
     statusLabel,
 
-    // setters/actions
+    // helpers
     toggleMember,
     resolveBoss,
-    setSelected,
-    handleSelectBossCard,
 
+    // mutation
+    toggleMutationFloor,
+
+    // selection
+    handleSelectBossCard,
+    setSelected,
+
+    // boss override
     openBossModal,
     closeBossModal,
     onBossOverrideSuccess,
 
-    handleFinish,
-    cancelConfirm,
-    confirmFinish,
-
-    // Drops hooks
+    // drops
     closeDrops,
     onDropsSave,
     onAfterReset,
     onMarkStarted,
+
+    // lifecycle
+    handleFinish,
+    cancelConfirm,
+    confirmFinish,
   };
 }

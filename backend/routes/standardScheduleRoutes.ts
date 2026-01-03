@@ -33,6 +33,10 @@ import {
   markGroupStarted,
   markGroupFinished,
 } from "../controllers/playground/standardSchedules/groupLifecycleController";
+// ⭐ NEW: group downgraded floor toggle controller
+import {
+  toggleGroupDowngradedFloor,
+} from "../controllers/playground/standardSchedules/bossAdjustController";
 
 const router = Router();
 
@@ -111,6 +115,14 @@ router.put("/:id/groups/:index/floor/:floor", updateGroupKill);
 
 // Delete kill record
 router.delete("/:id/groups/:index/floor/:floor", deleteGroupKill);
+/* -----------------------------------------------------
+   🔹 GROUP FLOOR DOWNGRADE (NEW)
+----------------------------------------------------- */
+// Toggle downgraded floor (independent of adjusted boss)
+router.patch(
+  "/:id/groups/:index/downgrade-floor",
+  toggleGroupDowngradedFloor
+);
 
 /* -----------------------------------------------------
    🔹 SCHEDULE NAME / DELETE

@@ -111,7 +111,8 @@ export default function BossMap({
         tradableSet={tradableSet}
         activeMembers={c.activeMembers}
         onSelect={c.handleSelectBossCard}
-        onChangeBoss={c.openBossModal}   // ✅ FIX
+        onChangeBoss={c.openBossModal}
+        onToggleMutation={c.toggleMutationFloor}   // ✅ ADD
       />
 
       {/* ================= ROW 2 (100–91) ================= */}
@@ -124,7 +125,8 @@ export default function BossMap({
         tradableSet={tradableSet}
         activeMembers={c.activeMembers}
         onSelect={c.handleSelectBossCard}
-        onChangeBoss={c.openBossModal}   // ✅ FIX
+        onChangeBoss={c.openBossModal}
+        onToggleMutation={c.toggleMutationFloor}   // ✅ ADD
       />
 
       {/* ================= DROPS ================= */}
@@ -140,16 +142,16 @@ export default function BossMap({
       />
 
       {/* ================= BOSS OVERRIDE MODAL ================= */}
-<BossOverrideController
-  scheduleId={scheduleId}
-  groupIndex={c.localGroup.index}
-  bossModal={c.bossModal}
-  group={c.localGroup}
-  bossData={bossData}
-  highlightAbilities={highlightAbilities}
-  onClose={c.closeBossModal}
-  onSuccess={c.onBossOverrideSuccess}
-/>
+      <BossOverrideController
+        scheduleId={scheduleId}
+        groupIndex={c.localGroup.index}
+        bossModal={c.bossModal}
+        group={c.localGroup}
+        bossData={bossData}
+        highlightAbilities={highlightAbilities}
+        onClose={c.closeBossModal}
+        onSuccess={c.onBossOverrideSuccess}
+      />
 
       {/* ================= FINISH CONFIRM ================= */}
       {c.confirmOpen && (

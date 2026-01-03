@@ -39,6 +39,9 @@ interface Group {
   // ⭐ boss overrides (NEW)
   adjusted90?: string | null;
   adjusted100?: string | null;
+
+
+    downgradedFloors: number[];
 }
 
 export interface IStandardSchedule extends Document {
@@ -109,6 +112,11 @@ const GroupSchema = new Schema<Group>(
     // ⭐ boss overrides
     adjusted90: { type: String, default: null },
     adjusted100: { type: String, default: null },
+
+
+     downgradedFloors: { type: [Number], default: [] },
+
+     
   },
   { _id: false }
 );

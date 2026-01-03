@@ -23,6 +23,9 @@ interface BossCardProps {
     dropLevel: 9 | 10
   ) => void;
   onChangeBoss?: (floor: 90 | 100) => void;
+
+  // ⭐ mutation toggle (异)
+  onToggleMutation?: (floor: number) => void;
 }
 
 const getAbilityIcon = (ability: string) => `/icons/${ability}.png`;
@@ -44,6 +47,7 @@ export default function BossCard({
   activeMembers = [0, 1, 2],
   onSelect,
   onChangeBoss,
+  onToggleMutation,
 }: BossCardProps) {
   useEffect(() => {}, [floor, kill]);
 
@@ -113,7 +117,6 @@ export default function BossCard({
   if (kill?.selection) {
     const sel = kill.selection;
 
-    /* ❌ No drop */
     if (sel.noDrop || (!sel.ability && !sel.characterId)) {
       cardStateClass = styles.cardHealer;
       dropResultClass = styles.noDrop;
@@ -128,8 +131,6 @@ export default function BossCard({
           <div>无掉落</div>
         </div>
       );
-
-    /* 🟣 Purple book */
     } else if (sel.ability && tradableSet.has(sel.ability)) {
       cardStateClass = styles.cardPurple;
       dropResultClass = styles.purple;
@@ -146,8 +147,6 @@ export default function BossCard({
           <div>(无)</div>
         </div>
       );
-
-    /* ❌ Wasted */
     } else if (sel.ability && !sel.characterId) {
       cardStateClass = styles.cardHealer;
       dropResultClass = styles.wasted;
@@ -164,8 +163,6 @@ export default function BossCard({
           <div>(无)</div>
         </div>
       );
-
-    /* ✅ Normal assigned */
     } else if (sel.ability && sel.characterId) {
       cardStateClass = styles.cardNormal;
       dropResultClass = styles.normal;
@@ -190,12 +187,10 @@ export default function BossCard({
     }
   }
 
-  /* 🧬 Mutated boss */
+  /* 🧬 mutated display rule */
   const isMutatedBoss = mutatedBosses.has(boss);
 
-  /* ⭐ SPECIAL DISPLAY RULE
-     100 + 青年谢云流 → hide floor number
-  */
+  /* ⭐ SPECIAL DISPLAY RULE */
   const hideFloorInHeader =
     floor === 100 && boss === "青年谢云流";
 
@@ -207,12 +202,21 @@ export default function BossCard({
         onSelect(floor, boss, dropList, tradableList, dropLevel)
       }
     >
-      {/* 🧬 Mutated boss badge */}
-      {isMutatedBoss && (
-        <div className={styles.mutatedBossBadge}>异</div>
+      {/* ⭐ MERGED Mutation Button (异) */}
+      {(isMutatedBoss || onToggleMutation) && (
+        <button
+          className={styles.mutatedBossBadge} // ✅ reuse old styling
+          title="异"
+          onClick={(e) => {
+            e.stopPropagation(); // 🚫 never open drop modal
+            onToggleMutation?.(floor);
+          }}
+        >
+          异
+        </button>
       )}
 
-      {/* 🔁 Swap badge */}
+      {/* 🔁 Swap badge — unchanged */}
       {(floor === 90 || floor === 100) && onChangeBoss && (
         <button
           className={styles.changeBtn}

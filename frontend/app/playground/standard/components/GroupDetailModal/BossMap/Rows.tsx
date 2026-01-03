@@ -14,9 +14,19 @@ export default function BossRows(props: {
   highlightAbilities: string[];
   tradableSet: Set<string>;
   activeMembers: number[];
-  onSelect: (floor: number, boss: string, dropList: string[], tradableList: string[], dropLevel: 9 | 10) => void;
+  onSelect: (
+    floor: number,
+    boss: string,
+    dropList: string[],
+    tradableList: string[],
+    dropLevel: 9 | 10
+  ) => void;
+
   // optional
   onChangeBoss?: (floor: 90 | 100) => void;
+
+  // ⭐ NEW: mutation toggle (异)
+  onToggleMutation?: (floor: number) => void;
 }) {
   const {
     floors,
@@ -28,6 +38,7 @@ export default function BossRows(props: {
     activeMembers,
     onSelect,
     onChangeBoss,
+    onToggleMutation,
   } = props;
 
   return (
@@ -47,6 +58,12 @@ export default function BossRows(props: {
           onChangeBoss={
             onChangeBoss
               ? (floor) => onChangeBoss(floor)
+              : undefined
+          }
+          // ⭐ pass mutation handler down
+          onToggleMutation={
+            onToggleMutation
+              ? (floor) => onToggleMutation(floor)
               : undefined
           }
         />
