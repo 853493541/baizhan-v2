@@ -37,6 +37,20 @@ const mutatedBosses = new Set([
   "困境韦柔丝",
 ]);
 
+/* 🧬 Gray mutation badge bosses (still clickable) */
+const grayMutationBosses = new Set([
+  "程沐华",
+  "韦柔丝",
+  "肖童",
+]);
+
+/* 🔴 Bosses that should be RED ONLY when there is NO kill record yet */
+const redHeaderBosses = new Set([
+  "青年程沐华",
+  "困境韦柔丝",
+  "肖红",
+]);
+
 export default function BossCard({
   floor,
   boss,
@@ -54,10 +68,7 @@ export default function BossCard({
   /* ===============================
      Tradable set
   ================================= */
-  const tradableSet = useMemo(
-    () => new Set<string>(tradableAbilities),
-    []
-  );
+  const tradableSet = useMemo(() => new Set<string>(tradableAbilities), []);
 
   if (!boss) {
     return (
@@ -69,15 +80,10 @@ export default function BossCard({
   }
 
   const fullDropList: string[] = bossData[boss] || [];
-  const tradableList = fullDropList.filter((a) =>
-    tradableSet.has(a)
-  );
-  const dropList = fullDropList.filter(
-    (a) => !tradableSet.has(a)
-  );
+  const tradableList = fullDropList.filter((a) => tradableSet.has(a));
+  const dropList = fullDropList.filter((a) => !tradableSet.has(a));
 
-  const dropLevel: 9 | 10 =
-    floor >= 81 && floor <= 90 ? 9 : 10;
+  const dropLevel: 9 | 10 = floor >= 81 && floor <= 90 ? 9 : 10;
 
   /* ===============================
      Needs
@@ -95,10 +101,7 @@ export default function BossCard({
     needs.length > 0 ? (
       <ul className={styles.needList}>
         {needs.map((n) => (
-          <li
-            key={n.ability}
-            className={n.isHighlight ? styles.coreHighlight : ""}
-          >
+          <li key={n.ability} className={n.isHighlight ? styles.coreHighlight : ""}>
             {n.ability} ({n.needCount})
           </li>
         ))}
@@ -137,11 +140,7 @@ export default function BossCard({
 
       dropDisplay = (
         <div className={`${styles.dropResult} ${dropResultClass}`}>
-          <img
-            src={getAbilityIcon(sel.ability)}
-            alt={sel.ability}
-            className={styles.iconLarge}
-          />
+          <img src={getAbilityIcon(sel.ability)} alt={sel.ability} className={styles.iconLarge} />
           <div>{sel.ability}</div>
           <div>{sel.level}重</div>
           <div>(无)</div>
@@ -167,18 +166,12 @@ export default function BossCard({
       cardStateClass = styles.cardNormal;
       dropResultClass = styles.normal;
 
-      const char = group.characters.find(
-        (c: any) => c._id === sel.characterId
-      );
+      const char = group.characters.find((c: any) => c._id === sel.characterId);
       const assignedName = char ? char.name : sel.characterId;
 
       dropDisplay = (
         <div className={`${styles.dropResult} ${dropResultClass}`}>
-          <img
-            src={getAbilityIcon(sel.ability)}
-            alt={sel.ability}
-            className={styles.iconLarge}
-          />
+          <img src={getAbilityIcon(sel.ability)} alt={sel.ability} className={styles.iconLarge} />
           <div>{sel.ability}</div>
           <div>{sel.level}重</div>
           {assignedName && <div>{assignedName}</div>}
@@ -187,28 +180,33 @@ export default function BossCard({
     }
   }
 
-  /* 🧬 mutated display rule */
+  /* ===============================
+     Derived UI flags
+  ================================= */
   const isMutatedBoss = mutatedBosses.has(boss);
+  const isGrayMutation = grayMutationBosses.has(boss);
+
+  // ✅ New rule: if ANY kill record exists => header should be normal (not red)
+  // Red only when boss is special AND kill record is missing
+  const hasKillRecord = !!kill; // simplest + most reliable
+  const isRedHeader = redHeaderBosses.has(boss) && !hasKillRecord;
 
   /* ⭐ SPECIAL DISPLAY RULE */
-  const hideFloorInHeader =
-    floor === 100 && boss === "青年谢云流";
+  const hideFloorInHeader = floor === 100 && boss === "青年谢云流";
 
   return (
     <div
       key={floor}
       className={`${styles.card} ${styles.cardInteractive} ${cardStateClass}`}
-      onClick={() =>
-        onSelect(floor, boss, dropList, tradableList, dropLevel)
-      }
+      onClick={() => onSelect(floor, boss, dropList, tradableList, dropLevel)}
     >
-      {/* ⭐ MERGED Mutation Button (异) */}
+      {/* ⭐ Mutation badge (supports gray variant) */}
       {(isMutatedBoss || onToggleMutation) && (
         <button
-          className={styles.mutatedBossBadge} // ✅ reuse old styling
+          className={`${styles.mutatedBossBadge} ${isGrayMutation ? styles.mutatedBossBadgeGray : ""}`}
           title="异"
           onClick={(e) => {
-            e.stopPropagation(); // 🚫 never open drop modal
+            e.stopPropagation();
             onToggleMutation?.(floor);
           }}
         >
@@ -230,7 +228,7 @@ export default function BossCard({
         </button>
       )}
 
-      <div className={styles.header}>
+      <div className={`${styles.header} ${isRedHeader ? styles.headerRed : ""}`}>
         {hideFloorInHeader ? boss : `${floor} ${boss}`}
       </div>
 
