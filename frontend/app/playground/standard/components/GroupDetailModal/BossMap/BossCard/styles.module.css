@@ -191,53 +191,72 @@
 ================================= */
 .changeBtn {
   position: absolute;
-  top: -10px;
-  right: -8px;
-  width: 28px;
-  height: 28px;
+  top: -14px;
+  right: -10px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   border: none;
   background: orange;
   color: #fff;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 17px;
+  font-weight: 800;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 2;
   box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+
 }
 
 .changeBtn:hover {
   transform: scale(1.05);
 }
+/* ===============================
+   Mutation (异) badge / button
+================================= */
 .mutatedBossBadge {
   position: absolute;
-  top: -12px;
-  right: -10px;
-
-  width: 25px;
-  height: 25px;
+  top: -14px;
+  right: -9px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
 
   background: #7c3aed;
   color: #fff;
 
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1;
+  padding-top: 1px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  cursor: default;
+  z-index: 2;
 
+  /* 🔥 IMPORTANT RESETS */
+  border: none;          /* ← removes white ring */
+  outline: none;         /* ← removes focus outline */
+  appearance: none;      /* ← removes OS styling */
+  -webkit-appearance: none;
+  box-sizing: border-box;
+
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
 }
+
+
+/* Subtle hover — informational, not alarming */
 .mutatedBossBadge:hover {
- 
-
-  background: red;
-
-
+  background: #6d28d9; /* slightly darker purple */
+  transform: scale(1.05);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.35);
 }
