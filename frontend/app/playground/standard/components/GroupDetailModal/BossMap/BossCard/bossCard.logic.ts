@@ -2,6 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { calcBossNeeds } from "./calcBossNeeds";
 import styles from "./styles.module.css";
 
+/* =====================================================
+   Card background class
+===================================================== */
 export function getSelectionCardClass(
   selection: any,
   tradableSet: Set<string>
@@ -20,6 +23,9 @@ export function getSelectionCardClass(
   return styles.cardNormal;
 }
 
+/* =====================================================
+   BossCard Logic Hook
+===================================================== */
 export function useBossCardLogic(params: {
   floor: number;
   boss: any;
@@ -29,8 +35,10 @@ export function useBossCardLogic(params: {
   kill: any;
   activeMembers: number[];
   canShowSecondary: boolean;
+
   onSelect: any;
   onSelectSecondary: any;
+
   tradableSet: Set<string>;
   primaryClassName?: string;
 }) {
@@ -49,40 +57,46 @@ export function useBossCardLogic(params: {
     primaryClassName,
   } = params;
 
-  /* ===============================
-     🔍 DEBUG: TRACK OBJECT IDENTITY
-  ================================= */
-  const prevKillRef = useRef<any>(null);
-
-  useEffect(() => {
-    const sameKillObject = prevKillRef.current === kill;
-
-    console.log("[second2][logic]", {
-      boss,
-      floor,
-      killObjectSameAsPrev: sameKillObject,
-      killObject: kill,
-      hasSelection: !!kill?.selection,
-      hasSelectionSecondary: !!kill?.selectionSecondary,
-      selectionSecondaryValue: kill?.selectionSecondary ?? null,
-    });
-
-    prevKillRef.current = kill;
-  });
-
-  /* ===============================
+  /* =====================================================
      STATE
-  ================================= */
+  ===================================================== */
   const [dropPage, setDropPage] = useState<1 | 2>(1);
 
-  /* ===============================
+  /* =====================================================
+     SECONDARY EDGE DETECTION (CRITICAL)
+  ===================================================== */
+  const prevHasSecondaryRef = useRef<boolean>(false);
+  const hasSecondaryDrop = !!kill?.selectionSecondary;
+
+  useEffect(() => {
+    const prev = prevHasSecondaryRef.current;
+
+    console.log("[second2][edge-check]", {
+      boss,
+      floor,
+      prevHasSecondary: prev,
+      nowHasSecondary: hasSecondaryDrop,
+      willFlip: !prev && hasSecondaryDrop,
+      selectionSecondary: kill?.selectionSecondary ?? null,
+    });
+
+    // 🔥 ONLY flip page when user just added secondary drop
+    if (!prev && hasSecondaryDrop) {
+      console.log("[second2][action] secondary added → switch to page 2");
+      setDropPage(2);
+    }
+
+    prevHasSecondaryRef.current = hasSecondaryDrop;
+  }, [hasSecondaryDrop, boss, floor, kill?.selectionSecondary]);
+
+  /* =====================================================
      DROP LEVEL
-  ================================= */
+  ===================================================== */
   const dropLevel: 9 | 10 = floor >= 81 && floor <= 90 ? 9 : 10;
 
-  /* ===============================
+  /* =====================================================
      NEEDS
-  ================================= */
+  ===================================================== */
   const needs = useMemo(() => {
     if (!boss) return [];
     return calcBossNeeds({
@@ -95,18 +109,17 @@ export function useBossCardLogic(params: {
     });
   }, [boss, bossData, group, activeMembers, dropLevel, highlightAbilities]);
 
-  /* ===============================
+  /* =====================================================
      DROP LISTS
-  ================================= */
+  ===================================================== */
   const fullDropList: string[] = boss ? bossData[boss] || [] : [];
 
   const tradableList = fullDropList.filter((a) => tradableSet.has(a));
   const dropList = fullDropList.filter((a) => !tradableSet.has(a));
 
-  /* ===============================
-     SECONDARY STATE
-  ================================= */
-  const hasSecondaryDrop = !!kill?.selectionSecondary;
+  /* =====================================================
+     PAGER STATE
+  ===================================================== */
   const willDirectOpenSecondary =
     canShowSecondary && !hasSecondaryDrop;
 
@@ -115,9 +128,9 @@ export function useBossCardLogic(params: {
     !!kill?.selection &&
     !!kill?.selectionSecondary;
 
-  /* ===============================
-     ACTIVE CLASS
-  ================================= */
+  /* =====================================================
+     ACTIVE CARD CLASS
+  ===================================================== */
   const activeCardClass = useMemo(() => {
     if (dropPage === 1) {
       return primaryClassName || "";
@@ -137,9 +150,9 @@ export function useBossCardLogic(params: {
     tradableSet,
   ]);
 
-  /* ===============================
+  /* =====================================================
      CARD CLICK
-  ================================= */
+  ===================================================== */
   const handleCardClick = () => {
     if (dropPage === 2) {
       if (!canShowSecondary) return;
@@ -162,11 +175,12 @@ export function useBossCardLogic(params: {
     }
   };
 
-  /* ===============================
+  /* =====================================================
      NEXT BUTTON
-  ================================= */
+  ===================================================== */
   const handleNextButtonClick = () => {
     if (willDirectOpenSecondary) {
+      console.log("[second2][button] direct open secondary modal");
       onSelectSecondary?.(
         floor,
         boss,
@@ -176,21 +190,30 @@ export function useBossCardLogic(params: {
       );
       return;
     }
+
+    console.log("[second2][button] paging to page 2");
     setDropPage(2);
   };
 
+  /* =====================================================
+     EXPORT
+  ===================================================== */
   return {
     dropPage,
     setDropPage,
     dropLevel,
+
     needs,
     fullDropList,
     tradableList,
     dropList,
+
     canPage,
     activeCardClass,
+
     handleCardClick,
     handleNextButtonClick,
+
     willDirectOpenSecondary,
   };
 }
