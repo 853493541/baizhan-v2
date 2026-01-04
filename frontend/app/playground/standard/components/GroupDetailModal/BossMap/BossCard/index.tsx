@@ -26,6 +26,9 @@ interface BossCardProps {
 
   // ⭐ mutation toggle (异)
   onToggleMutation?: (floor: number) => void;
+
+  // ➕ secondary drop
+  onAddSecondaryDrop?: (floor: number) => void;
 }
 
 const getAbilityIcon = (ability: string) => `/icons/${ability}.png`;
@@ -62,6 +65,7 @@ export default function BossCard({
   onSelect,
   onChangeBoss,
   onToggleMutation,
+  onAddSecondaryDrop,
 }: BossCardProps) {
   useEffect(() => {}, [floor, kill]);
 
@@ -101,7 +105,10 @@ export default function BossCard({
     needs.length > 0 ? (
       <ul className={styles.needList}>
         {needs.map((n) => (
-          <li key={n.ability} className={n.isHighlight ? styles.coreHighlight : ""}>
+          <li
+            key={n.ability}
+            className={n.isHighlight ? styles.coreHighlight : ""}
+          >
             {n.ability} ({n.needCount})
           </li>
         ))}
@@ -140,7 +147,11 @@ export default function BossCard({
 
       dropDisplay = (
         <div className={`${styles.dropResult} ${dropResultClass}`}>
-          <img src={getAbilityIcon(sel.ability)} alt={sel.ability} className={styles.iconLarge} />
+          <img
+            src={getAbilityIcon(sel.ability)}
+            alt={sel.ability}
+            className={styles.iconLarge}
+          />
           <div>{sel.ability}</div>
           <div>{sel.level}重</div>
           <div>(无)</div>
@@ -166,12 +177,18 @@ export default function BossCard({
       cardStateClass = styles.cardNormal;
       dropResultClass = styles.normal;
 
-      const char = group.characters.find((c: any) => c._id === sel.characterId);
+      const char = group.characters.find(
+        (c: any) => c._id === sel.characterId
+      );
       const assignedName = char ? char.name : sel.characterId;
 
       dropDisplay = (
         <div className={`${styles.dropResult} ${dropResultClass}`}>
-          <img src={getAbilityIcon(sel.ability)} alt={sel.ability} className={styles.iconLarge} />
+          <img
+            src={getAbilityIcon(sel.ability)}
+            alt={sel.ability}
+            className={styles.iconLarge}
+          />
           <div>{sel.ability}</div>
           <div>{sel.level}重</div>
           {assignedName && <div>{assignedName}</div>}
@@ -186,12 +203,9 @@ export default function BossCard({
   const isMutatedBoss = mutatedBosses.has(boss);
   const isGrayMutation = grayMutationBosses.has(boss);
 
-  // ✅ New rule: if ANY kill record exists => header should be normal (not red)
-  // Red only when boss is special AND kill record is missing
-  const hasKillRecord = !!kill; // simplest + most reliable
+  const hasKillRecord = !!kill;
   const isRedHeader = redHeaderBosses.has(boss) && !hasKillRecord;
 
-  /* ⭐ SPECIAL DISPLAY RULE */
   const hideFloorInHeader = floor === 100 && boss === "青年谢云流";
 
   return (
@@ -200,10 +214,12 @@ export default function BossCard({
       className={`${styles.card} ${styles.cardInteractive} ${cardStateClass}`}
       onClick={() => onSelect(floor, boss, dropList, tradableList, dropLevel)}
     >
-      {/* ⭐ Mutation badge (supports gray variant) */}
+      {/* ⭐ Mutation badge */}
       {(isMutatedBoss || onToggleMutation) && (
         <button
-          className={`${styles.mutatedBossBadge} ${isGrayMutation ? styles.mutatedBossBadgeGray : ""}`}
+          className={`${styles.mutatedBossBadge} ${
+            isGrayMutation ? styles.mutatedBossBadgeGray : ""
+          }`}
           title="异"
           onClick={(e) => {
             e.stopPropagation();
@@ -214,7 +230,7 @@ export default function BossCard({
         </button>
       )}
 
-      {/* 🔁 Swap badge — unchanged */}
+      {/* 🔁 Swap badge */}
       {(floor === 90 || floor === 100) && onChangeBoss && (
         <button
           className={styles.changeBtn}
@@ -228,7 +244,25 @@ export default function BossCard({
         </button>
       )}
 
-      <div className={`${styles.header} ${isRedHeader ? styles.headerRed : ""}`}>
+      {/* ➕ Secondary drop button (bottom-left) */}
+      {onAddSecondaryDrop && (
+        <button
+          className={styles.addSecondaryBtn}
+          title="添加第二掉落"
+          onClick={(e) => {
+            e.stopPropagation();
+            onAddSecondaryDrop(floor);
+          }}
+        >
+          +
+        </button>
+      )}
+
+      <div
+        className={`${styles.header} ${
+          isRedHeader ? styles.headerRed : ""
+        }`}
+      >
         {hideFloorInHeader ? boss : `${floor} ${boss}`}
       </div>
 

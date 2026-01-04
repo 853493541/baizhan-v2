@@ -15,15 +15,12 @@ import {
 } from "./constants";
 
 import BossMapHeader from "./MapHeader";
-import BossCard from "./BossCard"; // ✅ render cards directly (so we can per-floor control 异)
+import BossCard from "./BossCard";
 import BossDropsController from "./DropsController";
 import BossOverrideController from "./OverrideController";
 
 /* ======================================================
-   🧬 Mutation visibility rule
-   Show "异" ONLY if ORIGINAL weekly boss is one of:
-   肖红 / 青年程沐华 / 困境韦柔丝
-   (NOT based on resolved boss, so 程沐华 as original will NOT show)
+   🧬 Mutation visibility rule (same as 异)
 ====================================================== */
 const MUTATION_ORIGINAL_BOSSES = new Set([
   "肖红",
@@ -40,7 +37,7 @@ export default function BossMap({
   onGroupUpdate,
 }: BossMapProps) {
   /* -----------------------------------------------------
-     CONTROLLER (single source of truth)
+     CONTROLLER
   ----------------------------------------------------- */
   const c = useBossMapController({
     scheduleId,
@@ -65,8 +62,7 @@ export default function BossMap({
      ROLE COLOR
   ----------------------------------------------------- */
   const getRoleClass = (role: string) => {
-    if (!role) return "";
-    switch (role.toLowerCase()) {
+    switch (role?.toLowerCase()) {
       case "tank":
         return styles.tankBtn;
       case "dps":
@@ -79,8 +75,7 @@ export default function BossMap({
   };
 
   /* -----------------------------------------------------
-     Per-floor: should show mutation button?
-     Based ONLY on ORIGINAL weeklyMap boss.
+     Mutation visibility
   ----------------------------------------------------- */
   const canShowMutation = (floor: number) => {
     const original = weeklyMap?.[floor];
@@ -88,16 +83,32 @@ export default function BossMap({
   };
 
   /* -----------------------------------------------------
-     Render a row of BossCards (so we can per-floor control 异)
+     ➕ Secondary drop visibility (FINAL RULE)
   ----------------------------------------------------- */
-  const renderRow = (floors: number[]) => {
-    return (
-      <div className={styles.row}>
-        {floors.map((f) => (
+  const canShowAddDrop = (floor: number) => {
+    const kill = c.localGroup.kills?.find((k: any) => k.floor === floor);
+    if (!kill?.selection) return false;                 // must have primary
+    if (kill.selectionSecondary) return false;          // no duplicate
+
+    if (floor === 90 || floor === 100) return true;
+    return canShowMutation(floor);
+  };
+
+  /* -----------------------------------------------------
+     Render rows
+  ----------------------------------------------------- */
+  const renderRow = (floors: number[]) => (
+    <div className={styles.row}>
+      {floors.map((f) => {
+        const boss = c.resolveBoss(f);
+        const fullDropList = bossData[boss] || [];
+        const dropLevel: 9 | 10 = f >= 81 && f <= 90 ? 9 : 10;
+
+        return (
           <BossCard
             key={f}
             floor={f}
-            boss={c.resolveBoss(f)}
+            boss={boss}
             group={c.localGroup}
             bossData={bossData}
             highlightAbilities={highlightAbilities}
@@ -105,24 +116,35 @@ export default function BossMap({
             activeMembers={c.activeMembers}
             onSelect={c.handleSelectBossCard}
             onChangeBoss={c.openBossModal}
-            // ✅ CRITICAL: only pass handler if this floor supports mutation
             onToggleMutation={
               canShowMutation(f)
                 ? () => c.toggleMutationFloor(f)
                 : undefined
             }
+            onAddSecondaryDrop={
+              canShowAddDrop(f)
+                ? () =>
+                    c.handleSelectBossCard(
+                      f,
+                      boss,
+                      fullDropList,
+                      [],
+                      dropLevel,
+                      { mode: "secondary" } // ⭐ future-safe
+                    )
+                : undefined
+            }
           />
-        ))}
-      </div>
-    );
-  };
+        );
+      })}
+    </div>
+  );
 
   /* =====================================================
      RENDER
   ===================================================== */
   return (
     <>
-      {/* ================= HEADER ================= */}
       <BossMapHeader
         title="本周地图"
         countdown={countdown}
@@ -134,13 +156,11 @@ export default function BossMap({
           <div className={styles.memberButtons}>
             {c.localGroup.characters?.map((cc: any, i: number) => {
               const isActive = c.activeMembers.includes(i);
-              const roleClass = getRoleClass(cc.role);
-
               return (
                 <button
                   key={i}
                   onClick={() => c.toggleMember(i)}
-                  className={`${styles.actionBtn} ${roleClass} ${
+                  className={`${styles.actionBtn} ${getRoleClass(cc.role)} ${
                     !isActive ? styles.inactiveBtn : ""
                   }`}
                 >
@@ -152,13 +172,9 @@ export default function BossMap({
         }
       />
 
-      {/* ================= ROW 1 (81–90) ================= */}
       {renderRow(row1)}
-
-      {/* ================= ROW 2 (100–91) ================= */}
       {renderRow(row2)}
 
-      {/* ================= DROPS ================= */}
       <BossDropsController
         scheduleId={scheduleId}
         localGroup={c.localGroup}
@@ -170,7 +186,6 @@ export default function BossMap({
         onMarkStarted={c.onMarkStarted}
       />
 
-      {/* ================= BOSS OVERRIDE MODAL ================= */}
       <BossOverrideController
         scheduleId={scheduleId}
         groupIndex={c.localGroup.index}
@@ -182,7 +197,6 @@ export default function BossMap({
         onSuccess={c.onBossOverrideSuccess}
       />
 
-      {/* ================= FINISH CONFIRM ================= */}
       {c.confirmOpen && (
         <ConfirmModal
           title="确认结束"
