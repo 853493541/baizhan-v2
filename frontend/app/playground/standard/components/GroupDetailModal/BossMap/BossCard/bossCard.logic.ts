@@ -71,15 +71,6 @@ export function useBossCardLogic(params: {
   useEffect(() => {
     const prev = prevHasSecondaryRef.current;
 
-    console.log("[second2][edge-check]", {
-      boss,
-      floor,
-      prevHasSecondary: prev,
-      nowHasSecondary: hasSecondaryDrop,
-      willFlip: !prev && hasSecondaryDrop,
-      selectionSecondary: kill?.selectionSecondary ?? null,
-    });
-
     // 🔥 ONLY flip page when user just added secondary drop
     if (!prev && hasSecondaryDrop) {
       console.log("[second2][action] secondary added → switch to page 2");
@@ -180,7 +171,7 @@ export function useBossCardLogic(params: {
   ===================================================== */
   const handleNextButtonClick = () => {
     if (willDirectOpenSecondary) {
-      console.log("[second2][button] direct open secondary modal");
+     
       onSelectSecondary?.(
         floor,
         boss,
@@ -191,7 +182,7 @@ export function useBossCardLogic(params: {
       return;
     }
 
-    console.log("[second2][button] paging to page 2");
+   
     setDropPage(2);
   };
 

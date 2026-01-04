@@ -71,7 +71,6 @@ export default function Assigned({
     return Number.isFinite(parsed) ? parsed : null;
   };
 
-  // ✅ no `used` semantics anymore
   const hasLevel10InStorage = (drop: AssignedDrop): boolean => {
     const char = drop.character as Character | undefined;
     if (!char?.storage) return false;
@@ -81,7 +80,6 @@ export default function Assigned({
   };
 
   const proceedUse = async (drop: AssignedDrop, useStorageAfter: boolean) => {
-    // Step 1: use assigned book (existing logic)
     try {
       await onUse(drop);
     } catch {
@@ -89,7 +87,6 @@ export default function Assigned({
       return;
     }
 
-    // Step 2: consume backpack level 10 (upgrade + delete handled by backend)
     if (useStorageAfter) {
       const char = drop.character as Character | undefined;
       if (!char?._id) {
@@ -211,7 +208,7 @@ export default function Assigned({
                   isLastChar ? styles.lastChar : ""
                 }`}
               >
-                {list.map((a, i) => {
+                {list.map((a) => {
                   const currentLevel = getLevelFromCharacter(a);
                   const has10 = a.level === 9 && hasLevel10InStorage(a);
 
@@ -229,8 +226,16 @@ export default function Assigned({
                     btnStyle = `${styles.useBtn} ${styles.yellowBtn}`;
                   }
 
+                  // ✅ slot-aware identity
+                  const loadingKey = `${a.ability}|${a.floor}|${a.slot}`;
+                  const isLoading =
+                    loading === loadingKey || loading === a.ability;
+
                   return (
-                    <li key={i} className={styles.assignmentItem}>
+                    <li
+                      key={`${a.floor}-${a.slot}-${a.ability}`}
+                      className={styles.assignmentItem}
+                    >
                       <div className={styles.leftContent}>
                         <img
                           src={getAbilityIcon(a.ability)}
@@ -244,14 +249,14 @@ export default function Assigned({
 
                       <div className={styles.rightContent}>
                         <button
-                          disabled={loading === a.ability}
+                          disabled={isLoading}
                           onClick={() => handleUseClick(a)}
                           className={btnStyle}
                         >
                           {btnText}
                         </button>
                         <button
-                          disabled={loading === a.ability}
+                          disabled={isLoading}
                           onClick={() => onStore(a)}
                           className={styles.storeBtn}
                         >

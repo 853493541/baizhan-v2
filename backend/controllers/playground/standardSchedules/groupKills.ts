@@ -2,19 +2,21 @@ import { Request, Response } from "express";
 import StandardSchedule from "../../../models/StandardSchedule";
 
 /**
- * ✅ Update or insert a single PRIMARY kill record inside a group
- * ✅ FIXED: preserves existing secondary drop
+ * ✅ Update or insert a kill record inside a group
+ * ✅ FIXED: supports BOTH primary & secondary updates
+ * ✅ FIXED: preserves existing data
+ * ✅ FIXED: always normalizes status
  */
 export const updateGroupKill = async (req: Request, res: Response) => {
   try {
     const { id, index, floor } = req.params;
-    const { boss, selection } = req.body;
+    const { boss, selection, selectionSecondary } = req.body;
 
     const groupIndex = parseInt(index, 10);
     const floorNum = parseInt(floor, 10);
 
     console.log(
-      `⚡ Primary drop update: group ${groupIndex}, floor ${floorNum} in ${id}`
+      `⚡ Kill update: group ${groupIndex}, floor ${floorNum} in ${id}`
     );
 
     const schedule: any = await StandardSchedule.findById(id);
@@ -22,43 +24,74 @@ export const updateGroupKill = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Schedule not found" });
     }
 
-    const group = schedule.groups.find(
-      (g: any) => g.index === groupIndex
-    );
+    const group = schedule.groups.find((g: any) => g.index === groupIndex);
     if (!group) {
       return res.status(404).json({ error: "Group not found" });
     }
 
-    // 🔍 Find existing kill (if any)
     let kill = group.kills.find((k: any) => k.floor === floorNum);
 
     if (!kill) {
-      // 🆕 Create new kill (no secondary yet)
+      // 🆕 Create new kill
       kill = {
         floor: floorNum,
         boss,
-        selection,
-        completed: !!(selection?.ability || selection?.noDrop),
+        completed: true,
         recordedAt: new Date(),
       };
 
+      if (selection) {
+        kill.selection = {
+          ...selection,
+          status: selection?.status ?? "assigned",
+        };
+      }
+
+      if (selectionSecondary) {
+        kill.selectionSecondary = {
+          ...selectionSecondary,
+          status: selectionSecondary?.status ?? "assigned",
+        };
+      }
+
       group.kills.push(kill);
     } else {
-      // ♻️ Update PRIMARY only
-      kill.boss = boss;
-      kill.selection = selection;
+      // ♻️ Update PRIMARY (if provided)
+      if (selection) {
+        kill.selection = {
+          ...kill.selection,
+          ...selection,
+          status:
+            selection?.status ??
+            kill.selection?.status ??
+            "assigned",
+        };
+      }
+
+      // ♻️ Update SECONDARY (THIS WAS MISSING ❗)
+      if (selectionSecondary) {
+        kill.selectionSecondary = {
+          ...kill.selectionSecondary,
+          ...selectionSecondary,
+          status:
+            selectionSecondary?.status ??
+            kill.selectionSecondary?.status ??
+            "assigned",
+        };
+      }
+
+      kill.boss = boss ?? kill.boss;
       kill.completed = true;
       kill.recordedAt = new Date();
-
-      // ❗ IMPORTANT: DO NOT TOUCH selectionSecondary
     }
 
     await schedule.save();
 
-    console.log("✅ Primary drop saved:", {
+    console.log("✅ Kill saved:", {
       groupIndex,
       floorNum,
-      hasSecondary: !!kill.selectionSecondary,
+      primaryStatus: kill.selection?.status,
+      secondaryStatus: kill.selectionSecondary?.status,
     });
 
     res.json({ success: true, kill });
@@ -69,8 +102,8 @@ export const updateGroupKill = async (req: Request, res: Response) => {
 };
 
 /**
- * ✅ Insert or replace SECONDARY drop for a kill
- * ✅ FIXED: always overwrites secondary safely
+ * ✅ Insert or replace SECONDARY drop (standalone endpoint)
+ * (Still valid, but no longer required by frontend)
  */
 export const updateSecondaryDrop = async (req: Request, res: Response) => {
   try {
@@ -89,9 +122,7 @@ export const updateSecondaryDrop = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Schedule not found" });
     }
 
-    const group = schedule.groups.find(
-      (g: any) => g.index === groupIndex
-    );
+    const group = schedule.groups.find((g: any) => g.index === groupIndex);
     if (!group) {
       return res.status(404).json({ error: "Group not found" });
     }
@@ -103,8 +134,15 @@ export const updateSecondaryDrop = async (req: Request, res: Response) => {
       });
     }
 
-    // ♻️ Always overwrite secondary
-    kill.selectionSecondary = selection;
+    kill.selectionSecondary = {
+      ...kill.selectionSecondary,
+      ...selection,
+      status:
+        selection?.status ??
+        kill.selectionSecondary?.status ??
+        "assigned",
+    };
+
     kill.completed = true;
     kill.recordedAt = new Date();
 
@@ -113,6 +151,7 @@ export const updateSecondaryDrop = async (req: Request, res: Response) => {
     console.log("✅ Secondary drop saved:", {
       groupIndex,
       floorNum,
+      status: kill.selectionSecondary.status,
     });
 
     res.json({ success: true, kill });
@@ -142,17 +181,13 @@ export const deleteGroupKill = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Schedule not found" });
     }
 
-    const group = schedule.groups.find(
-      (g: any) => g.index === groupIndex
-    );
+    const group = schedule.groups.find((g: any) => g.index === groupIndex);
     if (!group) {
       return res.status(404).json({ error: "Group not found" });
     }
 
     const before = group.kills.length;
-    group.kills = group.kills.filter(
-      (k: any) => k.floor !== floorNum
-    );
+    group.kills = group.kills.filter((k: any) => k.floor !== floorNum);
 
     if (before === group.kills.length) {
       return res.status(404).json({
@@ -175,8 +210,7 @@ export const deleteGroupKill = async (req: Request, res: Response) => {
 };
 
 /**
- * ✅ Get only one group's kills (and status)
- * (unchanged, correct here)
+ * ✅ Get only one group's kills (unchanged)
  */
 export const getGroupKills = async (req: Request, res: Response) => {
   try {
@@ -191,10 +225,7 @@ export const getGroupKills = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Schedule not found" });
     }
 
-    const group = schedule.groups?.find(
-      (g: any) => g.index === groupIndex
-    );
-
+    const group = schedule.groups?.find((g: any) => g.index === groupIndex);
     if (!group) {
       return res.status(404).json({ error: "Group not found" });
     }

@@ -69,15 +69,6 @@ export default function BossCard(props: any) {
   /* ===============================
      🔍 DEBUG — SECOND DROP LOGIC
   ================================= */
-  console.log("[second2]", {
-    boss,
-    dropPage,
-    canShowSecondary,
-    hasSecondaryDrop: !!kill?.selectionSecondary,
-    willDirectOpenSecondary,
-    canPage,
-  });
-
   /* ===============================
      GUARD (AFTER HOOKS)
   ================================= */
