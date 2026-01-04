@@ -18,7 +18,7 @@ import { useBossCardLogic } from "./bossCard.logic";
 const MUTATION_DOWNGRADE_MAP: Record<string, string> = {
   "困境韦柔丝": "韦柔丝",
   "青年程沐华": "程沐华",
-  "肖红·变异": "肖红",
+  "肖红": "肖童",
 };
 
 export default function BossCard(props: any) {

@@ -14,6 +14,7 @@ export interface AssignedDrop {
   status?: "assigned" | "pending" | "used" | "saved";
   character?: any;
   slot: "primary" | "secondary";
+  boss: string;
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
@@ -29,7 +30,9 @@ export function useResultWindow(
   const [isRefreshing, setIsRefreshing] = useState(false);
   const lastLocalUpdate = useRef<number>(0);
 
-  /* 🟢 Instant refresh */
+  /* ===============================
+     🔄 Instant refresh
+  ================================ */
   useEffect(() => {
     const fetchInstant = async () => {
       if (isRefreshing) return;
@@ -61,7 +64,9 @@ export function useResultWindow(
     fetchInstant();
   }, [scheduleId, group.index]);
 
-  /* 🧩 Parent → local sync guard */
+  /* ===============================
+     🧩 Parent → local sync
+  ================================ */
   useEffect(() => {
     const parentKills = group.kills?.length || 0;
     const localKills = localGroup.kills?.length || 0;
@@ -72,7 +77,9 @@ export function useResultWindow(
     }
   }, [group]);
 
-  /* 🧮 Build drops */
+  /* ===============================
+     🧮 Build drops list
+  ================================ */
   useEffect(() => {
     if (!localGroup.kills) return;
 
@@ -101,6 +108,7 @@ export function useResultWindow(
             status: k.selection.status || "assigned",
             character: idToChar[k.selection.characterId],
             slot: "primary",
+            boss: k.boss,
           });
         }
 
@@ -115,6 +123,7 @@ export function useResultWindow(
             status: k.selectionSecondary.status || "assigned",
             character: idToChar[k.selectionSecondary.characterId],
             slot: "secondary",
+            boss: k.selectionSecondary.boss ?? k.boss,
           });
         }
 
@@ -128,7 +137,9 @@ export function useResultWindow(
     setDrops(parsed);
   }, [localGroup]);
 
-  /* 🔁 helpers */
+  /* ===============================
+     🔁 Local status update
+  ================================ */
   const updateStatus = (drop: AssignedDrop, status: AssignedDrop["status"]) => {
     setDrops((prev) =>
       prev.map((d) =>
@@ -141,7 +152,9 @@ export function useResultWindow(
     );
   };
 
-  /* ✅ Use */
+  /* ===============================
+     ✅ USE
+  ================================ */
   const handleUse = async (drop: AssignedDrop) => {
     if (!drop.characterId) return toastError("角色信息缺失");
 
@@ -161,14 +174,15 @@ export function useResultWindow(
       );
       if (!charRes.ok) throw new Error("更新角色技能失败");
 
-      const boss =
-        localGroup.kills?.find((k: any) => k.floor === drop.floor)?.boss;
+      const url =
+        drop.slot === "primary"
+          ? `${API_BASE}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/floor/${drop.floor}`
+          : `${API_BASE}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/floor/${drop.floor}/secondary-drop`;
 
-      // ✅ IMPORTANT: only send schema-safe fields; never spread `drop`
       const payload =
         drop.slot === "primary"
           ? {
-              boss,
+              boss: drop.boss,
               selection: {
                 ability: drop.ability,
                 level: drop.level,
@@ -177,8 +191,7 @@ export function useResultWindow(
               },
             }
           : {
-              boss,
-              selectionSecondary: {
+              selection: {
                 ability: drop.ability,
                 level: drop.level,
                 characterId: drop.characterId,
@@ -186,14 +199,11 @@ export function useResultWindow(
               },
             };
 
-      const schedRes = await fetch(
-        `${API_BASE}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/floor/${drop.floor}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
-      );
+      const schedRes = await fetch(url, {
+        method: drop.slot === "primary" ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
       if (!schedRes.ok) throw new Error("更新排表状态失败");
 
       toastSuccess(`已使用 ${drop.ability}（${drop.level}重）`);
@@ -208,7 +218,9 @@ export function useResultWindow(
     }
   };
 
-  /* 📦 Store */
+  /* ===============================
+     📦 STORE
+  ================================ */
   const handleStore = async (drop: AssignedDrop) => {
     if (!drop.characterId) return toastError("角色信息缺失");
 
@@ -216,9 +228,6 @@ export function useResultWindow(
     updateStatus(drop, "saved");
 
     try {
-      const sourceBoss =
-        localGroup.kills?.find((k: any) => k.floor === drop.floor)?.boss || "";
-
       const storeRes = await fetch(
         `${API_BASE}/api/characters/${drop.characterId}/storage`,
         {
@@ -227,17 +236,21 @@ export function useResultWindow(
           body: JSON.stringify({
             ability: drop.ability,
             level: drop.level,
-            sourceBoss,
+            sourceBoss: drop.boss,
           }),
         }
       );
       if (!storeRes.ok) throw new Error("存入仓库失败");
 
-      // ✅ IMPORTANT: only send schema-safe fields; never spread `drop`
+      const url =
+        drop.slot === "primary"
+          ? `${API_BASE}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/floor/${drop.floor}`
+          : `${API_BASE}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/floor/${drop.floor}/secondary-drop`;
+
       const payload =
         drop.slot === "primary"
           ? {
-              boss: sourceBoss,
+              boss: drop.boss,
               selection: {
                 ability: drop.ability,
                 level: drop.level,
@@ -246,8 +259,7 @@ export function useResultWindow(
               },
             }
           : {
-              boss: sourceBoss,
-              selectionSecondary: {
+              selection: {
                 ability: drop.ability,
                 level: drop.level,
                 characterId: drop.characterId,
@@ -255,14 +267,11 @@ export function useResultWindow(
               },
             };
 
-      const schedRes = await fetch(
-        `${API_BASE}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/floor/${drop.floor}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
-      );
+      const schedRes = await fetch(url, {
+        method: drop.slot === "primary" ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
       if (!schedRes.ok) throw new Error("更新排表状态失败");
 
       toastSuccess(`已存入 ${drop.ability}（${drop.level}重）`);

@@ -4,7 +4,7 @@ import StandardSchedule from "../../../models/StandardSchedule";
 /* ======================================================
    PRIMARY DROP UPDATE
    - Updates or inserts primary
-   - NEVER touches secondary
+   - NEVER resets secondary status
 ====================================================== */
 export const updateGroupKill = async (req: Request, res: Response) => {
   try {
@@ -30,24 +30,61 @@ export const updateGroupKill = async (req: Request, res: Response) => {
       kill = {
         floor: floorNum,
         boss,
-        selection: {
-          ...selection,
-          status: selection?.status ?? "assigned",
-        },
+        selection: selection
+          ? {
+              ...selection,
+              status: selection?.status ?? "assigned",
+            }
+          : undefined,
         completed: !!(selection?.ability || selection?.noDrop),
         recordedAt: new Date(),
       };
+
+      console.log(
+        "🟢 [STATUS][PRIMARY][CREATE]",
+        `floor=${floorNum}`,
+        "→",
+        kill.selection?.status
+      );
+
       group.kills.push(kill);
     } else {
       kill.boss = boss;
-      kill.selection = {
-        ...kill.selection,
-        ...selection,
-        status:
-          selection?.status ??
-          kill.selection?.status ??
-          "assigned",
-      };
+
+      if (selection) {
+        const prevStatus = kill.selection?.status;
+
+        kill.selection = {
+          ...kill.selection,
+          ...selection,
+          status:
+            selection?.status ??
+            kill.selection?.status ??
+            "assigned",
+        };
+
+        if (prevStatus !== kill.selection.status) {
+          console.log(
+            "🟡 [STATUS][PRIMARY][UPDATE]",
+            `floor=${floorNum}`,
+            prevStatus,
+            "→",
+            kill.selection.status
+          );
+        }
+      }
+
+      // 🔒 Preserve secondary EXACTLY
+      if (kill.selectionSecondary) {
+        // no-op by design, but log to prove no overwrite
+        console.log(
+          "🔒 [STATUS][SECONDARY][PRESERVED]",
+          `floor=${floorNum}`,
+          "status=",
+          kill.selectionSecondary.status
+        );
+      }
+
       kill.completed = true;
       kill.recordedAt = new Date();
     }
@@ -90,6 +127,8 @@ export const updateSecondaryDrop = async (req: Request, res: Response) => {
       });
     }
 
+    const prevStatus = kill.selectionSecondary?.status;
+
     kill.selectionSecondary = {
       ...kill.selectionSecondary,
       ...selection,
@@ -98,6 +137,16 @@ export const updateSecondaryDrop = async (req: Request, res: Response) => {
         kill.selectionSecondary?.status ??
         "assigned",
     };
+
+    if (prevStatus !== kill.selectionSecondary.status) {
+      console.log(
+        "🟣 [STATUS][SECONDARY][UPDATE]",
+        `floor=${floorNum}`,
+        prevStatus,
+        "→",
+        kill.selectionSecondary.status
+      );
+    }
 
     kill.completed = true;
     kill.recordedAt = new Date();
@@ -111,10 +160,8 @@ export const updateSecondaryDrop = async (req: Request, res: Response) => {
 };
 
 /* ======================================================
-   ✅ FIXED RESET (AUTHORITATIVE)
-   - Deletes the ENTIRE kill record
-   - Wipes primary + secondary together
-   - Prevents orphaned secondary state
+   RESET (AUTHORITATIVE)
+   - Deletes ENTIRE kill record
 ====================================================== */
 export const deleteGroupKill = async (req: Request, res: Response) => {
   try {
@@ -133,16 +180,9 @@ export const deleteGroupKill = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Group not found" });
     }
 
-    const before = group.kills.length;
-
-    // 🔥 HARD DELETE — no partial reset allowed
     group.kills = group.kills.filter((k: any) => k.floor !== floorNum);
 
-    if (before === group.kills.length) {
-      return res.status(404).json({
-        error: "Kill record not found for this floor",
-      });
-    }
+    console.log("🗑️ [STATUS][RESET]", `floor=${floorNum}`, "deleted");
 
     await schedule.save();
     res.json({ success: true });
