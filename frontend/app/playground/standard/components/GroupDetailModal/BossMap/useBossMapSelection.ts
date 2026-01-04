@@ -5,6 +5,16 @@ import { useState } from "react";
 
 type DropLevel = 9 | 10;
 
+/* ======================================================
+   🧬 MUTATION → DOWNGRADED BOSS MAP
+   (authoritative for secondary drops)
+====================================================== */
+const MUTATION_DOWNGRADE_MAP: Record<string, string> = {
+  "困境韦柔丝": "韦柔丝",
+  "青年程沐华": "程沐华",
+  "肖红·变异": "肖红",
+};
+
 export type BossMapSelected =
   | {
       mode: "primary";
@@ -19,7 +29,7 @@ export type BossMapSelected =
       floor: number;
       boss: string;
       dropList: string[];
-      tradableList: string[]; // ✅ FIX: secondary also carries tradables
+      tradableList: string[];
       dropLevel: DropLevel;
     };
 
@@ -33,7 +43,9 @@ export function useBossMapSelection() {
 
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  // ✅ Primary: already had tradableList
+  /* =========================
+     PRIMARY — unchanged
+  ========================= */
   const handleSelectBossCard = (
     floor: number,
     boss: string,
@@ -51,7 +63,10 @@ export function useBossMapSelection() {
     });
   };
 
-  // ✅ FIX: Secondary must also accept/store tradableList
+  /* =========================
+     SECONDARY — 🔥 FIX HERE
+     Mutated boss → downgraded boss
+  ========================= */
   const handleSelectSecondaryDrop = (
     floor: number,
     boss: string,
@@ -59,10 +74,21 @@ export function useBossMapSelection() {
     tradableList: string[],
     dropLevel: DropLevel
   ) => {
+    const downgradedBoss =
+      MUTATION_DOWNGRADE_MAP[boss] ?? boss;
+
+    // 🔍 minimal targeted debug
+    console.log("[downg][select-secondary]", {
+      floor,
+      originalBoss: boss,
+      downgradedBoss,
+      downgradeApplied: boss !== downgradedBoss,
+    });
+
     setSelected({
       mode: "secondary",
       floor,
-      boss,
+      boss: downgradedBoss,
       dropList,
       tradableList,
       dropLevel,

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useEffect } from "react";
+import React, { useMemo, useEffect, useCallback } from "react";
 import styles from "./styles.module.css";
 
 import BossCardHeader from "./BossControl";
@@ -11,6 +11,15 @@ import { renderPrimaryDrop, renderSecondaryDrop } from "./DropsResults";
 import tradableAbilities from "@/app/data/tradable_abilities.json";
 
 import { useBossCardLogic } from "./bossCard.logic";
+
+/* ======================================================
+   🧬 MUTATION → DOWNGRADED BOSS MAP
+====================================================== */
+const MUTATION_DOWNGRADE_MAP: Record<string, string> = {
+  "困境韦柔丝": "韦柔丝",
+  "青年程沐华": "程沐华",
+  "肖红·变异": "肖红",
+};
 
 export default function BossCard(props: any) {
   const {
@@ -33,13 +42,54 @@ export default function BossCard(props: any) {
 
   /* ===============================
      DROP RENDERING
-  ================================= */
+  ================================ */
   const primary = renderPrimaryDrop({ kill, group });
   const secondary = renderSecondaryDrop({ kill, group });
 
   /* ===============================
-     LOGIC
-  ================================= */
+     🧬 DOWNGRADED BOSS (SECONDARY ONLY)
+  ================================ */
+  const downgradedBoss =
+    canShowSecondary && MUTATION_DOWNGRADE_MAP[boss]
+      ? MUTATION_DOWNGRADE_MAP[boss]
+      : boss;
+
+  /* ===============================
+     ✅ WRAPPED SECONDARY SELECT
+     - downgrade boss
+     - downgrade dropList
+     - downgrade tradableList
+     - page 1 untouched
+  ================================ */
+  const handleSelectSecondaryWrapped = useCallback(
+    (
+      floor: number,
+      _boss: string,
+      _dropList: string[],
+      _tradableList: string[],
+      dropLevel: 9 | 10
+    ) => {
+      const downgradedDropList = bossData[downgradedBoss] ?? [];
+
+      const downgradedTradables = downgradedDropList.filter((a: string) =>
+        tradableSet.has(a)
+      );
+
+      onSelectSecondary(
+        floor,
+        downgradedBoss,
+        downgradedDropList,
+        downgradedTradables,
+        dropLevel
+      );
+    },
+    [onSelectSecondary, downgradedBoss, bossData, tradableSet]
+  );
+
+  /* ===============================
+     LOGIC (AUTHORITATIVE)
+     ⚠️ Logic always uses original boss
+  ================================ */
   const {
     dropPage,
     setDropPage,
@@ -51,7 +101,7 @@ export default function BossCard(props: any) {
     willDirectOpenSecondary,
   } = useBossCardLogic({
     floor,
-    boss,
+    boss, // ❌ NEVER downgraded here
     group,
     bossData,
     highlightAbilities,
@@ -59,42 +109,23 @@ export default function BossCard(props: any) {
     activeMembers,
     canShowSecondary,
     onSelect,
-    onSelectSecondary,
+    onSelectSecondary: handleSelectSecondaryWrapped, // ✅ injected
     tradableSet,
     primaryClassName: primary?.className,
   });
 
   /* ===============================
-     ✅ CRITICAL FIX
-     Reset page when kill is deleted
-  ================================= */
+     ✅ RESET FIX
+  ================================ */
   useEffect(() => {
     if (!kill && dropPage !== 1) {
-      console.log("[reset][BossCard] kill removed → reset dropPage", {
-        floor,
-        prevPage: dropPage,
-      });
       setDropPage(1);
     }
-  }, [kill, dropPage, setDropPage, floor]);
-
-  /* ===============================
-     🔍 MINIMAL RESET DEBUG
-  ================================= */
-  useEffect(() => {
-    console.log("[reset][BossCard state]", {
-      floor,
-      hasKill: !!kill,
-      hasPrimary: !!kill?.selection,
-      hasSecondary: !!kill?.selectionSecondary,
-      dropPage,
-      canShowSecondary,
-    });
-  }, [kill, dropPage, canShowSecondary, floor]);
+  }, [kill, dropPage, setDropPage]);
 
   /* ===============================
      GUARD
-  ================================= */
+  ================================ */
   if (!boss) {
     return (
       <div className={styles.card}>
@@ -113,6 +144,7 @@ export default function BossCard(props: any) {
 
       {/* =========================
          PAGE 1 — PRIMARY
+         ❌ NEVER downgraded
       ========================= */}
       {dropPage === 1 && (
         <>
@@ -123,6 +155,7 @@ export default function BossCard(props: any) {
 
       {/* =========================
          PAGE 2 — SECONDARY
+         ✅ DOWNGRADED BOSS + DROPS + TRADABLES
       ========================= */}
       {dropPage === 2 && (
         <>
@@ -133,7 +166,7 @@ export default function BossCard(props: any) {
               <div className={styles.secondaryEmptyDrop}>
                 <div className={styles.secondaryPlusIcon}>+</div>
                 <div className={styles.secondaryHint}>
-                  点击添加掉落
+                  点击添加掉落（{downgradedBoss}）
                 </div>
               </div>
             )
