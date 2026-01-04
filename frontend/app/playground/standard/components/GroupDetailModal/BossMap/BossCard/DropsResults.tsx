@@ -3,9 +3,11 @@ import styles from "./styles.module.css";
 import tradableAbilities from "@/app/data/tradable_abilities.json";
 
 const getAbilityIcon = (ability: string) => `/icons/${ability}.png`;
-
 const tradableSet = new Set<string>(tradableAbilities);
 
+/* ======================================================
+   PRIMARY DROP (UNCHANGED)
+====================================================== */
 export function renderPrimaryDrop({ kill, group }: any) {
   if (!kill?.selection) return null;
 
@@ -73,6 +75,9 @@ export function renderPrimaryDrop({ kill, group }: any) {
   };
 }
 
+/* ======================================================
+   SECONDARY DROP (FIXED)
+====================================================== */
 export function renderSecondaryDrop({ kill, group }: any) {
   if (!kill?.selectionSecondary) return null;
 
@@ -84,7 +89,10 @@ export function renderSecondaryDrop({ kill, group }: any) {
     </div>
   );
 
-  if (sel.noDrop || (!sel.ability && !sel.characterId)) {
+  /**
+   * ✅ Only show "无掉落" if user explicitly selected it
+   */
+  if (sel.noDrop === true) {
     return wrap(
       <>
         <img
@@ -95,6 +103,14 @@ export function renderSecondaryDrop({ kill, group }: any) {
       </>,
       styles.noDrop
     );
+  }
+
+  /**
+   * ✅ Empty secondary slot → render NOTHING
+   * BossCard will show "click to add second drop"
+   */
+  if (!sel.ability && !sel.characterId) {
+    return null;
   }
 
   if (sel.ability && tradableSet.has(sel.ability)) {

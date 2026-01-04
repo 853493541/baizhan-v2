@@ -21,15 +21,15 @@ export default function BossCard(props: any) {
     kill,
     activeMembers = [0, 1, 2],
 
-    onSelect,          // primary
-    onSelectSecondary, // secondary
+    onSelect,          // primary drop modal
+    onSelectSecondary, // secondary drop modal
 
-    // ⭐ CONTROLLED BY PARENT (BossMap)
-    canShowSecondary,  // boolean
+    // ⭐ fully controlled by BossMap
+    canShowSecondary,
   } = props;
 
   /* ===============================
-     HOOKS
+     STATE
   ================================= */
   const [dropPage, setDropPage] = useState<1 | 2>(1);
 
@@ -43,7 +43,7 @@ export default function BossCard(props: any) {
   );
 
   /* ===============================
-     Guard: no boss
+     GUARD
   ================================= */
   if (!boss) {
     return (
@@ -55,12 +55,12 @@ export default function BossCard(props: any) {
   }
 
   /* ===============================
-     Drop level
+     DROP LEVEL
   ================================= */
   const dropLevel: 9 | 10 = floor >= 81 && floor <= 90 ? 9 : 10;
 
   /* ===============================
-     Needs
+     NEEDS
   ================================= */
   const needs = calcBossNeeds({
     boss,
@@ -72,21 +72,24 @@ export default function BossCard(props: any) {
   });
 
   /* ===============================
-     Drops for modal
+     DROP LISTS
   ================================= */
   const fullDropList: string[] = bossData[boss] || [];
   const tradableList = fullDropList.filter((a) => tradableSet.has(a));
   const dropList = fullDropList.filter((a) => !tradableSet.has(a));
 
   /* ===============================
-     Drop rendering
+     DROP RENDERING
   ================================= */
   const primary = renderPrimaryDrop({ kill, group });
   const secondary = renderSecondaryDrop({ kill, group });
 
-  // ✅ FINAL RULE:
-  // pager exists ONLY if parent says boss is eligible
-  // AND both drops actually exist
+  /**
+   * Pager rule (FINAL):
+   * - boss eligible (from parent)
+   * - primary exists
+   * - secondary slot exists
+   */
   const canPage =
     !!canShowSecondary &&
     !!kill?.selection &&
@@ -97,7 +100,7 @@ export default function BossCard(props: any) {
   ================================= */
   const handleCardClick = () => {
     if (dropPage === 2) {
-      if (!canShowSecondary || !kill?.selectionSecondary) return;
+      if (!canShowSecondary) return;
 
       onSelectSecondary?.(
         floor,
@@ -125,11 +128,37 @@ export default function BossCard(props: any) {
     >
       <BossCardHeader {...props} />
 
-      {!primary && <BossCardNeeds needs={needs} />}
+      {/* =========================
+         PAGE 1 — PRIMARY DROP
+      ========================= */}
+      {dropPage === 1 && (
+        <>
+          {!primary && <BossCardNeeds needs={needs} />}
+          {primary && primary.node}
+        </>
+      )}
 
-      {primary && dropPage === 1 && primary.node}
-      {secondary && dropPage === 2 && secondary}
+      {/* =========================
+         PAGE 2 — SECONDARY DROP
+      ========================= */}
+      {dropPage === 2 && (
+        <>
+          {secondary ? (
+            secondary
+          ) : (
+            canShowSecondary && (
+<div className={styles.secondaryEmptyDrop}>
+  <div className={styles.secondaryPlusIcon}>+</div>
+  <div className={styles.secondaryHint}>点击添加掉落</div>
+</div>
+            )
+          )}
+        </>
+      )}
 
+      {/* =========================
+         PAGER
+      ========================= */}
       {canPage && (
         <div className={styles.dropPager}>
           {dropPage === 1 && (
