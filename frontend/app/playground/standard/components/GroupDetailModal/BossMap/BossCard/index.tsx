@@ -106,6 +106,7 @@ export default function BossCard(props: any) {
         floor,
         boss,
         dropList,
+        tradableList,
         dropLevel
       );
     } else {

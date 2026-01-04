@@ -3,61 +3,80 @@
 
 import { useState } from "react";
 
-export function useBossMapSelection() {
-  const [confirmOpen, setConfirmOpen] = useState(false);
+type DropLevel = 9 | 10;
 
-  const [selected, setSelected] = useState<{
-    floor: number;
-    boss: string;
-    dropList: string[];
-    tradableList: string[];
-    dropLevel: 9 | 10;
-    mode?: "primary" | "secondary";
-  } | null>(null);
+export type BossMapSelected =
+  | {
+      mode: "primary";
+      floor: number;
+      boss: string;
+      dropList: string[];
+      tradableList: string[];
+      dropLevel: DropLevel;
+    }
+  | {
+      mode: "secondary";
+      floor: number;
+      boss: string;
+      dropList: string[];
+      tradableList: string[]; // ✅ FIX: secondary also carries tradables
+      dropLevel: DropLevel;
+    };
+
+export function useBossMapSelection() {
+  const [selected, setSelected] = useState<BossMapSelected | null>(null);
 
   const [bossModal, setBossModal] = useState<{
     floor: 90 | 100;
-    currentBoss?: string;
+    currentBoss: string;
   } | null>(null);
 
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  // ✅ Primary: already had tradableList
   const handleSelectBossCard = (
     floor: number,
     boss: string,
     dropList: string[],
     tradableList: string[],
-    dropLevel: 9 | 10
-  ) =>
+    dropLevel: DropLevel
+  ) => {
     setSelected({
+      mode: "primary",
       floor,
       boss,
       dropList,
       tradableList,
       dropLevel,
-      mode: "primary",
     });
+  };
 
+  // ✅ FIX: Secondary must also accept/store tradableList
   const handleSelectSecondaryDrop = (
     floor: number,
     boss: string,
     dropList: string[],
-    dropLevel: 9 | 10
-  ) =>
+    tradableList: string[],
+    dropLevel: DropLevel
+  ) => {
     setSelected({
+      mode: "secondary",
       floor,
       boss,
       dropList,
-      tradableList: [],
+      tradableList,
       dropLevel,
-      mode: "secondary",
     });
+  };
 
   return {
     selected,
-    bossModal,
-    confirmOpen,
-
     setSelected,
+
+    bossModal,
     setBossModal,
+
+    confirmOpen,
     setConfirmOpen,
 
     handleSelectBossCard,
