@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
 import styles from "./styles.module.css";
 
 import BossCardHeader from "./BossControl";
@@ -21,10 +21,8 @@ export default function BossCard(props: any) {
     highlightAbilities,
     kill,
     activeMembers = [0, 1, 2],
-
     onSelect,
     onSelectSecondary,
-
     canShowSecondary,
   } = props;
 
@@ -40,7 +38,7 @@ export default function BossCard(props: any) {
   const secondary = renderSecondaryDrop({ kill, group });
 
   /* ===============================
-     ALL LOGIC LIVES HERE NOW
+     LOGIC
   ================================= */
   const {
     dropPage,
@@ -67,10 +65,35 @@ export default function BossCard(props: any) {
   });
 
   /* ===============================
-     🔍 DEBUG — SECOND DROP LOGIC
+     ✅ CRITICAL FIX
+     Reset page when kill is deleted
   ================================= */
+  useEffect(() => {
+    if (!kill && dropPage !== 1) {
+      console.log("[reset][BossCard] kill removed → reset dropPage", {
+        floor,
+        prevPage: dropPage,
+      });
+      setDropPage(1);
+    }
+  }, [kill, dropPage, setDropPage, floor]);
+
   /* ===============================
-     GUARD (AFTER HOOKS)
+     🔍 MINIMAL RESET DEBUG
+  ================================= */
+  useEffect(() => {
+    console.log("[reset][BossCard state]", {
+      floor,
+      hasKill: !!kill,
+      hasPrimary: !!kill?.selection,
+      hasSecondary: !!kill?.selectionSecondary,
+      dropPage,
+      canShowSecondary,
+    });
+  }, [kill, dropPage, canShowSecondary, floor]);
+
+  /* ===============================
+     GUARD
   ================================= */
   if (!boss) {
     return (
@@ -89,7 +112,7 @@ export default function BossCard(props: any) {
       <BossCardHeader {...props} />
 
       {/* =========================
-         PAGE 1 — PRIMARY DROP
+         PAGE 1 — PRIMARY
       ========================= */}
       {dropPage === 1 && (
         <>
@@ -99,7 +122,7 @@ export default function BossCard(props: any) {
       )}
 
       {/* =========================
-         PAGE 2 — SECONDARY DROP
+         PAGE 2 — SECONDARY
       ========================= */}
       {dropPage === 2 && (
         <>
@@ -119,11 +142,10 @@ export default function BossCard(props: any) {
       )}
 
       {/* =========================
-         PAGER (FIXED GUARD)
+         PAGER
       ========================= */}
       {canShowSecondary && (
         <div className={styles.dropPager}>
-          {/* ▶ NEXT / ADD */}
           {dropPage === 1 && (
             <button
               onClick={(e) => {
@@ -135,7 +157,6 @@ export default function BossCard(props: any) {
             </button>
           )}
 
-          {/* ◀ BACK */}
           {dropPage === 2 && canPage && (
             <button
               onClick={(e) => {
