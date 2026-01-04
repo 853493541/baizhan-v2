@@ -23,6 +23,7 @@ interface Kill {
   boss: string;
   completed: boolean;
   selection?: KillSelection;
+  selectionSecondary?: KillSelection;  
   recordedAt: Date;
 }
 
@@ -85,6 +86,19 @@ const KillSchema = new Schema<Kill>(
         default: "assigned",
       },
     },
+        // ⭐ secondary drop (NEW)
+    selectionSecondary: {
+      ability: { type: String },
+      level: { type: Number },
+      characterId: { type: Schema.Types.ObjectId, ref: "Character" },
+      noDrop: { type: Boolean },
+      status: {
+        type: String,
+        enum: ["assigned", "pending", "used", "saved"],
+        default: "assigned",
+      },
+    },
+
 
     recordedAt: { type: Date, default: Date.now },
   },

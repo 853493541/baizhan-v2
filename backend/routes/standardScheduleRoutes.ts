@@ -40,6 +40,10 @@ import {
    getGroupDowngradedFloors,
 } from "../controllers/playground/standardSchedules/bossAdjustController";
 
+// ⭐ NEW: secondary drop assignment controller
+import { assignSecondaryDrop } from "../controllers/playground/standardSchedules/assignSecondaryDrop";
+
+
 const router = Router();
 
 /* -----------------------------------------------------
@@ -129,6 +133,14 @@ router.get(
   "/:id/groups/:index/downgraded-floors",
   getGroupDowngradedFloors
 );
+
+router.post(
+  "/:id/groups/:index/floor/:floor/secondary-drop",
+  assignSecondaryDrop
+);
+
+
+
 /* -----------------------------------------------------
    🔹 SCHEDULE NAME / DELETE
 ----------------------------------------------------- */
