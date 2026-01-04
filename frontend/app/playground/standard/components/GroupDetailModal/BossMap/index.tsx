@@ -20,7 +20,7 @@ import BossDropsController from "./DropsController";
 import BossOverrideController from "./OverrideController";
 
 /* ======================================================
-   🧬 Mutation visibility rule (same as 异)
+   🧬 Mutation visibility rule
 ====================================================== */
 const MUTATION_ORIGINAL_BOSSES = new Set([
   "肖红",
@@ -83,12 +83,14 @@ export default function BossMap({
   };
 
   /* -----------------------------------------------------
-     ➕ Secondary drop visibility (FINAL RULE)
+     ➕ Secondary slot visibility rule
+     (slot only, NOT modal)
   ----------------------------------------------------- */
   const canShowAddDrop = (floor: number) => {
     const kill = c.localGroup.kills?.find((k: any) => k.floor === floor);
-    if (!kill?.selection) return false;                 // must have primary
-    if (kill.selectionSecondary) return false;          // no duplicate
+
+    if (!kill?.selection) return false;        // must have primary
+    if (kill.selectionSecondary) return false; // no duplicate slot
 
     if (floor === 90 || floor === 100) return true;
     return canShowMutation(floor);
@@ -114,24 +116,30 @@ export default function BossMap({
             highlightAbilities={highlightAbilities}
             kill={c.localGroup.kills?.find((k: any) => k.floor === f)}
             activeMembers={c.activeMembers}
+
+            /* =========================
+               PRIMARY / SECONDARY SELECT
+            ========================= */
             onSelect={c.handleSelectBossCard}
+            onSelectSecondary={c.handleSelectSecondaryDrop}
+
+            /* =========================
+               Boss control
+            ========================= */
             onChangeBoss={c.openBossModal}
             onToggleMutation={
               canShowMutation(f)
                 ? () => c.toggleMutationFloor(f)
                 : undefined
             }
+
+            /* =========================
+               ➕ ONLY creates secondary slot
+               (NO modal here)
+            ========================= */
             onAddSecondaryDrop={
               canShowAddDrop(f)
-                ? () =>
-                    c.handleSelectBossCard(
-                      f,
-                      boss,
-                      fullDropList,
-                      [],
-                      dropLevel,
-                      { mode: "secondary" } // ⭐ future-safe
-                    )
+                ? () => c.createSecondarySlot(f)
                 : undefined
             }
           />
@@ -175,6 +183,9 @@ export default function BossMap({
       {renderRow(row1)}
       {renderRow(row2)}
 
+      {/* =========================
+         Drop modal controller
+      ========================= */}
       <BossDropsController
         scheduleId={scheduleId}
         localGroup={c.localGroup}
@@ -183,9 +194,11 @@ export default function BossMap({
         onClose={c.closeDrops}
         onSave={c.onDropsSave}
         onAfterReset={c.onAfterReset}
-        onMarkStarted={c.onMarkStarted}
       />
 
+      {/* =========================
+         Boss override modal
+      ========================= */}
       <BossOverrideController
         scheduleId={scheduleId}
         groupIndex={c.localGroup.index}
@@ -197,6 +210,9 @@ export default function BossMap({
         onSuccess={c.onBossOverrideSuccess}
       />
 
+      {/* =========================
+         Finish confirmation
+      ========================= */}
       {c.confirmOpen && (
         <ConfirmModal
           title="确认结束"
