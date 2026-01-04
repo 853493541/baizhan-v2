@@ -75,10 +75,6 @@ export function useBossCardLogic(params: {
   ================================= */
   const [dropPage, setDropPage] = useState<1 | 2>(1);
 
-  useEffect(() => {
-    setDropPage(1);
-  }, [kill?.selection, kill?.selectionSecondary]);
-
   /* ===============================
      DROP LEVEL
   ================================= */
