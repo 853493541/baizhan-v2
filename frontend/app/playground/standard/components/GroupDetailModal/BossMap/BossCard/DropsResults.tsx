@@ -80,7 +80,6 @@ export function renderSecondaryDrop({ kill, group }: any) {
 
   const wrap = (children: React.ReactNode, cls: string) => (
     <div className={`${styles.dropResult} ${cls} ${styles.secondaryDrop}`}>
-      <div className={styles.secondaryIndex}>②</div>
       {children}
     </div>
   );
