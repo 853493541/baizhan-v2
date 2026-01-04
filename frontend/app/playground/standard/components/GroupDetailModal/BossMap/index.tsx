@@ -75,7 +75,7 @@ export default function BossMap({
   };
 
   /* -----------------------------------------------------
-     Mutation visibility
+     Mutation eligibility
   ----------------------------------------------------- */
   const canShowMutation = (floor: number) => {
     const original = weeklyMap?.[floor];
@@ -83,14 +83,13 @@ export default function BossMap({
   };
 
   /* -----------------------------------------------------
-     ➕ Secondary slot visibility rule
-     (slot only, NOT modal)
+     Secondary-page eligibility (AUTHORITATIVE)
+     - boss eligible (90/100 OR mutated)
+     - AND primary drop exists
   ----------------------------------------------------- */
-  const canShowAddDrop = (floor: number) => {
+  const canShowSecondary = (floor: number) => {
     const kill = c.localGroup.kills?.find((k: any) => k.floor === floor);
-
-    if (!kill?.selection) return false;        // must have primary
-    if (kill.selectionSecondary) return false; // no duplicate slot
+    if (!kill?.selection || kill.selection.noDrop) return false;
 
     if (floor === 90 || floor === 100) return true;
     return canShowMutation(floor);
@@ -103,8 +102,6 @@ export default function BossMap({
     <div className={styles.row}>
       {floors.map((f) => {
         const boss = c.resolveBoss(f);
-        const fullDropList = bossData[boss] || [];
-        const dropLevel: 9 | 10 = f >= 81 && f <= 90 ? 9 : 10;
 
         return (
           <BossCard
@@ -124,22 +121,18 @@ export default function BossMap({
             onSelectSecondary={c.handleSelectSecondaryDrop}
 
             /* =========================
+               Secondary page visibility
+               (ONLY comes from BossMap)
+            ========================= */
+            canShowSecondary={canShowSecondary(f)}
+
+            /* =========================
                Boss control
             ========================= */
             onChangeBoss={c.openBossModal}
             onToggleMutation={
               canShowMutation(f)
                 ? () => c.toggleMutationFloor(f)
-                : undefined
-            }
-
-            /* =========================
-               ➕ ONLY creates secondary slot
-               (NO modal here)
-            ========================= */
-            onAddSecondaryDrop={
-              canShowAddDrop(f)
-                ? () => c.createSecondarySlot(f)
                 : undefined
             }
           />

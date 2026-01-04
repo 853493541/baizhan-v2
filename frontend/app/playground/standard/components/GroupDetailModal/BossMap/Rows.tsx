@@ -14,6 +14,7 @@ export default function BossRows(props: {
   highlightAbilities: string[];
   tradableSet: Set<string>;
   activeMembers: number[];
+
   onSelect: (
     floor: number,
     boss: string,
@@ -22,22 +23,18 @@ export default function BossRows(props: {
     dropLevel: 9 | 10
   ) => void;
 
-    onSelectSecondary?: (
+  onSelectSecondary?: (
     floor: number,
     boss: string,
     dropList: string[],
     dropLevel: 9 | 10
   ) => void;
 
-
   // optional
   onChangeBoss?: (floor: 90 | 100) => void;
 
   // ⭐ mutation toggle (异)
   onToggleMutation?: (floor: number) => void;
-
-  // ➕ secondary drop
-  onAddSecondaryDrop?: (floor: number) => void;
 }) {
   const {
     floors,
@@ -48,16 +45,12 @@ export default function BossRows(props: {
     tradableSet,
     activeMembers,
     onSelect,
-    onSelectSecondary, 
+    onSelectSecondary,
     onChangeBoss,
     onToggleMutation,
-    onAddSecondaryDrop,
   } = props;
 
-  console.log("[BossRows] render", {
-    floors,
-    hasOnAddSecondaryDropProp: !!onAddSecondaryDrop,
-  });
+  console.log("[BossRows] render", { floors });
 
   return (
     <div className={styles.row}>
@@ -70,32 +63,11 @@ export default function BossRows(props: {
           !kill.selection.noDrop &&
           !!kill.selection.ability;
 
-        const hasSecondaryDrop = !!kill?.secondarySelection;
-
-        const isSpecialFloor = f === 90 || f === 100;
-
-        const isMutatableBoss = [
-          "肖红",
-          "青年程沐华",
-          "困境韦柔丝",
-        ].includes(boss);
-
-        const allowSecondaryDrop =
-          !!onAddSecondaryDrop &&
-          !!kill &&
-          hasPrimaryDrop &&
-          !hasSecondaryDrop &&
-          (isSpecialFloor || isMutatableBoss);
-
         console.log("[BossRows -> floor]", {
           floor: f,
           boss,
           hasKill: !!kill,
           hasPrimaryDrop,
-          hasSecondaryDrop,
-          isSpecialFloor,
-          isMutatableBoss,
-          allowSecondaryDrop,
         });
 
         return (
@@ -110,7 +82,7 @@ export default function BossRows(props: {
             kill={kill}
             activeMembers={activeMembers}
             onSelect={onSelect}
-             onSelectSecondary={onSelectSecondary}
+            onSelectSecondary={onSelectSecondary}
             onChangeBoss={
               onChangeBoss
                 ? (floor) => {
@@ -124,15 +96,6 @@ export default function BossRows(props: {
                 ? (floor) => {
                     console.log("[BossRows CLICK 异]", floor);
                     onToggleMutation(floor);
-                  }
-                : undefined
-            }
-            // ➕ PASS THROUGH ONLY WHEN ALLOWED
-            onAddSecondaryDrop={
-              allowSecondaryDrop
-                ? (floor) => {
-                    console.log("[BossRows CLICK +]", floor);
-                    onAddSecondaryDrop(floor);
                   }
                 : undefined
             }

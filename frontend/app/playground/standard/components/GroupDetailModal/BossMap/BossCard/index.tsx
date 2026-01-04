@@ -23,6 +23,9 @@ export default function BossCard(props: any) {
 
     onSelect,          // primary
     onSelectSecondary, // secondary
+
+    // ⭐ CONTROLLED BY PARENT (BossMap)
+    canShowSecondary,  // boolean
   } = props;
 
   /* ===============================
@@ -50,11 +53,6 @@ export default function BossCard(props: any) {
       </div>
     );
   }
-
-  /* ===============================
-     Derived flags
-  ================================= */
-  const hasSecondarySlot = !!kill?.selectionSecondary;
 
   /* ===============================
      Drop level
@@ -85,17 +83,22 @@ export default function BossCard(props: any) {
   ================================= */
   const primary = renderPrimaryDrop({ kill, group });
   const secondary = renderSecondaryDrop({ kill, group });
-  const canPage = !!primary && !!secondary;
+
+  // ✅ FINAL RULE:
+  // pager exists ONLY if parent says boss is eligible
+  // AND both drops actually exist
+  const canPage =
+    !!canShowSecondary &&
+    !!kill?.selection &&
+    !!kill?.selectionSecondary;
 
   /* ===============================
-     CLICK LOGIC (FINAL)
+     CLICK LOGIC
   ================================= */
   const handleCardClick = () => {
     if (dropPage === 2) {
-      // ⛔ No secondary slot → do nothing
-      if (!hasSecondarySlot) return;
+      if (!canShowSecondary || !kill?.selectionSecondary) return;
 
-      // ✅ Secondary modal
       onSelectSecondary?.(
         floor,
         boss,
@@ -103,7 +106,6 @@ export default function BossCard(props: any) {
         dropLevel
       );
     } else {
-      // ✅ Primary modal
       onSelect(
         floor,
         boss,
