@@ -95,7 +95,6 @@ const KillSchema = new Schema<Kill>(
       status: {
         type: String,
         enum: ["assigned", "pending", "used", "saved"],
-        default: "assigned",
       },
     },
 

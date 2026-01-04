@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import styles from "./styles.module.css";
-import { calcBossNeeds } from "./calcBossNeeds";
 
 import BossCardHeader from "./BossControl";
 import BossCardNeeds from "./NeedsList";
@@ -11,32 +10,7 @@ import { renderPrimaryDrop, renderSecondaryDrop } from "./DropsResults";
 /* ✅ SINGLE SOURCE OF TRUTH */
 import tradableAbilities from "@/app/data/tradable_abilities.json";
 
-/**
- * ✅ Determine card background class based on selection
- * IMPORTANT:
- * - EMPTY selection returns ""
- * - Explicit noDrop returns healer color
- */
-function getSelectionCardClass(
-  selection: any,
-  tradableSet: Set<string>
-): string {
-  if (!selection) return "";
-
-  if (selection.noDrop === true) return styles.cardHealer;
-
-  const ability = selection.ability;
-  const characterId = selection.characterId;
-
-  // ⛔ empty slot → neutral background
-  if (!ability && !characterId) return styles.cardTank;
-
-  if (ability && tradableSet.has(ability)) return styles.cardPurple;
-
-  if (ability && !characterId) return styles.cardHealer;
-
-  return styles.cardNormal;
-}
+import { useBossCardLogic } from "./bossCard.logic";
 
 export default function BossCard(props: any) {
   const {
@@ -48,67 +22,15 @@ export default function BossCard(props: any) {
     kill,
     activeMembers = [0, 1, 2],
 
-    onSelect,          // primary drop modal
-    onSelectSecondary, // secondary drop modal
+    onSelect,
+    onSelectSecondary,
 
-    // ⭐ fully controlled by BossMap
     canShowSecondary,
   } = props;
-
-  /* ===============================
-     STATE (HOOKS ALWAYS RUN)
-  ================================= */
-  const [dropPage, setDropPage] = useState<1 | 2>(1);
-
-  useEffect(() => {
-    setDropPage(1);
-  }, [kill?.selection, kill?.selectionSecondary]);
 
   const tradableSet = useMemo(
     () => new Set<string>(tradableAbilities),
     []
-  );
-
-  /* ===============================
-     DROP LEVEL
-  ================================= */
-  const dropLevel: 9 | 10 =
-    floor >= 81 && floor <= 90 ? 9 : 10;
-
-  /* ===============================
-     NEEDS (SAFE)
-  ================================= */
-  const needs = useMemo(() => {
-    if (!boss) return [];
-    return calcBossNeeds({
-      boss,
-      bossData,
-      group,
-      activeMembers,
-      dropLevel,
-      highlightAbilities,
-    });
-  }, [
-    boss,
-    bossData,
-    group,
-    activeMembers,
-    dropLevel,
-    highlightAbilities,
-  ]);
-
-  /* ===============================
-     DROP LISTS
-  ================================= */
-  const fullDropList: string[] =
-    boss ? bossData[boss] || [] : [];
-
-  const tradableList = fullDropList.filter((a) =>
-    tradableSet.has(a)
-  );
-
-  const dropList = fullDropList.filter(
-    (a) => !tradableSet.has(a)
   );
 
   /* ===============================
@@ -117,66 +39,44 @@ export default function BossCard(props: any) {
   const primary = renderPrimaryDrop({ kill, group });
   const secondary = renderSecondaryDrop({ kill, group });
 
-  /**
-   * Pager rule:
-   * - boss eligible
-   * - primary exists
-   * - secondary slot exists
-   */
-  const canPage =
-    !!canShowSecondary &&
-    !!kill?.selection &&
-    !!kill?.selectionSecondary;
+  /* ===============================
+     ALL LOGIC LIVES HERE NOW
+  ================================= */
+  const {
+    dropPage,
+    setDropPage,
+    needs,
+    canPage,
+    activeCardClass,
+    handleCardClick,
+    handleNextButtonClick,
+    willDirectOpenSecondary,
+  } = useBossCardLogic({
+    floor,
+    boss,
+    group,
+    bossData,
+    highlightAbilities,
+    kill,
+    activeMembers,
+    canShowSecondary,
+    onSelect,
+    onSelectSecondary,
+    tradableSet,
+    primaryClassName: primary?.className,
+  });
 
   /* ===============================
-     ✅ ACTIVE BACKGROUND CLASS
-     (THIS IS THE KEY FIX)
+     🔍 DEBUG — SECOND DROP LOGIC
   ================================= */
-  const activeCardClass = useMemo(() => {
-    // PAGE 1 → primary color
-    if (dropPage === 1) {
-      return primary?.className || "";
-    }
-
-    // PAGE 2
-    if (!canShowSecondary) return "";
-
-    const sel2 = kill?.selectionSecondary;
-    if (!sel2) return "";
-
-    return getSelectionCardClass(sel2, tradableSet);
-  }, [
+  console.log("[second2]", {
+    boss,
     dropPage,
     canShowSecondary,
-    primary?.className,
-    kill?.selectionSecondary,
-    tradableSet,
-  ]);
-
-  /* ===============================
-     CLICK LOGIC
-  ================================= */
-  const handleCardClick = () => {
-    if (dropPage === 2) {
-      if (!canShowSecondary) return;
-
-      onSelectSecondary?.(
-        floor,
-        boss,
-        dropList,
-        tradableList,
-        dropLevel
-      );
-    } else {
-      onSelect(
-        floor,
-        boss,
-        dropList,
-        tradableList,
-        dropLevel
-      );
-    }
-  };
+    hasSecondaryDrop: !!kill?.selectionSecondary,
+    willDirectOpenSecondary,
+    canPage,
+  });
 
   /* ===============================
      GUARD (AFTER HOOKS)
@@ -228,22 +128,24 @@ export default function BossCard(props: any) {
       )}
 
       {/* =========================
-         PAGER
+         PAGER (FIXED GUARD)
       ========================= */}
-      {canPage && (
+      {canShowSecondary && (
         <div className={styles.dropPager}>
+          {/* ▶ NEXT / ADD */}
           {dropPage === 1 && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                setDropPage(2);
+                handleNextButtonClick();
               }}
             >
-              ›
+              {willDirectOpenSecondary ? "+" : "›"}
             </button>
           )}
 
-          {dropPage === 2 && (
+          {/* ◀ BACK */}
+          {dropPage === 2 && canPage && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
