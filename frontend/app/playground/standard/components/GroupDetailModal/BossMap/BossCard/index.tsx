@@ -12,12 +12,10 @@ import { renderPrimaryDrop, renderSecondaryDrop } from "./DropsResults";
 import tradableAbilities from "@/app/data/tradable_abilities.json";
 
 /**
- * ✅ Determine card background class based on selection shape.
- * Must match the same meaning as DropsResults rendering:
- * - noDrop OR empty selection => healer/noDrop styling
- * - tradable => purple
- * - wasted (ability but no characterId) => healer
- * - assigned => normal
+ * ✅ Determine card background class based on selection
+ * IMPORTANT:
+ * - EMPTY selection returns ""
+ * - Explicit noDrop returns healer color
  */
 function getSelectionCardClass(
   selection: any,
@@ -25,21 +23,18 @@ function getSelectionCardClass(
 ): string {
   if (!selection) return "";
 
-  // Explicit noDrop OR empty object selection (no ability + no character)
-  // NOTE: Primary still treats "empty" as noDrop visually; secondary now returns null for empty,
-  // but background should be neutral in that case (handled by caller).
   if (selection.noDrop === true) return styles.cardHealer;
 
   const ability = selection.ability;
   const characterId = selection.characterId;
 
-  if (!ability && !characterId) return styles.cardHealer;
+  // ⛔ empty slot → neutral background
+  if (!ability && !characterId) return styles.cardTank;
 
   if (ability && tradableSet.has(ability)) return styles.cardPurple;
 
   if (ability && !characterId) return styles.cardHealer;
 
-  // assigned
   return styles.cardNormal;
 }
 
@@ -53,7 +48,7 @@ export default function BossCard(props: any) {
     kill,
     activeMembers = [0, 1, 2],
 
-    onSelect, // primary drop modal
+    onSelect,          // primary drop modal
     onSelectSecondary, // secondary drop modal
 
     // ⭐ fully controlled by BossMap
@@ -61,7 +56,7 @@ export default function BossCard(props: any) {
   } = props;
 
   /* ===============================
-     STATE (HOOKS MUST ALWAYS RUN)
+     STATE (HOOKS ALWAYS RUN)
   ================================= */
   const [dropPage, setDropPage] = useState<1 | 2>(1);
 
@@ -69,15 +64,19 @@ export default function BossCard(props: any) {
     setDropPage(1);
   }, [kill?.selection, kill?.selectionSecondary]);
 
-  const tradableSet = useMemo(() => new Set<string>(tradableAbilities), []);
+  const tradableSet = useMemo(
+    () => new Set<string>(tradableAbilities),
+    []
+  );
 
   /* ===============================
      DROP LEVEL
   ================================= */
-  const dropLevel: 9 | 10 = floor >= 81 && floor <= 90 ? 9 : 10;
+  const dropLevel: 9 | 10 =
+    floor >= 81 && floor <= 90 ? 9 : 10;
 
   /* ===============================
-     NEEDS (safe when boss missing)
+     NEEDS (SAFE)
   ================================= */
   const needs = useMemo(() => {
     if (!boss) return [];
@@ -89,14 +88,28 @@ export default function BossCard(props: any) {
       dropLevel,
       highlightAbilities,
     });
-  }, [boss, bossData, group, activeMembers, dropLevel, highlightAbilities]);
+  }, [
+    boss,
+    bossData,
+    group,
+    activeMembers,
+    dropLevel,
+    highlightAbilities,
+  ]);
 
   /* ===============================
-     DROP LISTS (safe when boss missing)
+     DROP LISTS
   ================================= */
-  const fullDropList: string[] = boss ? bossData[boss] || [] : [];
-  const tradableList = fullDropList.filter((a) => tradableSet.has(a));
-  const dropList = fullDropList.filter((a) => !tradableSet.has(a));
+  const fullDropList: string[] =
+    boss ? bossData[boss] || [] : [];
+
+  const tradableList = fullDropList.filter((a) =>
+    tradableSet.has(a)
+  );
+
+  const dropList = fullDropList.filter(
+    (a) => !tradableSet.has(a)
+  );
 
   /* ===============================
      DROP RENDERING
@@ -105,51 +118,63 @@ export default function BossCard(props: any) {
   const secondary = renderSecondaryDrop({ kill, group });
 
   /**
-   * Pager rule (unchanged):
-   * - boss eligible (from parent)
+   * Pager rule:
+   * - boss eligible
    * - primary exists
    * - secondary slot exists
    */
   const canPage =
-    !!canShowSecondary && !!kill?.selection && !!kill?.selectionSecondary;
+    !!canShowSecondary &&
+    !!kill?.selection &&
+    !!kill?.selectionSecondary;
 
   /* ===============================
-     ✅ BACKGROUND SHOULD FOLLOW DISPLAYED PAGE
-     - page 1 => primary visual class (from primary result)
-     - page 2 => secondary visual class (derived from selectionSecondary)
-               if secondary is empty (null), keep neutral ("")
+     ✅ ACTIVE BACKGROUND CLASS
+     (THIS IS THE KEY FIX)
   ================================= */
   const activeCardClass = useMemo(() => {
+    // PAGE 1 → primary color
     if (dropPage === 1) {
       return primary?.className || "";
     }
 
-    // page 2
+    // PAGE 2
     if (!canShowSecondary) return "";
 
-    // If there's an actual secondary result rendered, derive bg from selectionSecondary
-    // If selectionSecondary exists but is empty (your "slot"), keep neutral.
     const sel2 = kill?.selectionSecondary;
-
     if (!sel2) return "";
-    if (!sel2.ability && !sel2.characterId && sel2.noDrop !== true) {
-      // empty slot => neutral background
-      return "";
-    }
 
     return getSelectionCardClass(sel2, tradableSet);
-  }, [dropPage, canShowSecondary, primary?.className, kill?.selectionSecondary, tradableSet]);
+  }, [
+    dropPage,
+    canShowSecondary,
+    primary?.className,
+    kill?.selectionSecondary,
+    tradableSet,
+  ]);
 
   /* ===============================
-     CLICK LOGIC (unchanged)
+     CLICK LOGIC
   ================================= */
   const handleCardClick = () => {
     if (dropPage === 2) {
       if (!canShowSecondary) return;
 
-      onSelectSecondary?.(floor, boss, dropList, tradableList, dropLevel);
+      onSelectSecondary?.(
+        floor,
+        boss,
+        dropList,
+        tradableList,
+        dropLevel
+      );
     } else {
-      onSelect(floor, boss, dropList, tradableList, dropLevel);
+      onSelect(
+        floor,
+        boss,
+        dropList,
+        tradableList,
+        dropLevel
+      );
     }
   };
 
@@ -193,7 +218,9 @@ export default function BossCard(props: any) {
             canShowSecondary && (
               <div className={styles.secondaryEmptyDrop}>
                 <div className={styles.secondaryPlusIcon}>+</div>
-                <div className={styles.secondaryHint}>点击添加掉落</div>
+                <div className={styles.secondaryHint}>
+                  点击添加掉落
+                </div>
               </div>
             )
           )}
@@ -201,7 +228,7 @@ export default function BossCard(props: any) {
       )}
 
       {/* =========================
-         PAGER (unchanged)
+         PAGER
       ========================= */}
       {canPage && (
         <div className={styles.dropPager}>

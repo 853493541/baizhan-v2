@@ -388,3 +388,8 @@
   font-weight:700;
 
 }
+/* 🟡 Tank / secondary empty background */
+.card.cardTank {
+  background-color: #fff3cd;
+  border-color: #ffeeba;
+}
