@@ -18,8 +18,8 @@ const app = express();
 // ✅ Allowed origins (dev + prod)
 const allowedOrigins = [
   "http://localhost:3000",       // local dev
-  "https://renstoolbox.com",     // production
-  "https://www.renstoolbox.com", // production (www)
+  "https://baizhan.renstoolbox.com",     // production
+  "https://www.baizhan.renstoolbox.com", // production (www)
 ];
 
 // ✅ Enable CORS
