@@ -9,15 +9,19 @@ import { normalizeDefenseAbilities } from "../../utils/normalizeDefenseAbilities
 // =====================================================
 
 // ✅ Update abilities + record every change
+// ✅ Update abilities + record every change (IDEMPOTENT, NO REJECTION)
 export const updateCharacterAbilities = async (req: Request, res: Response) => {
   try {
     const { abilities } = req.body;
+
     if (!abilities || typeof abilities !== "object") {
       return res.status(400).json({ error: "abilities object is required" });
     }
 
     const char = await Character.findById(req.params.id);
-    if (!char) return res.status(404).json({ error: "Character not found" });
+    if (!char) {
+      return res.status(404).json({ error: "Character not found" });
+    }
 
     const updated: Array<{ name: string; old: number; new: number }> = [];
     const historyEntries: any[] = [];
@@ -34,7 +38,11 @@ export const updateCharacterAbilities = async (req: Request, res: Response) => {
           ? (char.abilities as any).set(name, newVal)
           : ((char.abilities as any)[name] = newVal);
 
-        updated.push({ name, old: Number(oldVal), new: newVal });
+        updated.push({
+          name,
+          old: Number(oldVal),
+          new: newVal,
+        });
 
         historyEntries.push({
           characterId: char._id,
@@ -46,16 +54,13 @@ export const updateCharacterAbilities = async (req: Request, res: Response) => {
       }
     }
 
-    if (updated.length === 0) {
-      return res.status(400).json({ error: "No abilities changed" });
-    }
-
-    // 🔑 Normalize derived defense abilities (ALWAYS)
+    // 🔑 ALWAYS normalize derived defense abilities
     normalizeDefenseAbilities(char);
 
+    // 💾 ALWAYS save (idempotent-safe)
     await char.save();
 
-    // ✅ insert history logs (explicit user changes only)
+    // 🧾 Log history ONLY if user actually changed something
     if (historyEntries.length > 0) {
       await AbilityHistory.insertMany(historyEntries);
       console.log(
@@ -63,12 +68,21 @@ export const updateCharacterAbilities = async (req: Request, res: Response) => {
       );
     }
 
-    return res.json({ character: char, updated });
+    // ✅ ALWAYS success
+    return res.json({
+      character: char,
+      updated,
+      message:
+        updated.length === 0
+          ? "No abilities changed"
+          : "Abilities updated successfully",
+    });
   } catch (err: any) {
     console.error("❌ updateCharacterAbilities error:", err);
     return res.status(500).json({ error: err.message });
   }
 };
+
 
 // =====================================================
 // ✅ Character Basic Info Management (unchanged)
