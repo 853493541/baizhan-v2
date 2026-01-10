@@ -170,7 +170,7 @@ export default function MainSection({
 
   return (
     <div className={styles.section}>
-      <h3 className={styles.sectionTitle}>排表区域</h3>
+      {/* <h3 className={styles.sectionTitle}>排表区域</h3> */}
       <p className={styles.finishedCount}>
         已完成小组: {finishedCount} / {groups.length}
       </p>
