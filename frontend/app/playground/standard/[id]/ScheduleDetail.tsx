@@ -190,12 +190,7 @@ export default function ScheduleDetail({ scheduleId }: Props) {
         onOpenEditCharacters={() => setEditCharsOpen(true)}
       />
 
-      {/* 🟦 Analyzer */}
-      <AnalyzerSection
-        groups={groups}
-        checkedAbilities={schedule.checkedAbilities}
-      />
-
+  
       {/* 🟦 Groups */}
       <MainSection
         schedule={schedule}
@@ -204,6 +199,12 @@ export default function ScheduleDetail({ scheduleId }: Props) {
         activeIdx={activeIdx}
         setActiveIdx={setActiveIdx}
         checkGroupQA={checkGroupQA}
+      />
+
+    {/* 🟦 Analyzer */}
+      <AnalyzerSection
+        groups={groups}
+        checkedAbilities={schedule.checkedAbilities}
       />
 
       {/* 🟦 Group Detail Modal */}

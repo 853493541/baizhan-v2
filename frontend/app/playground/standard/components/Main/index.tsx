@@ -175,26 +175,7 @@ export default function MainSection({
         已完成小组: {finishedCount} / {groups.length}
       </p>
 
-      {/* ⭐ Solver + Manual Editor */}
-      <div className={styles.solverBar}>
-        <SolverOptions
-          allAbilities={allAbilities.map((a) => ({
-            name: a.name,
-            level: a.level,
-          }))}
-          enabledAbilities={enabledAbilities}
-          setEnabledAbilities={setEnabledAbilities}
-          disabled={shouldLock}
-        />
 
-        <SolverButtons
-          solving={solving}
-          disabled={shouldLock}
-          onCore={() => safeRunSolver(getActiveAbilities(), "Custom")}
-          onFull={() => safeRunSolver(allAbilities, "Full")}
-          onManual={() => setShowEditAll(true)}
-        />
-      </div>
 
       {/* ⭐ Groups */}
       {groups.length === 0 ? (
@@ -224,7 +205,26 @@ export default function MainSection({
           )}
         </>
       )}
+      {/* ⭐ Solver + Manual Editor */}
+      <div className={styles.solverBar}>
+        <SolverOptions
+          allAbilities={allAbilities.map((a) => ({
+            name: a.name,
+            level: a.level,
+          }))}
+          enabledAbilities={enabledAbilities}
+          setEnabledAbilities={setEnabledAbilities}
+          disabled={shouldLock}
+        />
 
+        <SolverButtons
+          solving={solving}
+          disabled={shouldLock}
+          onCore={() => safeRunSolver(getActiveAbilities(), "Custom")}
+          onFull={() => safeRunSolver(allAbilities, "Full")}
+          onManual={() => setShowEditAll(true)}
+        />
+      </div>
       {/* ⭐ Manual Edit Modal */}
       {showEditAll && (
         <EditAllGroupsModal
