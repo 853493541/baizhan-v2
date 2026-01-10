@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./styles.module.css";
 import { toastError, toastSuccess } from "@/app/components/toast/toast";
 
@@ -26,11 +26,9 @@ const numToChinese = (num: number): string => {
   return `${map[tens]}十${ones ? map[ones] : ""}`;
 };
 
-// --- Normalize + force level-10 names ---
 const normalize = (s: string) => (s || "").trim().replace(/\u200B/g, "");
-const FORCE_LV10_ABILITIES = new Set(
-  ["立剑势", "玉魄惊鸾", "剑飞惊天"].map(normalize)
-);
+
+const FORCE_LV10_ABILITIES = new Set<string>();
 
 export default function ActionModal({
   tradables,
@@ -41,7 +39,8 @@ export default function ActionModal({
   onRefresh,
   onClose,
 }: ActionModalProps) {
-  // ✅ Auto-close if both lists are empty
+  const [copiedSet, setCopiedSet] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     if (tradables.length === 0 && readables.length === 0) {
       onClose();
@@ -52,16 +51,12 @@ export default function ActionModal({
     if (e.target === e.currentTarget) onClose();
   };
 
-  /* ---------------------------------------------------------------
-     🧭 Direct Use (NO CONFIRM)
-  --------------------------------------------------------------- */
+  /* ------------------ 使用 ------------------ */
   const handleUse = async (ability: string, level: number) => {
     const name = normalize(ability);
     let finalLevel = level;
 
-    if (FORCE_LV10_ABILITIES.has(name)) {
-      finalLevel = 10;
-    }
+    if (FORCE_LV10_ABILITIES.has(name)) finalLevel = 10;
 
     try {
       const res = await fetch(
@@ -73,38 +68,103 @@ export default function ActionModal({
         }
       );
 
-      if (!res.ok) throw new Error("使用失败");
+      if (!res.ok) throw new Error();
 
-      // ✅ 成功 toast（你要的文案）
       toastSuccess(`已使用 ${name} · ${finalLevel}重`);
-
       await onRefresh();
     } catch {
       toastError("使用失败，请稍后再试");
     }
   };
 
-  /* ---------------------------------------------------------------
-     📋 Copy text
-  --------------------------------------------------------------- */
+  /* ------------------ 复制 ------------------ */
   const handleCopy = async (ability: string, requiredLevel: number) => {
     const name = normalize(ability);
-    let copyLevel = requiredLevel;
-
-    if (FORCE_LV10_ABILITIES.has(name)) {
-      copyLevel = 10;
-    } else if (copyLevel > 10) {
-      copyLevel = 10;
-    }
-
-    const chineseLevel = numToChinese(copyLevel);
+    const safeLevel = Math.min(requiredLevel, 10);
+    const chineseLevel = numToChinese(safeLevel);
     const text = `《${name}》招式要诀·${chineseLevel}重`;
 
     try {
       await navigator.clipboard.writeText(text);
+      toastSuccess("已复制");
+
+      setCopiedSet(prev => {
+        const next = new Set(prev);
+        next.add(name);
+        return next;
+      });
     } catch {
-      toastError("复制失败，请手动复制");
+      toastError("复制失败");
     }
+  };
+
+  const tradablesLv9 = tradables.filter(t => t.requiredLevel === 9);
+  const tradablesLv10 = tradables.filter(t => t.requiredLevel === 10);
+
+  /* ------------------ 行渲染 ------------------ */
+  const renderRow = (
+    ability: string,
+    targetLevel: number,
+    current: number,
+    showCopy: boolean
+  ) => {
+    const isCopied = copiedSet.has(normalize(ability));
+
+    const levelText = numToChinese(targetLevel);
+    const currentText = numToChinese(current);
+
+    return (
+      <div className={styles.itemRow}>
+        <div className={styles.itemLeft}>
+          <img
+            src={getAbilityIcon(ability)}
+            alt={ability}
+            className={styles.abilityIcon}
+            onError={(e) =>
+              ((e.currentTarget as HTMLImageElement).style.display = "none")
+            }
+          />
+
+          <span className={styles.abilityLine}>
+            {showCopy ? (
+              <span className={styles.abilityName}>
+                {levelText}重 · {ability}
+              </span>
+            ) : (
+              <>
+                <span className={styles.abilityName}>{ability}</span>
+                <span className={styles.levelInfo}>{levelText}重</span>
+              </>
+            )}
+          </span>
+        </div>
+
+        {/* 当前等级（中文） */}
+        <div className={styles.currentBadge}>
+          当前：{currentText}重
+        </div>
+
+        <div className={styles.buttons}>
+          <button
+            onClick={() => handleUse(ability, targetLevel)}
+            className={`${styles.btn} ${styles.useBtn}`}
+          >
+            使用
+          </button>
+
+          {showCopy && (
+            <button
+              onClick={() => handleCopy(ability, targetLevel)}
+              className={`${styles.btn} ${
+                isCopied ? styles.copiedBtn : styles.copyBtn
+              }`}
+            >
+              {isCopied ? "已复制" : "复制"}
+            </button>
+          )}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -112,97 +172,59 @@ export default function ActionModal({
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <h3 className={styles.modalTitle}>可读书籍</h3>
 
-        {/* === 可读蓝书 === */}
         {readables.length > 0 && (
           <section className={styles.section}>
-            <h4 className={styles.sectionTitle}>📜 可读蓝书</h4>
-            {readables.map(({ ability, storedLevel }) => {
-              const current = localAbilities?.[ability] ?? 0;
-              return (
-                <div key={ability} className={styles.itemRow}>
-                  <div className={styles.itemLeft}>
-                    <img
-                      src={getAbilityIcon(ability)}
-                      alt={ability}
-                      className={styles.abilityIcon}
-                      onError={(e) =>
-                        ((e.currentTarget as HTMLImageElement).style.display =
-                          "none")
-                      }
-                    />
-                    <span className={styles.abilityLine}>
-                      <span className={styles.abilityName}>{ability}</span>
-                      <span className={styles.levelInfo}>
-                        {storedLevel}重
-                        <span className={styles.currentLevel}>
-                          {" "} | 当前：{current}重
-                        </span>
-                      </span>
-                    </span>
-                  </div>
-                  <div className={styles.buttons}>
-                    <button
-                      onClick={() => handleUse(ability, storedLevel)}
-                      className={`${styles.btn} ${styles.useBtn}`}
-                    >
-                      使用
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+            <h4 className={styles.sectionTitle}>
+              <span className={`${styles.sectionBadge} ${styles.blue}`}>
+                蓝书
+              </span>
+            </h4>
+            {readables.map(({ ability, storedLevel }) =>
+              renderRow(
+                ability,
+                storedLevel,
+                localAbilities?.[ability] ?? 0,
+                true
+              )
+            )}
           </section>
         )}
 
-        {/* === 可买紫书 === */}
         {tradables.length > 0 && (
           <section className={styles.section}>
-            <h4 className={styles.sectionTitle}>⚡ 可买紫书</h4>
-            {tradables.map(({ ability, requiredLevel }) => {
-              const current = localAbilities?.[ability] ?? 0;
-              const displayLevel = FORCE_LV10_ABILITIES.has(ability)
-                ? 10
-                : requiredLevel;
-
-              return (
-                <div key={ability} className={styles.itemRow}>
-                  <div className={styles.itemLeft}>
-                    <img
-                      src={getAbilityIcon(ability)}
-                      alt={ability}
-                      className={styles.abilityIcon}
-                      onError={(e) =>
-                        ((e.currentTarget as HTMLImageElement).style.display =
-                          "none")
-                      }
-                    />
-                    <span className={styles.abilityLine}>
-                      <span className={styles.abilityName}>{ability}</span>
-                      <span className={styles.levelInfo}>
-                        {displayLevel}重
-                        <span className={styles.currentLevel}>
-                          {" "} | 当前：{current}重
-                        </span>
-                      </span>
-                    </span>
-                  </div>
-                  <div className={styles.buttons}>
-                    <button
-                      onClick={() => handleUse(ability, requiredLevel)}
-                      className={`${styles.btn} ${styles.useBtn}`}
-                    >
-                      使用
-                    </button>
-                    <button
-                      onClick={() => handleCopy(ability, requiredLevel)}
-                      className={`${styles.btn} ${styles.copyBtn}`}
-                    >
-                      复制
-                    </button>
-                  </div>
+            {tradablesLv9.length > 0 && (
+              <>
+                <div className={`${styles.sectionBadge} ${styles.purple9}`}>
+                  九重紫书
                 </div>
-              );
-            })}
+                {tradablesLv9.map(t =>
+                  renderRow(
+                    t.ability,
+                    t.requiredLevel,
+                    localAbilities?.[t.ability] ?? 0,
+                    true
+                  )
+                )}
+              </>
+            )}
+
+            {tradablesLv10.length > 0 && (
+              <>
+                <div
+                  className={`${styles.sectionBadge} ${styles.purple10} ${styles.sectionGap}`}
+                >
+                  十重紫书
+                </div>
+                {tradablesLv10.map(t =>
+                  renderRow(
+                    t.ability,
+                    t.requiredLevel,
+                    localAbilities?.[t.ability] ?? 0,
+                    true
+                  )
+                )}
+              </>
+            )}
           </section>
         )}
 

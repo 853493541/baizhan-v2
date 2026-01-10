@@ -1,4 +1,6 @@
-/* === Overlay === */
+/* =========================
+   Overlay
+========================= */
 .modalOverlay {
   position: fixed;
   inset: 0;
@@ -9,205 +11,228 @@
   z-index: 1000;
 }
 
-/* === Modal Box === */
+/* =========================
+   Modal
+========================= */
 .modal {
-  background: #fff;
-  border-radius: 12px;
-  padding: 20px;
-  width: 480px;
-  max-width: 95%;
-  max-height: 85%;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px 20px 16px;
+  width: 520px;
+  max-height: 85vh;
   overflow-y: auto;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
 }
 
-/* === Title === */
+/* =========================
+   Title
+========================= */
 .modalTitle {
   font-size: 20px;
   font-weight: 700;
   text-align: center;
-  margin-bottom: 16px;
-  color: #1b4332;
+  margin-bottom: 18px;
+  color: black;
 }
 
-/* === Section === */
+/* =========================
+   Sections
+========================= */
 .section {
-  margin: 20px 0;
+  margin-bottom: 22px;
 }
 
 .sectionTitle {
-  font-size: 16px;
-  font-weight: 600;
   margin-bottom: 10px;
-  color: #1b4332;
-  padding-left: 0; /* ✅ removed purple/gray bar */
 }
 
-/* === Item Row === */
+/* Section badge (bubble) */
+.sectionBadge {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* 蓝书 */
+.blue {
+  background: #e7f1ff;
+  color: #1c5fd4;
+}
+
+/* 九重紫书 */
+.purple9 {
+  background: #f3e8ff;
+  color: #6f42c1;
+}
+
+/* 十重紫书 */
+.purple10 {
+  background: #f3e8ff;
+  color: #6f42c1;
+}
+
+/* =========================
+   Item Card
+========================= */
 .itemRow {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  padding: 8px 10px;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
   margin-top: 8px;
-  background: #fafafa;
-  transition: background 0.2s;
+  background: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 
-.itemRow:hover {
-  background: #f1f1f1;
-}
-
-/* === Left Side (icon + text) === */
+/* =========================
+   Left content
+========================= */
 .itemLeft {
   display: flex;
   align-items: center;
-  gap: 10px;
-  flex: 1 1 auto;
-  overflow: hidden;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
 }
 
 .abilityIcon {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   flex-shrink: 0;
 }
 
 .abilityLine {
   display: flex;
-  flex-direction: row;
   align-items: center;
-  gap: 6px;
-  font-size: 14px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .abilityName {
+  font-size: 14px;
   font-weight: 600;
-  color: #1c1c1c;
+  color: #212529;
   white-space: nowrap;
 }
 
 .levelInfo {
-  color: #444;
   font-size: 13px;
+  color: #495057;
   white-space: nowrap;
 }
 
-.currentLevel {
-  color: #666;
-  font-size: 13px;
+/* 当前等级 badge */
+.currentBadge {
+  font-size: 12px;
+  padding: 3px 8px;
   white-space: nowrap;
+  margin-right: 4px;
 }
 
-/* === Buttons === */
+/* =========================
+   Buttons (STRONG STYLE)
+========================= */
 .buttons {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
 .btn {
   border: none;
-  border-radius: 4px;
-  font-size: 13px;
-  padding: 4px 10px;
+  border-radius: 3px;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 6px 16px;
   cursor: pointer;
-  transition: background 0.2s;
   white-space: nowrap;
+  transition: background 0.15s ease, transform 0.05s ease;
 }
 
+.btn:active {
+  transform: translateY(1px);
+}
+
+/* 使用 → strong green */
 .useBtn {
-  background: #cce5ff;
-  color: #004085;
+  background: #51cf66;
+  color: #ffffff;
 }
 
+.useBtn:hover {
+  background: #40c057;
+}
+
+/* 复制 → strong blue */
 .copyBtn {
-  background: #007bff;
-  color: #fff;
+  background: #339af0;
+  color: #ffffff;
 }
 
 .copyBtn:hover {
-  background: #0069d9;
+  background: #228be6;
 }
 
-/* === Footer === */
+/* 删除 → strong red (if used elsewhere) */
+.deleteBtn {
+  background: #fa5252;
+  color: #ffffff;
+}
+
+.deleteBtn:hover {
+  background: #e03131;
+}
+
+/* =========================
+   Footer
+========================= */
 .modalFooter {
+  position: sticky;
+  bottom: 0;
+  background: #ffffff;
+  padding-top: 12px;
+  margin-top: 18px;
   display: flex;
   justify-content: flex-end;
-  margin-top: 16px;
+  border-top: 1px solid #e9ecef;
 }
 
 .closeButton {
-  padding: 6px 14px;
-  background-color: #6c757d;
-  color: #fff;
+  padding: 6px 16px;
+  background: #adb5bd;
+  color: #ffffff;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
 }
 
-/* === Responsive Design === */
-
-/* Phones / small screens */
-@media (max-width: 600px) {
-  .modal {
-    width: 90%;
-    padding: 16px;
-  }
-
-  .itemRow {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-    padding: 10px;
-  }
-
-  .itemLeft {
-    width: 100%;
-  }
-
-  .buttons {
-    width: 100%;
-    justify-content: flex-end;
-  }
-
-  .btn {
-    padding: 6px 10px;
-    font-size: 14px;
-  }
+.closeButton:hover {
+  background: #868e96;
+}
+/* 已复制（blue confirmation） */
+.copiedBtn {
+  background: #e7f1ff;   /* soft blue */
+  color: #1c5fd4;        /* confident blue text */
+  font-weight: 600;
+}
+/* Add spacing when multiple section badges appear in one section */
+.sectionBadge {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+  margin-bottom: 4px;
 }
 
-/* Large tablets / mid screens (primary target) */
-@media (min-width: 601px) and (max-width: 1200px) {
-  .itemRow {
-    flex-direction: row;
-    align-items: center;
-  }
-}
-@media (min-width: 601px) and (max-width: 1200px) {
-  .itemRow {
-    flex-direction: row;
-    align-items: center;
-    padding: 6px 8px; /* 🔽 was 8px 10px — trimmed sides */
-  }
-
-  .itemLeft {
-    gap: 8px; /* 🔽 was 10px */
-  }
-
-  .abilityLine {
-    gap: 4px; /* 🔽 tighten spacing between name and level */
-  }
-
-  .abilityIcon {
-    width: 28px; /* 🔽 slightly smaller icon */
-    height: 28px;
-  }
-
-  .abilityName {
-    font-size: 13px; /* 🔽 smaller text helps one-line fit */
-  }
+/* extra top spacing for section separation */
+.sectionGap {
+  margin-top: 16px;
 }
