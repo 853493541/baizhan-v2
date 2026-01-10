@@ -2,9 +2,11 @@ import { Request, Response } from "express";
 import StandardSchedule from "../../../models/StandardSchedule";
 
 /* ======================================================
-   PRIMARY DROP UPDATE
-   - Updates or inserts primary
-   - NEVER resets secondary status
+   PRIMARY DROP UPDATE (AUTHORITATIVE)
+   - Enforces mutually exclusive states
+   - noDrop wipes ability + character
+   - ability forces noDrop = false
+   - NEVER touches secondary
 ====================================================== */
 export const updateGroupKill = async (req: Request, res: Response) => {
   try {
@@ -26,67 +28,115 @@ export const updateGroupKill = async (req: Request, res: Response) => {
 
     let kill = group.kills.find((k: any) => k.floor === floorNum);
 
+    // ===============================
+    // CREATE
+    // ===============================
     if (!kill) {
+      let normalizedSelection: any = undefined;
+
+      if (selection) {
+        // 🟢 NO DROP MODE
+        if (selection.noDrop === true) {
+          normalizedSelection = {
+            noDrop: true,
+            status: selection.status ?? "assigned",
+          };
+        }
+        // 🟢 ABILITY MODE
+        else if (selection.ability) {
+          normalizedSelection = {
+            ability: selection.ability,
+            level: selection.level,
+            characterId: selection.characterId,
+            noDrop: false,
+            status: selection.status ?? "assigned",
+          };
+        }
+      }
+
       kill = {
         floor: floorNum,
         boss,
-        selection: selection
-          ? {
-              ...selection,
-              status: selection?.status ?? "assigned",
-            }
-          : undefined,
-        completed: !!(selection?.ability || selection?.noDrop),
+        selection: normalizedSelection,
+        completed: !!(
+          normalizedSelection?.noDrop ||
+          normalizedSelection?.ability
+        ),
         recordedAt: new Date(),
       };
 
-      console.log(
-        "🟢 [STATUS][PRIMARY][CREATE]",
-        `floor=${floorNum}`,
-        "→",
-        kill.selection?.status
-      );
-
       group.kills.push(kill);
-    } else {
+
+      console.log(
+        "🟢 [PRIMARY][CREATE]",
+        `floor=${floorNum}`,
+        normalizedSelection
+      );
+    }
+
+    // ===============================
+    // UPDATE
+    // ===============================
+    else {
       kill.boss = boss;
 
       if (selection) {
-        const prevStatus = kill.selection?.status;
+        // 🔒 NO DROP IS AUTHORITATIVE
+        if (selection.noDrop === true) {
+          kill.selection = {
+            noDrop: true,
+            status:
+              selection.status ??
+              kill.selection?.status ??
+              "assigned",
+          };
 
-        kill.selection = {
-          ...kill.selection,
-          ...selection,
-          status:
-            selection?.status ??
-            kill.selection?.status ??
-            "assigned",
-        };
-
-        if (prevStatus !== kill.selection.status) {
           console.log(
-            "🟡 [STATUS][PRIMARY][UPDATE]",
+            "🔴 [PRIMARY][MODE]",
             `floor=${floorNum}`,
-            prevStatus,
-            "→",
-            kill.selection.status
+            "→ NO DROP"
+          );
+        }
+
+        // 🔒 ABILITY MODE (forces noDrop false)
+        else if (selection.ability) {
+          kill.selection = {
+            ability: selection.ability,
+            level: selection.level,
+            characterId: selection.characterId,
+            noDrop: false,
+            status:
+              selection.status ??
+              kill.selection?.status ??
+              "assigned",
+          };
+
+          console.log(
+            "🟢 [PRIMARY][MODE]",
+            `floor=${floorNum}`,
+            "→ ABILITY",
+            selection.ability
           );
         }
       }
 
-      // 🔒 Preserve secondary EXACTLY
+      // ✅ derive completion (never force blindly)
+      kill.completed = !!(
+        kill.selection?.noDrop ||
+        kill.selection?.ability ||
+        kill.selectionSecondary
+      );
+
+      kill.recordedAt = new Date();
+
+      // 🔒 Explicitly preserve secondary
       if (kill.selectionSecondary) {
-        // no-op by design, but log to prove no overwrite
         console.log(
-          "🔒 [STATUS][SECONDARY][PRESERVED]",
+          "🔒 [SECONDARY][PRESERVED]",
           `floor=${floorNum}`,
-          "status=",
           kill.selectionSecondary.status
         );
       }
-
-      kill.completed = true;
-      kill.recordedAt = new Date();
     }
 
     await schedule.save();
@@ -127,24 +177,44 @@ export const updateSecondaryDrop = async (req: Request, res: Response) => {
       });
     }
 
-    const prevStatus = kill.selectionSecondary?.status;
+    if (!selection) {
+      return res.status(400).json({ error: "Selection required" });
+    }
 
-    kill.selectionSecondary = {
-      ...kill.selectionSecondary,
-      ...selection,
-      status:
-        selection?.status ??
-        kill.selectionSecondary?.status ??
-        "assigned",
-    };
+    // ===============================
+    // AUTHORITATIVE MODE NORMALIZATION
+    // ===============================
+    if (selection.noDrop === true) {
+      kill.selectionSecondary = {
+        noDrop: true,
+        status:
+          selection.status ??
+          kill.selectionSecondary?.status ??
+          "assigned",
+      };
 
-    if (prevStatus !== kill.selectionSecondary.status) {
       console.log(
-        "🟣 [STATUS][SECONDARY][UPDATE]",
+        "🟣 [SECONDARY][MODE]",
         `floor=${floorNum}`,
-        prevStatus,
-        "→",
-        kill.selectionSecondary.status
+        "→ NO DROP"
+      );
+    } else if (selection.ability) {
+      kill.selectionSecondary = {
+        ability: selection.ability,
+        level: selection.level,
+        characterId: selection.characterId,
+        noDrop: false,
+        status:
+          selection.status ??
+          kill.selectionSecondary?.status ??
+          "assigned",
+      };
+
+      console.log(
+        "🟣 [SECONDARY][MODE]",
+        `floor=${floorNum}`,
+        "→ ABILITY",
+        selection.ability
       );
     }
 
@@ -180,9 +250,15 @@ export const deleteGroupKill = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Group not found" });
     }
 
-    group.kills = group.kills.filter((k: any) => k.floor !== floorNum);
+    group.kills = group.kills.filter(
+      (k: any) => k.floor !== floorNum
+    );
 
-    console.log("🗑️ [STATUS][RESET]", `floor=${floorNum}`, "deleted");
+    console.log(
+      "🗑️ [KILL][RESET]",
+      `floor=${floorNum}`,
+      "deleted"
+    );
 
     await schedule.save();
     res.json({ success: true });
@@ -208,7 +284,9 @@ export const getGroupKills = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Schedule not found" });
     }
 
-    const group = schedule.groups?.find((g: any) => g.index === groupIndex);
+    const group = schedule.groups?.find(
+      (g: any) => g.index === groupIndex
+    );
     if (!group) {
       return res.status(404).json({ error: "Group not found" });
     }
