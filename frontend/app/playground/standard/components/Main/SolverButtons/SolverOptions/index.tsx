@@ -35,6 +35,7 @@ export const CORE_ABILITIES = [
   "飞云回转刀",
   "兔死狐悲",
   "厄毒爆发",
+  "阴阳术退散",
 ];
 
 export const GOOD_ABILITIES = [
@@ -46,7 +47,7 @@ export const GOOD_ABILITIES = [
   "霞月长针",
   "剑心通明",
   "漾剑式",
-  "阴阳术退散",
+
   "尸鬼封烬",
   "七荒黑牙",
   "三个铜钱",

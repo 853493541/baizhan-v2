@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import styles from "./styles.module.css";
 import { runAdvancedSolver } from "@/utils/advancedSolver";
 import { summarizeAftermath } from "@/utils/aftermathSummary";
 import type { GroupResult, Character, AbilityCheck } from "@/utils/solver";
 
-import SolverOptions from "./SolverButtons/SolverOptions";
 import SolverButtons from "./SolverButtons";
 import DisplayGroups from "./DisplayGroups";
 import EditAllGroupsModal from "./EditAllGroupsModal";
@@ -67,10 +66,29 @@ export default function MainSection({
   const allAbilities = schedule.checkedAbilities;
   const keyFor = (a: AbilityCheck) => `${a.name}-${a.level}`;
 
+  /* =====================================================
+     🔑 Solver option state (authoritative UI state)
+  ===================================================== */
   const [enabledAbilities, setEnabledAbilities] = useState<
     Record<string, boolean>
   >(() => Object.fromEntries(allAbilities.map((a) => [keyFor(a), true])));
 
+  /* =====================================================
+     ✅ Effective abilities (USED BY SOLVER + QA)
+     - 自定义排表 uses this
+  ===================================================== */
+  const effectiveAbilities: AbilityCheck[] = useMemo(
+    () =>
+      allAbilities.map((a) => ({
+        ...a,
+        available: enabledAbilities[keyFor(a)] ?? true,
+      })),
+    [allAbilities, enabledAbilities]
+  );
+
+  /* =====================================================
+     Aftermath
+  ===================================================== */
   useEffect(() => {
     if (groups.length > 0) {
       summarizeAftermath(groups)
@@ -81,22 +99,31 @@ export default function MainSection({
     }
   }, [groups]);
 
-  /* ---------------------------------------------------
+  /* =====================================================
      🔥 Solver (SAFE)
-  --------------------------------------------------- */
+  ===================================================== */
   const safeRunSolver = async (abilities: AbilityCheck[]) => {
     if (solving) return;
 
     try {
       setSolving(true);
-      await new Promise((r) => setTimeout(r, 0)); 
+      await new Promise((r) => setTimeout(r, 0));
+
+      console.log(
+        "[solver input]",
+        abilities.map((a) => ({
+          name: a.name,
+          level: a.level,
+          available: a.available,
+        }))
+      );
+
       const results = runAdvancedSolver(
         schedule.characters,
         abilities,
         3
       );
 
-      /* 🚫 HARD GUARD: solver failure */
       const isInvalid =
         !Array.isArray(results) ||
         results.length === 0 ||
@@ -108,10 +135,9 @@ export default function MainSection({
 
       if (isInvalid) {
         toastError("排表失败，请重试");
-        return; // ⛔ STOP HERE
+        return;
       }
 
-      /* ✅ Valid solver result */
       toastSuccess("排表成功");
 
       const reordered = reorderGroups(results);
@@ -147,9 +173,9 @@ export default function MainSection({
     }
   };
 
-  /* ---------------------------------------------------
+  /* =====================================================
      🔥 Reordering
-  --------------------------------------------------- */
+  ===================================================== */
   const reorderGroups = (inputGroups: GroupResult[]) => {
     const getPriority = (g: GroupResult) => {
       let best = Infinity;
@@ -196,6 +222,9 @@ export default function MainSection({
     (g) => g.status === "finished"
   ).length;
 
+  /* =====================================================
+     Render
+  ===================================================== */
   return (
     <div className={styles.section}>
       <ControlBar
@@ -205,9 +234,7 @@ export default function MainSection({
         onManualEdit={() => setShowEditAll(true)}
       />
 
-      {groups.length === 0 ? (
-        <p className={styles.empty}></p>
-      ) : (
+      {groups.length > 0 && (
         <>
           <DisplayGroups
             groups={groups
@@ -220,7 +247,7 @@ export default function MainSection({
             setActiveIdx={setActiveIdx}
             checkGroupQA={checkGroupQA}
             conflictLevel={schedule.conflictLevel}
-            checkedAbilities={schedule.checkedAbilities}
+            checkedAbilities={effectiveAbilities}
           />
 
           <DisplayGroups
@@ -235,7 +262,7 @@ export default function MainSection({
             setActiveIdx={setActiveIdx}
             checkGroupQA={checkGroupQA}
             conflictLevel={schedule.conflictLevel}
-            checkedAbilities={schedule.checkedAbilities}
+            checkedAbilities={effectiveAbilities}
           />
         </>
       )}
@@ -244,8 +271,8 @@ export default function MainSection({
         <SolverButtons
           solving={solving}
           disabled={shouldLock}
-          onCore={() => safeRunSolver(allAbilities)}
-          onFull={() => safeRunSolver(allAbilities)}
+          onCore={() => safeRunSolver(effectiveAbilities)} // ✅ 自定义排表
+          onFull={() => safeRunSolver(allAbilities)}       // ✅ 全局排表
           onEdit={() => setShowEditAll(true)}
           allAbilities={allAbilities.map((a) => ({
             name: a.name,

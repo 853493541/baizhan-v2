@@ -38,10 +38,10 @@ export const CORE_ABILITIES = [
   "黑煞落贪狼",
   "一闪天诛",
   "引燃",
-  "漾剑式",
-  "阴阳术退散",
   "兔死狐悲",
+  "阴阳术退散",
   "飞云回转刀",
+  
   "厄毒爆发",
   "短歌万劫",
 ];
@@ -111,6 +111,8 @@ export function runAdvancedSolver(
       index: idx,
       core: CORE_ABILITIES.includes(a.name),
     }));
+
+ 
 
   const abilityIndex = new Map<string, number>();
   targeted.forEach((a) => abilityIndex.set(a.key!, a.index!));
