@@ -22,6 +22,12 @@ export default function Sidebar() {
         {/* 地图 */}
         <NavLink href="/map">🗺️ 本周地图</NavLink>
 
+        {/* 地图 */}
+        <NavLink href="/ranking">🏆 排行榜</NavLink>
+
+        {/* 地图 */}
+        <NavLink href="/history">🕒 技能更新记录</NavLink>
+
         {/* 数据中心（放最后） */}
         <NavLink href="/infocenter">📚 数据中心</NavLink>
 

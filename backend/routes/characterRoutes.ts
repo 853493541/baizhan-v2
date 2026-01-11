@@ -30,6 +30,7 @@ import { compareCharacterAbilities } from "../controllers/characters/compareCont
 
 // ⭐ NEW ultra-fast controller
 import { getBasicCharacters } from "../controllers/characters/getBasicCharacters";
+import { getCharacterRanking } from "../controllers/characters/getCharacterRanking";
 
 const router = express.Router();
 
@@ -38,7 +39,8 @@ const router = express.Router();
 // MUST come BEFORE "/:id" or it'll conflict
 // ─────────────────────────────────────────────
 router.get("/basic", getBasicCharacters);
-
+// Ranking / lightweight list
+router.get("/ranking", getCharacterRanking);
 // ─────────────────────────────────────────────
 // Character Metadata
 // ─────────────────────────────────────────────
@@ -77,5 +79,7 @@ router.delete("/:id/storage/delete", deleteFromStorage);
 // 🎒 Global Storage (backpack page)
 // ─────────────────────────────────────────────
 router.get("/storage/all", getAllStorage);
+
+
 
 export default router;
