@@ -286,3 +286,15 @@
     width: 92%;
   }
 }
+.editWrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.countWarning {
+  font-size: 18px;
+  color: #d93025; /* 错误红 */
+  white-space: nowrap;
+  font-weight: 800;
+}

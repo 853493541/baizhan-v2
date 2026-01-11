@@ -96,6 +96,10 @@ export default function ScheduleHeader({
     setDeleteInput("");
   };
 
+  const isInvalidCount =
+    localSchedule.characterCount % 3 !== 0 &&
+    localSchedule.characterCount !== 0;
+
   return (
     <>
       {/* ================= HEADER ================= */}
@@ -120,13 +124,21 @@ export default function ScheduleHeader({
               <Settings size={18} />
             </button>
 
-            <button
-              className={styles.iconBtnPrimary}
-              onClick={onOpenEditCharacters}
-              title="编辑参与角色"
-            >
-              <Plus size={18} />
-            </button>
+            <div className={styles.editWrapper}>
+              <button
+                className={styles.iconBtnPrimary}
+                onClick={onOpenEditCharacters}
+                title="编辑参与角色"
+              >
+                <Plus size={18} />
+              </button>
+
+              {isInvalidCount && (
+                <span className={styles.countWarning}>
+                  排表人数错误！（{localSchedule.characterCount}）
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
