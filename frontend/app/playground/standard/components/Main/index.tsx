@@ -12,6 +12,11 @@ import DisplayGroups from "./DisplayGroups";
 import EditAllGroupsModal from "./EditAllGroupsModal";
 import ControlBar from "./ControlBar";
 
+import {
+  toastError,
+  toastSuccess,
+} from "@/app/components/toast/toast";
+
 /* 🔥 ORDERED main character priority */
 const MAIN_CHARACTERS = [
   "剑心猫猫糕",
@@ -71,20 +76,50 @@ export default function MainSection({
       summarizeAftermath(groups)
         .then(setAftermath)
         .catch(() => setAftermath(null));
-    } else setAftermath(null);
+    } else {
+      setAftermath(null);
+    }
   }, [groups]);
 
   /* ---------------------------------------------------
-     🔥 Solver
+     🔥 Solver (SAFE)
   --------------------------------------------------- */
   const safeRunSolver = async (abilities: AbilityCheck[]) => {
     if (solving) return;
+
     try {
       setSolving(true);
-      const results = runAdvancedSolver(schedule.characters, abilities, 3);
+      await new Promise((r) => setTimeout(r, 0)); 
+      const results = runAdvancedSolver(
+        schedule.characters,
+        abilities,
+        3
+      );
+
+      /* 🚫 HARD GUARD: solver failure */
+      const isInvalid =
+        !Array.isArray(results) ||
+        results.length === 0 ||
+        results.every(
+          (g) =>
+            !Array.isArray(g.characters) ||
+            g.characters.length === 0
+        );
+
+      if (isInvalid) {
+        toastError("排表失败，请重试");
+        return; // ⛔ STOP HERE
+      }
+
+      /* ✅ Valid solver result */
+      toastSuccess("排表成功");
+
       const reordered = reorderGroups(results);
       setGroups(reordered);
       await saveGroups(reordered);
+    } catch (err) {
+      console.error("❌ Solver error:", err);
+      toastError("排表失败，请重试");
     } finally {
       setSolving(false);
     }
@@ -135,13 +170,18 @@ export default function MainSection({
       (g) => !g.characters.some((c) => MAIN_ORDER_MAP.has(c.name))
     );
 
-    return [...main, ...alt].map((g, idx) => ({ ...g, index: idx + 1 }));
+    return [...main, ...alt].map((g, idx) => ({
+      ...g,
+      index: idx + 1,
+    }));
   };
 
   useEffect(() => {
     if (!groups.length) return;
     const reordered = reorderGroups(groups);
-    const diff = reordered.some((g, i) => g.index !== groups[i]?.index);
+    const diff = reordered.some(
+      (g, i) => g.index !== groups[i]?.index
+    );
     if (diff) {
       setGroups(reordered);
       saveGroups(reordered);
@@ -158,15 +198,13 @@ export default function MainSection({
 
   return (
     <div className={styles.section}>
-      {/* ✅ Control Bar (progress only, for now) */}
       <ControlBar
-     finished={finishedCount}
-  total={groups.length}
-  locked={shouldLock}
-  onManualEdit={() => setShowEditAll(true)}
+        finished={finishedCount}
+        total={groups.length}
+        locked={shouldLock}
+        onManualEdit={() => setShowEditAll(true)}
       />
 
-      {/* ⭐ Groups */}
       {groups.length === 0 ? (
         <p className={styles.empty}></p>
       ) : (
@@ -175,7 +213,9 @@ export default function MainSection({
             groups={groups
               .map((g, i) => ({ g, i }))
               .filter(({ g }) =>
-                g.characters.some((c) => MAIN_ORDER_MAP.has(c.name))
+                g.characters.some((c) =>
+                  MAIN_ORDER_MAP.has(c.name)
+                )
               )}
             setActiveIdx={setActiveIdx}
             checkGroupQA={checkGroupQA}
@@ -200,20 +240,20 @@ export default function MainSection({
         </>
       )}
 
-      {/* ⭐ Solver */}
       <div className={styles.solverBar}>
-
-<SolverButtons
-  solving={solving}
-  disabled={shouldLock}
-  onCore={() => safeRunSolver(allAbilities)}
-  onFull={() => safeRunSolver(allAbilities)}
-  onEdit={() => setShowEditAll(true)}
-  allAbilities={allAbilities.map(a => ({ name: a.name, level: a.level }))}
-  enabledAbilities={enabledAbilities}
-  setEnabledAbilities={setEnabledAbilities}
-/>
-
+        <SolverButtons
+          solving={solving}
+          disabled={shouldLock}
+          onCore={() => safeRunSolver(allAbilities)}
+          onFull={() => safeRunSolver(allAbilities)}
+          onEdit={() => setShowEditAll(true)}
+          allAbilities={allAbilities.map((a) => ({
+            name: a.name,
+            level: a.level,
+          }))}
+          enabledAbilities={enabledAbilities}
+          setEnabledAbilities={setEnabledAbilities}
+        />
       </div>
 
       {showEditAll && (
