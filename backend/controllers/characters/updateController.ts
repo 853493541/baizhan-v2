@@ -3,13 +3,46 @@ import mongoose from "mongoose";
 import Character from "../../models/Character";
 import AbilityHistory from "../../models/AbilityHistory";
 import { normalizeDefenseAbilities } from "../../utils/normalizeDefenseAbilities";
+import { calculateStats } from "../../utils/calculateStats";
+import bosses from "../../data/boss_skills_collection_reward.json";
+
+/* =====================================================
+   Helper: Recalculate derived stats (energy / durability)
+===================================================== */
+
+function recalcStats(char: any) {
+  let plainAbilities: Record<string, number> = {};
+
+  const abilities: any = char.abilities;
+
+  if (abilities instanceof Map) {
+    plainAbilities = Object.fromEntries(abilities.entries());
+  } else if (abilities && typeof abilities === "object") {
+    plainAbilities = { ...abilities };
+  }
+
+  const { energy, durability } = calculateStats(
+    bosses,
+    plainAbilities,
+    char.gender
+  );
+
+  console.log("[FINAL RESULT]", {
+    characterId: char._id,
+    energy,
+    durability,
+  });
+
+  char.energy = energy;
+  char.durability = durability;
+}
+
 
 // =====================================================
 // ✅ Ability Management
 // =====================================================
 
-// ✅ Update abilities + record every change
-// ✅ Update abilities + record every change (IDEMPOTENT, NO REJECTION)
+// ✅ Update abilities + record every change (IDEMPOTENT)
 export const updateCharacterAbilities = async (req: Request, res: Response) => {
   try {
     const { abilities } = req.body;
@@ -54,13 +87,14 @@ export const updateCharacterAbilities = async (req: Request, res: Response) => {
       }
     }
 
-    // 🔑 ALWAYS normalize derived defense abilities
+    // 🔑 Derived state updates
     normalizeDefenseAbilities(char);
+    recalcStats(char);
 
-    // 💾 ALWAYS save (idempotent-safe)
+    // 💾 Save once
     await char.save();
 
-    // 🧾 Log history ONLY if user actually changed something
+    // 🧾 Log ability history ONLY if changed
     if (historyEntries.length > 0) {
       await AbilityHistory.insertMany(historyEntries);
       console.log(
@@ -68,7 +102,6 @@ export const updateCharacterAbilities = async (req: Request, res: Response) => {
       );
     }
 
-    // ✅ ALWAYS success
     return res.json({
       character: char,
       updated,
@@ -83,9 +116,8 @@ export const updateCharacterAbilities = async (req: Request, res: Response) => {
   }
 };
 
-
 // =====================================================
-// ✅ Character Basic Info Management (unchanged)
+// ✅ Character Basic Info Management
 // =====================================================
 
 export const updateCharacter = async (req: Request, res: Response) => {
@@ -193,20 +225,21 @@ export const useStoredAbility = async (req: Request, res: Response) => {
       ? (char.abilities as any).set(ability, level)
       : ((char.abilities as any)[ability] = level);
 
-    // 2️⃣ Remove the used item from storage
+    // 2️⃣ Remove used item from storage
     const before = (char as any).storage.length;
     (char as any).storage = (char as any).storage.filter(
       (item: any) => !(item.ability === ability && item.level === level)
     );
     const removed = before - (char as any).storage.length;
 
-    // 🔑 Normalize derived defense abilities
+    // 🔑 Derived state updates
     normalizeDefenseAbilities(char);
+    recalcStats(char);
 
     // 3️⃣ Save
     await char.save();
 
-    // 4️⃣ Log user-triggered history
+    // 4️⃣ Log ability change
     await AbilityHistory.create({
       characterId: char._id,
       characterName: char.name,

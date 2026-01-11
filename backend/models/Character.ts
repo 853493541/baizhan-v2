@@ -20,6 +20,8 @@ export interface Character extends Document {
   role: "DPS" | "Tank" | "Healer";
   active: boolean;
   abilities: Record<string, number>;
+    energy: number;
+  durability: number;
   owner: string;
   storage: StoredAbility[]; // 🔹 new storage field
 }
@@ -54,6 +56,26 @@ const CharacterSchema: Schema = new Schema({
   role: { type: String, enum: ["DPS", "Tank", "Healer"], required: true },
   active: { type: Boolean, default: true },
   abilities: { type: Map, of: Number, default: {} },
+
+   energy: {
+      type: Number,
+      default: 10000,
+      min: 0,
+    },
+
+    durability: {
+      type: Number,
+      default: 10000,
+      min: 0,
+    },
+
+
+
+
+
+
+
+
   owner: { type: String, default: "Unknown", trim: true },
   storage: { type: [StoredAbilitySchema], default: [] }, // ✅ added
 });
