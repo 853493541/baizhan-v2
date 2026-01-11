@@ -112,7 +112,7 @@ export function runAdvancedSolver(
       core: CORE_ABILITIES.includes(a.name),
     }));
 
- 
+  
 
   const abilityIndex = new Map<string, number>();
   targeted.forEach((a) => abilityIndex.set(a.key!, a.index!));
@@ -190,20 +190,14 @@ export function runAdvancedSolver(
     for (const h of healers) placeGreedy(h);
     for (const c of others) placeGreedy(c);
 
-    if (placed.size !== people.length) {
-      if (shouldLog) {
-        console.warn(
-          `[advanced solver] attempt ${attempt}: ❌ placement failed (${placed.size}/${people.length})`
-        );
-      }
-      continue;
-    }
-
+if (placed.size !== people.length) {
+  continue;
+}
     // ---------- Tier 1: Hard fails ----------
     let score = 0;
     for (const g of groups) {
       if (!g.hasHealer) {
-        if (shouldLog) console.warn(`[advanced solver] attempt ${attempt}: ❌ missing healer`);
+        // if (shouldLog) console.warn(`[advanced solver] attempt ${attempt}: ❌ missing healer`);
         score = -10;
       }
       const seen = new Set<string>();
@@ -211,9 +205,9 @@ export function runAdvancedSolver(
       for (const c of g.chars) {
         if (seen.has(c.account)) {
           if (shouldLog)
-            console.warn(
-              `[advanced solver] attempt ${attempt}: ❌ duplicate account ${c.account}`
-            );
+            // console.warn(
+            //   // `[advanced solver] attempt ${attempt}: ❌ duplicate account ${c.account}`
+            // );
           score = -10;
         }
         seen.add(c.account);
@@ -223,9 +217,9 @@ export function runAdvancedSolver(
           mainCount++;
           if (mainCount > 1) {
             if (shouldLog) {
-              console.warn(
-                `[advanced solver] attempt ${attempt}: ❌ multiple main characters in same group`
-              );
+              // console.warn(
+              //   `[advanced solver] attempt ${attempt}: ❌ multiple main characters in same group`
+              // );
             }
             score = -10;
           }
@@ -247,14 +241,11 @@ export function runAdvancedSolver(
       }
 
       if (fullGroups > tol) {
-        if (a.core) {
-          if (shouldLog) {
-            console.warn(
-              `[advanced solver] attempt ${attempt}: ❌ core ${a.name}-${a.level} fullGroups=${fullGroups} > tol=${tol}`
-            );
-          }
-          score = -10;
-          break;
+if (a.core) {
+  score = -10;
+  break;
+}
+
         } else {
           const excess = fullGroups - tol;
           if (excess > 0) {
@@ -263,7 +254,7 @@ export function runAdvancedSolver(
           }
         }
       }
-    }
+    
     if (score < 0) continue;
 
     // ---------- Tier 4: check only level 10, +500 penalty per missing ----------
@@ -280,22 +271,17 @@ export function runAdvancedSolver(
       }
 
       const missing = groupsCount - groupsWithAbility;
-      if (missing > 0) {
-        const penalty = missing * 500;
-        score += penalty;
-        if (shouldLog) {
-          console.warn(
-            `[advanced solver] attempt ${attempt}: ⚠️ Tier4 penalty for ${abilityName}-10, ` +
-            `groupsWithAbility=${groupsWithAbility}/${groupsCount}, missingGroups=${missing}, +${penalty}`
-          );
-        }
-      }
+
+      
+if (missing > 0) {
+  score += missing * 500;
+}
     }
 
     // 🟦 Track this attempt for average score
+
     totalScore += score;
     validAttempts++;
-
     // ---------- Record best ----------
     if (score < bestScore) {
       bestScore = score;
@@ -326,13 +312,21 @@ export function runAdvancedSolver(
   if (!best) {
     console.error("[advanced solver] ❌ all attempts failed");
     const safeCapacity = (groupSize - 1) * groupsCount;
-    for (const a of targeted) {
-      const { tol, holders } = abilityTolerance.get(a.index!)!;
-      console.error(
-        `[advanced solver] tolerance ${a.name}-${a.level}: holders=${holders}, groups=${groupsCount}, ` +
-        `safeCapacity=${safeCapacity}, tol=${tol}, core=${a.core ? "Y" : "N"}`
-      );
-    }
+
+
+  for (const a of targeted) {
+  if (!a.core) continue;
+
+  const { tol, holders } = abilityTolerance.get(a.index!)!;
+
+  console.error(
+    `[advanced solver] ❌ CORE tolerance ${a.name}-${a.level}: ` +
+    `holders=${holders}, groups=${groupsCount}, ` +
+    `safeCapacity=${safeCapacity}, tol=${tol}`
+  );
+}
+
+
     console.timeEnd("[advanced solver] total runtime");
     return [];
   }
