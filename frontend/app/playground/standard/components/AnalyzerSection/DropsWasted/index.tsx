@@ -31,9 +31,10 @@ const CORE_ABILITIES = [
 
 export default function DropsWasted({ groups = [], checkedAbilities }: Props) {
   const [activeLevel, setActiveLevel] = useState<LevelTab>(10);
-  const [wasted, setWasted] = useState<{ wasted9: number; wasted10: number } | null>(
-    null
-  );
+  const [wasted, setWasted] = useState<{
+    wasted9: number;
+    wasted10: number;
+  } | null>(null);
 
   useEffect(() => {
     if (!groups.length) return;
@@ -59,6 +60,7 @@ export default function DropsWasted({ groups = [], checkedAbilities }: Props) {
   const abilitiesByLevel = useMemo(() => {
     const level9 = new Set<string>();
     const level10 = new Set<string>();
+
     for (const g of groups) {
       for (const c of g.characters) {
         for (const { name, level } of availableAbilities) {
@@ -68,6 +70,7 @@ export default function DropsWasted({ groups = [], checkedAbilities }: Props) {
         }
       }
     }
+
     return {
       level9: Array.from(level9),
       level10: Array.from(level10),
@@ -89,6 +92,7 @@ export default function DropsWasted({ groups = [], checkedAbilities }: Props) {
         const owners = g.characters.filter((c: Character) =>
           ownsForLevel(c.abilities?.[ability] ?? 0, activeLevel)
         );
+
         if (owners.length > 2) {
           if (CORE_ABILITIES.includes(ability)) coreWaste.push(ability);
           else otherWaste.push(ability);
@@ -97,32 +101,37 @@ export default function DropsWasted({ groups = [], checkedAbilities }: Props) {
 
       res[`group${i + 1}`] = { core: coreWaste, other: otherWaste };
     }
+
     return res;
   }, [groups, activeLevel, abilitiesByLevel]);
 
-  if (!groups.length) return <p className={styles.loading}>暂无组别数据</p>;
+  if (!groups.length) {
+    return <p className={styles.loading}>暂无组别数据</p>;
+  }
 
   return (
     <div className={styles.container}>
-      {/* === Top bar (no title) === */}
+      {/* === Top bar === */}
       <div className={styles.topBar}>
-        {/* ⬅️ Level tabs on left */}
         <div className={styles.levelTabs}>
           <button
-            className={`${styles.levelBtn} ${activeLevel === 10 ? styles.active : ""}`}
+            className={`${styles.levelBtn} ${
+              activeLevel === 10 ? styles.active : ""
+            }`}
             onClick={() => setActiveLevel(10)}
           >
             10重
           </button>
           <button
-            className={`${styles.levelBtn} ${activeLevel === 9 ? styles.active : ""}`}
+            className={`${styles.levelBtn} ${
+              activeLevel === 9 ? styles.active : ""
+            }`}
             onClick={() => setActiveLevel(9)}
           >
             9重
           </button>
         </div>
 
-        {/* ➡️ Summary on right */}
         {wasted && (
           <div className={styles.summaryLeft}>
             <span className={styles.label}>9重浪费总数：</span>
@@ -134,31 +143,32 @@ export default function DropsWasted({ groups = [], checkedAbilities }: Props) {
         )}
       </div>
 
-      {/* === Table Layout === */}
+      {/* === Table === */}
       <div className={styles.tableWrapper}>
         <table className={styles.wasteTable}>
           <thead>
             <tr>
-              <th>  </th>
-              <th>浪费技能</th>
+              <th className={styles.groupCol}></th>
+              <th className={styles.coreCol}>关键技能</th>
+              <th className={styles.otherCol}>其他技能</th>
             </tr>
           </thead>
           <tbody>
-            {groups.map((g, idx) => {
-              const { core, other } = groupWasteIcons[`group${idx + 1}`] || {
-                core: [],
-                other: [],
-              };
-              const hasWaste = core.length > 0 || other.length > 0;
+            {groups.map((_, idx) => {
+              const { core, other } =
+                groupWasteIcons[`group${idx + 1}`] ?? {
+                  core: [],
+                  other: [],
+                };
 
               return (
                 <tr key={idx}>
                   <td className={styles.groupCol}>组 {idx + 1}</td>
+
                   <td className={styles.iconCol}>
-                    {hasWaste ? (
-                      <>
-                        {/* Core abilities first */}
-                        {core.map((a, i) => (
+                    <div className={styles.iconRow}>
+                      {core.length > 0 ? (
+                        core.map((a, i) => (
                           <Image
                             key={`core-${i}`}
                             src={`/icons/${a}.png`}
@@ -167,19 +177,18 @@ export default function DropsWasted({ groups = [], checkedAbilities }: Props) {
                             height={26}
                             className={`${styles.abilityIcon} ${styles.coreIcon}`}
                             title={a}
-                            onError={(e) =>
-                              ((e.target as HTMLImageElement).style.display = "none")
-                            }
                           />
-                        ))}
+                        ))
+                      ) : (
+                        <span className={styles.noWaste}> </span>
+                      )}
+                    </div>
+                  </td>
 
-                        {/* Separator */}
-                        {core.length > 0 && other.length > 0 && (
-                          <span className={styles.pipe}>|</span>
-                        )}
-
-                        {/* Other abilities */}
-                        {other.map((a, i) => (
+                  <td className={styles.iconCol}>
+                    <div className={styles.iconRow}>
+                      {other.length > 0 ? (
+                        other.map((a, i) => (
                           <Image
                             key={`other-${i}`}
                             src={`/icons/${a}.png`}
@@ -188,15 +197,12 @@ export default function DropsWasted({ groups = [], checkedAbilities }: Props) {
                             height={26}
                             className={styles.abilityIcon}
                             title={a}
-                            onError={(e) =>
-                              ((e.target as HTMLImageElement).style.display = "none")
-                            }
                           />
-                        ))}
-                      </>
-                    ) : (
-                      <span className={styles.noWaste}>（无浪费）</span>
-                    )}
+                        ))
+                      ) : (
+                        <span className={styles.noWaste}>—</span>
+                      )}
+                    </div>
                   </td>
                 </tr>
               );

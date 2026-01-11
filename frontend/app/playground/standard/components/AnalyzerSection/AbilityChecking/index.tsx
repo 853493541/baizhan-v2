@@ -36,6 +36,7 @@ const SECONDARY_ABILITIES = [
   "漾剑式",
   "阴阳术退散",
   "兔死狐悲",
+  "剑心通明"
 ];
 
 /* ===============================
@@ -138,7 +139,7 @@ function AbilityRows({
                   setHover((h) => ({ ...h, visible: false }))
                 }
               >
-                {isOver && <span className={styles.cross}>✖</span>}
+                {isOver && <span className={styles.cross}>满</span>}
               </td>
             );
           })}
