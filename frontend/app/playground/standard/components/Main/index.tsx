@@ -32,7 +32,9 @@ interface Props {
     characters: Character[];
     checkedAbilities: AbilityCheck[];
   };
-  groups: (GroupResult & { status?: "not_started" | "started" | "finished" })[];
+  groups: (GroupResult & {
+    status?: "not_started" | "started" | "finished";
+  })[];
   setGroups: (groups: GroupResult[]) => void;
   activeIdx: number | null;
   setActiveIdx: (idx: number | null) => void;
@@ -41,6 +43,65 @@ interface Props {
     conflictLevel: number,
     checkedAbilities: AbilityCheck[]
   ) => string[];
+}
+
+/* ===================================================
+   ✅ Inline Progress Bar (MATCHES PICTURE 2)
+=================================================== */
+function InlineProgress({
+  finished,
+  total,
+}: {
+  finished: number;
+  total: number;
+}) {
+  const progress =
+    total === 0 ? 0 : Math.round((finished / total) * 100);
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        marginTop: 6,
+      }}
+    >
+      <div
+        style={{
+          width: 140,
+          height: 6,
+          backgroundColor: "#e5e7eb",
+          borderRadius: 999,
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            width: `${progress}%`,
+            height: "100%",
+            transition: "width 0.25s ease",
+            backgroundColor:
+              progress === 100
+                ? "#22c55e"
+                : progress <= 30
+                ? "#ef4444"
+                : "#eab308",
+          }}
+        />
+      </div>
+
+      <span
+        style={{
+          fontSize: 13,
+          color: "#374151",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {finished} / {total}
+      </span>
+    </div>
+  );
 }
 
 export default function MainSection({
@@ -59,9 +120,9 @@ export default function MainSection({
   const allAbilities = schedule.checkedAbilities;
   const keyFor = (a: AbilityCheck) => `${a.name}-${a.level}`;
 
-  const [enabledAbilities, setEnabledAbilities] = useState<Record<string, boolean>>(
-    () => Object.fromEntries(allAbilities.map((a) => [keyFor(a), true]))
-  );
+  const [enabledAbilities, setEnabledAbilities] = useState<
+    Record<string, boolean>
+  >(() => Object.fromEntries(allAbilities.map((a) => [keyFor(a), true])));
 
   useEffect(() => {
     if (groups.length > 0) {
@@ -72,9 +133,9 @@ export default function MainSection({
   }, [groups]);
 
   /* ---------------------------------------------------
-     🔥 SOLVER — updates everything using PUT endpoint
+     🔥 Solver
   --------------------------------------------------- */
-  const safeRunSolver = async (abilities: AbilityCheck[], label: string) => {
+  const safeRunSolver = async (abilities: AbilityCheck[]) => {
     if (solving) return;
     try {
       setSolving(true);
@@ -110,16 +171,14 @@ export default function MainSection({
   };
 
   /* ---------------------------------------------------
-     🔥 Automatic reordering (main → alt, priority-aware)
+     🔥 Reordering
   --------------------------------------------------- */
   const reorderGroups = (inputGroups: GroupResult[]) => {
     const getPriority = (g: GroupResult) => {
       let best = Infinity;
       for (const c of g.characters) {
         const order = MAIN_ORDER_MAP.get(c.name);
-        if (order !== undefined) {
-          best = Math.min(best, order);
-        }
+        if (order !== undefined) best = Math.min(best, order);
       }
       return best;
     };
@@ -147,34 +206,32 @@ export default function MainSection({
     }
   }, [groups]);
 
-  /* ---------------------------------------------------
-     🔥 Automatic lock when groups are started
-  --------------------------------------------------- */
-  const shouldLock = groups.some((g) => (g.status ?? "not_started") !== "not_started");
-
-  /* ---------------------------------------------------
-     UI rendering
-  --------------------------------------------------- */
-  const mainPairs = groups
-    .map((g, i) => ({ g, i }))
-    .filter(({ g }) => g.characters.some((c) => MAIN_ORDER_MAP.has(c.name)));
-
-  const altPairs = groups
-    .map((g, i) => ({ g, i }))
-    .filter(({ g }) => !g.characters.some((c) => MAIN_ORDER_MAP.has(c.name)));
+  const shouldLock = groups.some(
+    (g) => (g.status ?? "not_started") !== "not_started"
+  );
 
   const finishedCount = groups.filter((g) => g.status === "finished").length;
 
-  const getActiveAbilities = () =>
-    allAbilities.filter((a) => enabledAbilities[keyFor(a)] !== false);
-
   return (
     <div className={styles.section}>
-      {/* <h3 className={styles.sectionTitle}>排表区域</h3> */}
-      <p className={styles.finishedCount}>
-        已完成小组: {finishedCount} / {groups.length}
-      </p>
+      {/* ✅ INLINE STATUS ROW (MATCHES PIC 2) */}
+<div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 12,
+    fontSize: 13,
+    color: "#374151",
+  }}
+>
+  <span>完成进度:</span>
 
+  <InlineProgress
+    finished={finishedCount}
+    total={groups.length}
+  />
+</div>
 
 
       {/* ⭐ Groups */}
@@ -182,30 +239,38 @@ export default function MainSection({
         <p className={styles.empty}>暂无排表结果</p>
       ) : (
         <>
-          {mainPairs.length > 0 && (
-            <DisplayGroups
-              title="大号组"
-              groups={mainPairs}
-              setActiveIdx={setActiveIdx}
-              checkGroupQA={checkGroupQA}
-              conflictLevel={schedule.conflictLevel}
-              checkedAbilities={schedule.checkedAbilities}
-            />
-          )}
+          <DisplayGroups
+            title="大号组"
+            groups={groups
+              .map((g, i) => ({ g, i }))
+              .filter(({ g }) =>
+                g.characters.some((c) => MAIN_ORDER_MAP.has(c.name))
+              )}
+            setActiveIdx={setActiveIdx}
+            checkGroupQA={checkGroupQA}
+            conflictLevel={schedule.conflictLevel}
+            checkedAbilities={schedule.checkedAbilities}
+          />
 
-          {altPairs.length > 0 && (
-            <DisplayGroups
-              title="小号组"
-              groups={altPairs}
-              setActiveIdx={setActiveIdx}
-              checkGroupQA={checkGroupQA}
-              conflictLevel={schedule.conflictLevel}
-              checkedAbilities={schedule.checkedAbilities}
-            />
-          )}
+          <DisplayGroups
+            title="小号组"
+            groups={groups
+              .map((g, i) => ({ g, i }))
+              .filter(
+                ({ g }) =>
+                  !g.characters.some((c) =>
+                    MAIN_ORDER_MAP.has(c.name)
+                  )
+              )}
+            setActiveIdx={setActiveIdx}
+            checkGroupQA={checkGroupQA}
+            conflictLevel={schedule.conflictLevel}
+            checkedAbilities={schedule.checkedAbilities}
+          />
         </>
       )}
-      {/* ⭐ Solver + Manual Editor */}
+
+      {/* ⭐ Solver */}
       <div className={styles.solverBar}>
         <SolverOptions
           allAbilities={allAbilities.map((a) => ({
@@ -220,20 +285,18 @@ export default function MainSection({
         <SolverButtons
           solving={solving}
           disabled={shouldLock}
-          onCore={() => safeRunSolver(getActiveAbilities(), "Custom")}
-          onFull={() => safeRunSolver(allAbilities, "Full")}
+          onCore={() => safeRunSolver(allAbilities)}
+          onFull={() => safeRunSolver(allAbilities)}
           onManual={() => setShowEditAll(true)}
         />
       </div>
-      {/* ⭐ Manual Edit Modal */}
+
       {showEditAll && (
         <EditAllGroupsModal
           groups={groups}
           scheduleId={schedule._id}
           onClose={() => setShowEditAll(false)}
-          onSave={(updatedGroups) => {
-            setGroups(updatedGroups);
-          }}
+          onSave={setGroups}
         />
       )}
     </div>
