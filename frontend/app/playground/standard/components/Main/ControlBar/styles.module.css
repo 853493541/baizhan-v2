@@ -77,3 +77,6 @@
 .manualBtn:active {
   background-color: #c7d2fe;
 }
+.completed {
+  background-color: #28a745; /* green */
+}

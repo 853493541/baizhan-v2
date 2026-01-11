@@ -51,10 +51,13 @@ export default function ControlBar({
 
         <div className={styles.progressWrap}>
           <div className={styles.progressTrack}>
-            <div
-              className={styles.progressFill}
-              style={{ width: `${progress}%` }}
-            />
+<div
+  className={`${styles.progressFill} ${
+    progress === 100 ? styles.completed : ""
+  }`}
+  style={{ width: `${progress}%` }}
+/>
+
           </div>
 
           <span className={styles.count}>
