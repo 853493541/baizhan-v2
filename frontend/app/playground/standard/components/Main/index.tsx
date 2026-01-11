@@ -10,6 +10,7 @@ import SolverOptions from "./SolverOptions";
 import SolverButtons from "./SolverButtons";
 import DisplayGroups from "./DisplayGroups";
 import EditAllGroupsModal from "./EditAllGroupsModal";
+import ControlBar from "./ControlBar";
 
 /* 🔥 ORDERED main character priority */
 const MAIN_CHARACTERS = [
@@ -43,65 +44,6 @@ interface Props {
     conflictLevel: number,
     checkedAbilities: AbilityCheck[]
   ) => string[];
-}
-
-/* ===================================================
-   ✅ Inline Progress Bar (MATCHES PICTURE 2)
-=================================================== */
-function InlineProgress({
-  finished,
-  total,
-}: {
-  finished: number;
-  total: number;
-}) {
-  const progress =
-    total === 0 ? 0 : Math.round((finished / total) * 100);
-
-  return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 10,
-        marginTop: 6,
-      }}
-    >
-      <div
-        style={{
-          width: 140,
-          height: 6,
-          backgroundColor: "#e5e7eb",
-          borderRadius: 999,
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            width: `${progress}%`,
-            height: "100%",
-            transition: "width 0.25s ease",
-            backgroundColor:
-              progress === 100
-                ? "#22c55e"
-                : progress <= 30
-                ? "#ef4444"
-                : "#eab308",
-          }}
-        />
-      </div>
-
-      <span
-        style={{
-          fontSize: 13,
-          color: "#374151",
-          whiteSpace: "nowrap",
-        }}
-      >
-        {finished} / {total}
-      </span>
-    </div>
-  );
 }
 
 export default function MainSection({
@@ -210,37 +152,26 @@ export default function MainSection({
     (g) => (g.status ?? "not_started") !== "not_started"
   );
 
-  const finishedCount = groups.filter((g) => g.status === "finished").length;
+  const finishedCount = groups.filter(
+    (g) => g.status === "finished"
+  ).length;
 
   return (
     <div className={styles.section}>
-      {/* ✅ INLINE STATUS ROW (MATCHES PIC 2) */}
-<div
-  style={{
-    display: "flex",
-    alignItems: "center",
-    gap: 10,
-    marginBottom: 12,
-    fontSize: 13,
-    color: "#374151",
-  }}
->
-  <span>完成进度:</span>
-
-  <InlineProgress
-    finished={finishedCount}
-    total={groups.length}
-  />
-</div>
-
+      {/* ✅ Control Bar (progress only, for now) */}
+      <ControlBar
+     finished={finishedCount}
+  total={groups.length}
+  locked={shouldLock}
+  onManualEdit={() => setShowEditAll(true)}
+      />
 
       {/* ⭐ Groups */}
       {groups.length === 0 ? (
-        <p className={styles.empty}>暂无排表结果</p>
+        <p className={styles.empty}></p>
       ) : (
         <>
           <DisplayGroups
-            // title="大号组"
             groups={groups
               .map((g, i) => ({ g, i }))
               .filter(({ g }) =>
@@ -251,10 +182,8 @@ export default function MainSection({
             conflictLevel={schedule.conflictLevel}
             checkedAbilities={schedule.checkedAbilities}
           />
-{/* <div style={{ height: 1, backgroundColor: "#9ca3af", margin: "16px 0",}}/> */}
 
           <DisplayGroups
-            // title="小号组"
             groups={groups
               .map((g, i) => ({ g, i }))
               .filter(
@@ -283,13 +212,17 @@ export default function MainSection({
           disabled={shouldLock}
         />
 
-        <SolverButtons
-          solving={solving}
-          disabled={shouldLock}
-          onCore={() => safeRunSolver(allAbilities)}
-          onFull={() => safeRunSolver(allAbilities)}
-          onManual={() => setShowEditAll(true)}
-        />
+<SolverButtons
+  solving={solving}
+  disabled={shouldLock}
+  onCore={() => safeRunSolver(allAbilities)}
+  onFull={() => safeRunSolver(allAbilities)}
+  onEdit={() => setShowEditAll(true)}
+  allAbilities={allAbilities.map(a => ({ name: a.name, level: a.level }))}
+  enabledAbilities={enabledAbilities}
+  setEnabledAbilities={setEnabledAbilities}
+/>
+
       </div>
 
       {showEditAll && (

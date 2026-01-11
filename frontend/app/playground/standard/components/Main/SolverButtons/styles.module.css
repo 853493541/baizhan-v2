@@ -1,88 +1,49 @@
-.solverButtons {
-  display: flex;
-  gap: 12px;
- margin-top:8px;
- /* border:2px green solid; */
-}
-
-.solverBtn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 6px;
-  color: white;
-  font-size: 14px;
-  cursor: pointer;
-  margin-bottom: 16px;
-  transition: background 0.2s;
-}
-
-.solverBtn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.coreBtn {
-  background: #0070f3; /* blue */
-}
-.coreBtn:hover {
-  background: #0059c1;
-}
-
-.fullBtn {
-  background: #0070f3; /* green */
-}
-.fullBtn:hover {
-  background: #0059c1;
-}
-
-.lockedBtn {
-  background: #ccc !important;
-  color: #444 !important;
-  cursor: not-allowed !important;
-}
-.manualBtn {
-  background: #0070f3;
-}
-
-.manualBtn:hover {
-  background: #0059c1;
-}
-.manualBtn:hover {
-  background: #0059c1;
-}
+/* Container */
 .solverButtons {
   display: flex;
   gap: 12px;
   margin-top: 8px;
 }
 
+/* Base button (shared) */
 .solverBtn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 6px;
-  color: white;
-  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 6px 14px;
+  min-height: 28px;
+
+  font-size: 13px;
+  font-weight: 500;
+
+  border-radius: 8px;
   cursor: pointer;
-  margin-bottom: 16px;
-  transition: background 0.2s;
+
+  white-space: nowrap;
+  transition: background-color 0.15s ease;
 }
 
-/* Blue button */
-.coreBtn,
-.fullBtn,
-.manualBtn {
-  background: #0070f3;
-}
-.coreBtn:hover,
-.fullBtn:hover,
-.manualBtn:hover {
-  background: #0059c1;
+/* Light pill style (same as 编辑排表) */
+.lightBtn {
+  border: 1px solid #c7d2fe;
+  background-color: #eef2ff;
+  color: #2563eb;
 }
 
-/* ⭐ NEW — light blue disabled state */
+.lightBtn:hover:not(:disabled) {
+  background-color: #e0e7ff;
+}
+
+/* Disabled but still readable */
 .disabledLight {
-  background: #7fb8ff !important; /* light blue */
-  color: white !important;
+  background-color: #e5edff !important;
+  border-color: #c7d2fe !important;
+  color: #94a3b8 !important;
   cursor: not-allowed !important;
-  opacity: 0.9 !important;
+}
+
+/* Native disabled fallback */
+.solverBtn:disabled {
+  cursor: not-allowed;
 }

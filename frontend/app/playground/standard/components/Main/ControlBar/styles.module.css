@@ -1,0 +1,79 @@
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: #374151;
+}
+
+.label {
+  white-space: nowrap;
+}
+
+.progressWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Progress bar */
+.progressTrack {
+  width: 140px;
+  height: 6px;
+  background-color: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  transition: width 0.25s ease;
+  background-color: #eab308;
+}
+
+/* Dynamic color via parent state (optional later) */
+/* You can extend this with data attributes if needed */
+
+.count {
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+
+
+.manualBtn:hover {
+  background-color: #e0e7ff;
+}
+
+.manualBtn:active {
+  background-color: #c7d2fe;
+}
+.manualBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 4px 10px;          /* allow text width */
+  min-height: 28px;           /* same visual height as icon buttons */
+
+  border-radius: 8px;
+  border: 1px solid #c7d2fe;  /* light blue border */
+  background-color: #eef2ff;  /* light blue bg */
+
+  color: #2563eb;
+  font-size: 13px;
+  font-weight: 500;
+
+  cursor: pointer;
+
+  white-space: nowrap;        /* ✅ PREVENT vertical text */
+}
+
+.manualBtn:hover {
+  background-color: #e0e7ff;
+}
+
+.manualBtn:active {
+  background-color: #c7d2fe;
+}
