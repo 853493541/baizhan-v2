@@ -36,31 +36,37 @@ export default function DisplayGroups({
   conflictLevel,
   checkedAbilities,
 }: Props) {
-  const renderStatus = (status?: string) => {
-    const s = status || "not_started";
-    const dotClass =
-      s === "finished"
-        ? styles.finished
-        : s === "started"
-        ? styles.started
-        : styles.notStarted;
-    const text = s === "finished" ? "完成" : s === "started" ? "进行中" : "未开始";
+  const renderGroupMeta = (index: number, status?: string) => {
+    let statusText = "未开始";
+    let metaClass = styles.metaNotStarted;
+
+    if (status === "started") {
+      statusText = "进行中";
+      metaClass = styles.metaInProgress;
+    } else if (status === "finished") {
+      statusText = "已完成";
+      metaClass = styles.metaDone;
+    }
 
     return (
-      <span className={`${styles.statusDot} ${dotClass}`}>
-        ● <span className={styles.statusText}>{text}</span>
-      </span>
+     <span className={`${styles.groupMeta} ${metaClass}`}>
+  组 {index}
+  {" · "}
+{statusText}
+</span>
+
     );
   };
 
   return (
     <>
       <h3 className={styles.sectionSubtitle}>{title}</h3>
+
       <div className={styles.groupsGrid}>
         {groups.map(({ g, i }) => {
           const qaWarnings = checkGroupQA(g, conflictLevel, checkedAbilities);
 
-          // ✅ FRONTEND-ONLY: pick first main character (original order)
+          // ✅ main character first
           const firstMainIndex = g.characters.findIndex((c) =>
             MAIN_CHARACTERS.has(c.name)
           );
@@ -82,10 +88,8 @@ export default function DisplayGroups({
               }`}
               onClick={() => setActiveIdx(i)}
             >
-              <div className={styles.groupHeader}>
-                <h4 className={styles.groupTitle}>组 {i + 1}</h4>
-                {renderStatus(g.status)}
-              </div>
+              {/* 🏷️ Group meta chip: 组X · 状态 */}
+              {renderGroupMeta(i + 1, g.status)}
 
               <ul className={styles.memberList}>
                 {orderedCharacters.map((c, idx) => {

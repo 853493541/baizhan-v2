@@ -240,7 +240,7 @@ export default function MainSection({
       ) : (
         <>
           <DisplayGroups
-            title="大号组"
+            // title="大号组"
             groups={groups
               .map((g, i) => ({ g, i }))
               .filter(({ g }) =>
@@ -251,9 +251,10 @@ export default function MainSection({
             conflictLevel={schedule.conflictLevel}
             checkedAbilities={schedule.checkedAbilities}
           />
+{/* <div style={{ height: 1, backgroundColor: "#9ca3af", margin: "16px 0",}}/> */}
 
           <DisplayGroups
-            title="小号组"
+            // title="小号组"
             groups={groups
               .map((g, i) => ({ g, i }))
               .filter(

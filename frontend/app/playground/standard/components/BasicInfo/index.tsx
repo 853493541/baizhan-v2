@@ -105,9 +105,9 @@ export default function ScheduleHeader({
       {/* ================= HEADER ================= */}
       <div className={styles.headerBar}>
         {/* Row 1: Back */}
-        <button className={styles.backBtn} onClick={onBack}>
+        {/* <button className={styles.backBtn} onClick={onBack}>
           ← 返回
-        </button>
+        </button> */}
 
         {/* Row 2: Title + Actions */}
         <div className={styles.titleRow}>
