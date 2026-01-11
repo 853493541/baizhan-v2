@@ -1,30 +1,41 @@
-/* Container */
+/* ================================
+   Solver Buttons Container
+   ================================ */
+
 .solverButtons {
   display: flex;
+  align-items: center;   /* 🔥 vertical alignment fix */
   gap: 12px;
-  margin-top: 8px;
+  margin-top: 20px;
 }
 
-/* Base button (shared) */
+/* ================================
+   Base Button (shared)
+   ================================ */
+
 .solverBtn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
   padding: 6px 14px;
-  min-height: 28px;
+  min-height: 32px;
 
   font-size: 13px;
   font-weight: 500;
+  line-height: 1;        /* 🔥 prevents text vertical drift */
 
   border-radius: 8px;
   cursor: pointer;
-
   white-space: nowrap;
+
   transition: background-color 0.15s ease;
 }
 
-/* Light pill style (same as 编辑排表) */
+/* ================================
+   Light Pill Style
+   ================================ */
+
 .lightBtn {
   border: 1px solid #c7d2fe;
   background-color: #eef2ff;
@@ -35,7 +46,10 @@
   background-color: #e0e7ff;
 }
 
-/* Disabled but still readable */
+/* ================================
+   Disabled State
+   ================================ */
+
 .disabledLight {
   background-color: #e5edff !important;
   border-color: #c7d2fe !important;
@@ -43,7 +57,46 @@
   cursor: not-allowed !important;
 }
 
-/* Native disabled fallback */
 .solverBtn:disabled {
+  cursor: not-allowed;
+}
+
+/* ================================
+   Gear Icon Button (compact)
+   ================================ */
+
+.iconBtn {
+  width: 28px;          /* 🔥 smaller */
+  height: 28px;
+
+  padding: 0;
+  border-radius: 50%;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #c7d2fe;
+  background-color: #eef2ff;
+  color: #2563eb;
+
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+/* Normalize icon size inside */
+.iconBtn svg {
+  width: 15px;          /* 🔥 prevents “fat” look */
+  height: 15px;
+}
+
+/* Hover effect */
+.iconBtn:hover:not(:disabled) {
+  background-color: #e0e7ff;
+  transform: rotate(15deg);
+}
+
+.iconBtn:disabled {
+  opacity: 0.6;
   cursor: not-allowed;
 }

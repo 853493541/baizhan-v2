@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
-import { FaCog } from "react-icons/fa";
+import React, { useEffect, useState } from "react";
 import styles from "./styles.module.css";
 import { toastWarning } from "@/app/components/toast/toast";
 
@@ -11,7 +10,10 @@ interface AbilityItem {
 }
 
 interface Props {
-  disabled?: boolean;   // ⭐ NEW
+  open: boolean;                // ✅ controlled by parent
+  onClose: () => void;
+
+  disabled?: boolean;
   allAbilities?: AbilityItem[];
   enabledAbilities: Record<string, boolean>;
   setEnabledAbilities: React.Dispatch<
@@ -21,15 +23,18 @@ interface Props {
 
 const getAbilityIcon = (ability: string) => `/icons/${ability}.png`;
 
+/* ================================
+   Ability Categories
+================================ */
 export const CORE_ABILITIES = [
   "斗转金移",
   "花钱消灾",
   "黑煞落贪狼",
   "一闪天诛",
   "引燃",
-  "漾剑式",
-  "阴阳术退散",
+  "飞云回转刀",
   "兔死狐悲",
+  "厄毒爆发",
 ];
 
 export const GOOD_ABILITIES = [
@@ -40,13 +45,12 @@ export const GOOD_ABILITIES = [
   "毓秀灵药",
   "霞月长针",
   "剑心通明",
-  "飞云回转刀",
+  "漾剑式",
+  "阴阳术退散",
   "尸鬼封烬",
-  "血龙甩尾",
   "七荒黑牙",
   "三个铜钱",
   "乾坤一掷",
-  "厄毒爆发",
   "坠龙惊鸿",
   "火焰之种",
   "阴雷之种",
@@ -55,31 +59,35 @@ export const GOOD_ABILITIES = [
 ];
 
 export default function SolverOptions({
+  open,
+  onClose,
   disabled = false,
   allAbilities = [],
   enabledAbilities,
   setEnabledAbilities,
 }: Props) {
-  const [open, setOpen] = useState(false);
   const [activeLevel, setActiveLevel] = useState<9 | 10>(9);
-  const [warned, setWarned] = useState(false); // ⭐ only warn once
+  const [warned, setWarned] = useState(false);
 
   const getKey = (name: string, level: number) => `${name}-${level}`;
 
-  const handleGearClick = () => {
-    if (!disabled) {
-      setOpen(true);
-      return;
-    }
-
-    // 🔒 Locked: warn once per session
-    if (!warned) {
+  /* ================================
+     🔒 Warn once when locked
+  ================================ */
+  useEffect(() => {
+    if (open && disabled && !warned) {
       toastWarning("当前排表已锁定，调整技能可能无效。");
       setWarned(true);
     }
-    setOpen(true);
-  };
 
+    if (!open) {
+      setWarned(false); // reset when closed
+    }
+  }, [open, disabled, warned]);
+
+  /* ================================
+     Ability Logic
+  ================================ */
   const toggleAbility = (name: string, level: number) => {
     const key = getKey(name, level);
     setEnabledAbilities((prev) => ({
@@ -107,17 +115,22 @@ export default function SolverOptions({
       {list.map((a) => {
         const key = getKey(a.name, a.level);
         const checked = enabledAbilities[key] ?? true;
+
         return (
           <div
             key={key}
-            className={`${styles.iconBox} ${checked ? styles.selected : styles.dimmed}`}
+            className={`${styles.iconBox} ${
+              checked ? styles.selected : styles.dimmed
+            }`}
             onClick={() => toggleAbility(a.name, a.level)}
           >
             <div className={styles.iconWrapper}>
               <img
                 src={getAbilityIcon(a.name)}
                 alt={a.name}
-                className={`${styles.icon} ${checked ? styles.activeIcon : ""}`}
+                className={`${styles.icon} ${
+                  checked ? styles.activeIcon : ""
+                }`}
                 onError={(e) => {
                   (e.target as HTMLImageElement).style.display = "none";
                 }}
@@ -133,13 +146,18 @@ export default function SolverOptions({
 
   const renderSubCatalog = (list: AbilityItem[], level: number) => {
     if (!list.length) return null;
-    const allSelected = list.every((a) => enabledAbilities[getKey(a.name, level)] ?? true);
 
-    const handleToggleAll = () => {
+    const allSelected = list.every(
+      (a) => enabledAbilities[getKey(a.name, level)] ?? true
+    );
+
+    const toggleAll = () => {
       const newValue = !allSelected;
       setEnabledAbilities((prev) => {
         const updated = { ...prev };
-        list.forEach((a) => (updated[getKey(a.name, level)] = newValue));
+        list.forEach(
+          (a) => (updated[getKey(a.name, level)] = newValue)
+        );
         return updated;
       });
     };
@@ -148,8 +166,10 @@ export default function SolverOptions({
       <>
         <div className={styles.subHeader}>
           <button
-            className={`${styles.toggleAllBtn} ${allSelected ? styles.activeToggle : ""}`}
-            onClick={handleToggleAll}
+            className={`${styles.toggleAllBtn} ${
+              allSelected ? styles.activeToggle : ""
+            }`}
+            onClick={toggleAll}
           >
             全选
           </button>
@@ -161,70 +181,75 @@ export default function SolverOptions({
 
   const renderActiveLevel = (level: number, list: AbilityItem[]) => {
     const { core, good, others } = splitByCategory(list);
+
     return (
       <div className={styles.levelSection}>
         {core.length > 0 && (
           <>
             {renderSubCatalog(core, level)}
-            <div className={styles.dividerLine}></div>
+            <div className={styles.dividerLine} />
           </>
         )}
+
         {good.length > 0 && (
           <>
             {renderSubCatalog(good, level)}
-            <div className={styles.dividerLine}></div>
+            <div className={styles.dividerLine} />
           </>
         )}
+
         {others.length > 0 && renderSubCatalog(others, level)}
       </div>
     );
   };
 
+  /* ================================
+     Render
+  ================================ */
+  if (!open) return null;
+
   const activeList = activeLevel === 9 ? level9 : level10;
 
   return (
-    <>
-      {/* ⚙️ Gear icon — now supports gray when disabled */}
-      <button
-        className={`${styles.iconBtn} ${disabled ? styles.lockedBtn : ""}`}
-        onClick={handleGearClick}
-        title="打开技能选择"
+    <div
+      className={styles.overlay}
+      onClick={onClose}              // ✅ click outside closes
+    >
+      <div
+        className={styles.modal}
+        onClick={(e) => e.stopPropagation()} // ⛔ block inner clicks
       >
-        <FaCog />
-      </button>
+        <button className={styles.closeBtn} onClick={onClose}>
+          ✕
+        </button>
 
-      {open && (
-        <div className={styles.overlay}>
-          <div className={styles.modal}>
-            <button className={styles.closeBtn} onClick={() => setOpen(false)}>
-              ✕
-            </button>
-
-            <div className={styles.tabBar}>
-              <button
-                className={`${styles.tabBtn} ${activeLevel === 9 ? styles.activeTab : ""}`}
-                onClick={() => setActiveLevel(9)}
-              >
-                九重
-              </button>
-              <button
-                className={`${styles.tabBtn} ${activeLevel === 10 ? styles.activeTab : ""}`}
-                onClick={() => setActiveLevel(10)}
-              >
-                十重
-              </button>
-            </div>
-
-            {renderActiveLevel(activeLevel, activeList)}
-
-            <div className={styles.modalActions}>
-              <button className={styles.confirmBtn} onClick={() => setOpen(false)}>
-                确定
-              </button>
-            </div>
-          </div>
+        <div className={styles.tabBar}>
+          <button
+            className={`${styles.tabBtn} ${
+              activeLevel === 9 ? styles.activeTab : ""
+            }`}
+            onClick={() => setActiveLevel(9)}
+          >
+            九重
+          </button>
+          <button
+            className={`${styles.tabBtn} ${
+              activeLevel === 10 ? styles.activeTab : ""
+            }`}
+            onClick={() => setActiveLevel(10)}
+          >
+            十重
+          </button>
         </div>
-      )}
-    </>
+
+        {renderActiveLevel(activeLevel, activeList)}
+
+        <div className={styles.modalActions}>
+          <button className={styles.confirmBtn} onClick={onClose}>
+            确定
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

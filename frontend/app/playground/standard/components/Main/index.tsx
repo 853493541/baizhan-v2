@@ -6,7 +6,7 @@ import { runAdvancedSolver } from "@/utils/advancedSolver";
 import { summarizeAftermath } from "@/utils/aftermathSummary";
 import type { GroupResult, Character, AbilityCheck } from "@/utils/solver";
 
-import SolverOptions from "./SolverOptions";
+import SolverOptions from "./SolverButtons/SolverOptions";
 import SolverButtons from "./SolverButtons";
 import DisplayGroups from "./DisplayGroups";
 import EditAllGroupsModal from "./EditAllGroupsModal";
@@ -202,15 +202,6 @@ export default function MainSection({
 
       {/* ⭐ Solver */}
       <div className={styles.solverBar}>
-        <SolverOptions
-          allAbilities={allAbilities.map((a) => ({
-            name: a.name,
-            level: a.level,
-          }))}
-          enabledAbilities={enabledAbilities}
-          setEnabledAbilities={setEnabledAbilities}
-          disabled={shouldLock}
-        />
 
 <SolverButtons
   solving={solving}

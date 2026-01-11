@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { FaCog } from "react-icons/fa";
 import styles from "./styles.module.css";
 import ConfirmModal from "@/app/components/ConfirmModal";
-import SolverOptions from "../SolverOptions";
+import SolverOptions from "./SolverOptions";
 
 interface Props {
   solving: boolean;
@@ -13,7 +13,7 @@ interface Props {
   onFull: () => void;
   onEdit: () => void;
 
-  // 🔧 SolverOptions props
+  // SolverOptions props
   allAbilities: { name: string; level: number }[];
   enabledAbilities: Record<string, boolean>;
   setEnabledAbilities: React.Dispatch<
@@ -33,6 +33,11 @@ export default function SolverButtons({
 }: Props) {
   const isLocked = disabled ?? false;
 
+  // 🔒 FULLY HIDE EVERYTHING WHEN LOCKED
+  if (isLocked) {
+    return null;
+  }
+
   // ──────────────────────────────────
   // 编辑排表 confirm logic
   // ──────────────────────────────────
@@ -42,7 +47,7 @@ export default function SolverButtons({
   const handleEditClick = () => {
     if (solving) return;
 
-    if (!isLocked || warnedRef.current) {
+    if (warnedRef.current) {
       onEdit();
       return;
     }
@@ -57,31 +62,22 @@ export default function SolverButtons({
   };
 
   // ──────────────────────────────────
-  // ⚙️ Solver Options logic (MOVED HERE)
+  // ⚙️ Solver Options controlled modal
   // ──────────────────────────────────
   const [optionsOpen, setOptionsOpen] = useState(false);
-  const optionsWarnedRef = useRef(false);
 
   const handleGearClick = () => {
-    if (!isLocked) {
-      setOptionsOpen(true);
-      return;
-    }
-
-    if (!optionsWarnedRef.current) {
-      optionsWarnedRef.current = true;
-      // keep same behavior — warn but still open
-    }
-
+    if (solving) return;
     setOptionsOpen(true);
   };
 
   return (
     <>
       <div className={styles.solverButtons}>
-        {/* ⚙️ Solver Options */}
+        {/* ⚙️ 技能选择 */}
         <button
-          className={`${styles.solverBtn} ${styles.lightBtn}`}
+          type="button"
+          className={styles.iconBtn}
           onClick={handleGearClick}
           disabled={solving}
           title="技能选择"
@@ -90,46 +86,35 @@ export default function SolverButtons({
         </button>
 
         {/* 自定义排表 */}
-        {!isLocked && (
-          <button
-            className={`${styles.solverBtn} ${styles.lightBtn}`}
-            onClick={onCore}
-            disabled={solving}
-          >
-            {solving ? "处理中..." : "自定义排表"}
-          </button>
-        )}
+        <button
+          type="button"
+          className={`${styles.solverBtn} ${styles.lightBtn}`}
+          onClick={onCore}
+          disabled={solving}
+        >
+          {solving ? "处理中..." : "自定义排表"}
+        </button>
 
         {/* 全局排表 */}
         <button
-          className={`${styles.solverBtn} ${styles.lightBtn} ${
-            isLocked ? styles.disabledLight : ""
-          }`}
-          onClick={() => !isLocked && !solving && onFull()}
-          disabled={solving || isLocked}
-        >
-          {isLocked ? "🔒 已锁定" : solving ? "排表中..." : "全局排表"}
-        </button>
-
-        {/* 编辑排表 */}
-        <button
+          type="button"
           className={`${styles.solverBtn} ${styles.lightBtn}`}
-          onClick={handleEditClick}
+          onClick={() => !solving && onFull()}
           disabled={solving}
         >
-          编辑排表
+          {solving ? "排表中..." : "全局排表"}
         </button>
       </div>
 
       {/* Solver Options Modal */}
-      {optionsOpen && (
-        <SolverOptions
-          disabled={isLocked}
-          allAbilities={allAbilities}
-          enabledAbilities={enabledAbilities}
-          setEnabledAbilities={setEnabledAbilities}
-        />
-      )}
+      <SolverOptions
+        open={optionsOpen}
+        onClose={() => setOptionsOpen(false)}
+        disabled={false}
+        allAbilities={allAbilities}
+        enabledAbilities={enabledAbilities}
+        setEnabledAbilities={setEnabledAbilities}
+      />
 
       {/* 编辑排表确认 */}
       {confirmOpen && (
