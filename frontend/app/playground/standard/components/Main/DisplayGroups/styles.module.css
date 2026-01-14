@@ -206,3 +206,35 @@
   box-shadow: 0 0 8px rgba(255, 77, 79, 0.6);
   transition: box-shadow 0.25s ease, border-color 0.25s ease;
 }
+/* ===============================
+   📱 Mobile responsive layout
+   =============================== */
+@media (max-width: 640px) {
+  .groupsGrid {
+    grid-template-columns: 1fr; /* one group per row */
+    gap: 14px;
+    margin-top: 12px;
+  }
+
+  .groupCard {
+    max-width: 100%; /* full width on phone */
+    padding: 14px 10px 12px;
+  }
+
+  .memberItem {
+    width: 90%; /* more readable on small screens */
+    font-size: 15px;
+  }
+
+  .groupMeta {
+    top: -8px;
+    left: 10px;
+    font-size: 11px;
+    height: 17px;
+    padding: 0 6px;
+  }
+
+  .groupViolation {
+    font-size: 12px;
+  }
+}
