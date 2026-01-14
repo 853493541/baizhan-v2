@@ -119,3 +119,8 @@
     height: 26px;
   }
 }
+@media (max-width: 768px) {
+  .floorCard {
+    overflow: visible;
+  }
+}
