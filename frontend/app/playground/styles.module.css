@@ -14,7 +14,7 @@
 ========================================================= */
 
 .pageHeader {
-  padding: 24px 20px 12px;
+  padding: 24px 20px 6px;
 }
 
 .pageTitle {
@@ -29,7 +29,7 @@
 ========================================================= */
 
 .mapSection {
-  margin: 20px 0;
+  margin: 0px 0;
   padding: 0 10px;
   border-bottom: 1px solid #e5e7eb;
 }
@@ -104,7 +104,7 @@
   }
 
   .pageHeader {
-    padding: 16px 16px 8px;
+    padding: 12px 12px 4px;
   }
 
   .pageTitle {
@@ -112,7 +112,7 @@
   }
 
   .mapSection {
-    margin: 12px 0;
+    margin: 6px 0;
     padding: 0;
     border-bottom: 1px solid #eee;
   }

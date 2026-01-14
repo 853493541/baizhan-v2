@@ -137,7 +137,7 @@
 
   .title {
     font-size: 18px;
-    margin-bottom: 14px;
+    margin-bottom: 10px;
     text-align: center;
   }
 
@@ -148,10 +148,10 @@
     gap: 10px;
 
     overflow-x: auto;
-    overflow-y: hidden;
+    overflow-y: visible;
 
     padding-bottom: 8px;
-    margin-bottom: 16px;
+    margin-bottom: 8px;
 
     /* Hide scrollbar (Chrome & Safari) */
     -webkit-overflow-scrolling: touch;
@@ -275,6 +275,13 @@
 }
 @media (max-width: 768px) {
   .row {
-    padding-top: 14px;   /* room for badges */
+    padding-top: 5px;   /* room for badges */
   }
+
+  .row {
+  overflow-x: auto;
+  overflow-y: visible;  /* ✅ allows badges to show */
+}
+
+
 }
