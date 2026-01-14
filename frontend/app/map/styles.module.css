@@ -1,26 +1,91 @@
 /* =========================================================
-   DESKTOP LAYOUT
+   LAYOUT
 ========================================================= */
+
 .container {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 24px 20px;
+  padding: 0 10px;
 }
 
-.section {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 24px 16px;
-}
+/* =========================================================
+   HEADER (TITLE LEFT, ACTIONS RIGHT)
+========================================================= */
 
-.title {
-  font-size: 22px;
-  font-weight: 700;
-  text-align: center;
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;          /* space between title and button */
   margin-bottom: 24px;
 }
 
-/* footer area under the map */
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #111;
+  margin: 0; /* remove default h1 margin */
+}
+
+/* Action icons (right aligned) */
+.titleActions {
+  display: inline-flex;
+  gap: 6px;
+}
+
+/* =========================================================
+   ICON BUTTONS
+========================================================= */
+
+.iconBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #ffffff;
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+
+.iconBtn:hover {
+  transform: translateY(-1px);
+}
+
+.iconBtn:active {
+  transform: translateY(0);
+}
+
+/* Background color semantics */
+.bgPrimary {
+  background-color: #2563eb;
+}
+.bgPrimary:hover {
+  background-color: #1d4ed8;
+}
+
+.bgSuccess {
+  background-color: #16a34a;
+}
+.bgSuccess:hover {
+  background-color: #15803d;
+}
+
+.bgDanger {
+  background-color: #dc2626;
+}
+.bgDanger:hover {
+  background-color: #b91c1c;
+}
+
+/* =========================================================
+   MAP FOOTER (if still used elsewhere)
+========================================================= */
+
 .footer {
   display: flex;
   justify-content: space-between;
@@ -36,124 +101,21 @@
   gap: 6px;
 }
 
-.actionRow {
-  display: flex;
-  gap: 12px;
-}
-
-/* Buttons */
-.deleteBtn {
-  padding: 8px 16px;
-  background: #f44336;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-}
-.deleteBtn:disabled {
-  background: #e0e0e0;
-  cursor: not-allowed;
-}
-.deleteBtn:hover:not(:disabled) {
-  background: #d32f2f;
-}
-
-.lockBtn {
-  padding: 8px 16px;
-  background: #1976d2;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-}
-.lockBtn:disabled {
-  background: #90caf9;
-  cursor: not-allowed;
-}
-.lockBtn:hover:not(:disabled) {
-  background: #1565c0;
-}
-
-.confirmLockBtn {
-  padding: 8px 16px;
-  background: #388e3c;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-}
-.confirmLockBtn:hover {
-  background: #2e7d32;
-}
-
-.lockedText {
-  font-weight: 600;
-  color: #444;
-}
-
 /* =========================================================
-   📱 MOBILE VIEW (max-width: 768px)
+   MOBILE ADJUSTMENTS
 ========================================================= */
+
 @media (max-width: 768px) {
-
-  /* Remove outer wrapper padding (remove first layer of border/box) */
   .container {
-    padding: 0 !important;
-    margin: 0 !important;
-    border-radius: 0 !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    max-width: 100% !important;
-  }
-
-  /* Remove second layer border/padding from .section */
-  .section {
-    padding: 0 !important;
-    margin: 0 !important;
-    background: transparent !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    max-width: 100% !important;
+    padding: 12px;
   }
 
   .title {
-    font-size: 18px;
-    margin-bottom: 16px;
+    font-size: 20px;
   }
 
-  /* Footer becomes vertical */
-  .footer {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-    margin-top: 20px;
-  }
-
-  .counter {
-    font-size: 13px;
-  }
-
-  .actionRow {
-    width: 100%;
-    justify-content: space-between;
-    gap: 10px;
-  }
-
-  .deleteBtn,
-  .lockBtn,
-  .confirmLockBtn,
-  .unlockBtn {
-    flex: 1;
-    padding: 10px 0;
-    font-size: 14px;
-    text-align: center;
-  }
-
-  /* Optional: if MapRow uses a grid, force tighter spacing */
-  .mapRow {
-    gap: 6px !important;
+  .iconBtn {
+    width: 26px;
+    height: 26px;
   }
 }

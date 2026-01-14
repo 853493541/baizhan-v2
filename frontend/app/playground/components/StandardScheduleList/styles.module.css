@@ -1,6 +1,6 @@
 /* ---------- Layout (wrapper used by pages) ---------- */
 .container {
-  max-width: 1000px;
+  max-width: 500px;
   margin: 0 auto;
   padding: 2rem;
   font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -60,6 +60,7 @@
   text-decoration: none;
   color: inherit;
   transition: box-shadow 0.2s ease;
+  max-width: 320px;
 }
 
 .card:hover {

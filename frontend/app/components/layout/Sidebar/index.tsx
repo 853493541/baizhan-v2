@@ -17,10 +17,10 @@ export default function Sidebar() {
         <NavLink href="/backpack">📦 角色背包</NavLink>
 
         {/* 排表 */}
-        <NavLink href="/playground">📊 排表</NavLink>
+        <NavLink href="/playground">📊 本周排表</NavLink>
 
         {/* 地图 */}
-        <NavLink href="/map">🗺️ 本周地图</NavLink>
+        {/* <NavLink href="/map">🗺️ 本周地图</NavLink> */}
 
         {/* 地图 */}
         <NavLink href="/ranking">🏆 排行榜</NavLink>
