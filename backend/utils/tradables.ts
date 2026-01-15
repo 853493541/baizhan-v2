@@ -12,8 +12,14 @@ interface CharacterLike {
   gender: "男" | "女";
 }
 
-export function getTradables(character: CharacterLike) {
-  const tradables: { ability: string; requiredLevel: number }[] = [];
+interface TradableAbility {
+  ability: string;
+  requiredLevel: number;
+  currentLevel: number;
+}
+
+export function getTradables(character: CharacterLike): TradableAbility[] {
+  const tradables: TradableAbility[] = [];
   const seen = new Set<string>();
 
   const owned = character.abilities ?? {};
@@ -24,8 +30,8 @@ export function getTradables(character: CharacterLike) {
 
     if (!missing || missing.length === 0) continue;
 
-    // ONLY TRADABLES LEFT
-    const allMissingAreTradable = missing.every(a =>
+    // ✅ ONLY TRADABLES LEFT
+    const allMissingAreTradable = missing.every((a) =>
       tradableAbilities.includes(a)
     );
     if (!allMissingAreTradable) continue;
@@ -37,6 +43,7 @@ export function getTradables(character: CharacterLike) {
       tradables.push({
         ability,
         requiredLevel: nextTier,
+        currentLevel: owned[ability] ?? 0, // ✅ NEW FIELD
       });
     }
   }
