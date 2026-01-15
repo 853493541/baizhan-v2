@@ -3,13 +3,24 @@ import express from "express";
 // ─────────────────────────────────────────────
 // Controllers
 // ─────────────────────────────────────────────
+
+// Create
 import { createCharacter } from "../controllers/characters/createController";
+
+// Get (FULL + misc)
 import {
   getCharacters,
   getCharacterById,
   getAllAccounts,
   getAllStorage,
 } from "../controllers/characters/getController";
+
+// ⭐ Page-level lightweight list (NO abilities)
+
+// ⭐ Ultra-basic (legacy / special use)
+import { getBasicCharacters,getCharactersPageLightweight } from "../controllers/characters/getBasicCharacters";
+
+// Update / Delete
 import {
   updateCharacter,
   updateCharacterAbilities,
@@ -19,6 +30,8 @@ import {
   useStoredAbility,
   deleteFromStorage,
 } from "../controllers/characters/updateController";
+
+// Ability history
 import {
   getAbilityHistory,
   revertAbilityHistory,
@@ -26,66 +39,83 @@ import {
   revertMultipleHistory,
   getLatestAbilityUpdate,
 } from "../controllers/characters/history";
+
+// Compare
 import { compareCharacterAbilities } from "../controllers/characters/compareController";
 
-// ⭐ NEW ultra-fast controller
-import { getBasicCharacters } from "../controllers/characters/getBasicCharacters";
+// Ranking
 import { getCharacterRanking } from "../controllers/characters/getCharacterRanking";
-import { getCharacterTradables } from "../controllers//characters/ActionController";
+
+// Tradables / Action
+import { getCharacterTradables } from "../controllers/characters/ActionController";
+
 const router = express.Router();
 
 
-
-
-
-
-router.get("/:id/tradables", getCharacterTradables);
 // ─────────────────────────────────────────────
-// ⚡ NEW Ultra-light Characters Endpoint
-// MUST come BEFORE "/:id" or it'll conflict
+// ⚠️ MOST SPECIFIC ROUTES FIRST (CRITICAL)
 // ─────────────────────────────────────────────
+
+// ───── Ultra-light / page-level lists ─────
+
+// Character list page (everything EXCEPT abilities)
+router.get("/page", getCharactersPageLightweight);
+
+// Ultra-basic list (name/account/role/server only)
 router.get("/basic", getBasicCharacters);
-// Ranking / lightweight list
+
+// Ranking list
 router.get("/ranking", getCharacterRanking);
-// ─────────────────────────────────────────────
-// Character Metadata
-// ─────────────────────────────────────────────
-router.get("/accounts", getAllAccounts); 
+
+// Metadata
+router.get("/accounts", getAllAccounts);
+
 
 // ─────────────────────────────────────────────
-// Character CRUD
+// 🧾 Ability History (specific paths first)
 // ─────────────────────────────────────────────
-router.post("/", createCharacter);
-router.get("/", getCharacters);             // full characters
-router.get("/:id", getCharacterById);
-router.patch("/:id/abilities", updateCharacterAbilities);
-router.put("/:id", updateCharacter);
-router.delete("/:id", deleteCharacter);
-router.post("/:id/compare-abilities", compareCharacterAbilities);
 
-// ─────────────────────────────────────────────
-// 🧾 Ability History
-// ⚠️ Specific routes first
-// ─────────────────────────────────────────────
 router.get("/abilities/history", getAbilityHistory);
 router.get("/abilities/history/latest/:characterId", getLatestAbilityUpdate);
 router.post("/abilities/history/batch/revert", revertMultipleHistory);
 router.post("/abilities/history/:id/revert", revertAbilityHistory);
 router.delete("/abilities/history/:id", deleteAbilityHistory);
 
+
 // ─────────────────────────────────────────────
-// 🎒 Storage System (per-character)
+// 🎒 Global Storage (backpack page)
 // ─────────────────────────────────────────────
+
+router.get("/storage/all", getAllStorage);
+
+
+// ─────────────────────────────────────────────
+// 🎒 Per-character sub-resources
+// ─────────────────────────────────────────────
+
+router.get("/:id/tradables", getCharacterTradables);
+
 router.post("/:id/storage", addToStorage);
 router.get("/:id/storage", getStorage);
 router.put("/:id/storage/use", useStoredAbility);
 router.delete("/:id/storage/delete", deleteFromStorage);
 
-// ─────────────────────────────────────────────
-// 🎒 Global Storage (backpack page)
-// ─────────────────────────────────────────────
-router.get("/storage/all", getAllStorage);
 
+// ─────────────────────────────────────────────
+// Character CRUD (generic routes LAST)
+// ─────────────────────────────────────────────
+
+router.post("/", createCharacter);
+
+// FULL characters (legacy / admin / edit pages)
+router.get("/", getCharacters);
+
+router.get("/:id", getCharacterById);
+router.put("/:id", updateCharacter);
+router.patch("/:id/abilities", updateCharacterAbilities);
+router.delete("/:id", deleteCharacter);
+
+router.post("/:id/compare-abilities", compareCharacterAbilities);
 
 
 export default router;

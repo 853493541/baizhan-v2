@@ -104,7 +104,7 @@ export default function CharactersPageContent() {
 
   /* -------------------- 🔹 Fetch Characters -------------------- */
   const refreshCharacters = () => {
-    fetch(`${API_URL}/api/characters`)
+    fetch(`${API_URL}/api/characters/page`)
       .then((res) => res.json())
       .then((data) => {
         const normalized: Character[] = data.map((c: any) => ({
