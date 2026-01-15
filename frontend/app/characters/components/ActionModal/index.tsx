@@ -4,10 +4,17 @@ import React, { useEffect, useState } from "react";
 import styles from "./styles.module.css";
 import { toastError, toastSuccess } from "@/app/components/toast/toast";
 
+/* =========================
+   Types
+========================= */
+export interface TradableAbility {
+  ability: string;
+  requiredLevel: number;
+  currentLevel: number;
+}
+
 export interface ActionModalProps {
-  tradables: { ability: string; requiredLevel: number }[];
-  readables: { ability: string; fromLevel: number; storedLevel: number }[];
-  localAbilities: Record<string, number>;
+  tradables: TradableAbility[];
   API_URL: string;
   charId: string;
   onRefresh: () => Promise<void>;
@@ -16,7 +23,7 @@ export interface ActionModalProps {
 
 const getAbilityIcon = (name: string) => `/icons/${name}.png`;
 
-// 🈶 Convert number → Chinese numerals
+/* 🈶 Convert number → Chinese numerals */
 const numToChinese = (num: number): string => {
   const map = ["〇", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
   if (num <= 10) return map[num];
@@ -28,12 +35,11 @@ const numToChinese = (num: number): string => {
 
 const normalize = (s: string) => (s || "").trim().replace(/\u200B/g, "");
 
+// ⚠️ keep for special rules if needed later
 const FORCE_LV10_ABILITIES = new Set<string>();
 
 export default function ActionModal({
   tradables,
-  readables,
-  localAbilities,
   API_URL,
   charId,
   onRefresh,
@@ -41,17 +47,18 @@ export default function ActionModal({
 }: ActionModalProps) {
   const [copiedSet, setCopiedSet] = useState<Set<string>>(new Set());
 
+  /* auto-close if nothing to show */
   useEffect(() => {
-    if (tradables.length === 0 && readables.length === 0) {
-      onClose();
-    }
-  }, [tradables, readables, onClose]);
+    if (tradables.length === 0) onClose();
+  }, [tradables, onClose]);
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) onClose();
   };
 
-  /* ------------------ 使用 ------------------ */
+  /* =========================
+     使用
+  ========================= */
   const handleUse = async (ability: string, level: number) => {
     const name = normalize(ability);
     let finalLevel = level;
@@ -77,7 +84,9 @@ export default function ActionModal({
     }
   };
 
-  /* ------------------ 复制 ------------------ */
+  /* =========================
+     复制
+  ========================= */
   const handleCopy = async (ability: string, requiredLevel: number) => {
     const name = normalize(ability);
     const safeLevel = Math.min(requiredLevel, 10);
@@ -88,7 +97,7 @@ export default function ActionModal({
       await navigator.clipboard.writeText(text);
       toastSuccess("已复制");
 
-      setCopiedSet(prev => {
+      setCopiedSet((prev) => {
         const next = new Set(prev);
         next.add(name);
         return next;
@@ -101,17 +110,12 @@ export default function ActionModal({
   const tradablesLv9 = tradables.filter(t => t.requiredLevel === 9);
   const tradablesLv10 = tradables.filter(t => t.requiredLevel === 10);
 
-  /* ------------------ 行渲染 ------------------ */
-  const renderRow = (
-    ability: string,
-    targetLevel: number,
-    current: number,
-    showCopy: boolean
-  ) => {
+  /* =========================
+     行渲染（纯展示）
+  ========================= */
+  const renderRow = (t: TradableAbility) => {
+    const { ability, requiredLevel, currentLevel } = t;
     const isCopied = copiedSet.has(normalize(ability));
-
-    const levelText = numToChinese(targetLevel);
-    const currentText = numToChinese(current);
 
     return (
       <div className={styles.itemRow}>
@@ -126,42 +130,32 @@ export default function ActionModal({
           />
 
           <span className={styles.abilityLine}>
-            {showCopy ? (
-              <span className={styles.abilityName}>
-                {levelText}重 · {ability}
-              </span>
-            ) : (
-              <>
-                <span className={styles.abilityName}>{ability}</span>
-                <span className={styles.levelInfo}>{levelText}重</span>
-              </>
-            )}
+            <span className={styles.abilityName}>
+              {numToChinese(requiredLevel)}重 · {ability}
+            </span>
           </span>
         </div>
 
-        {/* 当前等级（中文） */}
         <div className={styles.currentBadge}>
-          当前：{currentText}重
+          当前：{numToChinese(currentLevel)}重
         </div>
 
         <div className={styles.buttons}>
           <button
-            onClick={() => handleUse(ability, targetLevel)}
+            onClick={() => handleUse(ability, requiredLevel)}
             className={`${styles.btn} ${styles.useBtn}`}
           >
             使用
           </button>
 
-          {showCopy && (
-            <button
-              onClick={() => handleCopy(ability, targetLevel)}
-              className={`${styles.btn} ${
-                isCopied ? styles.copiedBtn : styles.copyBtn
-              }`}
-            >
-              {isCopied ? "已复制" : "复制"}
-            </button>
-          )}
+          <button
+            onClick={() => handleCopy(ability, requiredLevel)}
+            className={`${styles.btn} ${
+              isCopied ? styles.copiedBtn : styles.copyBtn
+            }`}
+          >
+            {isCopied ? "已复制" : "复制"}
+          </button>
         </div>
       </div>
     );
@@ -172,61 +166,27 @@ export default function ActionModal({
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <h3 className={styles.modalTitle}>可读书籍</h3>
 
-        {readables.length > 0 && (
-          <section className={styles.section}>
-            <h4 className={styles.sectionTitle}>
-              <span className={`${styles.sectionBadge} ${styles.blue}`}>
-                蓝书
-              </span>
-            </h4>
-            {readables.map(({ ability, storedLevel }) =>
-              renderRow(
-                ability,
-                storedLevel,
-                localAbilities?.[ability] ?? 0,
-                true
-              )
-            )}
-          </section>
-        )}
+        <section className={styles.section}>
+          {tradablesLv9.length > 0 && (
+            <>
+              <div className={`${styles.sectionBadge} ${styles.purple9}`}>
+                九重紫书
+              </div>
+              {tradablesLv9.map(renderRow)}
+            </>
+          )}
 
-        {tradables.length > 0 && (
-          <section className={styles.section}>
-            {tradablesLv9.length > 0 && (
-              <>
-                <div className={`${styles.sectionBadge} ${styles.purple9}`}>
-                  九重紫书
-                </div>
-                {tradablesLv9.map(t =>
-                  renderRow(
-                    t.ability,
-                    t.requiredLevel,
-                    localAbilities?.[t.ability] ?? 0,
-                    true
-                  )
-                )}
-              </>
-            )}
-
-            {tradablesLv10.length > 0 && (
-              <>
-                <div
-                  className={`${styles.sectionBadge} ${styles.purple10} ${styles.sectionGap}`}
-                >
-                  十重紫书
-                </div>
-                {tradablesLv10.map(t =>
-                  renderRow(
-                    t.ability,
-                    t.requiredLevel,
-                    localAbilities?.[t.ability] ?? 0,
-                    true
-                  )
-                )}
-              </>
-            )}
-          </section>
-        )}
+          {tradablesLv10.length > 0 && (
+            <>
+              <div
+                className={`${styles.sectionBadge} ${styles.purple10} ${styles.sectionGap}`}
+              >
+                十重紫书
+              </div>
+              {tradablesLv10.map(renderRow)}
+            </>
+          )}
+        </section>
 
         <div className={styles.modalFooter}>
           <button onClick={onClose} className={styles.closeButton}>

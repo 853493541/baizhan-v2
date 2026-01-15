@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { FaCog } from "react-icons/fa";
 
@@ -8,12 +8,14 @@ import styles from "./styles.module.css";
 import ActionModal from "../ActionModal";
 import EditBasicInfoModal from "@/app/characters/components/EditBasicInfoModal";
 import ConfirmModal from "@/app/components/ConfirmModal";
-
-import { getTradables } from "@/utils/tradables";
-import { getReadableFromStorage } from "@/utils/readables";
-import { updateCharacterAbilities } from "@/lib/characterService";
 import Manager from "../Manager";
 import { toastError } from "@/app/components/toast/toast";
+
+interface TradableAbility {
+  ability: string;
+  requiredLevel: number;
+  currentLevel: number;
+}
 
 interface Character {
   _id: string;
@@ -21,6 +23,7 @@ interface Character {
   role: string;
   class: string;
   server: string;
+  gender?: "男" | "女";
   active?: boolean;
   abilities?: Record<string, number>;
   storage?: any[];
@@ -56,12 +59,35 @@ export default function CharacterCard({
   const [editOpen, setEditOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const [localAbilities, setLocalAbilities] = useState<Record<string, number>>(
-    char.abilities ? { ...char.abilities } : {}
-  );
+  /* =========================
+     Backend-driven tradables
+  ========================= */
+  const [tradables, setTradables] = useState<TradableAbility[]>([]);
+  const hasActions = tradables.length > 0;
 
   /* =========================
-     Refresh
+     Fetch Tradables (AUTO)
+  ========================= */
+  useEffect(() => {
+    const loadTradables = async () => {
+      try {
+        const res = await fetch(
+          `${API_URL}/api/characters/${currentChar._id}/tradables`
+        );
+        if (!res.ok) return;
+
+        const data = await res.json();
+        setTradables(data.tradables || []);
+      } catch (err) {
+        console.error("❌ loadTradables failed:", err);
+      }
+    };
+
+    loadTradables();
+  }, [API_URL, currentChar._id]);
+
+  /* =========================
+     Refresh Character
   ========================= */
   const refreshCharacter = async (): Promise<Character | null> => {
     try {
@@ -71,7 +97,6 @@ export default function CharacterCard({
 
       const updated = await res.json();
       setCurrentChar(updated);
-      setLocalAbilities(updated.abilities || {});
       onCharacterUpdate?.(updated);
       return updated;
     } catch (err) {
@@ -84,7 +109,7 @@ export default function CharacterCard({
   };
 
   /* =========================
-     Delete flow (RESTORED)
+     Delete flow
   ========================= */
   const requestDelete = () => {
     setEditOpen(false);
@@ -102,13 +127,6 @@ export default function CharacterCard({
       console.error("❌ Delete failed", err);
     }
   };
-
-  /* =========================
-     Action logic
-  ========================= */
-  const tradables = getTradables(currentChar);
-  const readables = getReadableFromStorage(currentChar);
-  const hasActions = tradables.length > 0 || readables.length > 0;
 
   /* =========================
      Role / inactive styling
@@ -143,13 +161,12 @@ export default function CharacterCard({
               {currentChar.name}
             </div>
 
-            {/* desktop hover hint */}
             {!isTouchDevice && (
               <div className={styles.editHint}>右键编辑基础信息</div>
             )}
           </div>
 
-          {/* === Action Buttons === */}
+          {/* === Header Actions === */}
           <div className={styles.headerActions}>
             <button
               className={`${styles.iconBtn} ${styles.managerBtn}`}
@@ -169,7 +186,6 @@ export default function CharacterCard({
               )}
             </button>
 
-            {/* edit button ONLY on touch devices */}
             {isTouchDevice && (
               <button
                 className={styles.iconBtn}
@@ -208,12 +224,18 @@ export default function CharacterCard({
       {showModal && (
         <ActionModal
           tradables={tradables}
-          readables={readables}
-          localAbilities={localAbilities}
-          updateAbility={() => {}}
           API_URL={API_URL}
           charId={currentChar._id}
-          onRefresh={refreshCharacter}
+          onRefresh={async () => {
+            await refreshCharacter();
+
+            // re-fetch tradables after use
+            const res = await fetch(
+              `${API_URL}/api/characters/${currentChar._id}/tradables`
+            );
+            const data = await res.json();
+            setTradables(data.tradables || []);
+          }}
           onClose={() => setShowModal(false)}
         />
       )}
@@ -226,7 +248,6 @@ export default function CharacterCard({
           onClose={() => setShowManager(false)}
           onUpdated={(updated) => {
             setCurrentChar(updated);
-            setLocalAbilities(updated.abilities || {});
             onCharacterUpdate?.(updated);
           }}
         />

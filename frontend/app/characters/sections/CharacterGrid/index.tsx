@@ -42,9 +42,9 @@ export default function Cards({ characters, onUpdated }: Props) {
       ))}
 
       {/* ───────── Divider ───────── */}
-      {mainCharacters.length > 0 && otherCharacters.length > 0 && (
+      {/* {mainCharacters.length > 0 && otherCharacters.length > 0 && (
         <div className={styles.divider} />
-      )}
+      )} */}
 
       {/* Others */}
       {otherCharacters.map((char) => (
