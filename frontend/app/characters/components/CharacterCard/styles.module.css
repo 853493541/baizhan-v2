@@ -1,23 +1,32 @@
-/* =========================
+/* =========================================================
    🎯 Character Card Layout
-   ========================= */
+========================================================= */
 .card {
   display: flex;
   flex-direction: column;
   justify-content: space-between; /* keep bottom action fixed */
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  padding: 15px;
+
   min-width: 240px;
   min-height: 140px;
+  padding: 15px;
+
+  border: 1px solid #ddd;
+  border-radius: 10px;
   background: #fff;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+
+  cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-/* =========================
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+/* =========================================================
    🧩 Header
-   ========================= */
+========================================================= */
 .headerRow {
   display: flex;
   align-items: center;
@@ -32,24 +41,28 @@
 }
 
 .name {
-  font-size: 1rem;
-  font-weight: bold;
   display: flex;
   align-items: center;
-  gap: 2px;
   flex-wrap: wrap;
+  gap: 8px;
+
+  font-size: 1rem;
+  font-weight: bold;
   word-break: break-word;
+}
+
+.name button {
+  margin-left: 4px;
 }
 
 .classIcon {
   width: 28px;
   height: 28px;
-  /* margin-right: 2px; */
 }
 
-/* =========================
+/* =========================================================
    ⚙️ Header Actions
-   ========================= */
+========================================================= */
 .headerActions {
   display: flex;
   align-items: center;
@@ -59,15 +72,18 @@
 .iconBtn {
   width: 28px;
   height: 28px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   font-size: 16px;
   border-radius: 50%;
   border: 1px solid #ccc;
-  cursor: pointer;
   background: #fff;
   color: #333;
+  cursor: pointer;
+
   transition: all 0.2s ease;
 }
 
@@ -80,6 +96,7 @@
 .addBtn {
   color: #1d4ed8;
 }
+
 .addBtn:hover {
   background: rgba(37, 99, 235, 0.1);
 }
@@ -89,142 +106,81 @@
   position: relative;
   color: #166534;
 }
+
 .managerBtn:hover {
   background: rgba(40, 167, 69, 0.1);
 }
 
-/* Red badge for storage count */
+/* Badge (storage count) */
 .badge {
   position: absolute;
   top: -3px;
   right: -4px;
-  background: #dc2626;
-  color: white;
-  font-size: 10px;
-  font-weight: 600;
-  border-radius: 999px;
+
   min-width: 14px;
   height: 14px;
+  padding: 0 3px;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 3px;
+
+  background: #dc2626;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 999px;
 }
 
-/* =========================
+/* =========================================================
    🎨 Role Colors
-   ========================= */
+========================================================= */
 .tank {
   background-color: #fff3cd;
 }
+
 .dps {
   background-color: #d4edda;
 }
+
 .healer {
   background-color: #f8d7da;
 }
 
-/* =========================
-   ⚡ Action Button (Bottom)
-   ========================= */
+/* =========================================================
+   ⚡ Bottom Action Button
+========================================================= */
 .tradeableWrapper {
   display: flex;
   justify-content: center;
   align-items: center;
+
   width: 100%;
-  margin-top: 12px;
-  min-height: 36px; /* always reserve space */
+  margin-top: 8px;
+  min-height: 28px;
 }
 
 .tradableButton {
   width: 100%;
-  background-color: #ffe5b4;
-  color: #b94a00;
-  border: 1px solid #f0ad4e;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  padding: 6px 0;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  letter-spacing: 0.3px;
-}
+  height: 36px;
 
-.tradableButton:hover {
-  background-color: #ffcf7d;
-  border-color: #e5a832;
-  transform: translateY(-1px);
-}
-
-.tradableButton:active {
-  transform: scale(0.98);
-}
-
-/* Placeholder for missing button */
-.tradeablePlaceholder {
-  width: 100%;
-  height: 28px;
-  border-radius: 8px;
-  background: transparent;
-}
-
-/* =========================
-   🕓 Miscellaneous
-   ========================= */
-.loading {
-  text-align: center;
-  color: #666;
-  font-size: 14px;
-  padding: 4px 0;
-}
-
-/* =========================
-   📱 Mobile Optimization ≤600px
-   ========================= */
-@media (max-width: 600px) {
-  .card {
-    padding: 14px 16px;
-  }
-  .headerActions {
-    gap: 4px;
-  }
-  .tradableButton {
-    font-size: 15px;
-    padding: 7px 0;
-  }
-}
-/* =========================
-   ⚡ Action Button (Bottom)
-   ========================= */
-.tradeableWrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  margin-top: 8px; /* 🔽 slightly tighter spacing from content */
-  min-height: 28px; /* 🔽 reduced from 36px */
-}
-
-.tradableButton {
-  width: 100%;
-  background-color: #ffe5b4;
-  color: #b94a00;
-  border: 1px solid #f0ad4e;
-  border-radius: 6px; /* 🔽 tighter radius */
-  font-size: 13px; /* 🔽 slightly smaller font */
-  font-weight: 600;
-  padding: 4px 0; /* 🔽 reduced from 6px */
-  cursor: pointer;
-  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 5px;
+
+  background-color: #ffe5b4;
+  color: #b94a00;
+  border: 1px solid #f0ad4e;
+  border-radius: 6px;
+
+  font-size: 14px;
+  font-weight: 700;
   letter-spacing: 0.2px;
+  padding: 4px 0;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .tradableButton:hover {
@@ -236,39 +192,61 @@
 .tradableButton:active {
   transform: scale(0.98);
 }
-.backpackWrapper {
-  position: relative;
-  min-height: 110px; /* keep consistent space for ability list */
+
+/* Placeholder (no button) */
+.tradeablePlaceholder {
+  width: 100%;
+  height: 28px;
+  background: transparent;
+  border-radius: 8px;
 }
 
-/* invisible overlay during refresh — layout stays stable, no flash */
+/* =========================================================
+   📂 Backpack / Loading Helpers
+========================================================= */
+.backpackWrapper {
+  position: relative;
+  min-height: 110px;
+}
+
+/* invisible overlay during refresh — layout stable */
 .invisibleLoading {
   position: absolute;
   inset: 0;
   opacity: 0;
   pointer-events: none;
 }
-.card {
-  cursor: pointer; /* indicate clickable */
+
+.loading {
+  text-align: center;
+  font-size: 14px;
+  color: #666;
+  padding: 4px 0;
 }
 
-/* subtle lift + soft shadow */
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
-}
-.name {
-  gap: 8px;
-}
-
-.name button {
-  margin-left: 4px;
-}
-/* =========================
+/* =========================================================
    🚫 Inactive Character
-   ========================= */
+========================================================= */
 .inactive {
   background-color: #e0e0e0;
   color: #000;
   opacity: 0.85;
+}
+
+/* =========================================================
+   📱 Mobile ≤600px
+========================================================= */
+@media (max-width: 600px) {
+  .card {
+    padding: 14px 16px;
+  }
+
+  .headerActions {
+    gap: 4px;
+  }
+
+  .tradableButton {
+    font-size: 15px;
+    padding: 7px 0;
+  }
 }
