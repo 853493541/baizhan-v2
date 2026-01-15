@@ -5,15 +5,15 @@ import { useRouter } from "next/navigation";
 import { FaCog } from "react-icons/fa";
 
 import styles from "./styles.module.css";
-import ActionModal from "../../ActionModal";
+import ActionModal from "../ActionModal";
 import EditBasicInfoModal from "@/app/characters/components/EditBasicInfoModal";
 import ConfirmModal from "@/app/components/ConfirmModal";
 
 import { getTradables } from "@/utils/tradables";
 import { getReadableFromStorage } from "@/utils/readables";
 import { updateCharacterAbilities } from "@/lib/characterService";
-import Manager from "../../../../components/Backpack/Manager";
-import AddBackpackModal from "../../../../components/Backpack/AddBackpackModal";
+import Manager from "../Manager";
+import AddBackpackModal from "../AddBackpackModal";
 import { toastError } from "@/app/components/toast/toast";
 
 interface Character {

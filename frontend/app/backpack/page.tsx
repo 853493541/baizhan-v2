@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import styles from "./styles.module.css";
 import FilterSection from "./Filter";
-import CharacterCard from "../characters/components/CreateCharacterModal/CharacterCard";
+import CharacterCard from "../characters/components/CharacterCard";
 import { createPinyinMap, pinyinFilter } from "@/utils/pinyinSearch";
 
 interface StorageItem {

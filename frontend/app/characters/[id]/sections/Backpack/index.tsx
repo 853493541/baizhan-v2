@@ -7,8 +7,8 @@ import ActionModal from "../../../components/ActionModal";
 import { getTradables } from "@/utils/tradables";
 import { getReadableFromStorage } from "@/utils/readables";
 import { updateCharacterAbilities } from "@/lib/characterService";
-import Manager from "../../../../components/Backpack/Manager";
-import AddBackpackModal from "../../../../components/Backpack/AddBackpackModal";
+import Manager from "../../../components/Manager";
+import AddBackpackModal from "../../../components/AddBackpackModal";
 
 import { toastError } from "@/app/components/toast/toast"; // ✅ added
 

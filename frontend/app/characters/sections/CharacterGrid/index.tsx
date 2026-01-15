@@ -4,7 +4,7 @@ import { Character } from "@/types/Character";
 import styles from "./styles.module.css";
 
 // ✅ Use the ONE canonical CharacterCard
-import CharacterCard from "@/app/characters/components/CreateCharacterModal/CharacterCard";
+import CharacterCard from "@/app/characters/components/CharacterCard";
 
 interface Props {
   characters: Character[];
