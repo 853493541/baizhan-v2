@@ -31,9 +31,15 @@ import { compareCharacterAbilities } from "../controllers/characters/compareCont
 // ⭐ NEW ultra-fast controller
 import { getBasicCharacters } from "../controllers/characters/getBasicCharacters";
 import { getCharacterRanking } from "../controllers/characters/getCharacterRanking";
-
+import { getCharacterTradables } from "../controllers//characters/ActionController";
 const router = express.Router();
 
+
+
+
+
+
+router.get("/:id/tradables", getCharacterTradables);
 // ─────────────────────────────────────────────
 // ⚡ NEW Ultra-light Characters Endpoint
 // MUST come BEFORE "/:id" or it'll conflict
