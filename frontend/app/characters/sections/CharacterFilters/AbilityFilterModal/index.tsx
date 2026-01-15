@@ -1,39 +1,66 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import abilities from "@/lib/seedAbilities";
+import { useState, useEffect, useMemo } from "react";
 import styles from "./styles.module.css";
 import { createPinyinMap, pinyinFilter } from "@/utils/pinyinSearch";
+
+// ✅ data source
+import bossDrop from "@/app/data/boss_drop.json";
 
 interface Props {
   onConfirm: (ability: string) => void;
   onClose: () => void;
 }
 
+const INITIAL_LOAD = 10;
+const LOAD_STEP = 10;
+
 export default function AbilityFilterModal({ onConfirm, onClose }: Props) {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(INITIAL_LOAD);
+
   const [pinyinMap, setPinyinMap] = useState<
     Record<string, { full: string; short: string }>
   >({});
 
   /* ===============================
-     🈶 Build Pinyin Map once
+     📦 Flatten boss → abilities
+     =============================== */
+  const abilities = useMemo<string[]>(() => {
+    const set = new Set<string>();
+    Object.values(bossDrop).forEach((list) =>
+      list.forEach((a) => set.add(a))
+    );
+    return Array.from(set).sort();
+  }, []);
+
+  /* ===============================
+     🈶 Build pinyin map
      =============================== */
   useEffect(() => {
     (async () => {
       const map = await createPinyinMap(abilities);
       setPinyinMap(map);
     })();
-  }, []);
+  }, [abilities]);
 
   /* ===============================
-     🔍 Filter abilities by Hanzi or Pinyin
+     🔍 Filter (FULL dataset)
      =============================== */
   const filtered =
     search.trim() === ""
       ? abilities
       : pinyinFilter(abilities, pinyinMap, search);
+
+  /* ===============================
+     ♻ Reset visible count on search
+     =============================== */
+  useEffect(() => {
+    setVisibleCount(INITIAL_LOAD);
+  }, [search]);
+
+  const visibleAbilities = filtered.slice(0, visibleCount);
 
   const handleSelect = (ability: string) => {
     setSelected(ability);
@@ -42,20 +69,23 @@ export default function AbilityFilterModal({ onConfirm, onClose }: Props) {
   };
 
   return (
-    <div className={styles.overlay}>
-      <div className={styles.modal}>
-        <h3 className={styles.title}>选择技能</h3>
+    <div className={styles.overlay} onClick={onClose}>
+      {/* ⛔ prevent inner clicks from closing modal */}
+      <div
+        className={styles.modal}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 className={styles.title}>添加筛选技能</h3>
 
         <input
-          type="text"
-          placeholder="搜索技能（支持拼音）..."
+          className={styles.input}
+          placeholder="搜索技能 ..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className={styles.input}
         />
 
         <div className={styles.list}>
-          {filtered.map((a) => (
+          {visibleAbilities.map((a) => (
             <div
               key={a}
               className={`${styles.item} ${
@@ -72,9 +102,23 @@ export default function AbilityFilterModal({ onConfirm, onClose }: Props) {
                 }
               />
               <span>{a}</span>
-              {selected === a && <span className={styles.checkmark}>✔</span>}
+              {selected === a && (
+                <span className={styles.checkmark}>✔</span>
+              )}
             </div>
           ))}
+
+          {visibleCount < filtered.length && (
+            <div className={styles.loadMore}>
+              <button
+                onClick={() =>
+                  setVisibleCount((v) => v + LOAD_STEP)
+                }
+              >
+                加载更多…
+              </button>
+            </div>
+          )}
 
           {filtered.length === 0 && (
             <div className={styles.noResult}>没有匹配的技能</div>
@@ -82,7 +126,7 @@ export default function AbilityFilterModal({ onConfirm, onClose }: Props) {
         </div>
 
         <div className={styles.actions}>
-          <button onClick={onClose} className={styles.cancel}>
+          <button className={styles.cancel} onClick={onClose}>
             关闭
           </button>
         </div>
