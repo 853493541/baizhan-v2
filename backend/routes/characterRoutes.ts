@@ -49,6 +49,12 @@ import { getCharacterRanking } from "../controllers/characters/getCharacterRanki
 // Tradables / Action
 import { getCharacterTradables } from "../controllers/characters/ActionController";
 
+
+
+import { filterCharactersPage } from "../controllers/characters/Filter";
+
+
+
 const router = express.Router();
 
 
@@ -88,6 +94,7 @@ router.delete("/abilities/history/:id", deleteAbilityHistory);
 
 router.get("/storage/all", getAllStorage);
 
+router.post("/page/filter", filterCharactersPage);
 
 // ─────────────────────────────────────────────
 // 🎒 Per-character sub-resources
