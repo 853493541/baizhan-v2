@@ -6,7 +6,8 @@
   flex-direction: column;
   justify-content: space-between; /* keep bottom action fixed */
 
-  min-width: 240px;
+  min-width: 260px;
+  max-width: 260px;
   min-height: 140px;
   padding: 15px;
 

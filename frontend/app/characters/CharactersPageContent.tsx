@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 
 import CreateCharacterModal from "@/app/characters/components/CreateCharacterModal";
 import { Character } from "@/types/Character";
-import { normalizeGender } from "@/utils/normalize";
 import styles from "./page.module.css";
 
 import CharacterFilters from "./sections/CharacterFilters";
@@ -14,7 +13,8 @@ import CreateButton from "./sections/CreateButton";
 
 export default function CharactersPageContent() {
   const [characters, setCharacters] = useState<Character[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [filtering, setFiltering] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setModalOpen] = useState(false);
 
@@ -27,26 +27,16 @@ export default function CharactersPageContent() {
   const [roleFilter, setRoleFilter] = useState("");
   const [selectedAbilities, setSelectedAbilities] = useState<string[]>([]);
   const [globalLevel, setGlobalLevel] = useState<number | null>(null);
-  const [activeOnly, setActiveOnly] = useState(true); // ✅ default: show active tab
+  const [activeOnly, setActiveOnly] = useState(true);
 
   const [restored, setRestored] = useState(false);
 
-  const abilityFilters: { ability: string; level: number }[] =
+  const abilityFilters =
     globalLevel != null
       ? selectedAbilities.map((a) => ({ ability: a, level: globalLevel }))
       : [];
 
-  /* -------------------- 🔹 Per-Tab Session Check -------------------- */
-  useEffect(() => {
-    const hasSession = sessionStorage.getItem("session_id");
-    if (!hasSession) {
-      // 🧹 true new tab — clear any restored session data
-      sessionStorage.clear();
-      sessionStorage.setItem("session_id", Date.now().toString());
-    }
-  }, []);
-
-  /* -------------------- 🔹 Restore Filters -------------------- */
+  /* -------------------- 🔹 Session Restore -------------------- */
   useEffect(() => {
     const saved = sessionStorage.getItem("characterFilters");
     if (saved) {
@@ -57,26 +47,27 @@ export default function CharactersPageContent() {
         setRoleFilter(parsed.roleFilter || "");
         setSelectedAbilities(parsed.selectedAbilities || []);
         setGlobalLevel(parsed.globalLevel ?? null);
-        setActiveOnly(typeof parsed.activeOnly === "boolean" ? parsed.activeOnly : true);
-      } catch (err) {
-        console.error("❌ Failed to parse saved filters", err);
-      }
+        setActiveOnly(
+          typeof parsed.activeOnly === "boolean" ? parsed.activeOnly : true
+        );
+      } catch {}
     }
     setRestored(true);
   }, []);
 
-  /* -------------------- 🔹 Save Filters -------------------- */
   useEffect(() => {
     if (!restored) return;
-    const state = {
-      ownerFilter,
-      serverFilter,
-      roleFilter,
-      selectedAbilities,
-      globalLevel,
-      activeOnly,
-    };
-    sessionStorage.setItem("characterFilters", JSON.stringify(state));
+    sessionStorage.setItem(
+      "characterFilters",
+      JSON.stringify({
+        ownerFilter,
+        serverFilter,
+        roleFilter,
+        selectedAbilities,
+        globalLevel,
+        activeOnly,
+      })
+    );
   }, [
     restored,
     ownerFilter,
@@ -87,119 +78,99 @@ export default function CharactersPageContent() {
     activeOnly,
   ]);
 
-  /* -------------------- 🔹 Handlers -------------------- */
-  const handleAddAbilityFilter = (ability: string, level: number) => {
-    const exists = selectedAbilities.includes(ability);
-    const next = exists
-      ? selectedAbilities.filter((a) => a !== ability)
-      : [...selectedAbilities, ability];
-    setSelectedAbilities(next);
-    if (level != null) setGlobalLevel(level);
-  };
-
-  const handleRemoveAbilityFilter = (index: number) => {
-    const next = selectedAbilities.filter((_, i) => i !== index);
-    setSelectedAbilities(next);
-  };
-
-  /* -------------------- 🔹 Fetch Characters -------------------- */
-  const refreshCharacters = () => {
-    fetch(`${API_URL}/api/characters/page`)
-      .then((res) => res.json())
-      .then((data) => {
-        const normalized: Character[] = data.map((c: any) => ({
-          ...c,
-          gender: normalizeGender(c.gender),
-        }));
-        setCharacters(normalized);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("[CharactersPageContent] fetch error", err);
-        setError("角色加载失败");
-        setLoading(false);
-      });
-  };
-
-  useEffect(() => {
-    refreshCharacters();
-  }, []);
-
-  /* -------------------- 🔹 Create Character -------------------- */
-  const handleCreate = async (data: any) => {
+  /* -------------------- 🔹 Backend Filter Fetch -------------------- */
+  const fetchFilteredCharacters = async (isInitial = false) => {
     try {
-      const res = await fetch(`${API_URL}/api/characters`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+      if (isInitial) setInitialLoading(true);
+      else setFiltering(true);
 
-      if (!res.ok) throw new Error("创建失败");
+      const res = await fetch(
+        `${API_URL}/api/characters/page/filter`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ abilityFilters }),
+        }
+      );
 
-      const newChar = await res.json();
-      setCharacters((prev) => [...prev, newChar]);
-      router.push(`/characters/${newChar._id}`);
+      if (!res.ok) throw new Error("加载失败");
+
+      const data = await res.json();
+      setCharacters(data);
     } catch (err) {
-      console.error("❌ Error creating character:", err);
-      setError("角色创建失败");
+      console.error(err);
+      setError("角色加载失败");
+    } finally {
+      setInitialLoading(false);
+      setFiltering(false);
     }
   };
 
-  /* -------------------- 🔹 Derived Values -------------------- */
-  const uniqueOwners = Array.from(
-    new Set(characters.map((c) => c.owner || "Unknown"))
-  ).sort();
-  const uniqueServers = Array.from(
-    new Set(characters.map((c) => c.server))
-  ).sort();
+  /* Initial load */
+  useEffect(() => {
+    fetchFilteredCharacters(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  /* -------------------- 🔹 Apply Filters -------------------- */
+  /* Ability filter change */
+  useEffect(() => {
+    if (!restored) return;
+    fetchFilteredCharacters(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(abilityFilters)]);
+
+  /* -------------------- 🔹 Create Character -------------------- */
+  const handleCreate = async (data: any) => {
+    const res = await fetch(`${API_URL}/api/characters`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    const newChar = await res.json();
+    router.push(`/characters/${newChar._id}`);
+  };
+
+  /* -------------------- 🔹 Frontend Basic Filters -------------------- */
   const filteredCharacters = characters.filter((c) => {
     if (ownerFilter && c.owner !== ownerFilter) return false;
     if (serverFilter && c.server !== serverFilter) return false;
     if (roleFilter && c.role !== roleFilter) return false;
-
-    // 🟢 Activation tab logic — only show one group at a time
-    if (activeOnly && !c.active) return false; // showing only active
-    if (!activeOnly && c.active) return false; // showing only inactive
-
-    for (const f of abilityFilters) {
-      const level = c.abilities?.[f.ability] || 0;
-      if (level !== f.level) return false;
-    }
-
+    if (activeOnly && !c.active) return false;
+    if (!activeOnly && c.active) return false;
     return true;
   });
 
   /* -------------------- 🔹 UI -------------------- */
-  if (loading) return <p className={styles.message}>角色加载中...</p>;
-  if (error) return <p className={styles.error}>{error}</p>;
+  if (initialLoading) {
+    return <p className={styles.message}>角色加载中...</p>;
+  }
+
+  if (error) {
+    return <p className={styles.error}>{error}</p>;
+  }
 
   return (
     <div className={styles.container}>
-      {/* Header */}
       <div className={styles.headerRow}>
         <span className={styles.headerText}>角色仓库</span>
         <CreateButton onClick={() => setModalOpen(true)} />
       </div>
 
-      {/* Modal */}
       {isModalOpen && (
         <CreateCharacterModal
-          isOpen={isModalOpen}
+          isOpen
           onClose={() => setModalOpen(false)}
           onCreate={handleCreate}
         />
       )}
 
-      {/* Filters */}
       <CharacterFilters
         ownerFilter={ownerFilter}
         serverFilter={serverFilter}
         roleFilter={roleFilter}
         activeOnly={activeOnly}
-        uniqueOwners={uniqueOwners}
-        uniqueServers={uniqueServers}
+        uniqueOwners={[...new Set(characters.map((c) => c.owner))]}
+        uniqueServers={[...new Set(characters.map((c) => c.server))]}
         abilityFilters={abilityFilters}
         selectedAbilities={selectedAbilities}
         globalLevel={globalLevel}
@@ -207,17 +178,26 @@ export default function CharactersPageContent() {
         setServerFilter={setServerFilter}
         setRoleFilter={setRoleFilter}
         setActiveOnly={setActiveOnly}
-        onAddAbility={handleAddAbilityFilter}
-        onRemoveAbility={handleRemoveAbilityFilter}
+        onAddAbility={(a, l) => {
+          setSelectedAbilities((p) =>
+            p.includes(a) ? p.filter((x) => x !== a) : [...p, a]
+          );
+          setGlobalLevel(l);
+        }}
+        onRemoveAbility={(i) =>
+          setSelectedAbilities((p) => p.filter((_, idx) => idx !== i))
+        }
         setAbilityFilters={() => {}}
         setSelectedAbilities={setSelectedAbilities}
         onChangeGlobalLevel={setGlobalLevel}
       />
 
-      {/* Grid */}
+      {/* Optional subtle loading indicator */}
+      {/* {filtering && <div className={styles.subtleLoading}>筛选中…</div>} */}
+
       <CharacterGrid
         characters={filteredCharacters}
-        onUpdated={refreshCharacters}
+        onUpdated={() => fetchFilteredCharacters(false)}
       />
     </div>
   );

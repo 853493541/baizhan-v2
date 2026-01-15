@@ -1,14 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import styles from "./styles.module.css";
 import AbilityFilterModal from "./AbilityFilterModal";
 import Dropdown from "../../../components/layout/dropdown";
-
-interface AbilityFilter {
-  ability: string;
-  level: number;
-}
 
 interface Props {
   ownerFilter: string;
@@ -17,7 +12,6 @@ interface Props {
   activeOnly: boolean;
   uniqueOwners: string[];
   uniqueServers: string[];
-  abilityFilters: AbilityFilter[];
   selectedAbilities: string[];
   globalLevel: number | null;
 
@@ -27,8 +21,7 @@ interface Props {
   setActiveOnly: (v: boolean) => void;
 
   onAddAbility: (ability: string, level: number) => void;
-  onRemoveAbility: (i: number) => void;
-  setAbilityFilters: React.Dispatch<React.SetStateAction<AbilityFilter[]>>;
+  onRemoveAbility: (index: number) => void;
   setSelectedAbilities: (arr: string[]) => void;
   onChangeGlobalLevel: (lvl: number | null) => void;
 }
@@ -52,7 +45,6 @@ export default function CharacterFilters({
   activeOnly,
   uniqueOwners,
   uniqueServers,
-  abilityFilters,
   selectedAbilities,
   globalLevel,
   setOwnerFilter,
@@ -61,74 +53,45 @@ export default function CharacterFilters({
   setActiveOnly,
   onAddAbility,
   onRemoveAbility,
-  setAbilityFilters,
   setSelectedAbilities,
   onChangeGlobalLevel,
 }: Props) {
   const [showModal, setShowModal] = useState(false);
-  const [extraAbilities, setExtraAbilities] = useState<{ name: string; icon: string }[]>([]);
+  const [extraAbilities, setExtraAbilities] = useState<
+    { name: string; icon: string }[]
+  >([]);
 
   const DISPLAY_ABILITIES = [...CORE_ABILITIES, ...extraAbilities];
 
-  // 🧩 Load filters from sessionStorage on first mount
-  useEffect(() => {
-    const saved = sessionStorage.getItem("characterFilters");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed.ownerFilter) setOwnerFilter(parsed.ownerFilter);
-        if (parsed.serverFilter) setServerFilter(parsed.serverFilter);
-        if (parsed.roleFilter) setRoleFilter(parsed.roleFilter);
-        if (typeof parsed.activeOnly === "boolean") setActiveOnly(parsed.activeOnly);
-        if (parsed.globalLevel !== undefined) onChangeGlobalLevel(parsed.globalLevel);
-        if (Array.isArray(parsed.selectedAbilities)) setSelectedAbilities(parsed.selectedAbilities);
-        if (Array.isArray(parsed.abilityFilters)) setAbilityFilters(parsed.abilityFilters);
-      } catch (err) {
-        console.error("Failed to parse session filters:", err);
-      }
-    }
-  }, []);
-
-  // 💾 Save filters to sessionStorage whenever they change
-  useEffect(() => {
-    const toSave = {
-      ownerFilter,
-      serverFilter,
-      roleFilter,
-      activeOnly,
-      globalLevel,
-      selectedAbilities,
-      abilityFilters,
-    };
-    sessionStorage.setItem("characterFilters", JSON.stringify(toSave));
-  }, [ownerFilter, serverFilter, roleFilter, activeOnly, globalLevel, selectedAbilities, abilityFilters]);
-
+  /* -------------------- 🔹 Ability Toggle -------------------- */
   const handleAbilityToggle = (ability: string) => {
     const idx = selectedAbilities.indexOf(ability);
+
     if (idx >= 0) {
       const next = selectedAbilities.filter((a) => a !== ability);
       setSelectedAbilities(next);
-      const idxInFilters = abilityFilters.findIndex((f) => f.ability === ability);
-      if (idxInFilters !== -1) onRemoveAbility(idxInFilters);
+      onRemoveAbility(idx);
     } else {
       onAddAbility(ability, globalLevel ?? 10);
     }
   };
 
+  /* -------------------- 🔹 Level Toggle -------------------- */
   const handleGlobalLevelChange = (level: number | null) => {
     onChangeGlobalLevel(level);
-    if (level !== null && selectedAbilities.length > 0) {
-      setAbilityFilters(selectedAbilities.map((a) => ({ ability: a, level })));
-    } else {
-      setAbilityFilters([]);
+
+    if (level === null) {
+      setSelectedAbilities([]);
     }
   };
 
+  /* -------------------- 🔹 Custom Ability -------------------- */
   const handleConfirmCustom = (abilityName: string) => {
-    const isCore = CORE_ABILITIES.some((a) => a.name === abilityName);
-    const isAlreadyExtra = extraAbilities.some((a) => a.name === abilityName);
+    const exists =
+      CORE_ABILITIES.some((a) => a.name === abilityName) ||
+      extraAbilities.some((a) => a.name === abilityName);
 
-    if (!isCore && !isAlreadyExtra) {
+    if (!exists) {
       setExtraAbilities((prev) => [
         ...prev,
         { name: abilityName, icon: `/icons/${abilityName}.png` },
@@ -142,50 +105,59 @@ export default function CharacterFilters({
     setShowModal(false);
   };
 
+  /* -------------------- 🔹 Reset -------------------- */
   const handleReset = () => {
     setOwnerFilter("");
     setServerFilter("");
     setRoleFilter("");
     setSelectedAbilities([]);
-    setAbilityFilters([]);
     setActiveOnly(true);
     onChangeGlobalLevel(null);
-    sessionStorage.removeItem("characterFilters");
   };
 
   return (
     <div className={styles.filterSection}>
+      {/* ================= Basic Filters ================= */}
       <div className={styles.filterRow}>
         <Dropdown
           label="角色"
           options={["全部", ...uniqueOwners]}
-          value={ownerFilter ? ownerFilter : "拥有者"}
+          value={ownerFilter || "拥有者"}
           onChange={(val) => setOwnerFilter(val === "全部" ? "" : val)}
         />
 
         <Dropdown
           label="服务器"
           options={["全部", ...uniqueServers]}
-          value={serverFilter ? serverFilter : "服务器"}
+          value={serverFilter || "服务器"}
           onChange={(val) => setServerFilter(val === "全部" ? "" : val)}
         />
 
-        {[{ label: "防御", value: "Tank" },
+        {[
+          { label: "防御", value: "Tank" },
           { label: "输出", value: "DPS" },
           { label: "治疗", value: "Healer" },
         ].map((opt) => (
           <button
             key={opt.value}
-            className={`${styles.filterBtn} ${roleFilter === opt.value ? styles.selected : ""}`}
-            onClick={() => setRoleFilter(roleFilter === opt.value ? "" : opt.value)}
+            className={`${styles.filterBtn} ${
+              roleFilter === opt.value ? styles.selected : ""
+            }`}
+            onClick={() =>
+              setRoleFilter(roleFilter === opt.value ? "" : opt.value)
+            }
           >
             {opt.label}
           </button>
         ))}
 
-        {/* === Box Toggle for 激活 / 未激活 === */}
+        {/* 激活 / 未激活 */}
         <div className={styles.boxToggle} onClick={() => setActiveOnly(!activeOnly)}>
-          <div className={`${styles.boxSlider} ${!activeOnly ? styles.slideRight : ""}`} />
+          <div
+            className={`${styles.boxSlider} ${
+              !activeOnly ? styles.slideRight : ""
+            }`}
+          />
           <span
             className={`${styles.boxOptionLeft} ${
               activeOnly ? styles.boxTextActive : ""
@@ -207,14 +179,16 @@ export default function CharacterFilters({
         </button>
       </div>
 
-      {/* === Abilities === */}
+      {/* ================= Abilities ================= */}
       <div className={styles.abilitiesRow}>
         {DISPLAY_ABILITIES.map((a) => {
           const active = selectedAbilities.includes(a.name);
           return (
             <div
               key={a.name}
-              className={`${styles.abilityIcon} ${active ? styles.active : ""}`}
+              className={`${styles.abilityIcon} ${
+                active ? styles.active : ""
+              }`}
               onClick={() => handleAbilityToggle(a.name)}
             >
               <img src={a.icon} alt={a.name} />
@@ -228,14 +202,17 @@ export default function CharacterFilters({
         </button>
       </div>
 
-      {/* === Level Buttons === */}
+      {/* ================= Level ================= */}
       <div className={styles.levelRow}>
         {[8, 9, 10].map((lvl) => (
           <button
             key={lvl}
-            className={`${styles.filterBtn} ${globalLevel === lvl ? styles.selected : ""}`}
-            aria-pressed={globalLevel === lvl}
-            onClick={() => handleGlobalLevelChange(globalLevel === lvl ? null : lvl)}
+            className={`${styles.filterBtn} ${
+              globalLevel === lvl ? styles.selected : ""
+            }`}
+            onClick={() =>
+              handleGlobalLevelChange(globalLevel === lvl ? null : lvl)
+            }
           >
             {lvl}
           </button>
