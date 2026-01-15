@@ -51,6 +51,10 @@ export default function CharacterCard({
       (navigator as any).msMaxTouchPoints > 0);
 
   const [currentChar, setCurrentChar] = useState<Character>(char);
+useEffect(() => {
+  setCurrentChar(char);
+}, [char]);
+
   const [loading, setLoading] = useState(false);
 
   const [showModal, setShowModal] = useState(false);

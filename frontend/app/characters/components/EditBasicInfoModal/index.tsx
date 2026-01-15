@@ -39,12 +39,14 @@ export default function EditBasicInfoModal({
   const [saving, setSaving] = useState(false);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  
+useEffect(() => {
+  if (!isOpen) return;
 
-  useEffect(() => {
-    setServer(initialData.server);
-    setRole(initialData.role);
-    setActive(initialData.active);
-  }, [initialData, isOpen]);
+  setServer(initialData.server);
+  setRole(initialData.role);
+  setActive(initialData.active);
+}, [isOpen]);
 
   if (!isOpen) return null;
 
