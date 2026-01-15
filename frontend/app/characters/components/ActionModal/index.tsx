@@ -35,7 +35,7 @@ const numToChinese = (num: number): string => {
 
 const normalize = (s: string) => (s || "").trim().replace(/\u200B/g, "");
 
-// ⚠️ keep for special rules if needed later
+// ⚠️ Reserved for future special rules
 const FORCE_LV10_ABILITIES = new Set<string>();
 
 export default function ActionModal({
@@ -95,7 +95,7 @@ export default function ActionModal({
 
     try {
       await navigator.clipboard.writeText(text);
-      toastSuccess("已复制");
+      toastSuccess("已复制技能书名称");
 
       setCopiedSet((prev) => {
         const next = new Set(prev);
@@ -111,14 +111,17 @@ export default function ActionModal({
   const tradablesLv10 = tradables.filter(t => t.requiredLevel === 10);
 
   /* =========================
-     行渲染（纯展示）
+     行渲染（⚠️ KEY FIX HERE）
   ========================= */
   const renderRow = (t: TradableAbility) => {
     const { ability, requiredLevel, currentLevel } = t;
     const isCopied = copiedSet.has(normalize(ability));
 
     return (
-      <div className={styles.itemRow}>
+      <div
+        key={`tradable-${ability}`}   // ✅ FIXED KEY
+        className={styles.itemRow}
+      >
         <div className={styles.itemLeft}>
           <img
             src={getAbilityIcon(ability)}
