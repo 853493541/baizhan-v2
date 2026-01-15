@@ -1,9 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { FaCog } from "react-icons/fa";
+
 import styles from "./styles.module.css";
-import BackpackWindow from "../../components/Backpack/Index";
 import ActionModal from "../../components/characters/ActionModal";
+import EditBasicInfoModal from "@/app/components/characters/EditBasicInfoModal";
+import ConfirmModal from "@/app/components/ConfirmModal";
+
 import { getTradables } from "@/utils/tradables";
 import { getReadableFromStorage } from "@/utils/readables";
 import { updateCharacterAbilities } from "@/lib/characterService";
@@ -17,6 +22,7 @@ interface Character {
   role: string;
   class: string;
   server: string;
+  active?: boolean;
   abilities?: Record<string, number>;
   storage?: any[];
 }
@@ -34,20 +40,31 @@ export default function CharacterCard({
   API_URL,
   onCharacterUpdate,
 }: Props) {
+  const router = useRouter();
+
   const [currentChar, setCurrentChar] = useState<Character>(char);
   const [loading, setLoading] = useState(false);
+
   const [showModal, setShowModal] = useState(false);
   const [showManager, setShowManager] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+
+  const [editOpen, setEditOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
   const [localAbilities, setLocalAbilities] = useState<Record<string, number>>(
     char.abilities ? { ...char.abilities } : {}
   );
 
+  /* =========================
+     Refresh
+  ========================= */
   const refreshCharacter = async (): Promise<Character | null> => {
     try {
       setLoading(true);
       const res = await fetch(`${API_URL}/api/characters/${char._id}`);
       if (!res.ok) throw new Error("刷新失败");
+
       const updated = await res.json();
       setCurrentChar(updated);
       setLocalAbilities(updated.abilities || {});
@@ -56,13 +73,35 @@ export default function CharacterCard({
     } catch (err) {
       console.error("❌ refreshCharacter error:", err);
       toastError("刷新角色失败，请稍后再试");
-
       return null;
     } finally {
       setLoading(false);
     }
   };
 
+  /* =========================
+     Delete flow
+  ========================= */
+  const requestDelete = () => {
+    setEditOpen(false);
+    setConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await fetch(`${API_URL}/api/characters/${char._id}`, {
+        method: "DELETE",
+      });
+      setConfirmOpen(false);
+      onCharacterUpdate?.(currentChar);
+    } catch (err) {
+      console.error("❌ Delete failed", err);
+    }
+  };
+
+  /* =========================
+     Action logic
+  ========================= */
   const tradables = getTradables(currentChar);
   const readables = getReadableFromStorage(currentChar);
   const hasActions = tradables.length > 0 || readables.length > 0;
@@ -75,7 +114,7 @@ export default function CharacterCard({
         [ability]: newLevel,
       });
       if (updatedChar.abilities) {
-        setLocalAbilities({ ...updatedChar.abilities });
+        setLocalAbilities(updatedChar.abilities);
         setCurrentChar(updatedChar);
         onCharacterUpdate?.(updatedChar);
       }
@@ -84,94 +123,113 @@ export default function CharacterCard({
     }
   };
 
-  const handleCloseModal = () => {
-    setShowModal(false);
-    refreshCharacter();
-  };
+  /* =========================
+     ✅ Inactive override logic
+  ========================= */
+  const roleKey = (currentChar.role || "").toLowerCase();
+
+  const roleClass =
+    currentChar.active === false
+      ? styles.inactive
+      : (styles as any)[roleKey] || "";
 
   return (
-    <div className={`${styles.card} ${styles[currentChar.role?.toLowerCase()]}`}>
-      {/* === Header === */}
-      <div className={styles.headerRow}>
-        <div className={styles.nameBlock}>
-          <div className={styles.name}>
-            <img
-              src={getClassIcon(currentChar.class)}
-              alt={currentChar.class}
-              className={styles.classIcon}
-            />
-            {currentChar.name}
+    <>
+      <div
+        className={`${styles.card} ${roleClass}`}
+        onClick={() => router.push(`/characters/${currentChar._id}`)}
+      >
+        {/* === Header === */}
+        <div className={styles.headerRow}>
+          <div className={styles.nameBlock}>
+            <div className={styles.name}>
+              <img
+                src={getClassIcon(currentChar.class)}
+                alt={currentChar.class}
+                className={styles.classIcon}
+              />
+
+              {currentChar.name}
+
+              {/* ⚙️ Edit button */}
+              <button
+                className={styles.iconBtn}
+                title="编辑角色"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditOpen(true);
+                }}
+              >
+                <FaCog />
+              </button>
+            </div>
+          </div>
+
+          {/* === Add / Manager Buttons === */}
+          <div className={styles.headerActions}>
+            <button
+              className={`${styles.iconBtn} ${styles.addBtn}`}
+              title="添加技能"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowAddModal(true);
+              }}
+            >
+              +
+            </button>
+
+            <button
+              className={`${styles.iconBtn} ${styles.managerBtn}`}
+              title="查看全部技能"
+              onClick={async (e) => {
+                e.stopPropagation();
+                await refreshCharacter();
+                setShowManager(true);
+              }}
+            >
+              📂
+              {currentChar.storage && currentChar.storage.length > 3 && (
+                <span className={styles.badge}>
+                  {currentChar.storage.length}
+                </span>
+              )}
+            </button>
           </div>
         </div>
 
-        {/* === Add / Manager Buttons === */}
-        <div className={styles.headerActions}>
-          <button
-            className={`${styles.iconBtn} ${styles.addBtn}`}
-            title="添加技能"
-            onClick={() => setShowAddModal(true)}
-          >
-            +
-          </button>
-
-          <button
-            className={`${styles.iconBtn} ${styles.managerBtn}`}
-            title="查看全部技能"
-            onClick={async () => {
-              // ✅ Always refresh before opening Manager to ensure data is current
-              await refreshCharacter();
-              setShowManager(true);
-            }}
-          >
-            📂
-            {currentChar.storage && currentChar.storage.length > 3 && (
-              <span className={styles.badge}>{currentChar.storage.length}</span>
-            )}
-          </button>
+        {/* === Orange Action Button === */}
+        <div className={styles.tradeableWrapper}>
+          {hasActions ? (
+            <button
+              className={styles.tradableButton}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowModal(true);
+              }}
+            >
+              ⚡ 有书籍可读
+            </button>
+          ) : (
+            <div className={styles.tradeablePlaceholder}></div>
+          )}
         </div>
       </div>
 
-      {/* === Backpack Section (always visible, no flicker) === */}
-      <div className={styles.backpackWrapper}>
-        <BackpackWindow
-          char={currentChar}
+      {/* === Action Modal === */}
+      {showModal && (
+        <ActionModal
+          tradables={tradables}
+          readables={readables}
+          localAbilities={localAbilities}
+          updateAbility={updateAbility}
           API_URL={API_URL}
-          onChanged={refreshCharacter}  // ✅ notify parent after delete/use
+          charId={currentChar._id}
+          onRefresh={refreshCharacter}
+          onClose={() => setShowModal(false)}
         />
-        {loading && <div className={styles.invisibleLoading}></div>}
-      </div>
+      )}
 
-      {/* === Orange Action Button (Always at Bottom) === */}
-      <div className={styles.tradeableWrapper}>
-        {hasActions ? (
-          <button
-            className={styles.tradableButton}
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowModal(true);
-            }}
-          >
-            ⚡ 有书籍可读
-          </button>
-        ) : (
-          <div className={styles.tradeablePlaceholder}></div>
-        )}
-
-        {showModal && (
-          <ActionModal
-            tradables={tradables}
-            readables={readables}
-            localAbilities={localAbilities}
-            updateAbility={updateAbility}
-            API_URL={API_URL}
-            charId={currentChar._id}
-            onRefresh={refreshCharacter}
-            onClose={handleCloseModal}
-          />
-        )}
-      </div>
-
-      {/* === Modals === */}
+      {/* === Add Backpack === */}
       {showAddModal && (
         <AddBackpackModal
           API_URL={API_URL}
@@ -181,6 +239,7 @@ export default function CharacterCard({
         />
       )}
 
+      {/* === Manager === */}
       {showManager && (
         <Manager
           char={currentChar}
@@ -193,6 +252,34 @@ export default function CharacterCard({
           }}
         />
       )}
-    </div>
+
+      {/* === Edit Basic Info === */}
+      {editOpen && (
+        <EditBasicInfoModal
+          isOpen={editOpen}
+          onClose={() => setEditOpen(false)}
+          onSave={refreshCharacter}
+          onDelete={requestDelete}
+          characterId={currentChar._id}
+          initialData={{
+            server: currentChar.server,
+            role: currentChar.role,
+            active: currentChar.active,
+          }}
+        />
+      )}
+
+      {/* === Confirm Delete === */}
+      {confirmOpen && (
+        <ConfirmModal
+          title="删除角色"
+          message={`确认删除角色「${currentChar.name}」？`}
+          intent="danger"
+          confirmText="删除"
+          onCancel={() => setConfirmOpen(false)}
+          onConfirm={confirmDelete}
+        />
+      )}
+    </>
   );
 }
