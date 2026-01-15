@@ -14,7 +14,7 @@ export default function Sidebar() {
 
         {/* 角色 */}
         <NavLink href="/characters">🧩 全部角色</NavLink>
-        <NavLink href="/backpack">📦 角色背包</NavLink>
+        {/* <NavLink href="/backpack">📦 角色背包</NavLink> */}
 
         {/* 排表 */}
         <NavLink href="/playground">📊 本周排表</NavLink>
