@@ -3,25 +3,12 @@
    ========================= */
 .cardGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
   width: 100%;
   box-sizing: border-box;
 }
 
-/* Desktop: lock to 3 columns for perfect alignment */
-@media (min-width: 1024px) {
-  .cardGrid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-/* Ultra-wide screens: 4 columns */
-@media (min-width: 1440px) {
-  .cardGrid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
 
 /* =========================
    🧩 Character Card

@@ -151,32 +151,11 @@ export default function CharacterCard({
 
               {currentChar.name}
 
-              {/* ⚙️ Edit button */}
-              <button
-                className={styles.iconBtn}
-                title="编辑角色"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setEditOpen(true);
-                }}
-              >
-                <FaCog />
-              </button>
             </div>
           </div>
 
           {/* === Add / Manager Buttons === */}
           <div className={styles.headerActions}>
-            <button
-              className={`${styles.iconBtn} ${styles.addBtn}`}
-              title="添加技能"
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowAddModal(true);
-              }}
-            >
-              +
-            </button>
 
             <button
               className={`${styles.iconBtn} ${styles.managerBtn}`}
@@ -194,8 +173,24 @@ export default function CharacterCard({
                 </span>
               )}
             </button>
+
+
+                                <button
+                className={styles.iconBtn}
+                title="编辑角色"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditOpen(true);
+                }}
+              >
+                <FaCog />
+              </button>
+
+              
           </div>
         </div>
+
+  
 
         {/* === Orange Action Button === */}
         <div className={styles.tradeableWrapper}>
