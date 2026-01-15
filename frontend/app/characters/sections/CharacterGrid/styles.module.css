@@ -140,3 +140,14 @@
   color: #000;
   opacity: 0.85;
 }
+.divider {
+  grid-column: 1 / -1; /* span full grid width */
+  height: 1px;
+  margin: 2px 0;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(0, 0, 0, 0.25),
+    transparent
+  );
+}
