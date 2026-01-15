@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import CreateCharacterModal from "@/app/components/characters/CreateCharacterModal";
+import CreateCharacterModal from "@/app/characters/components/CreateCharacterModal";
 import { Character } from "@/types/Character";
 import { normalizeGender } from "@/utils/normalize";
 import styles from "./page.module.css";

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import styles from "./styles.module.css";
 import BackpackWindow from "../../../../components/Backpack/Index";
-import ActionModal from "../../../../components/characters/ActionModal";
+import ActionModal from "../../../components/ActionModal";
 import { getTradables } from "@/utils/tradables";
 import { getReadableFromStorage } from "@/utils/readables";
 import { updateCharacterAbilities } from "@/lib/characterService";

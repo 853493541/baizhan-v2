@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { FaCog } from "react-icons/fa";
-import EditBasicInfoModal from "@/app/components/characters/EditBasicInfoModal";
+import EditBasicInfoModal from "@/app/characters/components/EditBasicInfoModal";
 import styles from "./styles.module.css";
 
 interface Character {
