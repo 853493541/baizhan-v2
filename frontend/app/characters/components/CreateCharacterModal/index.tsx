@@ -22,6 +22,8 @@ const classes = [
   "七秀", "五毒", "万花", "天策", "明教", "纯阳", "少林", "长歌", "药宗",
   "蓬莱", "刀宗", "凌雪", "唐门", "藏剑", "丐帮", "霸刀", "衍天", "万灵", "段氏", "苍云",
 ];
+const getClassIcon = (cls: string) =>
+  `/icons/class_icons/${encodeURIComponent(cls)}.png`;
 
 export default function CreateCharacterModal({
   isOpen,
@@ -215,21 +217,29 @@ export default function CreateCharacterModal({
           </div>
 
           {/* === Class Selector === */}
-          <div className={styles.inputRow}>
-            <label className={styles.inputLabel}>门派</label>
-            <select
-              name="class"
-              value={formData.class}
-              onChange={handleChange}
-              className={styles.select}
-            >
-              {classes.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </div>
+<div className={styles.buttonGroup}>
+  <label className={styles.groupLabel}>门派</label>
+  <div className={styles.buttonRow}>
+    {classes.map((c) => (
+      <button
+        type="button"
+        key={c}
+        onClick={() => handleSelect("class", c)}
+        className={`${styles.optionBtn} ${
+          formData.class === c ? styles.activeBtn : ""
+        }`}
+      >
+        <img
+          src={getClassIcon(c)}
+          alt={c}
+          className={styles.classIcon}
+        />
+        <span>{c}</span>
+      </button>
+    ))}
+  </div>
+</div>
+
 
           {/* === Toggle Switch === */}
           <div className={styles.toggleRow}>

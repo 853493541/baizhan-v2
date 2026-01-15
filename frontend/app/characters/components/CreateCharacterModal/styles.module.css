@@ -13,7 +13,7 @@
   background: #fff;
   border-radius: 10px;
   padding: 20px 22px;
-  width: 370px;
+  width: 480px;
   max-width: 95%;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   position: relative;
@@ -233,4 +233,31 @@
   border-radius: 6px;
   cursor: pointer;
   font-size: 13px;
+}
+.classIcon {
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+  object-fit: contain;
+}
+@keyframes modalPopIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.modal {
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px 22px;
+  width: 480px;
+  max-width: 95%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  position: relative;
+
+  animation: modalPopIn 0.18s ease-out;
 }
