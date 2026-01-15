@@ -20,7 +20,7 @@
 }
 
 .card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
 }
 
@@ -37,7 +37,7 @@
 
 .nameBlock {
   flex: 1;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .name {
@@ -186,7 +186,7 @@
 .tradableButton:hover {
   background-color: #ffcf7d;
   border-color: #e5a832;
-  transform: translateY(-1px);
+  /* transform: translateY(-1px); */
 }
 
 .tradableButton:active {
@@ -249,4 +249,25 @@
     font-size: 15px;
     padding: 7px 0;
   }
+}
+.nameBlock {
+  position: relative; /* 👈 anchor for absolute hint */
+}
+
+.editHint {
+  position: absolute;
+  top: 100%;          /* place below name */
+  left: 32px;         /* align under text, after icon */
+
+  font-size: 11px;
+  color: #888;
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+/* show on hover */
+.card:hover .editHint {
+  opacity: 1;
 }

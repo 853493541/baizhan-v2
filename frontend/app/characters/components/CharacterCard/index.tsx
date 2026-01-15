@@ -13,7 +13,6 @@ import { getTradables } from "@/utils/tradables";
 import { getReadableFromStorage } from "@/utils/readables";
 import { updateCharacterAbilities } from "@/lib/characterService";
 import Manager from "../Manager";
-import AddBackpackModal from "../AddBackpackModal";
 import { toastError } from "@/app/components/toast/toast";
 
 interface Character {
@@ -42,12 +41,17 @@ export default function CharacterCard({
 }: Props) {
   const router = useRouter();
 
+  const isTouchDevice =
+    typeof window !== "undefined" &&
+    ("ontouchstart" in window ||
+      navigator.maxTouchPoints > 0 ||
+      (navigator as any).msMaxTouchPoints > 0);
+
   const [currentChar, setCurrentChar] = useState<Character>(char);
   const [loading, setLoading] = useState(false);
 
   const [showModal, setShowModal] = useState(false);
   const [showManager, setShowManager] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
 
   const [editOpen, setEditOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -80,7 +84,7 @@ export default function CharacterCard({
   };
 
   /* =========================
-     Delete flow
+     Delete flow (RESTORED)
   ========================= */
   const requestDelete = () => {
     setEditOpen(false);
@@ -89,7 +93,7 @@ export default function CharacterCard({
 
   const confirmDelete = async () => {
     try {
-      await fetch(`${API_URL}/api/characters/${char._id}`, {
+      await fetch(`${API_URL}/api/characters/${currentChar._id}`, {
         method: "DELETE",
       });
       setConfirmOpen(false);
@@ -106,28 +110,10 @@ export default function CharacterCard({
   const readables = getReadableFromStorage(currentChar);
   const hasActions = tradables.length > 0 || readables.length > 0;
 
-  const updateAbility = async (ability: string, newLevel: number) => {
-    if (newLevel < 0) return;
-    setLocalAbilities((prev) => ({ ...prev, [ability]: newLevel }));
-    try {
-      const updatedChar = await updateCharacterAbilities(currentChar._id, {
-        [ability]: newLevel,
-      });
-      if (updatedChar.abilities) {
-        setLocalAbilities(updatedChar.abilities);
-        setCurrentChar(updatedChar);
-        onCharacterUpdate?.(updatedChar);
-      }
-    } catch (err) {
-      console.error("⚠️ Error updating ability", err);
-    }
-  };
-
   /* =========================
-     ✅ Inactive override logic
+     Role / inactive styling
   ========================= */
   const roleKey = (currentChar.role || "").toLowerCase();
-
   const roleClass =
     currentChar.active === false
       ? styles.inactive
@@ -138,6 +124,12 @@ export default function CharacterCard({
       <div
         className={`${styles.card} ${roleClass}`}
         onClick={() => router.push(`/characters/${currentChar._id}`)}
+        onContextMenu={(e) => {
+          if (!isTouchDevice) {
+            e.preventDefault();
+            setEditOpen(true);
+          }
+        }}
       >
         {/* === Header === */}
         <div className={styles.headerRow}>
@@ -148,15 +140,17 @@ export default function CharacterCard({
                 alt={currentChar.class}
                 className={styles.classIcon}
               />
-
               {currentChar.name}
-
             </div>
+
+            {/* desktop hover hint */}
+            {!isTouchDevice && (
+              <div className={styles.editHint}>右键编辑基础信息</div>
+            )}
           </div>
 
-          {/* === Add / Manager Buttons === */}
+          {/* === Action Buttons === */}
           <div className={styles.headerActions}>
-
             <button
               className={`${styles.iconBtn} ${styles.managerBtn}`}
               title="查看全部技能"
@@ -165,6 +159,7 @@ export default function CharacterCard({
                 await refreshCharacter();
                 setShowManager(true);
               }}
+              onContextMenu={(e) => e.stopPropagation()}
             >
               📂
               {currentChar.storage && currentChar.storage.length > 3 && (
@@ -174,8 +169,9 @@ export default function CharacterCard({
               )}
             </button>
 
-
-                                <button
+            {/* edit button ONLY on touch devices */}
+            {isTouchDevice && (
+              <button
                 className={styles.iconBtn}
                 title="编辑角色"
                 onClick={(e) => {
@@ -185,14 +181,11 @@ export default function CharacterCard({
               >
                 <FaCog />
               </button>
-
-              
+            )}
           </div>
         </div>
 
-  
-
-        {/* === Orange Action Button === */}
+        {/* === Bottom Action Button === */}
         <div className={styles.tradeableWrapper}>
           {hasActions ? (
             <button
@@ -201,11 +194,12 @@ export default function CharacterCard({
                 e.stopPropagation();
                 setShowModal(true);
               }}
+              onContextMenu={(e) => e.stopPropagation()}
             >
               ⚡ 有书籍可读
             </button>
           ) : (
-            <div className={styles.tradeablePlaceholder}></div>
+            <div className={styles.tradeablePlaceholder} />
           )}
         </div>
       </div>
@@ -216,21 +210,11 @@ export default function CharacterCard({
           tradables={tradables}
           readables={readables}
           localAbilities={localAbilities}
-          updateAbility={updateAbility}
+          updateAbility={() => {}}
           API_URL={API_URL}
           charId={currentChar._id}
           onRefresh={refreshCharacter}
           onClose={() => setShowModal(false)}
-        />
-      )}
-
-      {/* === Add Backpack === */}
-      {showAddModal && (
-        <AddBackpackModal
-          API_URL={API_URL}
-          characterId={currentChar._id}
-          onClose={() => setShowAddModal(false)}
-          onAdded={refreshCharacter}
         />
       )}
 
