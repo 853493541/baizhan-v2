@@ -157,6 +157,7 @@ export default function CharacterDetailPage() {
         <div className={styles.topGrid}>
           <div className={styles.topLeft}>
             <CharacterBasics
+            
               character={character}
               onSave={refreshAfterEdit}
               onDelete={handleDelete}

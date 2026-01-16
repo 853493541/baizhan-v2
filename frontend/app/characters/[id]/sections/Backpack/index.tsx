@@ -172,16 +172,17 @@ export default function Backpack({
       )}
 
       {/* === Manager === */}
-      {showManager && (
-        <Manager
-          char={currentChar}
-          API_URL={API_URL}
-          onClose={() => setShowManager(false)}
-          onUpdated={(updated: any) => {
-            setCurrentChar({ ...updated });
-          }}
-        />
-      )}
+{showManager && (
+  <Manager
+    char={currentChar}
+    characterId={currentChar._id}   // ✅ explicit
+    API_URL={API_URL}
+    onClose={() => setShowManager(false)}
+    onUpdated={(updated: any) => {
+      setCurrentChar({ ...updated });
+    }}
+  />
+)}
     </div>
   );
 }
