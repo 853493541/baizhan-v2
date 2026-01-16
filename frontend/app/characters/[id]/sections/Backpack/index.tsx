@@ -100,13 +100,7 @@ export default function Backpack({
         <h3 className={styles.title}>背包</h3>
 
         <div className={styles.headerActions}>
-          <button
-            className={`${styles.iconBtn} ${styles.addBtn}`}
-            title="添加技能"
-            onClick={() => setShowAddModal(true)}
-          >
-            +
-          </button>
+
 
           <button
             className={`${styles.iconBtn} ${styles.managerBtn}`}
@@ -158,18 +152,7 @@ export default function Backpack({
         />
       )}
 
-      {/* === Add Backpack Modal === */}
-      {showAddModal && (
-        <AddBackpackModal
-          API_URL={API_URL}
-          characterId={currentChar._id}
-          onClose={() => setShowAddModal(false)}
-          onAdded={async () => {
-            await refreshCharacterLocal();
-            setShowAddModal(false);
-          }}
-        />
-      )}
+
 
       {/* === Manager === */}
 {showManager && (

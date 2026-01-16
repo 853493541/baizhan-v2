@@ -216,7 +216,7 @@ useEffect(() => {
               }}
               onContextMenu={(e) => e.stopPropagation()}
             >
-              ⚡ 有书籍可读
+              ⚡ 紫书可读
             </button>
           ) : (
             <div className={styles.tradeablePlaceholder} />
