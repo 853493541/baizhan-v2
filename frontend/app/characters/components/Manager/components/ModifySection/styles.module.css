@@ -109,3 +109,24 @@
     height: 30px;
   }
 }
+.abilityRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.itemLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  flex: 1;        /* ⬅️ allows text to take space */
+  min-width: 0;   /* ⬅️ REQUIRED for text overflow to work */
+}
+.abilityName {
+  font-size: 15px;
+  font-weight: 500;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

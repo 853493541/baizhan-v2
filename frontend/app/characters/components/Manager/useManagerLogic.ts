@@ -22,7 +22,7 @@ export interface Character {
 }
 
 /* ===============================
-   Insert section ability pool
+   Insert ability pool (STATIC)
 =============================== */
 const ALL_ABILITIES: string[] = Array.from(
   new Set(Object.values(bossData).flat() as string[])
@@ -37,7 +37,7 @@ export function useManagerLogic(
   onUpdated: (c: Character) => void
 ) {
   /* ===============================
-     Normalize character (CRITICAL)
+     Normalize character
   =============================== */
   const safeChar: Character = char ?? {
     _id: "",
@@ -47,19 +47,14 @@ export function useManagerLogic(
 
   const [localChar, setLocalChar] = useState<Character>(safeChar);
 
-  /* Sync when real character arrives */
   useEffect(() => {
     if (char) setLocalChar(char);
   }, [char]);
 
   /* ===============================
-     Section A
+     Search states
   =============================== */
   const [search, setSearch] = useState("");
-
-  /* ===============================
-     Section B
-  =============================== */
   const [insertSearch, setInsertSearch] = useState("");
 
   const [loading, setLoading] = useState(false);
@@ -74,24 +69,40 @@ export function useManagerLogic(
     useState<(() => void) | null>(null);
 
   /* ===============================
-     Pinyin map for storage
+     Pinyin maps
   =============================== */
-  const [pinyinMap, setPinyinMap] = useState<
+  const [storagePinyinMap, setStoragePinyinMap] = useState<
     Record<string, { full: string; short: string }>
   >({});
 
-  useEffect(() => {
-    async function buildMap() {
-      const names = localChar.storage?.map((s) => s.ability) ?? [];
-      const map = await createPinyinMap(names);
-      setPinyinMap(map);
-    }
-
-    if (localChar.storage?.length) buildMap();
-  }, [localChar]);
+  const [insertPinyinMap, setInsertPinyinMap] = useState<
+    Record<string, { full: string; short: string }>
+  >({});
 
   /* ===============================
-     Section A — storage filter
+     Build storage pinyin map
+  =============================== */
+  useEffect(() => {
+    async function build() {
+      const names = localChar.storage?.map((s) => s.ability) ?? [];
+      if (!names.length) return;
+      setStoragePinyinMap(await createPinyinMap(names));
+    }
+    build();
+  }, [localChar.storage]);
+
+  /* ===============================
+     Build insert pinyin map (ONCE)
+  =============================== */
+  useEffect(() => {
+    async function build() {
+      setInsertPinyinMap(await createPinyinMap(ALL_ABILITIES));
+    }
+    build();
+  }, []);
+
+  /* ===============================
+     Section A — Backpack filter
   =============================== */
   const filteredItems = useMemo(() => {
     const list = localChar.storage ?? [];
@@ -99,19 +110,30 @@ export function useManagerLogic(
 
     if (!q) return list;
 
-    const names = list.map((it) => it.ability);
-    const matched = pinyinFilter(names, pinyinMap, q);
-    return list.filter((it) => matched.includes(it.ability));
-  }, [search, localChar, pinyinMap]);
+    const names = list.map((i) => i.ability);
+    const matched = pinyinFilter(names, storagePinyinMap, q);
+    return list.filter((i) => matched.includes(i.ability));
+  }, [search, localChar.storage, storagePinyinMap]);
 
   /* ===============================
-     Section B — insert search
+     Section B — Insert filter (FIXED)
+     RULE:
+     - no search → return ALL (preview handled by UI)
+     - has search → pinyin filter
   =============================== */
   const insertResults = useMemo(() => {
     const q = insertSearch.trim().toLowerCase();
-    if (!q) return [];
-    return pinyinFilter(ALL_ABILITIES, {}, q);
-  }, [insertSearch]);
+
+    if (!q) return ALL_ABILITIES;
+
+    return pinyinFilter(ALL_ABILITIES, insertPinyinMap, q);
+  }, [insertSearch, insertPinyinMap]);
+
+  /* ===============================
+     UX helpers
+  =============================== */
+  const hasStorageSearch = search.trim().length > 0;
+  const hasInsertSearch = insertSearch.trim().length > 0;
 
   /* ===============================
      Refresh character
@@ -178,7 +200,7 @@ export function useManagerLogic(
       localChar.storage?.some(
         (s) => s.ability === item.ability && s.level === 10
       )
-      )
+    )
       return { text: "有十", className: "yellowBtn" };
 
     return { text: "使用", className: "useBtn" };
@@ -225,15 +247,17 @@ export function useManagerLogic(
   };
 
   return {
-    /* Section A */
+    /* Backpack */
     search,
     setSearch,
     filteredItems,
+    hasStorageSearch,
 
-    /* Section B */
+    /* Insert */
     insertSearch,
     setInsertSearch,
     insertResults,
+    hasInsertSearch,
     addLevel10Book,
 
     /* Shared */

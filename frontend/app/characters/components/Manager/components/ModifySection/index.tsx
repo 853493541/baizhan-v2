@@ -18,7 +18,7 @@ interface Props {
 
   getInsertLevel: (ability: string) => number;
 
-  // separate system — does NOT affect +/-
+  // separate system — does NOT affect +/- editor
   addLevel10Book: (ability: string, level: number) => void;
 }
 
@@ -36,16 +36,14 @@ export default function ModifySection({
   const [loadingAbility, setLoadingAbility] = useState<string | null>(null);
 
   /* =========================
-     REAL editor: backend + UI
+     Editor logic
      ========================= */
   const updateAbility = async (ability: string, nextLevel: number) => {
     if (!characterId) return;
     if (nextLevel < 0 || nextLevel > 10) return;
 
     const currentLevel = getInsertLevel(ability);
-    if (currentLevel === nextLevel) return; // no-op guard
-
-    // prevent double submit
+    if (currentLevel === nextLevel) return;
     if (loadingAbility === ability) return;
 
     setLoadingAbility(ability);
@@ -54,7 +52,6 @@ export default function ModifySection({
         [ability]: nextLevel,
       });
 
-      // ✅ sync editor state immediately
       setInsertLevels((prev) => ({
         ...prev,
         [ability]: nextLevel,
@@ -66,18 +63,33 @@ export default function ModifySection({
     }
   };
 
+  /* =========================
+     Display rule (KEY PART)
+     ========================= */
+  const isSearching = insertSearch.trim().length > 0;
+
+  const displayAbilities = isSearching
+    ? insertResults
+    : insertResults.slice(0, 3); // 👈 preview list
+
   return (
     <div className={styles.insertSection}>
       {/* Search */}
       <input
         className={styles.search}
-        placeholder="搜索技能以置入书籍..."
+        placeholder="输入技能名 / 拼音..."
         value={insertSearch}
         onChange={(e) => setInsertSearch(e.target.value)}
       />
 
-      {/* Ability rows */}
-      {insertResults.map((ability) => {
+      {/* Placeholder when idle */}
+      {!isSearching && insertResults.length > 3 && (
+        <div className={styles.previewHint}>
+        </div>
+      )}
+
+      {/* Ability list */}
+      {displayAbilities.map((ability) => {
         const level = getInsertLevel(ability);
         const isLoading = loadingAbility === ability;
 
@@ -96,7 +108,6 @@ export default function ModifySection({
             </div>
 
             <div className={styles.buttons}>
-              {/* − */}
               <button
                 className={`${styles.btn} ${styles.minus}`}
                 disabled={isLoading || level <= 0}
@@ -105,10 +116,8 @@ export default function ModifySection({
                 −
               </button>
 
-              {/* Level */}
               <span className={styles.level}>{level}</span>
 
-              {/* + */}
               <button
                 className={`${styles.btn} ${styles.plus}`}
                 disabled={isLoading || level >= 10}
@@ -117,7 +126,6 @@ export default function ModifySection({
                 +
               </button>
 
-              {/* Book action (separate system) */}
               <button
                 className={styles.insertBtn}
                 disabled={isLoading}
@@ -129,6 +137,13 @@ export default function ModifySection({
           </div>
         );
       })}
+
+      {/* Empty search result */}
+      {isSearching && displayAbilities.length === 0 && (
+        <div className={styles.emptyHint}>
+          未找到匹配技能
+        </div>
+      )}
     </div>
   );
 }
