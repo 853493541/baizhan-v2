@@ -1,13 +1,17 @@
 "use client";
+import React from "react";
 
-import React, { useState, useMemo, useEffect } from "react";
 import { Plus, X } from "lucide-react";
 import styles from "./styles.module.css";
 import AddBackpackModal from "../AddBackpackModal";
 import ConfirmModal from "@/app/components/ConfirmModal";
-import { createPinyinMap, pinyinFilter } from "../../../../utils/pinyinSearch";
-import { toastError } from "@/app/components/toast/toast";
 
+import { useManagerLogic } from "./useManagerLogic";
+import { numToChinese } from "./abilityUtils";
+
+/* ===============================
+   Types
+=============================== */
 interface StorageItem {
   ability: string;
   level: number;
@@ -24,217 +28,73 @@ interface Props {
   char: Character;
   API_URL: string;
   onClose: () => void;
-  onUpdated: (newChar: Character) => void;
+  onUpdated: (c: Character) => void;
 }
 
 const getAbilityIcon = (name: string) => `/icons/${name}.png`;
 
-// 🈶 Convert number → Chinese numerals
-const numToChinese = (num: number): string => {
-  const map = ["〇", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
-  if (num <= 10) return map[num];
-  if (num < 20) return "十" + map[num - 10];
-  const tens = Math.floor(num / 10);
-  const ones = num % 10;
-  return `${map[tens]}十${ones ? map[ones] : ""}`;
-};
+export default function Manager({
+  char,
+  API_URL,
+  onClose,
+  onUpdated,
+}: Props) {
+  const {
+    /* Section A */
+    search,
+    setSearch,
+    filteredItems,
 
-export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
-  const [localChar, setLocalChar] = useState<Character>(char);
-  const [search, setSearch] = useState("");
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [loading, setLoading] = useState(false);
+    /* Section B */
+    insertSearch,
+    setInsertSearch,
+    insertResults,
+    addLevel10Book,
+
+    /* Shared */
+    localChar,
+    loading,
+    confirmOpen,
+    confirmTitle,
+    confirmMessage,
+    onConfirmAction,
+    setConfirmOpen,
+    getUseButtonState,
+    requestUse,
+    requestDelete,
+  } = useManagerLogic(char, API_URL, onUpdated);
 
   /* ===============================
-     Confirm modal state
+     modal visibility
   =============================== */
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [confirmTitle, setConfirmTitle] = useState("");
-  const [confirmMessage, setConfirmMessage] = useState("");
-  const [onConfirmAction, setOnConfirmAction] =
-    useState<(() => void) | null>(null);
+  const [showAddModal, setShowAddModal] = React.useState(false);
 
-  const [pinyinMap, setPinyinMap] = useState<
-    Record<string, { full: string; short: string }>
+  /* ===============================
+     LOCAL insert level (UI only)
+  =============================== */
+  const [insertLevels, setInsertLevels] = React.useState<
+    Record<string, number>
   >({});
 
-  /* ===============================
-     🔍 Build Pinyin map
-  =============================== */
-  useEffect(() => {
-    async function buildMap() {
-      const names = (localChar.storage || []).map((s) => s.ability);
-      const map = await createPinyinMap(names);
-      setPinyinMap(map);
-    }
-    if (localChar.storage?.length) buildMap();
-  }, [localChar]);
+  const getInsertLevel = (ability: string) =>
+    insertLevels[ability] ?? 10;
 
-  /* ===============================
-     🔍 Filter
-  =============================== */
-  const filteredItems = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    const list = localChar.storage || [];
-    if (!q) return list;
+  const incLevel = (ability: string) =>
+    setInsertLevels((p) => ({ ...p, [ability]: 10 }));
 
-    const abilityNames = list.map((it) => it.ability);
-    const filteredNames = pinyinFilter(abilityNames, pinyinMap, q);
-    return list.filter((it) => filteredNames.includes(it.ability));
-  }, [search, localChar, pinyinMap]);
+  const decLevel = (ability: string) =>
+    setInsertLevels((p) => ({ ...p, [ability]: 9 }));
 
-  /* ===============================
-     🔄 Refresh
-  =============================== */
-  const refreshCharacter = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(`${API_URL}/api/characters/${char._id}`);
-      if (!res.ok) throw new Error("加载角色失败");
-      const data = await res.json();
-      setLocalChar(data);
-      onUpdated(data);
-    } catch (e) {
-      toastError("刷新失败，请稍后再试");
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const runWithRefresh = async (action: () => Promise<void>) => {
-    try {
-      await action();
-      await refreshCharacter();
-    } catch (err) {
-      console.error("❌ action failed:", err);
-      toastError("操作失败，请稍后再试");
-    }
-  };
-
-  /* ===============================
-     🔘 Button label/state (UI ONLY)
-  =============================== */
-  const getUseButtonState = (
-    item: StorageItem,
-    currentLevel: number
-  ): { text: string; className: string; disabled?: boolean } => {
-    const currentText = `(${numToChinese(currentLevel)}重)`;
-
-    /* ✅ NEW LOGIC — already level 10 */
-    if (currentLevel >= 10) {
-      return {
-        text: "已十",
-        className: styles.deleteBtn,
-        disabled: true,
-      };
-    }
-
-    if (item.level === 9 && currentLevel < 8) {
-      return { text: "未八", className: styles.yellowBtn };
-    }
-
-    if (item.level === 10 && currentLevel < 9) {
-      return { text: "未九", className: styles.yellowBtn };
-    }
-
-    if (
-      item.level === 9 &&
-      localChar.storage?.some(
-        (s) => s.ability === item.ability && s.level === 10
-      )
-    ) {
-      return { text: `有十`, className: styles.yellowBtn };
-    }
-
-    return { text: `使用 `, className: styles.useBtn };
-  };
-
-  /* ===============================
-     ⚔️ Use / Delete (UNCHANGED)
-  =============================== */
-  const requestUse = (item: StorageItem) => {
-    if (item.level === 9) {
-      const hasLv10 = localChar.storage?.some(
-        (s) => s.ability === item.ability && s.level === 10
-      );
-
-      if (hasLv10) {
-        setConfirmTitle("检测到更高等级书籍");
-        setConfirmMessage(`背里有对应十重, \n是否一起使用？`);
-        setOnConfirmAction(() => async () => {
-          setConfirmOpen(false);
-          await runWithRefresh(async () => {
-            await fetch(`${API_URL}/api/characters/${char._id}/storage/use`, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ ability: item.ability, level: 9 }),
-            });
-            await fetch(`${API_URL}/api/characters/${char._id}/storage/use`, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ ability: item.ability, level: 10 }),
-            });
-          });
-        });
-        setConfirmOpen(true);
-        return;
-      }
-    }
-
-    requestFinalUse(item);
-  };
-
-  const requestFinalUse = (item: StorageItem) => {
-    setConfirmTitle("确认使用");
-    setConfirmMessage(
-      `确定要使用 ${item.ability} · ${numToChinese(item.level)}重 吗？`
-    );
-    setOnConfirmAction(() => async () => {
-      setConfirmOpen(false);
-      await runWithRefresh(async () => {
-        await fetch(`${API_URL}/api/characters/${char._id}/storage/use`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ability: item.ability, level: item.level }),
-        });
-      });
-    });
-    setConfirmOpen(true);
-  };
-
-  const requestDelete = (item: StorageItem) => {
-    setConfirmTitle("确认删除");
-    setConfirmMessage(
-      `确定要删除 ${item.ability} · ${numToChinese(item.level)}重 吗？`
-    );
-    setOnConfirmAction(() => async () => {
-      setConfirmOpen(false);
-      await runWithRefresh(async () => {
-        await fetch(`${API_URL}/api/characters/${char._id}/storage/delete`, {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ability: item.ability, level: item.level }),
-        });
-      });
-    });
-    setConfirmOpen(true);
-  };
-
-  /* ===============================
-     🖼️ Render
-  =============================== */
   return (
     <>
       <div
         className={styles.overlay}
-        onClick={(e) => {
-          if (e.target === e.currentTarget) {
-            onClose();
-          }
-        }}
+        onClick={(e) => e.target === e.currentTarget && onClose()}
       >
         <div className={styles.modal}>
+          {/* ===============================
+             Header
+          =============================== */}
           <div className={styles.header}>
             <h2>
               全部技能 {loading && <span>加载中...</span>}
@@ -244,6 +104,74 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
             </button>
           </div>
 
+          {/* =====================================================
+             🆕 TOP INSERT SECTION
+          ===================================================== */}
+          <div className={styles.insertSection}>
+            <input
+              className={styles.search}
+              placeholder="搜索技能以置入书籍..."
+              value={insertSearch}
+              onChange={(e) => setInsertSearch(e.target.value)}
+            />
+
+            {insertResults.map((ability) => (
+              <div key={ability} className={styles.abilityRow}>
+                <div className={styles.itemLeft}>
+                  <img
+                    src={getAbilityIcon(ability)}
+                    alt={ability}
+                    className={styles.abilityIcon}
+                    onError={(e) =>
+                      ((e.currentTarget as HTMLImageElement).style.display =
+                        "none")
+                    }
+                  />
+                  <span className={styles.abilityName}>{ability}</span>
+                </div>
+
+                <div className={styles.buttons}>
+                  {/* ❗ class names FIXED */}
+                  <button
+                    className={`${styles.btn} ${styles.minus}`}
+                    disabled={getInsertLevel(ability) === 9}
+                    onClick={() => decLevel(ability)}
+                  >
+                    −
+                  </button>
+
+                  {/* ❗ class name FIXED */}
+                  <span className={styles.level}>
+                    {getInsertLevel(ability)}
+                  </span>
+
+                  <button
+                    className={`${styles.btn} ${styles.plus}`}
+                    disabled={getInsertLevel(ability) === 10}
+                    onClick={() => incLevel(ability)}
+                  >
+                    +
+                  </button>
+
+                  <button
+                    className={styles.insertBtn}
+                    onClick={() =>
+                      addLevel10Book(
+                        ability,
+                        getInsertLevel(ability)
+                      )
+                    }
+                  >
+                    置入一本十重
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* ===============================
+             ORIGINAL STORAGE SECTION
+          =============================== */}
           <div className={styles.topBar}>
             <input
               className={styles.search}
@@ -251,6 +179,7 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
+
             <button
               className={styles.addBtn}
               onClick={() => setShowAddModal(true)}
@@ -265,11 +194,15 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
 
           <ul className={styles.itemList}>
             {filteredItems.map((item, idx) => {
-              const currentLevel = localChar.abilities?.[item.ability] ?? 0;
+              const currentLevel =
+                localChar.abilities?.[item.ability] ?? 0;
               const state = getUseButtonState(item, currentLevel);
 
               return (
-                <li key={`${item.ability}-${idx}`} className={styles.itemRow}>
+                <li
+                  key={`${item.ability}-${idx}`}
+                  className={styles.itemRow}
+                >
                   <div className={styles.itemLeft}>
                     <img
                       src={getAbilityIcon(item.ability)}
@@ -280,24 +213,26 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
                           "none")
                       }
                     />
-                    <div className={styles.abilityText}>
-                      <span className={styles.abilityName}>
-                        {numToChinese(item.level)}重 • {item.ability}
-                      </span>
-                    </div>
+
+                    <span className={styles.abilityName}>
+                      {numToChinese(item.level)}重 · {item.ability}
+                    </span>
                   </div>
 
                   <div className={styles.buttons}>
                     <button
                       disabled={state.disabled}
-                      onClick={() => !state.disabled && requestUse(item)}
-                      className={`${styles.btn} ${state.className}`}
+                      className={`${styles.btn} ${styles[state.className]}`}
+                      onClick={() =>
+                        !state.disabled && requestUse(item)
+                      }
                     >
                       {state.text}
                     </button>
+
                     <button
-                      onClick={() => requestDelete(item)}
                       className={`${styles.btn} ${styles.deleteBtn}`}
+                      onClick={() => requestDelete(item)}
                     >
                       删除
                     </button>
@@ -315,18 +250,24 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
         </div>
       </div>
 
+      {/* ===============================
+         Add Backpack Modal
+      =============================== */}
       {showAddModal && (
         <AddBackpackModal
           API_URL={API_URL}
           characterId={char._id}
           onClose={() => setShowAddModal(false)}
-          onAdded={refreshCharacter}
+          onAdded={() => setShowAddModal(false)}
         />
       )}
 
+      {/* ===============================
+         Confirm Modal
+      =============================== */}
       {confirmOpen && onConfirmAction && (
         <ConfirmModal
-         intent="neutral"
+          intent="neutral"
           title={confirmTitle}
           message={confirmMessage}
           confirmText="确认"

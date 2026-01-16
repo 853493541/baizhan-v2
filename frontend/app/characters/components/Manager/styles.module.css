@@ -1,8 +1,8 @@
-/* ============================
-   📦 Manager Modal Styles
-   ============================ */
+/* =========================================================
+   📦 Manager Modal
+========================================================= */
 
-/* === Overlay === */
+/* ---------- Overlay ---------- */
 .overlay {
   position: fixed;
   inset: 0;
@@ -13,7 +13,7 @@
   z-index: 300;
 }
 
-/* === Modal === */
+/* ---------- Modal ---------- */
 .modal {
   background: #fff;
   border-radius: 12px;
@@ -26,7 +26,7 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
-/* === Header === */
+/* ---------- Header ---------- */
 .header {
   display: flex;
   justify-content: space-between;
@@ -43,7 +43,10 @@
   color: #000;
 }
 
-/* === Search + Add === */
+/* =========================================================
+   🔍 Search + Add
+========================================================= */
+
 .topBar {
   display: flex;
   gap: 10px;
@@ -78,7 +81,10 @@
   background: #22963a;
 }
 
-/* === List === */
+/* =========================================================
+   📦 Storage List
+========================================================= */
+
 .itemList {
   flex: 1;
   overflow-y: auto;
@@ -103,51 +109,48 @@
   background: #eef3f9;
 }
 
-/* === Left side === */
+/* ---------- Item Left ---------- */
 .itemLeft {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 1 1 auto;
+  flex: 1;
   min-width: 0;
 }
 
+/* =========================================================
+   🧩 Ability Icon & Name (GLOBAL)
+========================================================= */
+
 .abilityIcon {
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
   object-fit: contain;
   border: 1px solid #ddd;
   border-radius: 4px;
   background: #fff;
 }
 
-.abilityText {
-  display: flex;
-  align-items: center;
-  width: 100%;
-}
-
 .abilityName {
-  flex: 1 1 auto;
   font-size: 14px;
-  color: #1f2937;
   font-weight: 500;
+  color: #1f2937;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  text-align: center;
 }
 
-/* === Buttons === */
+/* =========================================================
+   🔘 Button System (SINGLE SOURCE)
+========================================================= */
+
 .buttons {
   display: flex;
   gap: 6px;
-  flex: 0 0 auto;
   margin-left: 6px;
 }
 
-/* ===============================
-   Button styles (single source)
-=============================== */
 .btn {
   border: none;
   border-radius: 6px;
@@ -156,10 +159,16 @@
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition: background 0.2s ease;
 }
 
-/* Normal use */
+.btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* use */
 .useBtn {
   background: #4caf50;
   color: #fff;
@@ -168,7 +177,7 @@
   background: #43a047;
 }
 
-/* Warning (未八 / 未九 / 有十) */
+/* warning */
 .yellowBtn {
   background: #ffc107;
   color: #212529;
@@ -177,7 +186,7 @@
   background: #e0a800;
 }
 
-/* Delete + 已十重 */
+/* danger */
 .deleteBtn {
   background: #dc3545;
   color: #fff;
@@ -186,21 +195,152 @@
   background: #c82333;
 }
 
-/* Disabled (已十重) */
-.deleteBtn:disabled {
-  opacity: 0.65;
+/* =========================================================
+   🆕 Insert Section
+========================================================= */
+
+.insertSection {
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed #ddd;
+}
+
+/* ---------- Insert Row ---------- */
+.abilityRow {
+  display: grid;
+  grid-template-columns: 32px 1fr auto;
+  align-items: center;
+  gap: 8px;
+
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 4px 6px;
+  margin-top: 6px;
+
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.abilityRow:hover {
+  background: #fdfdfd;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* =========================================================
+   ➕ / ➖ Level Controls (GLOBAL)
+========================================================= */
+
+.controls,
+.abilityControls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.minus,
+.plus {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  border: 1px solid;
+  background: #fff;
+}
+
+.minus {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #b91c1c;
+}
+
+.plus {
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #166534;
+}
+
+.minus:disabled,
+.plus:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-.btn:disabled {
-  pointer-events: none;
+.level,
+.abilityLevel {
+  min-width: 20px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
 }
 
-/* === Footer === */
+/* =========================================================
+   📘 Insert Button
+========================================================= */
+
+.insertBtn {
+  margin-left: 6px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 4px;
+  border: 1px solid #2563eb;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+}
+.insertBtn:hover {
+  background: #1d4ed8;
+}
+.insertBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   🧱 Ability Grid
+========================================================= */
+
+.abilitySection {
+  margin-bottom: 18px;
+}
+
+.sectionTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+.abilityGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 10px;
+}
+
+.abilityCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 8px 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.abilityCard:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* =========================================================
+   Footer / Empty
+========================================================= */
+
 .footer {
   display: flex;
   justify-content: flex-end;
-  padding-top: 4px;
 }
 
 .cancelBtn {
@@ -208,37 +348,29 @@
   background: #eee;
   border-radius: 6px;
   padding: 6px 14px;
-  font-size: 14px;
   cursor: pointer;
 }
 .cancelBtn:hover {
   background: #ddd;
 }
 
-/* === Empty === */
 .empty {
   color: #555;
   text-align: center;
   padding: 12px 0;
-  font-size: 14px;
 }
 
-/* === Responsive === */
+/* =========================================================
+   📱 Responsive
+========================================================= */
+
 @media (max-width: 600px) {
-  .modal {
-    width: 92%;
-    max-height: 85vh;
-    height: auto;
-    padding: 16px;
+  .abilityGrid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
   }
 
-  .btn {
-    font-size: 14px;
-    padding: 6px 12px;
-  }
-
-  .cancelBtn {
-    flex: 1;
-    padding: 10px 0;
+  .abilityIcon {
+    width: 30px;
+    height: 30px;
   }
 }
