@@ -74,7 +74,7 @@ export default function AbilityEditor({
   const allAbilities = Object.keys(abilities);
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
-    if (!term) return allAbilities.slice(0, 5);
+    if (!term) return allAbilities.slice(0, 6);
     return pinyinFilter(allAbilities, pinyinMap, term);
   }, [query, allAbilities, pinyinMap]);
 

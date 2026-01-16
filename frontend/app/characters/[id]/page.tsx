@@ -215,6 +215,15 @@ export default function CharacterDetailPage() {
 
           {/* RIGHT → Editor + Backpack */}
           <div className={styles.rightStack}>
+
+                       <div className={styles.backpackSection}>
+              <Backpack
+                character={character}
+                API_URL={API_URL}
+                refreshCharacter={refreshCharacter}
+              />
+            </div>
+            
             <div className={styles.halfCard}>
               <AbilityEditor
                 characterId={character._id}
@@ -235,13 +244,7 @@ export default function CharacterDetailPage() {
               />
             </div>
 
-            <div className={styles.backpackSection}>
-              <Backpack
-                character={character}
-                API_URL={API_URL}
-                refreshCharacter={refreshCharacter}
-              />
-            </div>
+ 
           </div>
         </div>
 

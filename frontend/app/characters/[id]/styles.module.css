@@ -120,7 +120,7 @@
 }
 
 /* ==============================
-   ✨ Compact Half Card (Ability Editor)
+   ✨ Ability Editor (Fill Remaining Height)
    ============================== */
 .halfCard {
   background: #fff;
@@ -128,22 +128,24 @@
   border-radius: 10px;
   padding: 14px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  flex: 0 1 auto; /* height depends on content */
-  min-height: 270px;
-  max-height: 270px;
+
+  /* 🔑 KEY FIX */
+  flex: 1 1 auto;
+  min-height: 0;
+
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
   position: relative;
   box-sizing: border-box;
   overflow: hidden;
 }
 
-/* Inner content */
+/* Inner editor scrolls vertically if needed */
 .halfCard > * {
   flex: 1;
   min-height: 0;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   box-sizing: border-box;
 }
 
@@ -160,20 +162,23 @@
 }
 
 /* ==============================
-   🎒 Right Column Layout (Top + Bottom)
+   🎒 Right Column Layout
    ============================== */
 .rightStack {
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* top anchored, bottom anchored */
   height: 100%;
   min-height: 0;
   flex: 1;
 }
 
-/* Backpack pinned to bottom */
+/* Backpack keeps natural height */
 .backpackSection {
   flex-shrink: 0;
-  margin-top: 10px;
-  /* border:2px solid red; */
+  /* margin-top: 10px; */
+}
+.rightStack {
+
+  max-height: 600px;
+  /* background:yellow; */
 }

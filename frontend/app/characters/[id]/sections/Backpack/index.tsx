@@ -104,7 +104,7 @@ export default function Backpack({
 
           <button
             className={`${styles.iconBtn} ${styles.managerBtn}`}
-            title="查看全部技能"
+            title="技能管理"
             onClick={() => setShowManager(true)}
           >
             📂
