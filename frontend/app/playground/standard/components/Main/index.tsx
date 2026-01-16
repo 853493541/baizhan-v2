@@ -103,13 +103,17 @@ export default function MainSection({
     toastSuccess("排表已暂时保存");
   };
 
-  const restoreFromCache = (idx: number) => {
-    const cached = groupCache[idx];
-    if (!cached) return;
+const restoreFromCache = async (idx: number) => {
+  const cached = groupCache[idx];
+  if (!cached) return;
 
-    setGroups(structuredClone(cached.groups));
-    toastSuccess(`已恢复暂存排表 ${idx + 1}`);
-  };
+  const restored = structuredClone(cached.groups);
+
+  setGroups(restored);
+  await saveGroups(restored); // ✅ CRITICAL
+
+  toastSuccess(`已恢复并保存暂存排表 ${idx + 1}`);
+};
 
   /* =========================
      Solver ability toggles

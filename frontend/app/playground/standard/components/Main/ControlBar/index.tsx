@@ -17,7 +17,7 @@ interface Props {
   locked: boolean;
   onManualEdit: () => void;
 
-  // 🆕 temp cache controls
+  // 🗂 temp cache controls
   cache: CacheSlot[];
   onSaveCache: () => void;
   onRestoreCache: (idx: number) => void;
@@ -104,7 +104,7 @@ export default function ControlBar({
 
             <div className={styles.cacheSlots}>
               {Array.from({ length: 5 }).map((_, i) => {
-                const hasCache = !!cache[i];
+                const hasCache = Boolean(cache[i]);
 
                 return (
                   <button
