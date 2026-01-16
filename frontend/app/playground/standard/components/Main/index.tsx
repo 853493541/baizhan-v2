@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import styles from "./styles.module.css";
 import { runAdvancedSolver } from "@/utils/advancedSolver";
 import { summarizeAftermath } from "@/utils/aftermathSummary";
@@ -11,10 +11,7 @@ import DisplayGroups from "./DisplayGroups";
 import EditAllGroupsModal from "./EditAllGroupsModal";
 import ControlBar from "./ControlBar";
 
-import {
-  toastError,
-  toastSuccess,
-} from "@/app/components/toast/toast";
+import { toastError, toastSuccess } from "@/app/components/toast/toast";
 
 /* 🔥 ORDERED main character priority */
 const MAIN_CHARACTERS = [
@@ -29,17 +26,37 @@ const MAIN_ORDER_MAP = new Map(
   MAIN_CHARACTERS.map((name, idx) => [name, idx])
 );
 
+type AnyCharRef = any;
+
+function getCharId(ref: AnyCharRef): string | null {
+  if (!ref) return null;
+  if (typeof ref === "string") return ref;
+  if (typeof ref === "object" && typeof ref._id === "string") return ref._id;
+  return null;
+}
+
+function sampleGroupShape(label: string, groups: GroupResult[]) {
+  const g0: any = groups?.[0];
+  const c0: any = g0?.characters?.[0];
+
+  console.log(`[MainSection] ${label}`, {
+    groupsLen: groups.length,
+    c0Type: typeof c0,
+    c0Id: getCharId(c0),
+    c0Name: c0?.name,
+    c0Role: c0?.role,
+  });
+}
+
 interface Props {
   schedule: {
     _id: string;
     server: string;
     conflictLevel: number;
-    characters: Character[];
+    characters: Character[]; // ✅ FULL characters ONLY
     checkedAbilities: AbilityCheck[];
   };
-  groups: (GroupResult & {
-    status?: "not_started" | "started" | "finished";
-  })[];
+  groups: GroupResult[];
   setGroups: (groups: GroupResult[]) => void;
   activeIdx: number | null;
   setActiveIdx: (idx: number | null) => void;
@@ -63,20 +80,30 @@ export default function MainSection({
     useState<{ wasted9: number; wasted10: number } | null>(null);
   const [showEditAll, setShowEditAll] = useState(false);
 
+  /* =====================================================
+     DEBUG: track who calls setGroups
+  ===================================================== */
+  const callSeq = useRef(0);
+  const setGroupsDebug = (next: GroupResult[], from: string) => {
+    callSeq.current += 1;
+    sampleGroupShape(`${from} → setGroups #${callSeq.current}`, next);
+    setGroups(next);
+  };
+
+  useEffect(() => {
+    sampleGroupShape("props.groups changed", groups);
+  }, [groups]);
+
+  /* =====================================================
+     Solver ability toggles
+  ===================================================== */
   const allAbilities = schedule.checkedAbilities;
   const keyFor = (a: AbilityCheck) => `${a.name}-${a.level}`;
 
-  /* =====================================================
-     🔑 Solver option state (authoritative UI state)
-  ===================================================== */
   const [enabledAbilities, setEnabledAbilities] = useState<
     Record<string, boolean>
   >(() => Object.fromEntries(allAbilities.map((a) => [keyFor(a), true])));
 
-  /* =====================================================
-     ✅ Effective abilities (USED BY SOLVER + QA)
-     - 自定义排表 uses this
-  ===================================================== */
   const effectiveAbilities: AbilityCheck[] = useMemo(
     () =>
       allAbilities.map((a) => ({
@@ -87,20 +114,21 @@ export default function MainSection({
   );
 
   /* =====================================================
-     Aftermath
+     Aftermath summary
   ===================================================== */
   useEffect(() => {
-    if (groups.length > 0) {
-      summarizeAftermath(groups)
-        .then(setAftermath)
-        .catch(() => setAftermath(null));
-    } else {
+    if (!groups.length) {
       setAftermath(null);
+      return;
     }
+
+    summarizeAftermath(groups)
+      .then(setAftermath)
+      .catch(() => setAftermath(null));
   }, [groups]);
 
   /* =====================================================
-     🔥 Solver (SAFE)
+     Solver
   ===================================================== */
   const safeRunSolver = async (abilities: AbilityCheck[]) => {
     if (solving) return;
@@ -109,31 +137,13 @@ export default function MainSection({
       setSolving(true);
       await new Promise((r) => setTimeout(r, 0));
 
-      console.log(
-        "[solver input]",
-        abilities.map((a) => ({
-          name: a.name,
-          level: a.level,
-          available: a.available,
-        }))
-      );
-
       const results = runAdvancedSolver(
         schedule.characters,
         abilities,
         3
       );
 
-      const isInvalid =
-        !Array.isArray(results) ||
-        results.length === 0 ||
-        results.every(
-          (g) =>
-            !Array.isArray(g.characters) ||
-            g.characters.length === 0
-        );
-
-      if (isInvalid) {
+      if (!Array.isArray(results) || results.length === 0) {
         toastError("排表失败，请重试");
         return;
       }
@@ -141,7 +151,7 @@ export default function MainSection({
       toastSuccess("排表成功");
 
       const reordered = reorderGroups(results);
-      setGroups(reordered);
+      setGroupsDebug(reordered, "solver");
       await saveGroups(reordered);
     } catch (err) {
       console.error("❌ Solver error:", err);
@@ -154,11 +164,13 @@ export default function MainSection({
   const saveGroups = async (results: GroupResult[]) => {
     const payload = results.map((g, idx) => ({
       index: idx + 1,
-      characters: g.characters.map((c) => c._id),
+      characters: (g.characters as AnyCharRef[])
+        .map(getCharId)
+        .filter(Boolean),
     }));
 
     try {
-      const res = await fetch(
+      await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${schedule._id}`,
         {
           method: "PUT",
@@ -166,65 +178,43 @@ export default function MainSection({
           body: JSON.stringify({ groups: payload }),
         }
       );
-      if (!res.ok) throw new Error("Failed to update groups");
-      await res.json();
     } catch (err) {
       console.error("❌ Save error:", err);
     }
   };
 
   /* =====================================================
-     🔥 Reordering
+     Reordering
   ===================================================== */
   const reorderGroups = (inputGroups: GroupResult[]) => {
     const getPriority = (g: GroupResult) => {
       let best = Infinity;
-      for (const c of g.characters) {
-        const order = MAIN_ORDER_MAP.get(c.name);
+      for (const c of g.characters as any[]) {
+        const order = MAIN_ORDER_MAP.get(c?.name);
         if (order !== undefined) best = Math.min(best, order);
       }
       return best;
     };
 
     const main = inputGroups
-      .map((g) => ({ g, priority: getPriority(g) }))
-      .filter(({ priority }) => priority !== Infinity)
-      .sort((a, b) => a.priority - b.priority)
+      .map((g) => ({ g, p: getPriority(g) }))
+      .filter(({ p }) => p !== Infinity)
+      .sort((a, b) => a.p - b.p)
       .map(({ g }) => g);
 
-    const alt = inputGroups.filter(
-      (g) => !g.characters.some((c) => MAIN_ORDER_MAP.has(c.name))
+    const rest = inputGroups.filter(
+      (g) => !(g.characters as any[]).some((c) => MAIN_ORDER_MAP.has(c?.name))
     );
 
-    return [...main, ...alt].map((g, idx) => ({
+    return [...main, ...rest].map((g, idx) => ({
       ...g,
       index: idx + 1,
     }));
   };
 
-  useEffect(() => {
-    if (!groups.length) return;
-    const reordered = reorderGroups(groups);
-    const diff = reordered.some(
-      (g, i) => g.index !== groups[i]?.index
-    );
-    if (diff) {
-      setGroups(reordered);
-      saveGroups(reordered);
-    }
-  }, [groups]);
+  const shouldLock = groups.some((g) => g.status !== "not_started");
+  const finishedCount = groups.filter((g) => g.status === "finished").length;
 
-  const shouldLock = groups.some(
-    (g) => (g.status ?? "not_started") !== "not_started"
-  );
-
-  const finishedCount = groups.filter(
-    (g) => g.status === "finished"
-  ).length;
-
-  /* =====================================================
-     Render
-  ===================================================== */
   return (
     <div className={styles.section}>
       <ControlBar
@@ -240,9 +230,7 @@ export default function MainSection({
             groups={groups
               .map((g, i) => ({ g, i }))
               .filter(({ g }) =>
-                g.characters.some((c) =>
-                  MAIN_ORDER_MAP.has(c.name)
-                )
+                g.characters.some((c: any) => MAIN_ORDER_MAP.has(c.name))
               )}
             setActiveIdx={setActiveIdx}
             checkGroupQA={checkGroupQA}
@@ -255,7 +243,7 @@ export default function MainSection({
               .map((g, i) => ({ g, i }))
               .filter(
                 ({ g }) =>
-                  !g.characters.some((c) =>
+                  !g.characters.some((c: any) =>
                     MAIN_ORDER_MAP.has(c.name)
                   )
               )}
@@ -267,28 +255,30 @@ export default function MainSection({
         </>
       )}
 
-      <div className={styles.solverBar}>
-        <SolverButtons
-          solving={solving}
-          disabled={shouldLock}
-          onCore={() => safeRunSolver(effectiveAbilities)} // ✅ 自定义排表
-          onFull={() => safeRunSolver(allAbilities)}       // ✅ 全局排表
-          onEdit={() => setShowEditAll(true)}
-          allAbilities={allAbilities.map((a) => ({
-            name: a.name,
-            level: a.level,
-          }))}
-          enabledAbilities={enabledAbilities}
-          setEnabledAbilities={setEnabledAbilities}
-        />
-      </div>
+      <SolverButtons
+        solving={solving}
+        disabled={shouldLock}
+        onCore={() => safeRunSolver(effectiveAbilities)}
+        onFull={() => safeRunSolver(allAbilities)}
+        onEdit={() => setShowEditAll(true)}
+        allAbilities={allAbilities.map((a) => ({
+          name: a.name,
+          level: a.level,
+        }))}
+        enabledAbilities={enabledAbilities}
+        setEnabledAbilities={setEnabledAbilities}
+      />
 
       {showEditAll && (
         <EditAllGroupsModal
           groups={groups}
           scheduleId={schedule._id}
+          existingCharacters={schedule.characters}   // ⭐ IMPORTANT
           onClose={() => setShowEditAll(false)}
-          onSave={setGroups}
+          onSave={(next) => {
+            sampleGroupShape("manualEdit FINAL", next);
+            setGroupsDebug(next, "manualEdit");
+          }}
         />
       )}
     </div>
