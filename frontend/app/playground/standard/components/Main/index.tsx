@@ -285,19 +285,22 @@ const restoreFromCache = async (idx: number) => {
         </>
       )}
 
-      <SolverButtons
-        solving={solving}
-        disabled={shouldLock}
-        onCore={() => safeRunSolver(effectiveAbilities)}
-        onFull={() => safeRunSolver(allAbilities)}
-        onEdit={() => setShowEditAll(true)}
-        allAbilities={allAbilities.map((a) => ({
-          name: a.name,
-          level: a.level,
-        }))}
-        enabledAbilities={enabledAbilities}
-        setEnabledAbilities={setEnabledAbilities}
-      />
+<SolverButtons
+  solving={solving}
+  disabled={shouldLock}
+  onCore={() => safeRunSolver(effectiveAbilities)}
+  onFull={() => safeRunSolver(allAbilities)}
+  onEdit={() => setShowEditAll(true)}
+  allAbilities={allAbilities.map((a) => ({
+    name: a.name,
+    level: a.level,
+  }))}
+  enabledAbilities={enabledAbilities}
+  setEnabledAbilities={setEnabledAbilities}
+  cache={groupCache}
+  onSaveCache={saveToCache}
+  onRestoreCache={restoreFromCache}
+/>
 
       {showEditAll && (
         <EditAllGroupsModal
