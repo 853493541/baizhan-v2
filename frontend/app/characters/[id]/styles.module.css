@@ -144,7 +144,7 @@
 .halfCard > * {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
+  overflow-y: hidden;
   overflow-x: hidden;
   box-sizing: border-box;
 }
@@ -181,4 +181,6 @@
 
   max-height: 600px;
   /* background:yellow; */
+  overflow-y: hidden;   
 }
+
