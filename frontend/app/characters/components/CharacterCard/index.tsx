@@ -246,15 +246,16 @@ useEffect(() => {
 
       {/* === Manager === */}
       {showManager && (
-        <Manager
-          char={currentChar}
-          API_URL={API_URL}
-          onClose={() => setShowManager(false)}
-          onUpdated={(updated) => {
-            setCurrentChar(updated);
-            onCharacterUpdate?.(updated);
-          }}
-        />
+<Manager
+  characterId={currentChar._id}
+  API_URL={API_URL}
+  onClose={() => setShowManager(false)}
+  onUpdated={(updated) => {
+    setCurrentChar(updated);
+    onCharacterUpdate?.(updated);
+  }}
+/>
+
       )}
 
       {/* === Edit Basic Info === */}

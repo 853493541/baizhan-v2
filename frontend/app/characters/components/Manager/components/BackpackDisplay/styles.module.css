@@ -1,0 +1,128 @@
+/* =========================================================
+   🔍 Search + Add
+========================================================= */
+
+.topBar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.search {
+  flex: 1;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 14px;
+}
+.search:focus {
+  outline: none;
+  border-color: #28a745;
+}
+
+.addBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #28a745;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.addBtn:hover {
+  background: #22963a;
+}
+
+/* =========================================================
+   📦 Storage List
+========================================================= */
+
+.itemList {
+  flex: 1;
+  overflow-y: auto;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #fafafa;
+}
+
+.itemRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+.itemRow:hover {
+  background: #eef3f9;
+}
+
+/* ---------- Item Left ---------- */
+.itemLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* =========================================================
+   🔘 Button System
+========================================================= */
+
+.buttons {
+  display: flex;
+  gap: 6px;
+  margin-left: 6px;
+}
+
+.btn {
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s ease;
+}
+
+.btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* use */
+.useBtn {
+  background: #4caf50;
+  color: #fff;
+}
+.useBtn:hover:not(:disabled) {
+  background: #43a047;
+}
+
+/* warning */
+.yellowBtn {
+  background: #ffc107;
+  color: #212529;
+}
+.yellowBtn:hover:not(:disabled) {
+  background: #e0a800;
+}
+
+/* danger */
+.deleteBtn {
+  background: #dc3545;
+  color: #fff;
+}
+.deleteBtn:hover:not(:disabled) {
+  background: #c82333;
+}

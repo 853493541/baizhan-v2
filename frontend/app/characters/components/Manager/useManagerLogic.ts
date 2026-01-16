@@ -32,38 +32,61 @@ const ALL_ABILITIES: string[] = Array.from(
    Hook
 =============================== */
 export function useManagerLogic(
-  char: Character,
+  char: Character | null,
   API_URL: string,
   onUpdated: (c: Character) => void
 ) {
-  const [localChar, setLocalChar] = useState<Character>(char);
+  /* ===============================
+     Normalize character (CRITICAL)
+  =============================== */
+  const safeChar: Character = char ?? {
+    _id: "",
+    abilities: {},
+    storage: [],
+  };
 
-  /* Section A */
+  const [localChar, setLocalChar] = useState<Character>(safeChar);
+
+  /* Sync when real character arrives */
+  useEffect(() => {
+    if (char) setLocalChar(char);
+  }, [char]);
+
+  /* ===============================
+     Section A
+  =============================== */
   const [search, setSearch] = useState("");
 
-  /* Section B */
+  /* ===============================
+     Section B
+  =============================== */
   const [insertSearch, setInsertSearch] = useState("");
 
   const [loading, setLoading] = useState(false);
 
-  /* Confirm modal */
+  /* ===============================
+     Confirm modal
+  =============================== */
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmTitle, setConfirmTitle] = useState("");
   const [confirmMessage, setConfirmMessage] = useState("");
   const [onConfirmAction, setOnConfirmAction] =
     useState<(() => void) | null>(null);
 
-  /* Pinyin map for storage */
+  /* ===============================
+     Pinyin map for storage
+  =============================== */
   const [pinyinMap, setPinyinMap] = useState<
     Record<string, { full: string; short: string }>
   >({});
 
   useEffect(() => {
     async function buildMap() {
-      const names = (localChar.storage || []).map((s) => s.ability);
+      const names = localChar.storage?.map((s) => s.ability) ?? [];
       const map = await createPinyinMap(names);
       setPinyinMap(map);
     }
+
     if (localChar.storage?.length) buildMap();
   }, [localChar]);
 
@@ -71,8 +94,9 @@ export function useManagerLogic(
      Section A — storage filter
   =============================== */
   const filteredItems = useMemo(() => {
+    const list = localChar.storage ?? [];
     const q = search.trim().toLowerCase();
-    const list = localChar.storage || [];
+
     if (!q) return list;
 
     const names = list.map((it) => it.ability);
@@ -90,12 +114,14 @@ export function useManagerLogic(
   }, [insertSearch]);
 
   /* ===============================
-     Refresh
+     Refresh character
   =============================== */
   const refreshCharacter = async () => {
+    if (!safeChar._id) return;
+
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/api/characters/${char._id}`);
+      const res = await fetch(`${API_URL}/api/characters/${safeChar._id}`);
       if (!res.ok) throw new Error();
       const data = await res.json();
       setLocalChar(data);
@@ -120,8 +146,10 @@ export function useManagerLogic(
      Insert book
   =============================== */
   const addLevel10Book = async (ability: string) => {
+    if (!safeChar._id) return;
+
     await runWithRefresh(async () => {
-      await fetch(`${API_URL}/api/characters/${char._id}/storage`, {
+      await fetch(`${API_URL}/api/characters/${safeChar._id}/storage`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ability, level: 10 }),
@@ -150,13 +178,15 @@ export function useManagerLogic(
       localChar.storage?.some(
         (s) => s.ability === item.ability && s.level === 10
       )
-    )
+      )
       return { text: "有十", className: "yellowBtn" };
 
     return { text: "使用", className: "useBtn" };
   };
 
   const requestUse = (item: StorageItem) => {
+    if (!safeChar._id) return;
+
     setConfirmTitle("确认使用");
     setConfirmMessage(
       `确定要使用 ${item.ability} · ${numToChinese(item.level)}重 吗？`
@@ -164,7 +194,7 @@ export function useManagerLogic(
     setOnConfirmAction(() => async () => {
       setConfirmOpen(false);
       await runWithRefresh(async () => {
-        await fetch(`${API_URL}/api/characters/${char._id}/storage/use`, {
+        await fetch(`${API_URL}/api/characters/${safeChar._id}/storage/use`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ability: item.ability, level: item.level }),
@@ -175,6 +205,8 @@ export function useManagerLogic(
   };
 
   const requestDelete = (item: StorageItem) => {
+    if (!safeChar._id) return;
+
     setConfirmTitle("确认删除");
     setConfirmMessage(
       `确定要删除 ${item.ability} · ${numToChinese(item.level)}重 吗？`
@@ -182,7 +214,7 @@ export function useManagerLogic(
     setOnConfirmAction(() => async () => {
       setConfirmOpen(false);
       await runWithRefresh(async () => {
-        await fetch(`${API_URL}/api/characters/${char._id}/storage/delete`, {
+        await fetch(`${API_URL}/api/characters/${safeChar._id}/storage/delete`, {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ability: item.ability, level: item.level }),
