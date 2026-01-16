@@ -1,109 +1,151 @@
-/* ===== Overlay ===== */
+/* ================= Overlay ================= */
 .overlay {
   position: fixed;
   inset: 0;
+
+  /* ✅ NO blur, softer dim instead */
   background: rgba(0, 0, 0, 0.45);
+
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;                 /* 👈 safe margin on small screens */
+  padding: 16px;
   z-index: 1000;
+
+  animation: fadeIn 0.15s ease-out;
 }
 
-/* ===== Modal ===== */
+/* ================= Modal ================= */
 .modal {
   width: 380px;
-  max-width: 100%;               /* 👈 prevent overflow on phones */
+  max-width: 100%;
   background: #fff;
-  border-radius: 12px;
+  border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.28);
+  transform: scale(0.96);
+  animation: popIn 0.18s ease-out forwards;
 }
 
-/* ===== Header ===== */
+/* ================= Header ================= */
 .header {
-  padding: 12px 16px;
-  font-weight: 600;
+  padding: 14px 18px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   color: white;
+  font-weight: 600;
 }
 
-/* Intent headers */
-.header.danger {
-  background: #ff6b6b;
+.title {
+  font-size: 16px;
 }
-.header.warning {
-  background: #f4b740;
+
+/* Intent header gradients */
+.modal.danger .header {
+  background: linear-gradient(135deg, #ff6b6b, #ff4d4f);
 }
-.header.neutral {
-  background: #5b8cff;
+.modal.warning .header {
+  background: linear-gradient(135deg, #f6c453, #f4b740);
+}
+.modal.neutral .header {
+  background: linear-gradient(135deg, #6b93ff, #5b8cff);
+}
+.modal.success .header {
+  background: linear-gradient(135deg, #3fdc87, #2ecc71);
 }
 
 /* Close button */
 .close {
   background: none;
   border: none;
-  font-size: 20px;
+  font-size: 22px;
   cursor: pointer;
   color: inherit;
+  opacity: 0.8;
+}
+.close:hover {
+  opacity: 1;
 }
 
-/* ===== Body ===== */
+/* ================= Body ================= */
 .body {
-  padding: 24px 16px;
+  padding: 24px 18px;
   text-align: center;
   color: #333;
   font-size: 15px;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .icon {
-  font-size: 28px;
-  margin-bottom: 12px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  margin: 0 auto 14px;
+  font-weight: bold;
 }
 
-/* Icon colors */
+/* Icon intent colors */
 .icon.danger {
+  background: rgba(255, 107, 107, 0.15);
   color: #ff6b6b;
 }
 .icon.warning {
+  background: rgba(244, 183, 64, 0.2);
   color: #f4b740;
 }
 .icon.neutral {
+  background: rgba(91, 140, 255, 0.18);
   color: #5b8cff;
 }
+.icon.success {
+  background: rgba(46, 204, 113, 0.18);
+  color: #2ecc71;
+}
 
-/* ===== Footer ===== */
+/* ================= Footer ================= */
 .footer {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  padding: 12px 16px;
-  flex-wrap: wrap;               /* 👈 buttons wrap on small screens */
+  padding: 14px 18px;
+  background: #fafafa;
 }
 
+/* Buttons */
 .cancelBtn {
   padding: 8px 16px;
-  background: #e5e5e5;
-  border: none;
-  border-radius: 6px;
+  background: transparent;
+  border: 1px solid #ddd;
+  border-radius: 8px;
   cursor: pointer;
+  color: #555;
+}
+.cancelBtn:hover {
+  background: #f0f0f0;
 }
 
-/* Confirm buttons */
 .confirmBtn {
-  padding: 8px 16px;
+  padding: 8px 18px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   color: white;
+  font-weight: 500;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.confirmBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
 }
 
-/* Intent buttons */
+/* Confirm intent colors */
 .confirmBtn.danger {
-  background: #ff6b6b;
+  background: #ff4d4f;
 }
 .confirmBtn.warning {
   background: #f4b740;
@@ -111,26 +153,30 @@
 .confirmBtn.neutral {
   background: #5b8cff;
 }
-
-/* ===== Small screens refinement ===== */
-@media (max-width: 480px) {
-  .body {
-    padding: 20px 12px;
-    font-size: 14px;
-  }
-
-  .footer {
-    justify-content: center;     /* 👈 center buttons on phones */
-  }
-}
-.header.success {
-  background: #2ecc71;
-}
-
-.icon.success {
-  color: #2ecc71;
-}
-
 .confirmBtn.success {
   background: #2ecc71;
+}
+
+/* ================= Animations ================= */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes popIn {
+  to {
+    transform: scale(1);
+  }
+}
+
+/* ================= Mobile ================= */
+@media (max-width: 480px) {
+  .footer {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
 }

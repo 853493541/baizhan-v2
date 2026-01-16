@@ -326,6 +326,7 @@ export default function Manager({ char, API_URL, onClose, onUpdated }: Props) {
 
       {confirmOpen && onConfirmAction && (
         <ConfirmModal
+         intent="neutral"
           title={confirmTitle}
           message={confirmMessage}
           confirmText="确认"

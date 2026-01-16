@@ -250,6 +250,7 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
       {/* ✅ CONFIRM DELETE MODAL */}
       {confirmDeleteId && (
         <ConfirmModal
+        intent = "danger"
           title="确认删除"
           message="确认删除？此操作不可撤销"
           confirmText="删除"

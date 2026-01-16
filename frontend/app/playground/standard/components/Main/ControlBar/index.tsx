@@ -76,6 +76,7 @@ export default function ControlBar({
 
       {confirmOpen && (
         <ConfirmModal
+        intent = "warning"
           title="确认手动编辑"
           message="当前排表已锁定，确定要手动编辑吗？"
           confirmText="继续编辑"

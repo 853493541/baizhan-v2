@@ -119,6 +119,7 @@ export default function SolverButtons({
       {/* 编辑排表确认 */}
       {confirmOpen && (
         <ConfirmModal
+         intent = "danger"
           title="确认编辑排表"
           message="当前排表已锁定，确定要继续编辑吗？"
           confirmText="继续编辑"

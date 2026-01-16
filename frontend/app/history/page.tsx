@@ -310,6 +310,7 @@ export default function AbilityHistoryPage() {
       {/* ✅ Confirm Modal */}
       {confirmOpen && onConfirmAction && (
         <ConfirmModal
+        intent = "danger"
           title="确认操作"
           message={confirmMessage}
           confirmText="确认"

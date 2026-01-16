@@ -256,6 +256,7 @@ export default function ScheduleHeader({
       {/* ================= QUICK DELETE ================= */}
       {showQuickConfirm && (
         <ConfirmModal
+        intent = "danger"
           title="确认删除"
           message="确定要删除这个排表吗？此操作不可撤销。"
           confirmText="删除"
