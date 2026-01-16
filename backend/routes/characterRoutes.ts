@@ -18,7 +18,7 @@ import {
 // ⭐ Page-level lightweight list (NO abilities)
 
 // ⭐ Ultra-basic (legacy / special use)
-import { getBasicCharacters,getCharactersPageLightweight } from "../controllers/characters/getBasicCharacters";
+import { getBasicCharacters,getCharactersPageLightweight, getCharacterLightById } from "../controllers/characters/getBasicCharacters";
 
 // Update / Delete
 import {
@@ -99,7 +99,7 @@ router.post("/page/filter", filterCharactersPage);
 // ─────────────────────────────────────────────
 // 🎒 Per-character sub-resources
 // ─────────────────────────────────────────────
-
+router.get("/:id/light", getCharacterLightById);
 router.get("/:id/tradables", getCharacterTradables);
 
 router.post("/:id/storage", addToStorage);

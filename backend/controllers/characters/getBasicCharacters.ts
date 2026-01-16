@@ -56,3 +56,34 @@ export const getCharactersPageLightweight = async (
     res.status(500).json({ error: err.message });
   }
 };
+
+export const getCharacterLightById = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { id } = req.params;
+    const t0 = Date.now();
+
+    const character = await Character.findById(
+      id,
+      { abilities: 0 } // 🚫 exclude abilities ONLY
+    ).lean();
+
+    const t1 = Date.now();
+
+    if (!character) {
+      return res.status(404).json({ error: "Character not found" });
+    }
+
+    console.log(
+      `⚡ getCharacterLightById: ${id} in ${t1 - t0}ms`
+    );
+
+    return res.json(character);
+
+  } catch (err: any) {
+    console.error("❌ getCharacterLightById error:", err);
+    return res.status(500).json({ error: err.message });
+  }
+};
