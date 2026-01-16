@@ -1,5 +1,5 @@
 /* =========================================================
-   🆕 Insert Section
+   🧩 Modify / Insert Section
 ========================================================= */
 
 .insertSection {
@@ -8,36 +8,75 @@
   border-bottom: 1px dashed #ddd;
 }
 
-/* ---------- Insert Row ---------- */
-.abilityRow {
-  display: grid;
-  grid-template-columns: 32px 1fr auto;
-  align-items: center;
-  gap: 8px;
+/* ---------- Search ---------- */
+.search {
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 14px;
+}
+.search:focus {
+  outline: none;
+  border-color: #2563eb;
+}
 
+.previewHint {
+  font-size: 12px;
+  color: #999;
+  padding: 4px 6px;
+}
+
+/* ---------- Ability Row ---------- */
+.abilityRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   background: #fff;
   border: 1px solid #eee;
   border-radius: 6px;
-  padding: 4px 6px;
+  padding: 8px;
   margin-top: 6px;
-
-  transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 
-.abilityRow:hover {
-  background: #fdfdfd;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+.itemLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
 }
 
-/* =========================================================
-   ➕ / ➖ Level Controls
-========================================================= */
+.abilityIcon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #fff;
+}
 
-.controls,
-.abilityControls {
+.abilityName {
+  font-size: 15px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- Controls ---------- */
+.buttons {
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.btn {
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 13px;
+  cursor: pointer;
 }
 
 .minus,
@@ -62,29 +101,17 @@
   color: #166534;
 }
 
-.minus:disabled,
-.plus:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.level,
-.abilityLevel {
+.level {
   min-width: 20px;
   text-align: center;
   font-size: 13px;
   font-weight: 600;
 }
 
-/* =========================================================
-   📘 Insert Button
-========================================================= */
-
+/* ---------- Insert ---------- */
 .insertBtn {
-  margin-left: 6px;
   padding: 2px 8px;
   font-size: 12px;
-  font-weight: 500;
   border-radius: 4px;
   border: 1px solid #2563eb;
   background: #2563eb;
@@ -94,39 +121,172 @@
 .insertBtn:hover {
   background: #1d4ed8;
 }
-.insertBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+
+.emptyHint {
+  font-size: 13px;
+  color: #aaa;
+  padding: 10px;
+  text-align: center;
 }
 
 /* =========================================================
-   📱 Responsive
+   📦 Scrollable List (FINAL FIX)
 ========================================================= */
 
-@media (max-width: 600px) {
-  .abilityIcon {
-    width: 30px;
-    height: 30px;
-  }
+.itemList {
+  max-height: 260px;       /* ← HARD CONSTRAINT */
+  overflow-y: auto;        /* ← ENABLE SCROLL */
+  overflow-x: hidden;
+
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 8px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #fafafa;
 }
+.itemList {
+  min-height: 0;          /* ← THIS IS THE MISSING KEY */
+  max-height: 260px;
+  overflow-y: auto;
+  overflow-x: hidden;
+ 
+}
+.modal {
+  display: flex;
+  flex-direction: column;
+  height: 560px;          /* or whatever you use */
+}
+/* =========================
+   🧩 Modify / Insert Section
+========================= */
+
+.insertSection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ---------- Search ---------- */
+.search {
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 14px;
+}
+.search:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.previewHint {
+  font-size: 12px;
+  color: #999;
+  padding: 2px 4px;
+}
+
+/* 🔒 SCROLL CONTAINER */
+.resultList {
+  max-height: 168px;      /* ← controls growth */
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  min-height: 168px;         /* ← critical for flexbox */
+}
+
+/* ---------- Ability Row ---------- */
 .abilityRow {
   display: flex;
   align-items: center;
   gap: 12px;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 8px;
 }
+
+/* ---------- Item ---------- */
 .itemLeft {
   display: flex;
   align-items: center;
   gap: 8px;
-
-  flex: 1;        /* ⬅️ allows text to take space */
-  min-width: 0;   /* ⬅️ REQUIRED for text overflow to work */
+  flex: 1;
+  min-width: 0;
 }
+
+.abilityIcon {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #fff;
+}
+
 .abilityName {
   font-size: 15px;
   font-weight: 500;
-
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ---------- Controls ---------- */
+.buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn {
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.minus {
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #b91c1c;
+}
+
+.plus {
+  background: #dcfce7;
+  border: 1px solid #86efac;
+  color: #166534;
+}
+
+.level {
+  min-width: 20px;
+  text-align: center;
+  font-weight: 600;
+}
+
+/* ---------- Insert ---------- */
+.insertBtn {
+  padding: 2px 8px;
+  font-size: 12px;
+  border-radius: 4px;
+  border: 1px solid #2563eb;
+  background: #2563eb;
+  color: #fff;
+}
+
+.insertBtn:hover {
+  background: #1d4ed8;
+}
+
+.emptyHint {
+  font-size: 13px;
+  color: #aaa;
+  padding: 8px;
+  text-align: center;
 }

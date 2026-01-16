@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import styles from "../../styles.module.css";
+import styles from "./styles.module.css";
 import { numToChinese } from "../../abilityUtils";
 
 interface StorageItem {
@@ -41,22 +41,8 @@ export default function BackpackDisplay({
 }: Props) {
   return (
     <>
-      <div className={styles.topBar}>
-        <input
-          className={styles.search}
-          placeholder="搜索技能..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
 
-        <button className={styles.addBtn} onClick={onAddClick}>
-          添加书籍
-        </button>
-      </div>
-
-      {!filteredItems.length && (
-        <p className={styles.empty}>没有找到相关技能</p>
-      )}
+ <h3 className={styles.title}>当前背包</h3>
 
       <ul className={styles.itemList}>
         {filteredItems.map((item, idx) => {
@@ -79,10 +65,15 @@ export default function BackpackDisplay({
                       "none")
                   }
                 />
+<div className={styles.nameGroup}>
+  <span className={styles.abilityName}>
+    {item.ability}
+  </span>
+  <span className={styles.abilityLevel}>
+    {numToChinese(item.level)}重
+  </span>
+</div>
 
-                <span className={styles.abilityName}>
-                  {numToChinese(item.level)}重 · {item.ability}
-                </span>
               </div>
 
               <div className={styles.buttons}>

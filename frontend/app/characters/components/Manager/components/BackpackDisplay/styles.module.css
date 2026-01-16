@@ -1,5 +1,5 @@
 /* =========================================================
-   🔍 Search + Add
+   🎒 Backpack Display
 ========================================================= */
 
 .topBar {
@@ -8,6 +8,7 @@
   align-items: center;
 }
 
+/* ---------- Search ---------- */
 .search {
   flex: 1;
   border: 1px solid #ccc;
@@ -20,6 +21,7 @@
   border-color: #28a745;
 }
 
+/* ---------- Add Button ---------- */
 .addBtn {
   display: flex;
   align-items: center;
@@ -36,10 +38,7 @@
   background: #22963a;
 }
 
-/* =========================================================
-   📦 Storage List
-========================================================= */
-
+/* ---------- List ---------- */
 .itemList {
   flex: 1;
   overflow-y: auto;
@@ -64,7 +63,7 @@
   background: #eef3f9;
 }
 
-/* ---------- Item Left ---------- */
+/* ---------- Item ---------- */
 .itemLeft {
   display: flex;
   align-items: center;
@@ -73,14 +72,28 @@
   min-width: 0;
 }
 
-/* =========================================================
-   🔘 Button System
-========================================================= */
+.abilityIcon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #fff;
+}
 
+.abilityName {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- Buttons ---------- */
 .buttons {
   display: flex;
   gap: 6px;
-  margin-left: 6px;
 }
 
 .btn {
@@ -90,17 +103,13 @@
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.2s ease;
 }
 
 .btn:disabled {
   opacity: 0.65;
   cursor: not-allowed;
-  pointer-events: none;
 }
 
-/* use */
 .useBtn {
   background: #4caf50;
   color: #fff;
@@ -109,20 +118,50 @@
   background: #43a047;
 }
 
-/* warning */
 .yellowBtn {
   background: #ffc107;
   color: #212529;
 }
-.yellowBtn:hover:not(:disabled) {
-  background: #e0a800;
-}
 
-/* danger */
 .deleteBtn {
   background: #dc3545;
   color: #fff;
 }
-.deleteBtn:hover:not(:disabled) {
+.deleteBtn:hover {
   background: #c82333;
+}
+
+/* ---------- Empty ---------- */
+.empty {
+  color: #555;
+  text-align: center;
+  padding: 12px 0;
+}
+.nameGroup {
+  display: flex;
+  align-items: center;
+  gap: 6px;          /* spacing between name and level */
+  min-width: 0;
+}
+
+.abilityLevel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;    /* subtle gray */
+  white-space: nowrap;
+}
+.itemList {
+  flex: 1;                 /* ← key line */
+  overflow-y: auto;        /* ← enable scrolling */
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 8px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #fafafa;
+}
+.itemList {
+  overflow-x: hidden;
 }

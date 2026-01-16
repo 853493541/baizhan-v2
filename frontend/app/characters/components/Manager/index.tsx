@@ -127,7 +127,7 @@ export default function Manager({
         <div className={styles.modal}>
           {/* Header */}
           <div className={styles.header}>
-            <h2>全部技能</h2>
+            <h2>技能管理</h2>
             <button className={styles.closeBtn} onClick={onClose}>
               <X size={20} />
             </button>

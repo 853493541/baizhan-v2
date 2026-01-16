@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import styles from "../../styles.module.css";
+import styles from "./styles.module.css";
 import { updateCharacterAbilities } from "@/lib/characterService";
 
 interface Props {
@@ -17,8 +17,6 @@ interface Props {
   >;
 
   getInsertLevel: (ability: string) => number;
-
-  // separate system — does NOT affect +/- editor
   addLevel10Book: (ability: string, level: number) => void;
 }
 
@@ -56,21 +54,18 @@ export default function ModifySection({
         ...prev,
         [ability]: nextLevel,
       }));
-    } catch (err) {
-      console.error("⚠️ Failed to update ability", ability, err);
     } finally {
       setLoadingAbility(null);
     }
   };
 
   /* =========================
-     Display rule (KEY PART)
+     Display rule
      ========================= */
   const isSearching = insertSearch.trim().length > 0;
-
   const displayAbilities = isSearching
     ? insertResults
-    : insertResults.slice(0, 3); // 👈 preview list
+    : insertResults.slice(0, 3);
 
   return (
     <div className={styles.insertSection}>
@@ -82,68 +77,64 @@ export default function ModifySection({
         onChange={(e) => setInsertSearch(e.target.value)}
       />
 
-      {/* Placeholder when idle */}
-      {!isSearching && insertResults.length > 3 && (
-        <div className={styles.previewHint}>
-        </div>
-      )}
+      {/* Preview hint */}
 
-      {/* Ability list */}
-      {displayAbilities.map((ability) => {
-        const level = getInsertLevel(ability);
-        const isLoading = loadingAbility === ability;
+      {/* 🔒 SCROLL CONTAINER (KEY FIX) */}
+      <div className={styles.resultList}>
+        {displayAbilities.map((ability) => {
+          const level = getInsertLevel(ability);
+          const isLoading = loadingAbility === ability;
 
-        return (
-          <div key={ability} className={styles.abilityRow}>
-            <div className={styles.itemLeft}>
-              <img
-                src={getAbilityIcon(ability)}
-                alt={ability}
-                className={styles.abilityIcon}
-                onError={(e) =>
-                  ((e.currentTarget as HTMLImageElement).style.display = "none")
-                }
-              />
-              <span className={styles.abilityName}>{ability}</span>
+          return (
+            <div key={ability} className={styles.abilityRow}>
+              <div className={styles.itemLeft}>
+                <img
+                  src={getAbilityIcon(ability)}
+                  alt={ability}
+                  className={styles.abilityIcon}
+                  onError={(e) =>
+                    ((e.currentTarget as HTMLImageElement).style.display =
+                      "none")
+                  }
+                />
+                <span className={styles.abilityName}>{ability}</span>
+              </div>
+
+              <div className={styles.buttons}>
+                <button
+                  className={`${styles.btn} ${styles.minus}`}
+                  disabled={isLoading || level <= 0}
+                  onClick={() => updateAbility(ability, level - 1)}
+                >
+                  −
+                </button>
+
+                <span className={styles.level}>{level}</span>
+
+                <button
+                  className={`${styles.btn} ${styles.plus}`}
+                  disabled={isLoading || level >= 10}
+                  onClick={() => updateAbility(ability, level + 1)}
+                >
+                  +
+                </button>
+
+                <button
+                  className={styles.insertBtn}
+                  disabled={isLoading}
+                  onClick={() => addLevel10Book(ability, level)}
+                >
+                  置入十重
+                </button>
+              </div>
             </div>
+          );
+        })}
 
-            <div className={styles.buttons}>
-              <button
-                className={`${styles.btn} ${styles.minus}`}
-                disabled={isLoading || level <= 0}
-                onClick={() => updateAbility(ability, level - 1)}
-              >
-                −
-              </button>
-
-              <span className={styles.level}>{level}</span>
-
-              <button
-                className={`${styles.btn} ${styles.plus}`}
-                disabled={isLoading || level >= 10}
-                onClick={() => updateAbility(ability, level + 1)}
-              >
-                +
-              </button>
-
-              <button
-                className={styles.insertBtn}
-                disabled={isLoading}
-                onClick={() => addLevel10Book(ability, level)}
-              >
-                置入一本十重
-              </button>
-            </div>
-          </div>
-        );
-      })}
-
-      {/* Empty search result */}
-      {isSearching && displayAbilities.length === 0 && (
-        <div className={styles.emptyHint}>
-          未找到匹配技能
-        </div>
-      )}
+        {isSearching && displayAbilities.length === 0 && (
+          <div className={styles.emptyHint}>未找到匹配技能</div>
+        )}
+      </div>
     </div>
   );
 }
