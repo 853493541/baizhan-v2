@@ -147,3 +147,22 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
+.cacheSlot {
+  user-select: none;                 /* Standard */
+  -webkit-user-select: none;         /* iOS Safari */
+  -webkit-touch-callout: none;       /* Disable copy menu */
+  touch-action: manipulation;        /* Prevent double-tap zoom */
+}
+.cacheBtn {
+  background-color: #ffedd5;   /* light orange */
+  color: #9a3412;              /* dark orange text */
+  border: 1px solid #fdba74;
+}
+
+.cacheBtn:hover:not(:disabled) {
+  background-color: #fed7aa;
+}
+
+.cacheBtn:active:not(:disabled) {
+  background-color: #fdba74;
+}

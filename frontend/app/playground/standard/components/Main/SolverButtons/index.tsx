@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { FaCog } from "react-icons/fa";
 import styles from "./styles.module.css";
 import SolverOptions from "./SolverOptions";
@@ -34,6 +34,7 @@ interface Props {
 }
 
 const CACHE_CAP = 10;
+const LONG_PRESS_MS = 600;
 
 export default function SolverButtons({
   solving,
@@ -58,6 +59,18 @@ export default function SolverButtons({
      Solver options
   ========================= */
   const [optionsOpen, setOptionsOpen] = useState(false);
+
+  /* =========================
+     Long-press handling (touch)
+  ========================= */
+  const longPressTimer = useRef<number | null>(null);
+
+  const clearLongPress = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
 
   /* =========================
      Render
@@ -100,13 +113,14 @@ export default function SolverButtons({
            🗂 Temp Cache (10 slots)
         ========================= */}
         <div className={styles.cacheBar}>
-          <button
-            className={styles.cacheSaveBtn}
-            onClick={onSaveCache}
-            disabled={solving}
-          >
-            暂时保存
-          </button>
+<button
+  className={`${styles.solverBtn} ${styles.cacheBtn}`}
+  onClick={onSaveCache}
+  disabled={solving}
+>
+  暂时保存
+</button>
+
 
           <div className={styles.cacheSlots}>
             {Array.from({ length: CACHE_CAP }).map((_, i) => {
@@ -129,9 +143,19 @@ export default function SolverButtons({
                     if (!hasCache || solving) return;
                     onDeleteCache(i);
                   }}
+                  onTouchStart={() => {
+                    if (!hasCache || solving) return;
+
+                    longPressTimer.current = window.setTimeout(() => {
+                      onDeleteCache(i);
+                    }, LONG_PRESS_MS);
+                  }}
+                  onTouchEnd={clearLongPress}
+                  onTouchMove={clearLongPress}
+                  onTouchCancel={clearLongPress}
                   title={
                     hasCache
-                      ? "左键恢复｜右键删除"
+                      ? "点击恢复｜右键 / 长按删除"
                       : "空槽位"
                   }
                 >
