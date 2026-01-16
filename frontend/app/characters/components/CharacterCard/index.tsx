@@ -96,7 +96,7 @@ useEffect(() => {
   const refreshCharacter = async (): Promise<Character | null> => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/api/characters/${char._id}`);
+      const res = await fetch(`${API_URL}/api/characters/${char._id}/light`);
       if (!res.ok) throw new Error("刷新失败");
 
       const updated = await res.json();
