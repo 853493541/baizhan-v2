@@ -1,9 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { FaCog } from "react-icons/fa";
 import styles from "./styles.module.css";
-import ConfirmModal from "@/app/components/ConfirmModal";
 import SolverOptions from "./SolverOptions";
 
 /* =========================
@@ -28,10 +27,13 @@ interface Props {
   >;
 
   // 🗂 Temp cache
-  cache: CacheSlot[];
+  cache: (CacheSlot | undefined)[];
   onSaveCache: () => void;
   onRestoreCache: (idx: number) => void;
+  onDeleteCache: (idx: number) => void;
 }
+
+const CACHE_CAP = 10;
 
 export default function SolverButtons({
   solving,
@@ -45,46 +47,17 @@ export default function SolverButtons({
   cache,
   onSaveCache,
   onRestoreCache,
+  onDeleteCache,
 }: Props) {
   const isLocked = disabled ?? false;
 
   // 🔒 HIDE EVERYTHING WHEN LOCKED
-  if (isLocked) {
-    return null;
-  }
-
-  /* =========================
-     Manual edit confirm
-  ========================= */
-  const warnedRef = useRef(false);
-  const [confirmOpen, setConfirmOpen] = useState(false);
-
-  const handleEditClick = () => {
-    if (solving) return;
-
-    if (warnedRef.current) {
-      onEdit();
-      return;
-    }
-
-    setConfirmOpen(true);
-  };
-
-  const handleConfirm = () => {
-    warnedRef.current = true;
-    setConfirmOpen(false);
-    onEdit();
-  };
+  if (isLocked) return null;
 
   /* =========================
      Solver options
   ========================= */
   const [optionsOpen, setOptionsOpen] = useState(false);
-
-  const handleGearClick = () => {
-    if (solving) return;
-    setOptionsOpen(true);
-  };
 
   /* =========================
      Render
@@ -96,7 +69,7 @@ export default function SolverButtons({
         <button
           type="button"
           className={styles.iconBtn}
-          onClick={handleGearClick}
+          onClick={() => !solving && setOptionsOpen(true)}
           disabled={solving}
           title="技能选择"
         >
@@ -124,7 +97,7 @@ export default function SolverButtons({
         </button>
 
         {/* =========================
-           🗂 Temp Cache
+           🗂 Temp Cache (10 slots)
         ========================= */}
         <div className={styles.cacheBar}>
           <button
@@ -136,7 +109,7 @@ export default function SolverButtons({
           </button>
 
           <div className={styles.cacheSlots}>
-            {Array.from({ length: 5 }).map((_, i) => {
+            {Array.from({ length: CACHE_CAP }).map((_, i) => {
               const hasCache = Boolean(cache[i]);
 
               return (
@@ -147,11 +120,18 @@ export default function SolverButtons({
                       ? styles.cacheActive
                       : styles.cacheEmpty
                   }`}
-                  disabled={!hasCache || solving}
-                  onClick={() => onRestoreCache(i)}
+                  onClick={() => {
+                    if (!hasCache || solving) return;
+                    onRestoreCache(i);
+                  }}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    if (!hasCache || solving) return;
+                    onDeleteCache(i);
+                  }}
                   title={
                     hasCache
-                      ? `恢复暂存排表 ${i + 1}`
+                      ? "左键恢复｜右键删除"
                       : "空槽位"
                   }
                 >
@@ -172,18 +152,6 @@ export default function SolverButtons({
         enabledAbilities={enabledAbilities}
         setEnabledAbilities={setEnabledAbilities}
       />
-
-      {/* 编辑排表确认 */}
-      {confirmOpen && (
-        <ConfirmModal
-          intent="danger"
-          title="确认编辑排表"
-          message="当前排表已锁定，确定要继续编辑吗？"
-          confirmText="继续编辑"
-          onCancel={() => setConfirmOpen(false)}
-          onConfirm={handleConfirm}
-        />
-      )}
     </>
   );
 }

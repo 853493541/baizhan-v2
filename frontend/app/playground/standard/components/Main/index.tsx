@@ -44,6 +44,8 @@ type CachedGroups = {
   createdAt: number;
 };
 
+const CACHE_CAP = 10;
+
 interface Props {
   schedule: {
     _id: string;
@@ -77,10 +79,11 @@ export default function MainSection({
   const [showEditAll, setShowEditAll] = useState(false);
 
   /* =========================
-     🔐 TEMP GROUP CACHE
+     🔐 TEMP GROUP CACHE (holes allowed)
   ========================= */
-  const MAX_CACHE = 5;
-  const [groupCache, setGroupCache] = useState<CachedGroups[]>([]);
+  const [groupCache, setGroupCache] = useState<
+    (CachedGroups | undefined)[]
+  >([]);
 
   const saveToCache = () => {
     if (!groups.length) {
@@ -89,31 +92,50 @@ export default function MainSection({
     }
 
     setGroupCache((prev) => {
-      const next = [
-        ...prev,
-        {
-          id: Date.now(),
-          groups: structuredClone(groups),
-          createdAt: Date.now(),
-        },
-      ];
-      return next.slice(-MAX_CACHE);
+      const next = [...prev];
+      const emptyIdx = next.findIndex((v) => !v);
+
+      const entry: CachedGroups = {
+        id: Date.now(),
+        groups: structuredClone(groups),
+        createdAt: Date.now(),
+      };
+
+      if (emptyIdx !== -1) {
+        next[emptyIdx] = entry;
+      } else if (next.length < CACHE_CAP) {
+        next.push(entry);
+      } else {
+        next.shift();
+        next.push(entry);
+      }
+
+      return next;
     });
 
     toastSuccess("排表已暂时保存");
   };
 
-const restoreFromCache = async (idx: number) => {
-  const cached = groupCache[idx];
-  if (!cached) return;
+  const restoreFromCache = async (idx: number) => {
+    const cached = groupCache[idx];
+    if (!cached) return;
 
-  const restored = structuredClone(cached.groups);
+    const restored = structuredClone(cached.groups);
+    setGroups(restored);
+    await saveGroups(restored);
 
-  setGroups(restored);
-  await saveGroups(restored); // ✅ CRITICAL
+    toastSuccess(`已恢复并保存暂存排表 ${idx + 1}`);
+  };
 
-  toastSuccess(`已恢复并保存暂存排表 ${idx + 1}`);
-};
+  const deleteCache = (idx: number) => {
+    setGroupCache((prev) => {
+      const next = [...prev];
+      next[idx] = undefined; // ⭐ hole, no shift
+      return next;
+    });
+
+    toastSuccess(`已删除暂存排表 ${idx + 1}`);
+  };
 
   /* =========================
      Solver ability toggles
@@ -221,7 +243,6 @@ const restoreFromCache = async (idx: number) => {
 
       toastSuccess("排表成功");
 
-      // 🔥 FIX: normalize status immediately
       const normalized = reorderGroups(results).map((g) => ({
         ...g,
         status: g.status ?? "not_started",
@@ -247,9 +268,6 @@ const restoreFromCache = async (idx: number) => {
         total={groups.length}
         locked={shouldLock}
         onManualEdit={() => setShowEditAll(true)}
-        cache={groupCache}
-        onSaveCache={saveToCache}
-        onRestoreCache={restoreFromCache}
       />
 
       {groups.length > 0 && (
@@ -258,9 +276,7 @@ const restoreFromCache = async (idx: number) => {
             groups={groups
               .map((g, i) => ({ g, i }))
               .filter(({ g }) =>
-                g.characters.some((c: any) =>
-                  MAIN_ORDER_MAP.has(c.name)
-                )
+                g.characters.some((c: any) => MAIN_ORDER_MAP.has(c.name))
               )}
             setActiveIdx={setActiveIdx}
             checkGroupQA={checkGroupQA}
@@ -285,22 +301,23 @@ const restoreFromCache = async (idx: number) => {
         </>
       )}
 
-<SolverButtons
-  solving={solving}
-  disabled={shouldLock}
-  onCore={() => safeRunSolver(effectiveAbilities)}
-  onFull={() => safeRunSolver(allAbilities)}
-  onEdit={() => setShowEditAll(true)}
-  allAbilities={allAbilities.map((a) => ({
-    name: a.name,
-    level: a.level,
-  }))}
-  enabledAbilities={enabledAbilities}
-  setEnabledAbilities={setEnabledAbilities}
-  cache={groupCache}
-  onSaveCache={saveToCache}
-  onRestoreCache={restoreFromCache}
-/>
+      <SolverButtons
+        solving={solving}
+        disabled={shouldLock}
+        onCore={() => safeRunSolver(effectiveAbilities)}
+        onFull={() => safeRunSolver(allAbilities)}
+        onEdit={() => setShowEditAll(true)}
+        allAbilities={allAbilities.map((a) => ({
+          name: a.name,
+          level: a.level,
+        }))}
+        enabledAbilities={enabledAbilities}
+        setEnabledAbilities={setEnabledAbilities}
+        cache={groupCache}
+        onSaveCache={saveToCache}
+        onRestoreCache={restoreFromCache}
+        onDeleteCache={deleteCache}
+      />
 
       {showEditAll && (
         <EditAllGroupsModal
