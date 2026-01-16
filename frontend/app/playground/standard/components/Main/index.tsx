@@ -35,12 +35,21 @@ function getCharId(ref: AnyCharRef): string | null {
   return null;
 }
 
+/* =========================
+   Temp cache type
+========================= */
+type CachedGroups = {
+  id: number;
+  groups: GroupResult[];
+  createdAt: number;
+};
+
 interface Props {
   schedule: {
     _id: string;
     server: string;
     conflictLevel: number;
-    characters: Character[]; // ✅ FULL characters ONLY
+    characters: Character[];
     checkedAbilities: AbilityCheck[];
   };
   groups: GroupResult[];
@@ -67,9 +76,44 @@ export default function MainSection({
     useState<{ wasted9: number; wasted10: number } | null>(null);
   const [showEditAll, setShowEditAll] = useState(false);
 
-  /* =====================================================
+  /* =========================
+     🔐 TEMP GROUP CACHE
+  ========================= */
+  const MAX_CACHE = 5;
+  const [groupCache, setGroupCache] = useState<CachedGroups[]>([]);
+
+  const saveToCache = () => {
+    if (!groups.length) {
+      toastError("当前没有排表可保存");
+      return;
+    }
+
+    setGroupCache((prev) => {
+      const next = [
+        ...prev,
+        {
+          id: Date.now(),
+          groups: structuredClone(groups),
+          createdAt: Date.now(),
+        },
+      ];
+      return next.slice(-MAX_CACHE);
+    });
+
+    toastSuccess("排表已暂时保存");
+  };
+
+  const restoreFromCache = (idx: number) => {
+    const cached = groupCache[idx];
+    if (!cached) return;
+
+    setGroups(structuredClone(cached.groups));
+    toastSuccess(`已恢复暂存排表 ${idx + 1}`);
+  };
+
+  /* =========================
      Solver ability toggles
-  ===================================================== */
+  ========================= */
   const allAbilities = schedule.checkedAbilities;
   const keyFor = (a: AbilityCheck) => `${a.name}-${a.level}`;
 
@@ -86,9 +130,9 @@ export default function MainSection({
     [allAbilities, enabledAbilities]
   );
 
-  /* =====================================================
+  /* =========================
      Aftermath summary
-  ===================================================== */
+  ========================= */
   useEffect(() => {
     if (!groups.length) {
       setAftermath(null);
@@ -100,13 +144,15 @@ export default function MainSection({
       .catch(() => setAftermath(null));
   }, [groups]);
 
-  /* =====================================================
+  /* =========================
      Save groups (IDs only)
-  ===================================================== */
+  ========================= */
   const saveGroups = async (results: GroupResult[]) => {
     const payload = results.map((g, idx) => ({
       index: idx + 1,
-      characters: (g.characters as AnyCharRef[]).map(getCharId).filter(Boolean),
+      characters: (g.characters as AnyCharRef[])
+        .map(getCharId)
+        .filter(Boolean),
     }));
 
     try {
@@ -123,9 +169,9 @@ export default function MainSection({
     }
   };
 
-  /* =====================================================
+  /* =========================
      Reordering
-  ===================================================== */
+  ========================= */
   const reorderGroups = (inputGroups: GroupResult[]) => {
     const getPriority = (g: GroupResult) => {
       let best = Infinity;
@@ -152,9 +198,9 @@ export default function MainSection({
     }));
   };
 
-  /* =====================================================
+  /* =========================
      Solver
-  ===================================================== */
+  ========================= */
   const safeRunSolver = async (abilities: AbilityCheck[]) => {
     if (solving) return;
 
@@ -171,9 +217,14 @@ export default function MainSection({
 
       toastSuccess("排表成功");
 
-      const reordered = reorderGroups(results);
-      setGroups(reordered);
-      await saveGroups(reordered);
+      // 🔥 FIX: normalize status immediately
+      const normalized = reorderGroups(results).map((g) => ({
+        ...g,
+        status: g.status ?? "not_started",
+      }));
+
+      setGroups(normalized);
+      await saveGroups(normalized);
     } catch (err) {
       console.error("❌ Solver error:", err);
       toastError("排表失败，请重试");
@@ -192,6 +243,9 @@ export default function MainSection({
         total={groups.length}
         locked={shouldLock}
         onManualEdit={() => setShowEditAll(true)}
+        cache={groupCache}
+        onSaveCache={saveToCache}
+        onRestoreCache={restoreFromCache}
       />
 
       {groups.length > 0 && (
@@ -200,7 +254,9 @@ export default function MainSection({
             groups={groups
               .map((g, i) => ({ g, i }))
               .filter(({ g }) =>
-                g.characters.some((c: any) => MAIN_ORDER_MAP.has(c.name))
+                g.characters.some((c: any) =>
+                  MAIN_ORDER_MAP.has(c.name)
+                )
               )}
             setActiveIdx={setActiveIdx}
             checkGroupQA={checkGroupQA}
@@ -213,7 +269,9 @@ export default function MainSection({
               .map((g, i) => ({ g, i }))
               .filter(
                 ({ g }) =>
-                  !g.characters.some((c: any) => MAIN_ORDER_MAP.has(c.name))
+                  !g.characters.some((c: any) =>
+                    MAIN_ORDER_MAP.has(c.name)
+                  )
               )}
             setActiveIdx={setActiveIdx}
             checkGroupQA={checkGroupQA}
@@ -241,12 +299,9 @@ export default function MainSection({
         <EditAllGroupsModal
           groups={groups}
           scheduleId={schedule._id}
-          existingCharacters={schedule.characters} // ⭐ IMPORTANT
+          existingCharacters={schedule.characters}
           onClose={() => setShowEditAll(false)}
-          onSave={(next) => {
-            // modal guarantees FULL objects already
-            setGroups(next);
-          }}
+          onSave={(next) => setGroups(next)}
         />
       )}
     </div>

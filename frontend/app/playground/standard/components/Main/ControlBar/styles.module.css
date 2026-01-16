@@ -79,4 +79,50 @@
 }
 .completed {
   background-color: #28a745; /* green */
+}/* =========================
+   🗂 Temp Cache
+========================= */
+.cacheBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 12px;
+}
+
+.cacheSaveBtn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid #aaa;
+  background: #fff;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.cacheSaveBtn:hover {
+  background: #f5f5f5;
+}
+
+.cacheSlots {
+  display: flex;
+  gap: 6px;
+}
+
+.cacheSlot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 12px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+}
+
+.cacheActive {
+  background: #d4edda;
+  border-color: #28a745;
+}
+
+.cacheEmpty {
+  background: #f0f0f0;
+  opacity: 0.4;
+  cursor: not-allowed;
 }
