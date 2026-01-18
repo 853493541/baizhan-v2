@@ -25,10 +25,32 @@ export default function HistoryPage() {
   useEffect(() => {
     const fetchPast = async () => {
       try {
+        setLoading(true);
+
+        const before = encodeURIComponent(currentWeek);
+
         const res = await fetch(
-          `${API_BASE}/api/standard-schedules/summary?before=${currentWeek}`
+          `${API_BASE}/api/standard-schedules/summary?before=${before}`
         );
-        const data = res.ok ? await res.json() : [];
+
+        const data: StandardSchedule[] = res.ok ? await res.json() : [];
+
+        /* ===============================
+           ✅ ONLY FIX:
+           sort by createdAt DESC
+           (single source of truth)
+        =============================== */
+        data.sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() -
+            new Date(a.createdAt).getTime()
+        );
+
+        console.log(
+          "[weekh] sorted by createdAt:",
+          data.map((d) => d.createdAt)
+        );
+
         setPastSchedules(data);
       } finally {
         setLoading(false);
