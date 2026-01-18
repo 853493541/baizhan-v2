@@ -3,8 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import styles from "./styles.module.css";
-
-import AddBackpackModal from "../AddBackpackModal";
 import ConfirmModal from "@/app/components/ConfirmModal";
 
 import ModifySection from "./components/ModifySection";

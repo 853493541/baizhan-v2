@@ -5,7 +5,6 @@ import styles from "./styles.module.css";
 import BackpackWindow from "./Preview/Index";
 import ActionModal from "../../../components/ActionModal";
 import Manager from "../../../components/Manager";
-import AddBackpackModal from "../../../components/AddBackpackModal";
 import { toastError } from "@/app/components/toast/toast";
 
 interface TradableAbility {
