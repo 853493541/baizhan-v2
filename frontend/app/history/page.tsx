@@ -166,7 +166,7 @@ export default function AbilityHistoryPage() {
               checked={importantOnly}
               onChange={(e) => setImportantOnly(e.target.checked)}
             />
-            <span className={styles.checkboxText}>重要</span>
+            <span className={styles.checkboxText}>只看重要技能</span>
           </label>
         </div>
       </div>
