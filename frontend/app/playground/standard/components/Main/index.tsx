@@ -22,9 +22,7 @@ const MAIN_CHARACTERS = [
   "唐宵风",
 ] as const;
 
-const MAIN_ORDER_MAP = new Map(
-  MAIN_CHARACTERS.map((name, idx) => [name, idx])
-);
+const MAIN_ORDER_MAP = new Map(MAIN_CHARACTERS.map((name, idx) => [name, idx]));
 
 type AnyCharRef = any;
 
@@ -74,16 +72,16 @@ export default function MainSection({
   checkGroupQA,
 }: Props) {
   const [solving, setSolving] = useState(false);
-  const [aftermath, setAftermath] =
-    useState<{ wasted9: number; wasted10: number } | null>(null);
+  const [aftermath, setAftermath] = useState<{
+    wasted9: number;
+    wasted10: number;
+  } | null>(null);
   const [showEditAll, setShowEditAll] = useState(false);
 
   /* =========================
      🔐 TEMP GROUP CACHE (holes allowed)
   ========================= */
-  const [groupCache, setGroupCache] = useState<
-    (CachedGroups | undefined)[]
-  >([]);
+  const [groupCache, setGroupCache] = useState<(CachedGroups | undefined)[]>([]);
 
   const saveToCache = () => {
     if (!groups.length) {
@@ -143,9 +141,9 @@ export default function MainSection({
   const allAbilities = schedule.checkedAbilities;
   const keyFor = (a: AbilityCheck) => `${a.name}-${a.level}`;
 
-  const [enabledAbilities, setEnabledAbilities] = useState<
-    Record<string, boolean>
-  >(() => Object.fromEntries(allAbilities.map((a) => [keyFor(a), true])));
+  const [enabledAbilities, setEnabledAbilities] = useState<Record<string, boolean>>(
+    () => Object.fromEntries(allAbilities.map((a) => [keyFor(a), true]))
+  );
 
   const effectiveAbilities: AbilityCheck[] = useMemo(
     () =>
@@ -165,9 +163,7 @@ export default function MainSection({
       return;
     }
 
-    summarizeAftermath(groups)
-      .then(setAftermath)
-      .catch(() => setAftermath(null));
+    summarizeAftermath(groups).then(setAftermath).catch(() => setAftermath(null));
   }, [groups]);
 
   /* =========================
@@ -222,6 +218,22 @@ export default function MainSection({
       ...g,
       index: idx + 1,
     }));
+  };
+
+  /* =========================
+     Manual edit commit (FIX)
+  ========================= */
+  const commitManualEdit = async (next: GroupResult[]) => {
+    // Normalize indexes (helps backend/consistent UI)
+    const normalized = next.map((g, idx) => ({
+      ...g,
+      index: idx + 1,
+      status: g.status ?? "not_started",
+    }));
+
+    setGroups(normalized);
+    await saveGroups(normalized);
+    toastSuccess("手动编辑已保存");
   };
 
   /* =========================
@@ -289,9 +301,7 @@ export default function MainSection({
               .map((g, i) => ({ g, i }))
               .filter(
                 ({ g }) =>
-                  !g.characters.some((c: any) =>
-                    MAIN_ORDER_MAP.has(c.name)
-                  )
+                  !g.characters.some((c: any) => MAIN_ORDER_MAP.has(c.name))
               )}
             setActiveIdx={setActiveIdx}
             checkGroupQA={checkGroupQA}
@@ -325,7 +335,7 @@ export default function MainSection({
           scheduleId={schedule._id}
           existingCharacters={schedule.characters}
           onClose={() => setShowEditAll(false)}
-          onSave={(next) => setGroups(next)}
+          onSave={commitManualEdit} // ✅ IMPORTANT: persist to backend
         />
       )}
     </div>
