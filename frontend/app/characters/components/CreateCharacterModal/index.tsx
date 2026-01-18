@@ -163,7 +163,7 @@ export default function CreateCharacterModal({
 
           {/* === Button Selectors === */}
           <div className={styles.buttonGroup}>
-            <label className={styles.groupLabel}>服务器</label>
+            <label className={styles.groupLabel}>区服</label>
             <div className={styles.buttonRow}>
               {servers.map((s) => (
                 <button

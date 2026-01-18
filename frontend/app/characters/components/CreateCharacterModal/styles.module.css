@@ -1,4 +1,6 @@
-/* === Overlay & Modal === */
+/* =========================
+   Overlay & Modal
+========================= */
 .overlay {
   position: fixed;
   inset: 0;
@@ -11,140 +13,195 @@
 
 .modal {
   background: #fff;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 20px 22px;
-  width: 480px;
+  width: 520px;
   max-width: 95%;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
   position: relative;
+  animation: modalPopIn 0.18s ease-out;
 }
 
-/* === Header === */
+/* =========================
+   Header
+========================= */
 .close {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 10px;
+  right: 12px;
   background: none;
   border: none;
-  font-size: 18px;
+  font-size: 20px;
   color: #666;
   cursor: pointer;
 }
 
 .title {
-  font-size: 19px;
-  font-weight: bold;
-  margin-bottom: 14px;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 16px;
   text-align: center;
 }
 
-/* === Form Layout === */
+/* =========================
+   Form Layout
+========================= */
 .form {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
-/* Aligned label + input */
+/* Label + Input */
 .inputRow {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .inputLabel {
-  width: 58px;
+  width: 64px;
   text-align: right;
   font-size: 13.5px;
   font-weight: 600;
   color: #333;
 }
 
-.input,
-.select {
+.input {
   flex: 1;
-  height: 32px;
-  padding: 6px 8px;
+  height: 34px;
+  padding: 6px 10px;
   border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 13.5px;
+  border-radius: 8px;
+  font-size: 14px;
   box-sizing: border-box;
 }
 
-/* === Button Selector Groups === */
+/* =========================
+   Button Groups
+========================= */
 .buttonGroup {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 2px;
-  margin-bottom: 2px; /* slight breathing space */
+  align-items: flex-start;
+  gap: 10px;
 }
 
 .groupLabel {
-  width: 58px;
+  width: 64px;
   text-align: right;
   font-size: 13.5px;
   font-weight: 600;
   color: #333;
+  padding-top: 6px;
 }
 
+/* Normal selector rows (server / gender / role) */
 .buttonRow {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 6px;
   flex: 1;
 }
 
-/* === Selector Buttons === */
+/* =========================
+   Generic Option Buttons
+========================= */
 .optionBtn {
-  padding: 5px 10px;
+  padding: 6px 12px;
   min-width: 64px;
-  height: 32px;
+  height: 34px;
   border: 1px solid #ccc;
-  border-radius: 6px;
+  border-radius: 8px;
   background-color: #f9f9f9;
   color: #222;
   cursor: pointer;
   font-size: 13px;
   transition: all 0.15s ease;
-  box-sizing: border-box;
+  justify-content: center; 
 }
 
-/* Hover for inactive buttons */
 .optionBtn:hover {
   background-color: #f0f4ff;
   border-color: #a8c7ff;
   color: #0056b3;
 }
 
-/* Click feedback */
 .optionBtn:active {
   transform: scale(0.97);
-  background-color: #e5ecff;
 }
 
-/* Active button (selected) */
 .activeBtn {
-  background-color: #0069d9; /* unified blue */
+  background-color: #0069d9;
   border-color: #0069d9;
   color: #fff;
   font-weight: 600;
-  box-shadow: 0 0 0 1.5px rgba(0, 105, 217, 0.25);
+}
+
+/* =========================
+   门派 Class Grid (FIXED)
+========================= */
+.classGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 8px;
+  flex: 1;
+}
+
+.classBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  height: 72px;
+  padding: 6px;
+
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  background: #f9f9f9;
+
+  cursor: pointer;
   transition: all 0.15s ease;
 }
 
-/* Hover state for active button */
-.activeBtn:hover {
-  background-color: #198cff;
-  border-color: #198cff;
-  box-shadow: 0 0 6px rgba(0, 105, 217, 0.4);
+.classBtn:hover {
+  background: #f0f4ff;
+  border-color: #a8c7ff;
 }
 
-/* === Toggle Switch (是否启用) === */
+.classBtn.active {
+  background: #0069d9;
+  border-color: #0069d9;
+  color: #fff;
+}
+
+.classIcon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+
+  /* 🔧 optical alignment fix */
+  margin-top: 2px;
+}
+
+.className {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* =========================
+   Toggle Switch
+========================= */
 .toggleRow {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .toggleSwitch {
@@ -162,7 +219,6 @@
 
 .slider {
   position: absolute;
-  cursor: pointer;
   inset: 0;
   background-color: #ccc;
   border-radius: 22px;
@@ -182,20 +238,22 @@
 }
 
 .toggleSwitch input:checked + .slider {
-  background-color: #0069d9; /* unified blue */
+  background-color: #0069d9;
 }
 
 .toggleSwitch input:checked + .slider::before {
   transform: translateX(20px);
 }
 
-/* === Bottom Buttons === */
+/* =========================
+   Bottom Actions
+========================= */
 .actionRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 12px;
-  gap: 8px;
+  margin-top: 14px;
+  gap: 10px;
 }
 
 .warning {
@@ -211,35 +269,32 @@
 
 .btnRow {
   display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .cancel {
-  padding: 5px 10px;
+  padding: 6px 14px;
   background-color: #e0e0e0;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .submit {
-  padding: 5px 10px;
-  background-color: #0069d9; /* unified blue */
+  padding: 6px 16px;
+  background-color: #0069d9;
   color: #fff;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 600;
 }
-.classIcon {
-  width: 16px;
-  height: 16px;
-  margin-right: 6px;
-  object-fit: contain;
-}
+
+/* =========================
+   Animations
+========================= */
 @keyframes modalPopIn {
   from {
     opacity: 0;
@@ -250,14 +305,50 @@
     transform: scale(1) translateY(0);
   }
 }
-.modal {
-  background: #fff;
-  border-radius: 10px;
-  padding: 20px 22px;
-  width: 480px;
-  max-width: 95%;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  position: relative;
 
-  animation: modalPopIn 0.18s ease-out;
+/* =========================
+   Mobile Optimization
+========================= */
+@media (max-width: 600px) {
+  .modal {
+    width: 100%;
+    padding: 18px 14px;
+  }
+
+  .inputLabel,
+  .groupLabel {
+    width: 56px;
+    font-size: 13px;
+  }
+
+  .classGrid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  .classBtn {
+    height: 66px;
+  }
+
+  .classIcon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .className {
+    font-size: 11px;
+  }
+}
+.optionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.classIcon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+
+  /* ✅ ONLY moves the image, does NOT affect line box */
+  position: relative;
+  top: -1px;
 }
