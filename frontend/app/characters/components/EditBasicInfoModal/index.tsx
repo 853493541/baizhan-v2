@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import styles from "./styles.module.css";
 
 interface CharacterEditData {
@@ -40,29 +40,46 @@ export default function EditBasicInfoModal({
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+  /**
+   * 🔒 IMPORTANT:
+   * Hydrate state ONLY when modal opens.
+   * Do NOT react to parent refreshes.
+   */
+  const didInitRef = useRef(false);
+
   useEffect(() => {
-    if (!isOpen) return;
-    setServer(initialData.server);
-    setRole(initialData.role);
-    setActive(initialData.active);
+    if (!isOpen) {
+      didInitRef.current = false;
+      return;
+    }
+
+    if (!didInitRef.current) {
+      setServer(initialData.server);
+      setRole(initialData.role);
+      setActive(initialData.active);
+      didInitRef.current = true;
+    }
   }, [isOpen, initialData]);
 
   if (!isOpen) return null;
 
   /* ============================
-     Auto-save
+     Auto-save (optimistic)
   ============================ */
   const autoSave = async (field: Partial<CharacterEditData>) => {
     if (!API_URL) return;
-    setSaving(true);
 
+    setSaving(true);
     try {
       const res = await fetch(`${API_URL}/api/characters/${characterId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(field),
       });
+
       if (!res.ok) throw new Error("Save failed");
+
+      // 🔁 Inform parent, but local state stays authoritative
       onSave();
     } catch (err) {
       console.error("Auto save failed:", err);
@@ -75,23 +92,21 @@ export default function EditBasicInfoModal({
      Handlers
   ============================ */
   const handleServerClick = (s: string) => {
-    if (s !== server) {
-      setServer(s);
-      autoSave({ server: s });
-    }
+    if (s === server) return;
+    setServer(s);
+    autoSave({ server: s });
   };
 
   const handleRoleClick = (r: string) => {
-    if (r !== role) {
-      setRole(r);
-      autoSave({ role: r });
-    }
+    if (r === role) return;
+    setRole(r);
+    autoSave({ role: r });
   };
 
   const handleToggle = () => {
-    const newVal = !active;
-    setActive(newVal);
-    autoSave({ active: newVal });
+    const next = !active;
+    setActive(next);
+    autoSave({ active: next });
   };
 
   const handleDeleteClick = () => {
@@ -106,12 +121,11 @@ export default function EditBasicInfoModal({
     <div className={styles.overlay} onClick={onClose}>
       <div
         className={styles.modal}
-        onClick={(e) => e.stopPropagation()} // ⛔ prevent overlay close
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className={styles.header}>
           <h2 className={styles.title}>编辑基础信息</h2>
- 
         </div>
 
         {/* 区服 */}
@@ -126,6 +140,7 @@ export default function EditBasicInfoModal({
                 className={`${styles.optionBtn} ${
                   server === s ? styles.active : ""
                 }`}
+                disabled={saving}
               >
                 {s}
               </button>
@@ -145,6 +160,7 @@ export default function EditBasicInfoModal({
                 className={`${styles.optionBtn} ${
                   role === r.key ? styles.active : ""
                 }`}
+                disabled={saving}
               >
                 {r.label}
               </button>
