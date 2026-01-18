@@ -19,9 +19,10 @@
   border-radius: 16px;
   padding: 20px 20px 16px;
   width: 520px;
-  max-height: 85vh;
+  max-height: 85dvh;
   overflow-y: auto;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  animation: modalEnter 0.25s ease-out;
 }
 
 /* =========================
@@ -40,26 +41,20 @@
 ========================= */
 .section {
   margin-bottom: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.sectionTitle {
-  margin-bottom: 10px;
-}
-
-/* Section badge (bubble) */
+/* 🔹 Section badge (FIXED: pill-sized) */
 .sectionBadge {
   display: inline-block;
+  align-self: flex-start; /* ✅ FIX #1 */
   font-size: 13px;
   font-weight: 600;
   padding: 6px 12px;
   border-radius: 999px;
   white-space: nowrap;
-}
-
-/* 蓝书 */
-.blue {
-  background: #e7f1ff;
-  color: #1c5fd4;
 }
 
 /* 九重紫书 */
@@ -74,8 +69,13 @@
   color: #6f42c1;
 }
 
+/* extra spacing between sections */
+.sectionGap {
+  margin-top: 16px;
+}
+
 /* =========================
-   Item Card
+   Item Row
 ========================= */
 .itemRow {
   display: flex;
@@ -83,7 +83,6 @@
   justify-content: space-between;
   gap: 12px;
   padding: 10px 12px;
-  margin-top: 8px;
   background: #f8f9fa;
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
@@ -111,7 +110,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .abilityName {
@@ -119,12 +118,8 @@
   font-weight: 600;
   color: #212529;
   white-space: nowrap;
-}
-
-.levelInfo {
-  font-size: 13px;
-  color: #495057;
-  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* 当前等级 badge */
@@ -132,11 +127,11 @@
   font-size: 12px;
   padding: 3px 8px;
   white-space: nowrap;
-  margin-right: 4px;
+  flex-shrink: 0;
 }
 
 /* =========================
-   Buttons (STRONG STYLE)
+   Buttons
 ========================= */
 .buttons {
   display: flex;
@@ -146,10 +141,10 @@
 
 .btn {
   border: none;
-  border-radius: 3px;
+  border-radius: 6px;
   font-size: 14px;
   font-weight: 600;
-  padding: 6px 16px;
+  padding: 6px 14px;
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.15s ease, transform 0.05s ease;
@@ -159,7 +154,7 @@
   transform: translateY(1px);
 }
 
-/* 使用 → strong green */
+/* 使用 */
 .useBtn {
   background: #51cf66;
   color: #ffffff;
@@ -169,7 +164,7 @@
   background: #40c057;
 }
 
-/* 复制 → strong blue */
+/* 复制 */
 .copyBtn {
   background: #339af0;
   color: #ffffff;
@@ -179,14 +174,11 @@
   background: #228be6;
 }
 
-/* 删除 → strong red (if used elsewhere) */
-.deleteBtn {
-  background: #fa5252;
-  color: #ffffff;
-}
-
-.deleteBtn:hover {
-  background: #e03131;
+/* 已复制 */
+.copiedBtn {
+  background: #e7f1ff;
+  color: #1c5fd4;
+  font-weight: 600;
 }
 
 /* =========================
@@ -215,27 +207,43 @@
 .closeButton:hover {
   background: #868e96;
 }
-/* 已复制（blue confirmation） */
-.copiedBtn {
-  background: #e7f1ff;   /* soft blue */
-  color: #1c5fd4;        /* confident blue text */
-  font-weight: 600;
-}
-/* Add spacing when multiple section badges appear in one section */
-.sectionBadge {
-  display: inline-block;
-  font-size: 13px;
-  font-weight: 600;
-  padding: 6px 12px;
-  border-radius: 999px;
-  white-space: nowrap;
-  margin-bottom: 4px;
+
+/* =========================
+   Mobile Fixes (≤600px)
+========================= */
+@media (max-width: 600px) {
+  .modal {
+    width: 96%;
+    padding: 16px 14px;
+  }
+
+  /* 🔒 FIX #2: KEEP ROW SINGLE-LINE */
+  .itemRow {
+    flex-wrap: nowrap;
+  }
+
+  .abilityName {
+    font-size: 13px;
+  }
+
+  .currentBadge {
+    font-size: 11px;
+    padding: 2px 6px;
+  }
+
+  .btn {
+    padding: 5px 10px;
+    font-size: 13px;
+  }
+
+  .buttons {
+    gap: 6px;
+  }
 }
 
-/* extra top spacing for section separation */
-.sectionGap {
-  margin-top: 16px;
-}
+/* =========================
+   Animations
+========================= */
 @keyframes modalEnter {
   from {
     opacity: 0;
@@ -245,8 +253,4 @@
     opacity: 1;
     transform: translateY(0) scale(1);
   }
-}
-
-.modal {
-  animation: modalEnter 0.25s ease-out;
 }

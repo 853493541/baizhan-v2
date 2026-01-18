@@ -35,6 +35,12 @@ const numToChinese = (num: number): string => {
 
 const normalize = (s: string) => (s || "").trim().replace(/\u200B/g, "");
 
+/* ✅ EXACT character limit (CJK-safe) */
+const limitChars = (text: string, max = 4) => {
+  if (!text) return "";
+  return [...text].slice(0, max).join("");
+};
+
 // ⚠️ Reserved for future special rules
 const FORCE_LV10_ABILITIES = new Set<string>();
 
@@ -107,21 +113,18 @@ export default function ActionModal({
     }
   };
 
-  const tradablesLv9 = tradables.filter(t => t.requiredLevel === 9);
-  const tradablesLv10 = tradables.filter(t => t.requiredLevel === 10);
+  const tradablesLv9 = tradables.filter((t) => t.requiredLevel === 9);
+  const tradablesLv10 = tradables.filter((t) => t.requiredLevel === 10);
 
   /* =========================
-     行渲染（⚠️ KEY FIX HERE）
+     行渲染
   ========================= */
   const renderRow = (t: TradableAbility) => {
     const { ability, requiredLevel, currentLevel } = t;
     const isCopied = copiedSet.has(normalize(ability));
 
     return (
-      <div
-        key={`tradable-${ability}`}   // ✅ FIXED KEY
-        className={styles.itemRow}
-      >
+      <div key={`tradable-${ability}`} className={styles.itemRow}>
         <div className={styles.itemLeft}>
           <img
             src={getAbilityIcon(ability)}
@@ -132,10 +135,8 @@ export default function ActionModal({
             }
           />
 
-          <span className={styles.abilityLine}>
-            <span className={styles.abilityName}>
-              {numToChinese(requiredLevel)}重 · {ability}
-            </span>
+          <span className={styles.abilityName}>
+            {numToChinese(requiredLevel)}重 · {limitChars(ability, 4)}
           </span>
         </div>
 
@@ -157,7 +158,7 @@ export default function ActionModal({
               isCopied ? styles.copiedBtn : styles.copyBtn
             }`}
           >
-            {isCopied ? "已复制" : "复制"}
+            复制
           </button>
         </div>
       </div>
