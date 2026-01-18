@@ -1,102 +1,102 @@
 /* =========================================================
-   🎒 Backpack Display
+   🎒 Backpack Display (Responsive, Safari-safe)
 ========================================================= */
 
-.topBar {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-/* ---------- Search ---------- */
-.search {
-  flex: 1;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  padding: 6px 8px;
-  font-size: 14px;
-}
-.search:focus {
-  outline: none;
-  border-color: #28a745;
-}
-
-/* ---------- Add Button ---------- */
-.addBtn {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: #28a745;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 10px;
-  font-size: 14px;
-  cursor: pointer;
-}
-.addBtn:hover {
-  background: #22963a;
+.title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 6px;
 }
 
 /* ---------- List ---------- */
 .itemList {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
+
   border: 1px solid #eee;
   border-radius: 6px;
   padding: 8px;
+
   display: flex;
   flex-direction: column;
   gap: 6px;
   background: #fafafa;
 }
 
+/* ---------- Row ---------- */
 .itemRow {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+
   background: #f8fafc;
   border-radius: 8px;
   padding: 6px 10px;
 }
+
 .itemRow:hover {
   background: #eef3f9;
 }
 
-/* ---------- Item ---------- */
+/* ---------- Left (flexible) ---------- */
 .itemLeft {
   display: flex;
   align-items: center;
   gap: 8px;
+
   flex: 1;
-  min-width: 0;
+  min-width: 0; /* 🔥 critical for Safari */
 }
 
 .abilityIcon {
   width: 28px;
   height: 28px;
+  flex-shrink: 0;
+
   object-fit: contain;
   border: 1px solid #ddd;
   border-radius: 4px;
   background: #fff;
 }
 
-.abilityName {
-  font-size: 14px;
-  font-weight: 500;
-  color: #1f2937;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.nameGroup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
 }
 
-/* ---------- Buttons ---------- */
+.abilityName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  white-space: nowrap;
+}
+
+.abilityLevel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+/* ---------- Right (fixed actions) ---------- */
 .buttons {
-  display: flex;
+  display: inline-flex; /* 🔥 prevents Safari full-width */
   gap: 6px;
+  flex-shrink: 0;
 }
 
 .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 auto;       /* 🔥 never grow/shrink */
+  white-space: nowrap;
+
   border: none;
   border-radius: 6px;
   padding: 4px 10px;
@@ -110,6 +110,7 @@
   cursor: not-allowed;
 }
 
+/* ---------- Button variants ---------- */
 .useBtn {
   background: #4caf50;
   color: #fff;
@@ -129,39 +130,4 @@
 }
 .deleteBtn:hover {
   background: #c82333;
-}
-
-/* ---------- Empty ---------- */
-.empty {
-  color: #555;
-  text-align: center;
-  padding: 12px 0;
-}
-.nameGroup {
-  display: flex;
-  align-items: center;
-  gap: 6px;          /* spacing between name and level */
-  min-width: 0;
-}
-
-.abilityLevel {
-  font-size: 12px;
-  font-weight: 600;
-  color: #6b7280;    /* subtle gray */
-  white-space: nowrap;
-}
-.itemList {
-  flex: 1;                 /* ← key line */
-  overflow-y: auto;        /* ← enable scrolling */
-  border: 1px solid #eee;
-  border-radius: 6px;
-  padding: 8px;
-
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  background: #fafafa;
-}
-.itemList {
-  overflow-x: hidden;
 }
