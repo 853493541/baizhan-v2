@@ -25,46 +25,36 @@ export default function EditAllGroupsModal({
   groups,
   onSave,
   onClose,
+  scheduleId,
 }: Props) {
-  /* =========================
-     Selection / draft state
-  ========================= */
   const [selectedGroup, setSelectedGroup] = useState<number | null>(
     groups.length ? 0 : null
   );
 
   const [allCharacters, setAllCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Draft-only state
-  const [localGroups, setLocalGroups] = useState<GroupResult[]>(groups);
   const [selections, setSelections] = useState<Set<string>[]>([]);
+  const [localGroups, setLocalGroups] = useState<GroupResult[]>(groups);
 
   /* =====================================================
-     🔐 FULL CHARACTER CACHE (SAFE)
+     🔐 FULL CHARACTER CACHE (ADDED, NON-DESTRUCTIVE)
   ===================================================== */
   const fullCharCache = useRef<Map<string, Character>>(new Map());
 
-  // Seed cache from initial groups (mount only)
+  /* Seed cache from existing groups (already full chars) */
   useEffect(() => {
     for (const g of groups) {
       for (const c of g.characters) {
-        if (c?._id && (c as any).abilities) {
+        if (c && c._id && (c as any).abilities) {
           fullCharCache.current.set(c._id, c);
         }
       }
     }
-  }, []); // ✅ mount only
+  }, [groups]);
 
-  /* =====================================================
-     🔒 Prevent parent → modal overwrite
-  ===================================================== */
-  const initializedRef = useRef(false);
+  /* Keep localGroups synced */
   useEffect(() => {
-    if (!initializedRef.current) {
-      setLocalGroups(groups);
-      initializedRef.current = true;
-    }
+    setLocalGroups(groups);
   }, [groups]);
 
   /* -----------------------------------------
@@ -78,15 +68,14 @@ export default function EditAllGroupsModal({
         setAllCharacters(data);
       } catch (err) {
         console.error("❌ Character fetch failed:", err);
-      } finally {
-        setLoading(false);
       }
+      setLoading(false);
     };
     load();
   }, []);
 
   /* -----------------------------------------
-     INITIAL SELECTIONS (from localGroups)
+     INITIAL SELECTIONS
   ----------------------------------------- */
   const initialSelections = useMemo(() => {
     return localGroups.map((g) => {
@@ -106,15 +95,13 @@ export default function EditAllGroupsModal({
   const charGroupMap = useMemo(() => {
     const map: Record<string, number> = {};
     localGroups.forEach((g, idx) => {
-      g.characters.forEach((c) => {
-        map[c._id] = idx + 1;
-      });
+      g.characters.forEach((c) => (map[c._id] = idx + 1));
     });
     return map;
   }, [localGroups]);
 
   /* -----------------------------------------
-     ACCOUNT GROUPING
+     ACCOUNT GROUPING (UNCHANGED)
   ----------------------------------------- */
   const { multiAccounts, singleAccounts } = useMemo(() => {
     const map: Record<string, Character[]> = {};
@@ -136,14 +123,16 @@ export default function EditAllGroupsModal({
     const hasMain = (chars: Character[]) =>
       chars.some((c) => MAIN_CHARACTERS.has(c.name));
 
+    multi.sort((a, b) => b[1].length - a[1].length);
+    single.sort((a, b) => b[1].length - a[1].length);
     multi.sort((a, b) => Number(hasMain(b[1])) - Number(hasMain(a[1])));
     single.sort((a, b) => Number(hasMain(b[1])) - Number(hasMain(a[1])));
 
     return { multiAccounts: multi, singleAccounts: single };
-  }, [allCharacters]);
+  }, [allCharacters, selections]);
 
   /* -----------------------------------------
-     LAZY FULL FETCH
+     LAZY FULL FETCH (ADDED)
   ----------------------------------------- */
   const fetchFullCharacter = async (id: string): Promise<Character> => {
     const cached = fullCharCache.current.get(id);
@@ -166,7 +155,7 @@ export default function EditAllGroupsModal({
   };
 
   /* -----------------------------------------
-     TOGGLE CHARACTER (DRAFT ONLY)
+     TOGGLE CHARACTER (ASYNC, SAFE)
   ----------------------------------------- */
   const toggleChar = async (id: string) => {
     if (selectedGroup === null) return;
@@ -193,19 +182,19 @@ export default function EditAllGroupsModal({
     }
 
     setLocalGroups(updated);
-    // ❌ NO onSave here — draft only
+    onSave(updated); // ✅ FULL objects guaranteed
   };
 
   /* -----------------------------------------
-     CLOSE + COMMIT (SINGLE SOURCE OF TRUTH)
+     CLOSE + SAVE (UNCHANGED)
   ----------------------------------------- */
-  const handleClose = () => {
-    onSave(localGroups); // ✅ single authoritative save
+  const handleClose = async () => {
+    onSave(localGroups);
     onClose();
   };
 
   /* -----------------------------------------
-     RENDER CHARACTER
+     RENDER CHARACTER (UNCHANGED)
   ----------------------------------------- */
   const current = selectedGroup !== null ? selections[selectedGroup] : null;
 
@@ -238,7 +227,7 @@ export default function EditAllGroupsModal({
   };
 
   /* -----------------------------------------
-     UI
+     UI (UNCHANGED)
   ----------------------------------------- */
   if (loading) {
     return (

@@ -96,7 +96,7 @@ export default function SolverButtons({
           onClick={onCore}
           disabled={solving}
         >
-          {solving ? "处理中..." : "自定义排表"}
+          {solving ? "处理中......" : "自定义排表"}
         </button>
 
         {/* 全局排表 */}
