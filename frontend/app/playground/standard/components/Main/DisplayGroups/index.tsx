@@ -49,12 +49,9 @@ export default function DisplayGroups({
     }
 
     return (
-     <span className={`${styles.groupMeta} ${metaClass}`}>
-  组 {index}
-  {" · "}
-{statusText}
-</span>
-
+      <span className={`${styles.groupMeta} ${metaClass}`}>
+        组 {index} · {statusText}
+      </span>
     );
   };
 
@@ -83,12 +80,15 @@ export default function DisplayGroups({
           return (
             <div
               key={i}
-              className={`${styles.groupCard} ${
-                qaWarnings.length > 0 ? styles.groupCardError : ""
-              }`}
+              className={`
+                ${styles.groupCard}
+                ${g.status === "started" ? styles.groupStarted : ""}
+                ${g.status === "finished" ? styles.groupFinished : ""}
+                ${qaWarnings.length > 0 ? styles.groupCardError : ""}
+              `}
               onClick={() => setActiveIdx(i)}
             >
-              {/* 🏷️ Group meta chip: 组X · 状态 */}
+              {/* 🏷️ Group meta chip */}
               {renderGroupMeta(i + 1, g.status)}
 
               <ul className={styles.memberList}>
