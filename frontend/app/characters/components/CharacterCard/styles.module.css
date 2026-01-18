@@ -18,7 +18,7 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: box-shadow 0.15s ease;
 }
 
 @media (min-width: 768px) {
@@ -28,8 +28,7 @@
 }
 
 .card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.14);
 }
 
 /* =========================================================
@@ -48,6 +47,9 @@
 .nameBlock {
   flex: 1;
   min-width: 0;
+
+  /* ✅ anchor for absolute edit hint */
+  position: relative;
 }
 
 /* Name NEVER pushes actions down */
@@ -68,6 +70,31 @@
   width: 26px;
   height: 26px;
   flex-shrink: 0;
+}
+
+/* =========================================================
+   🧠 Edit Hint (Desktop hover, NO layout shift)
+========================================================= */
+.editHint {
+  position: absolute;
+  left: 32px;     /* aligns under name after icon */
+  top: 100%;      /* below the name line */
+  margin-top: 4px;
+
+  font-size: 11px;
+  color: #888;
+
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-2px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+@media (hover: hover) and (min-width: 768px) {
+  .card:hover .editHint {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* =========================================================
@@ -96,7 +123,7 @@
   color: #333;
   cursor: pointer;
 
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .iconBtn:hover {
@@ -142,8 +169,8 @@
 }
 
 .tradableButton {
-  width: 100%;
-  height: 36px;
+  width: 90%;
+  height: 30px;
 
   display: flex;
   align-items: center;
@@ -189,20 +216,4 @@
 .inactive {
   background-color: #e0e0e0;
   opacity: 0.85;
-}
-
-/* =========================================================
-   🧠 Edit Hint (Desktop only)
-========================================================= */
-.editHint {
-  display: none;
-  font-size: 11px;
-  color: #888;
-  margin-left: 32px;
-}
-
-@media (hover: hover) and (min-width: 768px) {
-  .card:hover .editHint {
-    display: block;
-  }
 }
