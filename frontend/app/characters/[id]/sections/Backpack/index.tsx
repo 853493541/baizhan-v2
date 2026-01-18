@@ -29,7 +29,6 @@ export default function Backpack({
 
   const [showModal, setShowModal] = useState(false);
   const [showManager, setShowManager] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
 
   /* =========================
      Backend-driven tradables
@@ -45,7 +44,7 @@ export default function Backpack({
   }, [character]);
 
   /* =========================
-     Fetch tradables (backend)
+     Fetch tradables
   ========================= */
   const fetchTradables = async () => {
     try {
@@ -62,9 +61,7 @@ export default function Backpack({
   };
 
   useEffect(() => {
-    if (currentChar?._id) {
-      fetchTradables();
-    }
+    if (currentChar?._id) fetchTradables();
   }, [currentChar?._id]);
 
   /* =========================
@@ -98,9 +95,17 @@ export default function Backpack({
       <div className={styles.headerRow}>
         <h3 className={styles.title}>背包</h3>
 
+        {/* 🔥 Moved here */}
+        {hasActions && (
+          <button
+            className={styles.tradableInline}
+            onClick={() => setShowModal(true)}
+          >
+            ⚡ 有紫书可读
+          </button>
+        )}
+
         <div className={styles.headerActions}>
-
-
           <button
             className={`${styles.iconBtn} ${styles.managerBtn}`}
             title="技能管理"
@@ -126,18 +131,6 @@ export default function Backpack({
         {loading && <div className={styles.invisibleLoading} />}
       </div>
 
-      {/* === Action Button === */}
-{hasActions && (
-  <div className={styles.tradeableWrapper}>
-    <button
-      className={styles.tradableButton}
-      onClick={() => setShowModal(true)}
-    >
-      ⚡ 有书籍可读
-    </button>
-  </div>
-)}
-
       {/* === Action Modal === */}
       {showModal && (
         <ActionModal
@@ -149,20 +142,18 @@ export default function Backpack({
         />
       )}
 
-
-
       {/* === Manager === */}
-{showManager && (
-  <Manager
-    char={currentChar}
-    characterId={currentChar._id}   // ✅ explicit
-    API_URL={API_URL}
-    onClose={() => setShowManager(false)}
-    onUpdated={(updated: any) => {
-      setCurrentChar({ ...updated });
-    }}
-  />
-)}
+      {showManager && (
+        <Manager
+          char={currentChar}
+          characterId={currentChar._id}
+          API_URL={API_URL}
+          onClose={() => setShowManager(false)}
+          onUpdated={(updated: any) => {
+            setCurrentChar({ ...updated });
+          }}
+        />
+      )}
     </div>
   );
 }

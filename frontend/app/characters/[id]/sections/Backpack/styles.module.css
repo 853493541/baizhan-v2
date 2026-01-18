@@ -1,10 +1,10 @@
 /* ==============================
    🎒 Backpack Card
-   ============================== */
+============================== */
 .card {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
   background: #fff;
   border: 1px solid #ddd;
   border-radius: 10px;
@@ -14,24 +14,54 @@
 
 /* ==============================
    🧭 Header & Title
-   ============================== */
+============================== */
 .headerRow {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 2px;
+  gap: 8px;
+  margin-bottom:10px;
 }
 
 .title {
   font-size: 16px;
   font-weight: bold;
   margin: 0;
+  white-space: nowrap;
 }
 
 /* ==============================
-   🧰 Header Actions
-   ============================== */
+   ⚡ Inline Tradable Button (Compact)
+============================== */
+.tradableInline {
+  background-color: #ffe5b4;
+  color: #b94a00;
+  border: 1px solid #f0ad4e;
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  padding: 3px 10px;
+  cursor: pointer;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  white-space: nowrap;
+  flex: 0 0 auto; /* 🔑 never stretch */
+}
+
+.tradableInline:hover {
+  background-color: #ffcf7d;
+  border-color: #e5a832;
+}
+
+/* ==============================
+   🧰 Header Actions (RIGHT SIDE)
+============================== */
 .headerActions {
+  margin-left: auto; /* 🔑 push folder icon to the far right */
   display: flex;
   align-items: center;
   gap: 8px;
@@ -39,20 +69,22 @@
 
 /* ==============================
    🔘 Icon Buttons
-   ============================== */
+============================== */
 .iconBtn {
   width: 28px;
   height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
+
   font-size: 16px;
   border-radius: 50%;
   border: 1px solid #ccc;
   cursor: pointer;
   background: #fff;
   color: #333;
-  transition: all 0.2s ease;
+
+  transition: background 0.2s ease, transform 0.15s ease;
 }
 
 .iconBtn:hover {
@@ -70,13 +102,16 @@
   position: absolute;
   top: -3px;
   right: -4px;
+
   background: #dc2626;
   color: white;
   font-size: 10px;
   font-weight: 600;
+
   border-radius: 999px;
   min-width: 14px;
   height: 14px;
+
   display: flex;
   align-items: center;
   justify-content: center;
@@ -85,77 +120,20 @@
 
 /* ==============================
    📦 Backpack Content Wrapper
-   ============================== */
+============================== */
 .backpackWrapper {
   position: relative;
   min-height: 130px;
   border-radius: 10px;
   overflow: hidden;
-  /* border:red 2px solid; */
-}
-
-/* ==============================
-   ⚡ Tradable Action
-   ============================== */
-.tradeableWrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  margin-top: 8px;
-}
-
-.tradableButton {
-  width: 100%;
-  background-color: #ffe5b4;
-  color: #b94a00;
-  border: 1px solid #f0ad4e;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  padding: 6px 0; /* ⬆️ slightly taller for touch */
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  letter-spacing: 0.2px;
-  white-space: nowrap;
-}
-
-.tradableButton:hover {
-  background-color: #ffcf7d;
-  border-color: #e5a832;
-  transform: translateY(-1px);
-}
-
-.tradableButton:active {
-  transform: scale(0.98);
-}
-
-/* ==============================
-   ⏳ Loading Overlay
-   ============================== */
-.loadingOverlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(255, 255, 255, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  color: #333;
-  pointer-events: none;
-  z-index: 5;
 }
 
 /* ==============================
    📱 Phone Optimizations
-   ============================== */
+============================== */
 @media (max-width: 480px) {
   .card {
     padding: 12px;
-    gap: 8px;
   }
 
   .iconBtn {
@@ -165,11 +143,11 @@
   }
 
   .backpackWrapper {
-    min-height: 96px; /* slightly tighter */
+    min-height: 96px;
   }
 
-  .tradableButton {
-    font-size: 12.5px;
-    padding: 6px 0;
+  .tradableInline {
+    font-size: 12px;
+    padding: 4px 6px;
   }
 }

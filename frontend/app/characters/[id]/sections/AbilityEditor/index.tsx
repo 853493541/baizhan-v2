@@ -74,7 +74,7 @@ export default function AbilityEditor({
   const allAbilities = Object.keys(abilities);
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
-    if (!term) return allAbilities.slice(0, 6);
+    if (!term) return allAbilities.slice(0, 9);
     return pinyinFilter(allAbilities, pinyinMap, term);
   }, [query, allAbilities, pinyinMap]);
 
@@ -108,14 +108,14 @@ export default function AbilityEditor({
   return (
     <div className={styles.editorContainer}>
       <h3 style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "6px" }}>
-        搜索技能更新
+        搜索技能
       </h3>
 
       <input
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="输入技能名 / 拼音..."
+        placeholder="输入技能名..."
         className={styles.searchInput}
       />
 
