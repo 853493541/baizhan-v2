@@ -172,23 +172,21 @@ useEffect(() => {
 
           {/* === Header Actions === */}
           <div className={styles.headerActions}>
-            <button
-              className={`${styles.iconBtn} ${styles.managerBtn}`}
-              title="查看全部技能"
-              onClick={async (e) => {
-                e.stopPropagation();
-                await refreshCharacter();
-                setShowManager(true);
-              }}
-              onContextMenu={(e) => e.stopPropagation()}
-            >
-              📂
-              {currentChar.storage && currentChar.storage.length > 3 && (
-                <span className={styles.badge}>
-                  {currentChar.storage.length}
-                </span>
-              )}
-            </button>
+
+            
+      <button
+  className={`${styles.iconBtn} ${styles.managerBtn}`}
+  title="打开管理器"
+  onClick={async (e) => {
+    e.stopPropagation();
+    await refreshCharacter();
+    setShowManager(true);
+  }}
+  onContextMenu={(e) => e.stopPropagation()}
+>
+  📂
+</button>
+
 
             {isTouchDevice && (
               <button
