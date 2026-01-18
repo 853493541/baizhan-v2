@@ -106,7 +106,7 @@ export default function AbilityEditor({
      🧱 Render
   ---------------------------------------------------------------------- */
   return (
-    <div>
+    <div className={styles.editorContainer}>
       <h3 style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "6px" }}>
         搜索技能更新
       </h3>

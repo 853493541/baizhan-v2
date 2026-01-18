@@ -6,11 +6,12 @@
   flex-direction: column;
   flex: 1;
   min-height: 0;
-  height: 100%;
   box-sizing: border-box;
-  overflow: hidden; /* ✅ prevents overshoot due to flex rounding */
 }
 
+/* ===============================
+   🧭 Title
+   =============================== */
 .title {
   font-size: 14px;
   font-weight: bold;
@@ -31,23 +32,23 @@
 }
 
 /* ===============================
-   📜 Ability List Wrapper
+   📜 Ability List (SCROLL AREA)
    =============================== */
 .wrapper {
-  flex: 0 0 auto;
+  flex: 1 1 auto;        /* 🔑 fills remaining height */
+  min-height: 0;
   overflow-y: auto;
+
   display: flex;
   flex-direction: column;
   gap: 6px;
+
   border: 1px solid #ddd;
   border-radius: 8px;
   background: #fafafa;
-  padding: 4px 6px;
-
-  /* 🎯 exact fit for 5 rows (no scrollbar when 5 abilities) */
-  height: calc(11 * 40px + 4 * 6px + 8px);
-
+  padding: 6px;
 }
+
 /* Scrollbar styling */
 .wrapper::-webkit-scrollbar {
   width: 6px;
@@ -59,23 +60,21 @@
 .wrapper::-webkit-scrollbar-thumb:hover {
   background: #aaa;
 }
-.wrapper::-webkit-scrollbar-track {
-  background: transparent;
-}
 
 /* ===============================
    🧩 Ability Row
    =============================== */
 .abilityRow {
   display: grid;
-  grid-template-columns: 32px 1fr auto; /* icon | name | controls */
+  grid-template-columns: 32px 1fr auto;
   align-items: center;
   gap: 8px;
+
   background: #fff;
   border: 1px solid #eee;
   border-radius: 6px;
-  padding: 4px 6px; /* compact row */
-  box-sizing: border-box;
+  padding: 4px 6px;
+
   transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -145,7 +144,4 @@
   min-width: 20px;
   text-align: center;
   font-size: 13px;
-}
-.wrapper {
-  overflow-y: hidden;   /* ❌ no scrolling */
 }
