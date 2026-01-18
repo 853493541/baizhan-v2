@@ -18,16 +18,22 @@ export default function CharactersPageContent() {
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setModalOpen] = useState(false);
 
+  // 🔒 Cached dropdown sources (NEVER filtered)
+  const [allOwners, setAllOwners] = useState<string[]>([]);
+  const [allServers, setAllServers] = useState<string[]>([]);
+
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
   const router = useRouter();
 
   /* -------------------- 🔹 Filter State -------------------- */
+  const [nameFilter, setNameFilter] = useState("");
   const [ownerFilter, setOwnerFilter] = useState("");
   const [serverFilter, setServerFilter] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   const [selectedAbilities, setSelectedAbilities] = useState<string[]>([]);
   const [globalLevel, setGlobalLevel] = useState<number | null>(null);
   const [activeOnly, setActiveOnly] = useState(true);
+  const [tradableOnly, setTradableOnly] = useState(false);
 
   const [restored, setRestored] = useState(false);
 
@@ -42,6 +48,7 @@ export default function CharactersPageContent() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
+        setNameFilter(parsed.nameFilter || "");
         setOwnerFilter(parsed.ownerFilter || "");
         setServerFilter(parsed.serverFilter || "");
         setRoleFilter(parsed.roleFilter || "");
@@ -50,6 +57,7 @@ export default function CharactersPageContent() {
         setActiveOnly(
           typeof parsed.activeOnly === "boolean" ? parsed.activeOnly : true
         );
+        setTradableOnly(!!parsed.tradableOnly);
       } catch {}
     }
     setRestored(true);
@@ -60,36 +68,80 @@ export default function CharactersPageContent() {
     sessionStorage.setItem(
       "characterFilters",
       JSON.stringify({
+        nameFilter,
         ownerFilter,
         serverFilter,
         roleFilter,
         selectedAbilities,
         globalLevel,
         activeOnly,
+        tradableOnly,
       })
     );
   }, [
     restored,
+    nameFilter,
     ownerFilter,
     serverFilter,
     roleFilter,
     selectedAbilities,
     globalLevel,
     activeOnly,
+    tradableOnly,
   ]);
 
+  /* -------------------- 🔹 Initial load (CACHE) -------------------- */
+  useEffect(() => {
+    const loadInitial = async () => {
+      try {
+        const res = await fetch(
+          `${API_URL}/api/characters/page/filter`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({}),
+          }
+        );
+
+        if (!res.ok) throw new Error("初始化加载失败");
+
+        const data: Character[] = await res.json();
+        setCharacters(data);
+
+        // 🔒 Cache dropdown sources ONCE
+        setAllOwners([...new Set(data.map((c) => c.owner))]);
+        setAllServers([...new Set(data.map((c) => c.server))]);
+      } catch (err) {
+        console.error(err);
+        setError("角色加载失败");
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+
+    loadInitial();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   /* -------------------- 🔹 Backend Filter Fetch -------------------- */
-  const fetchFilteredCharacters = async (isInitial = false) => {
+  const fetchFilteredCharacters = async () => {
     try {
-      if (isInitial) setInitialLoading(true);
-      else setFiltering(true);
+      setFiltering(true);
 
       const res = await fetch(
         `${API_URL}/api/characters/page/filter`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ abilityFilters }),
+          body: JSON.stringify({
+            name: nameFilter || undefined,
+            owner: ownerFilter || undefined,
+            server: serverFilter || undefined,
+            role: roleFilter || undefined,
+            active: activeOnly,
+            tradable: tradableOnly ? true : undefined,
+            abilityFilters,
+          }),
         }
       );
 
@@ -101,23 +153,24 @@ export default function CharactersPageContent() {
       console.error(err);
       setError("角色加载失败");
     } finally {
-      setInitialLoading(false);
       setFiltering(false);
     }
   };
 
-  /* Initial load */
-  useEffect(() => {
-    fetchFilteredCharacters(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  /* Ability filter change */
+  /* Any filter change */
   useEffect(() => {
     if (!restored) return;
-    fetchFilteredCharacters(false);
+    fetchFilteredCharacters();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(abilityFilters)]);
+  }, [
+    nameFilter,
+    ownerFilter,
+    serverFilter,
+    roleFilter,
+    activeOnly,
+    tradableOnly,
+    JSON.stringify(abilityFilters),
+  ]);
 
   /* -------------------- 🔹 Create Character -------------------- */
   const handleCreate = async (data: any) => {
@@ -129,16 +182,6 @@ export default function CharactersPageContent() {
     const newChar = await res.json();
     router.push(`/characters/${newChar._id}`);
   };
-
-  /* -------------------- 🔹 Frontend Basic Filters -------------------- */
-  const filteredCharacters = characters.filter((c) => {
-    if (ownerFilter && c.owner !== ownerFilter) return false;
-    if (serverFilter && c.server !== serverFilter) return false;
-    if (roleFilter && c.role !== roleFilter) return false;
-    if (activeOnly && !c.active) return false;
-    if (!activeOnly && c.active) return false;
-    return true;
-  });
 
   /* -------------------- 🔹 UI -------------------- */
   if (initialLoading) {
@@ -165,19 +208,22 @@ export default function CharactersPageContent() {
       )}
 
       <CharacterFilters
+        nameFilter={nameFilter}
+        setNameFilter={setNameFilter}
         ownerFilter={ownerFilter}
         serverFilter={serverFilter}
         roleFilter={roleFilter}
         activeOnly={activeOnly}
-        uniqueOwners={[...new Set(characters.map((c) => c.owner))]}
-        uniqueServers={[...new Set(characters.map((c) => c.server))]}
-        abilityFilters={abilityFilters}
+        tradableOnly={tradableOnly}
+        uniqueOwners={allOwners}     // ✅ FIXED
+        uniqueServers={allServers}   // ✅ FIXED
         selectedAbilities={selectedAbilities}
         globalLevel={globalLevel}
         setOwnerFilter={setOwnerFilter}
         setServerFilter={setServerFilter}
         setRoleFilter={setRoleFilter}
         setActiveOnly={setActiveOnly}
+        setTradableOnly={setTradableOnly}
         onAddAbility={(a, l) => {
           setSelectedAbilities((p) =>
             p.includes(a) ? p.filter((x) => x !== a) : [...p, a]
@@ -187,17 +233,13 @@ export default function CharactersPageContent() {
         onRemoveAbility={(i) =>
           setSelectedAbilities((p) => p.filter((_, idx) => idx !== i))
         }
-        setAbilityFilters={() => {}}
         setSelectedAbilities={setSelectedAbilities}
         onChangeGlobalLevel={setGlobalLevel}
       />
 
-      {/* Optional subtle loading indicator */}
-      {/* {filtering && <div className={styles.subtleLoading}>筛选中…</div>} */}
-
       <CharacterGrid
-        characters={filteredCharacters}
-        onUpdated={() => fetchFilteredCharacters(false)}
+        characters={characters}
+        onUpdated={fetchFilteredCharacters}
       />
     </div>
   );

@@ -1,13 +1,24 @@
 import { Request, Response } from "express";
 import Character from "../../models/Character";
+import { getTradables } from "../../utils/tradables";
+import {
+  createPinyinMap,
+  pinyinFilter,
+} from "../../utils/pinyinSearch";
 
 /**
  * POST /api/characters/page/filter
  *
- * Full backend filtering for Character List Page.
- * - Basic filters: owner / server / role / active
- * - Ability filters: AND logic, exact level match
- * - Returns lightweight characters (NO abilities, NO storage)
+ * Backend filtering for Character List Page.
+ *
+ * Supported filters:
+ * - owner / server / role / active
+ * - abilityFilters (AND logic, exact level match)
+ * - name search (Chinese / full pinyin / initials)
+ * - tradable: 紫书可读（getTradables().length > 0）
+ *
+ * Returns:
+ * - lightweight characters (NO abilities, NO storage, NO gender)
  */
 export const filterCharactersPage = async (
   req: Request,
@@ -19,12 +30,16 @@ export const filterCharactersPage = async (
       server,
       role,
       active,
+      name,
+      tradable,
       abilityFilters = [],
     } = req.body as {
       owner?: string;
       server?: string;
       role?: "DPS" | "Tank" | "Healer";
       active?: boolean;
+      name?: string;
+      tradable?: boolean;
       abilityFilters?: {
         ability: string;
         level: number;
@@ -45,13 +60,13 @@ export const filterCharactersPage = async (
 
     /* =========================
        2️⃣ Fetch candidates
-       - abilities ONLY for filtering
-       - minimal list-page fields
+       - abilities & gender needed for tradable calc
        ========================= */
     const candidates = await Character.find(
       baseQuery,
       {
-        abilities: 1,   // TEMP: only for filtering
+        abilities: 1,
+        gender: 1,
         name: 1,
         account: 1,
         owner: 1,
@@ -65,7 +80,7 @@ export const filterCharactersPage = async (
     /* =========================
        3️⃣ Ability AND-filter
        ========================= */
-    const matched =
+    const abilityMatched =
       abilityFilters.length === 0
         ? candidates
         : candidates.filter((char) =>
@@ -76,9 +91,46 @@ export const filterCharactersPage = async (
           );
 
     /* =========================
-       4️⃣ Strip abilities
+       4️⃣ Name / Pinyin filter
        ========================= */
-    const result = matched.map(({ abilities, ...rest }) => rest);
+    let nameMatched = abilityMatched;
+
+    if (name && name.trim()) {
+      const names = abilityMatched
+        .map((c) => c.name)
+        .filter(Boolean) as string[];
+
+      const pinyinMap = await createPinyinMap(names);
+
+      const matchedNames = new Set(
+        pinyinFilter(names, pinyinMap, name)
+      );
+
+      nameMatched = abilityMatched.filter((c) =>
+        matchedNames.has(c.name)
+      );
+    }
+
+    /* =========================
+       5️⃣ Tradable (紫书可读) filter
+       ========================= */
+    const tradableMatched =
+      tradable
+        ? nameMatched.filter((char) => {
+            const tradables = getTradables({
+              abilities: char.abilities,
+              gender: char.gender,
+            });
+            return tradables.length > 0;
+          })
+        : nameMatched;
+
+    /* =========================
+       6️⃣ Strip internal fields
+       ========================= */
+    const result = tradableMatched.map(
+      ({ abilities, gender, ...rest }) => rest
+    );
 
     const t1 = Date.now();
 

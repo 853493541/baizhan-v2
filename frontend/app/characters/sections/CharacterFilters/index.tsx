@@ -10,8 +10,12 @@ interface Props {
   serverFilter: string;
   roleFilter: string;
   activeOnly: boolean;
+  tradableOnly: boolean; // ✅ RENAMED
+  nameFilter: string;
+
   uniqueOwners: string[];
   uniqueServers: string[];
+
   selectedAbilities: string[];
   globalLevel: number | null;
 
@@ -19,6 +23,8 @@ interface Props {
   setServerFilter: (v: string) => void;
   setRoleFilter: (v: string) => void;
   setActiveOnly: (v: boolean) => void;
+  setTradableOnly: (v: boolean) => void; // ✅ RENAMED
+  setNameFilter: (v: string) => void;
 
   onAddAbility: (ability: string, level: number) => void;
   onRemoveAbility: (index: number) => void;
@@ -43,14 +49,22 @@ export default function CharacterFilters({
   serverFilter,
   roleFilter,
   activeOnly,
+  tradableOnly, // ✅
+  nameFilter,
+
   uniqueOwners,
   uniqueServers,
+
   selectedAbilities,
   globalLevel,
+
   setOwnerFilter,
   setServerFilter,
   setRoleFilter,
   setActiveOnly,
+  setTradableOnly, // ✅
+  setNameFilter,
+
   onAddAbility,
   onRemoveAbility,
   setSelectedAbilities,
@@ -68,8 +82,7 @@ export default function CharacterFilters({
     const idx = selectedAbilities.indexOf(ability);
 
     if (idx >= 0) {
-      const next = selectedAbilities.filter((a) => a !== ability);
-      setSelectedAbilities(next);
+      setSelectedAbilities(selectedAbilities.filter((a) => a !== ability));
       onRemoveAbility(idx);
     } else {
       onAddAbility(ability, globalLevel ?? 10);
@@ -79,10 +92,7 @@ export default function CharacterFilters({
   /* -------------------- 🔹 Level Toggle -------------------- */
   const handleGlobalLevelChange = (level: number | null) => {
     onChangeGlobalLevel(level);
-
-    if (level === null) {
-      setSelectedAbilities([]);
-    }
+    if (level === null) setSelectedAbilities([]);
   };
 
   /* -------------------- 🔹 Custom Ability -------------------- */
@@ -107,16 +117,26 @@ export default function CharacterFilters({
 
   /* -------------------- 🔹 Reset -------------------- */
   const handleReset = () => {
+    setNameFilter("");
     setOwnerFilter("");
     setServerFilter("");
     setRoleFilter("");
     setSelectedAbilities([]);
     setActiveOnly(true);
+    setTradableOnly(false); // ✅ FIX
     onChangeGlobalLevel(null);
   };
 
   return (
     <div className={styles.filterSection}>
+      {/* ================= Name Search ================= */}
+      <input
+        className={styles.nameInput}
+        placeholder="搜索角色名 / 拼音 / 首字母"
+        value={nameFilter}
+        onChange={(e) => setNameFilter(e.target.value)}
+      />
+
       {/* ================= Basic Filters ================= */}
       <div className={styles.filterRow}>
         <Dropdown
@@ -133,7 +153,7 @@ export default function CharacterFilters({
           onChange={(val) => setServerFilter(val === "全部" ? "" : val)}
         />
 
-        {[
+        {[ 
           { label: "防御", value: "Tank" },
           { label: "输出", value: "DPS" },
           { label: "治疗", value: "Healer" },
@@ -152,7 +172,10 @@ export default function CharacterFilters({
         ))}
 
         {/* 激活 / 未激活 */}
-        <div className={styles.boxToggle} onClick={() => setActiveOnly(!activeOnly)}>
+        <div
+          className={styles.boxToggle}
+          onClick={() => setActiveOnly(!activeOnly)}
+        >
           <div
             className={`${styles.boxSlider} ${
               !activeOnly ? styles.slideRight : ""
@@ -171,6 +194,32 @@ export default function CharacterFilters({
             }`}
           >
             未激活
+          </span>
+        </div>
+
+        {/* 可交易（紫书） */}
+        <div
+          className={styles.boxToggle}
+          onClick={() => setTradableOnly(!tradableOnly)} // ✅ FIX
+        >
+          <div
+            className={`${styles.boxSlider} ${
+              tradableOnly ? styles.slideRight : ""
+            }`}
+          />
+          <span
+            className={`${styles.boxOptionLeft} ${
+              !tradableOnly ? styles.boxTextActive : ""
+            }`}
+          >
+            全部
+          </span>
+          <span
+            className={`${styles.boxOptionRight} ${
+              tradableOnly ? styles.boxTextActive : ""
+            }`}
+          >
+            紫书
           </span>
         </div>
 
