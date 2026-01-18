@@ -17,7 +17,6 @@ const LOAD_STEP = 10;
 
 export default function AbilityFilterModal({ onConfirm, onClose }: Props) {
   const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(INITIAL_LOAD);
 
   const [pinyinMap, setPinyinMap] = useState<
@@ -46,7 +45,7 @@ export default function AbilityFilterModal({ onConfirm, onClose }: Props) {
   }, [abilities]);
 
   /* ===============================
-     🔍 Filter (FULL dataset)
+     🔍 Filter
      =============================== */
   const filtered =
     search.trim() === ""
@@ -63,34 +62,42 @@ export default function AbilityFilterModal({ onConfirm, onClose }: Props) {
   const visibleAbilities = filtered.slice(0, visibleCount);
 
   const handleSelect = (ability: string) => {
-    setSelected(ability);
     onConfirm(ability);
     onClose();
   };
 
   return (
     <div className={styles.overlay} onClick={onClose}>
-      {/* ⛔ prevent inner clicks from closing modal */}
       <div
         className={styles.modal}
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className={styles.title}>添加筛选技能</h3>
+        {/* ===== Header ===== */}
+        <div className={styles.header}>
+          <h3 className={styles.title}>添加筛选技能</h3>
+          <button
+            className={styles.closeBtn}
+            onClick={onClose}
+            aria-label="Close"
+          >
+            ✕
+          </button>
+        </div>
 
+        {/* ===== Search ===== */}
         <input
           className={styles.input}
-          placeholder="搜索技能 ..."
+          placeholder="搜索技能"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
 
+        {/* ===== List ===== */}
         <div className={styles.list}>
           {visibleAbilities.map((a) => (
             <div
               key={a}
-              className={`${styles.item} ${
-                selected === a ? styles.active : ""
-              }`}
+              className={styles.item}
               onClick={() => handleSelect(a)}
             >
               <img
@@ -101,10 +108,19 @@ export default function AbilityFilterModal({ onConfirm, onClose }: Props) {
                   ((e.target as HTMLImageElement).style.display = "none")
                 }
               />
-              <span>{a}</span>
-              {selected === a && (
-                <span className={styles.checkmark}>✔</span>
-              )}
+
+              <span className={styles.name}>{a}</span>
+
+              <button
+                className={styles.addBtn}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSelect(a);
+                }}
+                title="添加"
+              >
+                +
+              </button>
             </div>
           ))}
 
@@ -123,12 +139,6 @@ export default function AbilityFilterModal({ onConfirm, onClose }: Props) {
           {filtered.length === 0 && (
             <div className={styles.noResult}>没有匹配的技能</div>
           )}
-        </div>
-
-        <div className={styles.actions}>
-          <button className={styles.cancel} onClick={onClose}>
-            关闭
-          </button>
         </div>
       </div>
     </div>

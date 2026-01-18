@@ -1,64 +1,101 @@
 /* ===============================
-   Overlay + Modal
-   =============================== */
+   Overlay
+=============================== */
 
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.55);
 
   display: flex;
   align-items: center;
   justify-content: center;
 
   z-index: 50;
-  animation: overlayFadeIn 0.15s ease-out;
 }
+
+/* ===============================
+   Modal (RESPONSIVE WIDTH)
+=============================== */
 
 .modal {
   background: #fff;
-  width: 400px;
-  max-height: 80vh;
 
-  padding: 20px;
-  border-radius: 14px;
+  width: min(92vw, 360px);   /* 👈 reduced width */
+  max-height: 46vh;
+
+  padding: 16px;
+  border-radius: 16px;
 
   display: flex;
   flex-direction: column;
 
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.25);
   animation: modalPopIn 0.18s ease-out;
 }
 
 /* ===============================
-   Header + Input
-   =============================== */
+   Header
+=============================== */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
 
 .title {
-  margin-bottom: 12px;
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 600;
-  text-align: center;
 }
+
+.closeBtn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+
+  border: none;
+  background: #f1f1f1;
+  color: #555;
+
+  font-size: 16px;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.closeBtn:hover {
+  background: #e0e0e0;
+  transform: scale(1.08);
+}
+
+/* ===============================
+   Search Input
+=============================== */
 
 .input {
   padding: 8px 10px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 
   border: 1px solid #ddd;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 14px;
 
   outline: none;
 }
 
 .input:focus {
-  border-color: #28a745;
+  border-color: #2ecc71;
 }
 
 /* ===============================
-   Ability List
-   =============================== */
+   List
+=============================== */
 
 .list {
   flex: 1;
@@ -66,123 +103,91 @@
 
   background: #fafafa;
   border: 1px solid #eee;
-  border-radius: 10px;
+  border-radius: 12px;
 
-  padding: 6px;
-  margin-bottom: 12px;
-  max-height: 260px;
+  padding: 4px;
 }
 
-.item {
-  position: relative;
+/* ===============================
+   Ability Item (COMPACT)
+=============================== */
 
+.item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 
-  padding: 10px 14px;
-  margin: 4px 6px;
+  padding: 8px 10px;
+  margin: 4px;
 
   background: #fff;
-  border-radius: 8px;
-  border: 1px solid transparent;
+  border-radius: 10px;
 
   cursor: pointer;
 
   transition:
     background 0.15s ease,
-    border-color 0.15s ease,
-    transform 0.12s ease;
+    transform 0.12s ease,
+    box-shadow 0.12s ease;
 }
 
 .item:hover {
   background: #f6f6f6;
   transform: translateY(-1px);
-}
-
-.item:not(:last-child)::after {
-  content: "";
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: -2px;
-  height: 1px;
-  background: rgba(0, 0, 0, 0.06);
-}
-
-.active {
-  border-color: #28a745;
-  background: #eaffea;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
 /* ===============================
-   Icon + Check
-   =============================== */
+   Icon + Name
+=============================== */
 
 .icon {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   flex-shrink: 0;
 }
 
-.checkmark {
-  margin-left: auto;
-  font-weight: bold;
-  color: #28a745;
-}
-
-/* ===============================
-   Empty / Actions
-   =============================== */
-
-.noResult {
-  padding: 14px;
-  text-align: center;
-  color: #888;
+.name {
+  flex: 1;
   font-size: 14px;
-}
-
-.actions {
-  display: flex;
-  justify-content: center;
-}
-
-.cancel {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 8px;
-
-  background: #e0e0e0;
-  cursor: pointer;
-}
-
-.cancel:hover {
-  background: #cfcfcf;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ===============================
-   Animations
-   =============================== */
+   ➕ Add Button
+=============================== */
 
-@keyframes overlayFadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+.addBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+
+  border: none;
+  background: #2ecc71;
+  color: #fff;
+
+  font-size: 18px;
+  font-weight: bold;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  transition: background 0.12s ease, transform 0.12s ease;
 }
 
-@keyframes modalPopIn {
-  from {
-    opacity: 0;
-    transform: translateY(6px) scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+.addBtn:hover {
+  background: #27ae60;
+  transform: scale(1.1);
 }
+
+/* ===============================
+   Load more / Empty
+=============================== */
+
 .loadMore {
   text-align: center;
   padding: 8px 0;
@@ -198,4 +203,26 @@
 
 .loadMore button:hover {
   text-decoration: underline;
+}
+
+.noResult {
+  padding: 14px;
+  text-align: center;
+  color: #888;
+  font-size: 14px;
+}
+
+/* ===============================
+   Animations
+=============================== */
+
+@keyframes modalPopIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
