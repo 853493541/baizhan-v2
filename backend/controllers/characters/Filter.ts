@@ -56,7 +56,12 @@ export const filterCharactersPage = async (
     if (owner) baseQuery.owner = String(owner).trim();
     if (server) baseQuery.server = String(server).trim();
     if (role) baseQuery.role = role;
-    if (typeof active === "boolean") baseQuery.active = active;
+
+    // ✅ FIX: default active = true if undefined
+    const normalizedActive =
+      typeof active === "boolean" ? active : true;
+
+    baseQuery.active = normalizedActive;
 
     /* =========================
        2️⃣ Fetch candidates
@@ -135,7 +140,7 @@ export const filterCharactersPage = async (
     const t1 = Date.now();
 
     console.log(
-      `⚡ filterCharactersPage: ${result.length}/${candidates.length} chars in ${t1 - t0}ms`
+      `⚡ filterCharactersPage: ${result.length}/${candidates.length} chars in ${t1 - t0}ms (active=${normalizedActive})`
     );
 
     return res.json(result);

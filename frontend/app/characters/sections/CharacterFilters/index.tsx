@@ -10,7 +10,7 @@ interface Props {
   serverFilter: string;
   roleFilter: string;
   activeOnly: boolean;
-  tradableOnly: boolean; // ✅ RENAMED
+  tradableOnly: boolean;
   nameFilter: string;
 
   uniqueOwners: string[];
@@ -23,7 +23,7 @@ interface Props {
   setServerFilter: (v: string) => void;
   setRoleFilter: (v: string) => void;
   setActiveOnly: (v: boolean) => void;
-  setTradableOnly: (v: boolean) => void; // ✅ RENAMED
+  setTradableOnly: (v: boolean) => void;
   setNameFilter: (v: string) => void;
 
   onAddAbility: (ability: string, level: number) => void;
@@ -44,32 +44,30 @@ const CORE_ABILITIES = [
   { name: "特制金创药", icon: "/icons/特制金创药.png" },
 ];
 
-export default function CharacterFilters({
-  ownerFilter,
-  serverFilter,
-  roleFilter,
-  activeOnly,
-  tradableOnly, // ✅
-  nameFilter,
+export default function CharacterFilters(props: Props) {
+  const {
+    ownerFilter,
+    serverFilter,
+    roleFilter,
+    activeOnly,
+    tradableOnly,
+    nameFilter,
+    uniqueOwners,
+    uniqueServers,
+    selectedAbilities,
+    globalLevel,
+    setOwnerFilter,
+    setServerFilter,
+    setRoleFilter,
+    setActiveOnly,
+    setTradableOnly,
+    setNameFilter,
+    onAddAbility,
+    onRemoveAbility,
+    setSelectedAbilities,
+    onChangeGlobalLevel,
+  } = props;
 
-  uniqueOwners,
-  uniqueServers,
-
-  selectedAbilities,
-  globalLevel,
-
-  setOwnerFilter,
-  setServerFilter,
-  setRoleFilter,
-  setActiveOnly,
-  setTradableOnly, // ✅
-  setNameFilter,
-
-  onAddAbility,
-  onRemoveAbility,
-  setSelectedAbilities,
-  onChangeGlobalLevel,
-}: Props) {
   const [showModal, setShowModal] = useState(false);
   const [extraAbilities, setExtraAbilities] = useState<
     { name: string; icon: string }[]
@@ -77,10 +75,8 @@ export default function CharacterFilters({
 
   const DISPLAY_ABILITIES = [...CORE_ABILITIES, ...extraAbilities];
 
-  /* -------------------- 🔹 Ability Toggle -------------------- */
   const handleAbilityToggle = (ability: string) => {
     const idx = selectedAbilities.indexOf(ability);
-
     if (idx >= 0) {
       setSelectedAbilities(selectedAbilities.filter((a) => a !== ability));
       onRemoveAbility(idx);
@@ -89,13 +85,11 @@ export default function CharacterFilters({
     }
   };
 
-  /* -------------------- 🔹 Level Toggle -------------------- */
   const handleGlobalLevelChange = (level: number | null) => {
     onChangeGlobalLevel(level);
     if (level === null) setSelectedAbilities([]);
   };
 
-  /* -------------------- 🔹 Custom Ability -------------------- */
   const handleConfirmCustom = (abilityName: string) => {
     const exists =
       CORE_ABILITIES.some((a) => a.name === abilityName) ||
@@ -115,7 +109,6 @@ export default function CharacterFilters({
     setShowModal(false);
   };
 
-  /* -------------------- 🔹 Reset -------------------- */
   const handleReset = () => {
     setNameFilter("");
     setOwnerFilter("");
@@ -123,107 +116,123 @@ export default function CharacterFilters({
     setRoleFilter("");
     setSelectedAbilities([]);
     setActiveOnly(true);
-    setTradableOnly(false); // ✅ FIX
+    setTradableOnly(false);
     onChangeGlobalLevel(null);
   };
 
   return (
     <div className={styles.filterSection}>
-      {/* ================= Name Search ================= */}
-      <input
-        className={styles.nameInput}
-        placeholder="搜索角色名 / 拼音 / 首字母"
-        value={nameFilter}
-        onChange={(e) => setNameFilter(e.target.value)}
-      />
-
-      {/* ================= Basic Filters ================= */}
+      {/* ================= Top Filters ================= */}
       <div className={styles.filterRow}>
-        <Dropdown
-          label="角色"
-          options={["全部", ...uniqueOwners]}
-          value={ownerFilter || "拥有者"}
-          onChange={(val) => setOwnerFilter(val === "全部" ? "" : val)}
-        />
-
-        <Dropdown
-          label="服务器"
-          options={["全部", ...uniqueServers]}
-          value={serverFilter || "服务器"}
-          onChange={(val) => setServerFilter(val === "全部" ? "" : val)}
-        />
-
-        {[ 
-          { label: "防御", value: "Tank" },
-          { label: "输出", value: "DPS" },
-          { label: "治疗", value: "Healer" },
-        ].map((opt) => (
-          <button
-            key={opt.value}
-            className={`${styles.filterBtn} ${
-              roleFilter === opt.value ? styles.selected : ""
-            }`}
-            onClick={() =>
-              setRoleFilter(roleFilter === opt.value ? "" : opt.value)
-            }
-          >
-            {opt.label}
-          </button>
-        ))}
-
-        {/* 激活 / 未激活 */}
-        <div
-          className={styles.boxToggle}
-          onClick={() => setActiveOnly(!activeOnly)}
-        >
-          <div
-            className={`${styles.boxSlider} ${
-              !activeOnly ? styles.slideRight : ""
-            }`}
+        {/* 🔍 Search */}
+        <div className={styles.groupSearch}>
+          <input
+            className={styles.nameInput}
+            placeholder="搜索角色名"
+            value={nameFilter}
+            onChange={(e) => setNameFilter(e.target.value)}
           />
-          <span
-            className={`${styles.boxOptionLeft} ${
-              activeOnly ? styles.boxTextActive : ""
-            }`}
-          >
-            激活
-          </span>
-          <span
-            className={`${styles.boxOptionRight} ${
-              !activeOnly ? styles.boxTextActive : ""
-            }`}
-          >
-            未激活
-          </span>
         </div>
 
-        {/* 可交易（紫书） */}
-        <div
-          className={styles.boxToggle}
-          onClick={() => setTradableOnly(!tradableOnly)} // ✅ FIX
-        >
-          <div
-            className={`${styles.boxSlider} ${
-              tradableOnly ? styles.slideRight : ""
-            }`}
+        {/* 👤 Owner */}
+        <div className={styles.groupOwner}>
+          <Dropdown
+            label="角色"
+            options={["全部", ...uniqueOwners]}
+            value={ownerFilter || "拥有者"}
+            onChange={(val) => setOwnerFilter(val === "全部" ? "" : val)}
           />
-          <span
-            className={`${styles.boxOptionLeft} ${
-              !tradableOnly ? styles.boxTextActive : ""
-            }`}
-          >
-            全部
-          </span>
-          <span
-            className={`${styles.boxOptionRight} ${
-              tradableOnly ? styles.boxTextActive : ""
-            }`}
-          >
-            紫书
-          </span>
         </div>
 
-        <button className={styles.resetBtn} onClick={handleReset}>
+        {/* 🌍 Server */}
+        <div className={styles.groupServer}>
+          <Dropdown
+            label="服务器"
+            options={["全部", ...uniqueServers]}
+            value={serverFilter || "服务器"}
+            onChange={(val) => setServerFilter(val === "全部" ? "" : val)}
+          />
+        </div>
+
+        {/* 🎭 Role */}
+        <div className={styles.groupRole}>
+          {[
+            { label: "防御", value: "Tank" },
+            { label: "输出", value: "DPS" },
+            { label: "治疗", value: "Healer" },
+          ].map((opt) => (
+            <button
+              key={opt.value}
+              className={`${styles.filterBtn} ${
+                roleFilter === opt.value ? styles.selected : ""
+              }`}
+              onClick={() =>
+                setRoleFilter(roleFilter === opt.value ? "" : opt.value)
+              }
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
+        {/* 🔁 Toggles */}
+        <div className={styles.groupToggle}>
+          <div
+            className={styles.boxToggle}
+            onClick={() => setActiveOnly(!activeOnly)}
+          >
+            <div
+              className={`${styles.boxSlider} ${
+                !activeOnly ? styles.slideRight : ""
+              }`}
+            />
+            <span
+              className={`${styles.boxOptionLeft} ${
+                activeOnly ? styles.boxTextActive : ""
+              }`}
+            >
+              激活
+            </span>
+            <span
+              className={`${styles.boxOptionRight} ${
+                !activeOnly ? styles.boxTextActive : ""
+              }`}
+            >
+              未激活
+            </span>
+          </div>
+
+          <div
+            className={styles.boxToggle}
+            onClick={() => setTradableOnly(!tradableOnly)}
+          >
+            <div
+              className={`${styles.boxSlider} ${
+                tradableOnly ? styles.slideRight : ""
+              }`}
+            />
+            <span
+              className={`${styles.boxOptionLeft} ${
+                !tradableOnly ? styles.boxTextActive : ""
+              }`}
+            >
+              全部
+            </span>
+            <span
+              className={`${styles.boxOptionRight} ${
+                tradableOnly ? styles.boxTextActive : ""
+              }`}
+            >
+              紫书
+            </span>
+          </div>
+        </div>
+
+        {/* 🖥 Desktop / Tablet Reset */}
+        <button
+          className={`${styles.resetBtn} ${styles.resetDesktop}`}
+          onClick={handleReset}
+        >
           重置
         </button>
       </div>
@@ -267,6 +276,14 @@ export default function CharacterFilters({
           </button>
         ))}
       </div>
+
+      {/* 📱 Mobile Reset */}
+      <button
+        className={`${styles.resetBtn} ${styles.resetMobile}`}
+        onClick={handleReset}
+      >
+        重置
+      </button>
 
       {showModal && (
         <AbilityFilterModal
