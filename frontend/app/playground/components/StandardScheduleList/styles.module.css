@@ -1,87 +1,119 @@
-/* ---------- Layout (wrapper used by pages) ---------- */
+/* =========================================================
+   GLOBAL WRAPPER
+========================================================= */
+
 .container {
-  max-width: 500px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0 20px;
+  box-sizing: border-box;
+
   font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   color: #222;
 }
 
-.title {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 1.5rem;
-  text-align: center;
-  color: #2c3e50;
+/* =========================================================
+   WEEK GROUPING (LEFT-ALIGNED, 3 PER ROW)
+========================================================= */
+
+.weekRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)); /* 3 per row */
+  gap: 24px;                                        /* comfortable spacing */
+  width: 100%;
+  justify-items: start;                             /* left aligned */
 }
 
-/* ---------- Button Row (used on current-week page) ---------- */
-.buttonRow {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 2rem;
-}
-
-.createBtn {
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
-  color: #fff;
-  font-size: 1rem;
-  font-weight: 600;
-  padding: 0.8rem 1.6rem;
+.weekDivider {
+  margin: 36px 0;
   border: none;
-  border-radius: 0.75rem;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-top: 1px solid #e5e7eb;
 }
 
-.createBtn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
-}
+/* =========================================================
+   CARD
+========================================================= */
 
-.createBtn:active {
-  transform: translateY(0);
-  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.1);
-}
-
-/* ---------- Card Grid & Cards ---------- */
 .cardWrapper {
-  position: relative;
+  width: 100%;
 }
 
 .card {
+  width: 100%;
+  max-width: 380px;            /* tuned for 3-column density */
+
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+
   background: #fff;
-  border-radius: 1rem;
-  padding: 1.2rem 1.4rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  padding: 18px 20px;
+
   text-decoration: none;
   color: inherit;
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   transition: box-shadow 0.2s ease;
-  max-width: 320px;
 }
 
 .card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* Accent bar */
+.standard {
+  border-top: 4px solid #4facfe;
+}
+
+/* =========================================================
+   CARD HEADER
+========================================================= */
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
 .cardTitle {
   font-size: 1.2rem;
   font-weight: 700;
-  margin: 0;
   color: #2c3e50;
+  margin: 0;
+  line-height: 1.2;
 }
 
-/* Accent bar on top of standard schedule */
-.standard {
-  border-top: 4px solid #4facfe;
+/* Gear button */
+
+.gearBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  padding: 4px;
+  border-radius: 6px;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
-/* Card content */
+.gearBtn:hover {
+  background: #f0f0f0;
+  color: #000;
+}
+
+.gearIcon {
+  width: 22px;
+  height: 22px;
+}
+
+/* =========================================================
+   CARD CONTENT
+========================================================= */
+
 .cardContent p {
-  margin: 0.35rem 0;
+  margin: 4px 0;
   font-size: 0.95rem;
   line-height: 1.4;
 }
@@ -91,70 +123,6 @@
   color: #2c3e50;
 }
 
-/* Empty state text */
-.empty {
-  font-style: italic;
-  text-align: center;
-  color: #888;
-  margin: 1rem 0 2rem;
-}
-
-/* ---------- Week grouping ---------- */
-.weekRow {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
-  width: 100%;
-}
-
-.weekDivider {
-  margin: 35px 0;
-  border: none;
-  border-top: 1px solid #e5e7eb;
-}
-
-/* Responsive columns */
-@media (max-width: 900px) {
-  .weekRow {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 600px) {
-  .weekRow {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ---------- Card header (title + gear) ---------- */
-.cardHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.gearBtn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: #666;
-  padding: 4px;
-  border-radius: 6px;
-  transition: background 0.2s, color 0.2s;
-}
-
-.gearBtn:hover {
-  background: #f0f0f0;
-  color: #000;
-}
-
-.gearIcon {
-  width: 24px;
-  height: 24px;
-}
-
-/* ---------- Footer text in card ---------- */
 .serverFooter {
   text-align: right;
   font-size: 0.85rem;
@@ -163,7 +131,53 @@
   font-style: italic;
 }
 
-/* ---------- Modal overlay ---------- */
+/* =========================================================
+   PROGRESS BAR
+========================================================= */
+
+.progressLine {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0 10px;
+}
+
+.progressText {
+  font-size: 0.9rem;
+  color: #333;
+  white-space: nowrap;
+}
+
+.progressInlineBar {
+  flex: 1;
+  height: 7px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.progressInlineFill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
+.empty {
+  font-style: italic;
+  text-align: center;
+  color: #888;
+  margin: 24px 0;
+}
+
+/* =========================================================
+   MODAL OVERLAY
+========================================================= */
+
 .modalOverlay {
   position: fixed;
   inset: 0;
@@ -174,11 +188,14 @@
   z-index: 100;
 }
 
-/* ---------- Modal ---------- */
+/* =========================================================
+   MODAL
+========================================================= */
+
 .modal {
   background: #fff;
-  padding: 24px 24px 20px;
-  border-radius: 12px;
+  padding: 24px;
+  border-radius: 14px;
   width: 360px;
   max-width: calc(100% - 32px);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
@@ -193,10 +210,10 @@
 }
 
 .modal label {
+  display: block;
   font-size: 0.95rem;
   font-weight: 500;
   color: #34495e;
-  display: block;
   margin-top: 8px;
 }
 
@@ -215,7 +232,10 @@
   box-shadow: 0 0 4px rgba(79, 172, 254, 0.6);
 }
 
-/* ---------- Modal actions (buttons) ---------- */
+/* =========================================================
+   MODAL ACTIONS
+========================================================= */
+
 .modalActions {
   margin-top: 18px;
   display: flex;
@@ -232,7 +252,8 @@
   font-weight: 500;
 }
 
-/* Delete button (normal state) */
+/* Delete */
+
 .deleteBtn {
   display: flex;
   align-items: center;
@@ -246,7 +267,6 @@
   background: #fecaca;
 }
 
-/* Disabled delete button */
 .disabledBtn {
   background: #f3f4f6;
   color: #9ca3af;
@@ -255,7 +275,8 @@
   pointer-events: none;
 }
 
-/* Save button */
+/* Save */
+
 .saveBtn {
   background: linear-gradient(135deg, #4facfe, #00f2fe);
   color: #fff;
@@ -266,7 +287,8 @@
   opacity: 0.9;
 }
 
-/* Close (X) button */
+/* Close */
+
 .closeBtn {
   position: absolute;
   top: 12px;
@@ -277,7 +299,7 @@
   color: #666;
   padding: 4px;
   border-radius: 50%;
-  transition: background 0.2s, color 0.2s;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .closeBtn:hover {
@@ -285,7 +307,6 @@
   color: #000;
 }
 
-/* Icon sizes in modal buttons */
 .closeIcon {
   width: 20px;
   height: 20px;
@@ -295,61 +316,36 @@
   width: 14px;
   height: 14px;
 }
-/* Inline progress bar layout */
-.progressLine {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 4px 0 8px;
-}
 
-.progressText {
-  font-size: 0.9rem;
-  color: #333;
-}
+/* =========================================================
+   RESPONSIVE — PHONE ONLY (≤600px)
+========================================================= */
 
-/* Small inline bar */
-.progressInlineBar {
-  flex: 1;
-  height: 6px;
-  background: #e5e7eb;
-  border-radius: 4px;
-  overflow: hidden;
-}
+@media (max-width: 600px) {
+  .container {
+    padding: 0 14px;
+  }
 
-.progressInlineFill {
-  height: 100%;
-  background: #4facfe;
-  transition: width 0.3s ease;
-}
-/* INLINE BAR FIRST, TEXT AFTER */
-.progressLine {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 6px 0 10px;
-}
+  .weekRow {
+    grid-template-columns: 1fr; /* 1 per row */
+    gap: 16px;
+  }
 
-/* Lower text slightly */
-.progressText {
-  font-size: 0.9rem;
-  color: #333;
-  margin-top: 2px;
-}
+  .card {
+    max-width: 100%;
+    padding: 16px 18px;
+  }
 
-/* The bar background */
-.progressInlineBar {
-  flex: 1;
-  height: 7px;
-  background: #e5e7eb;
-  border-radius: 4px;
-  overflow: hidden;
-  margin-top: 4px;  /* 🔥 lowers the bar a bit */
-}
+  .cardTitle {
+    font-size: 1.1rem;
+  }
 
-/* The filled part */
-.progressInlineFill {
-  height: 100%;
-  border-radius: 4px;
-  transition: width 0.3s ease;
+  .gearIcon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .modal {
+    padding: 20px;
+  }
 }

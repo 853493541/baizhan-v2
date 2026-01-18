@@ -1,23 +1,23 @@
 /* =========================================================
-   LAYOUT
+   LAYOUT (COMPONENT-ONLY, NO EXTRA OUTER SPACING)
 ========================================================= */
 
 .container {
   max-width: 1280px;
-  margin: 0 0px;
-  padding: 20px 10px;
-  /* background-color: red; */
+  margin: 0 auto;
+  padding: 0;                 /* 🔥 REMOVED padding */
+  box-sizing: border-box;
 }
 
 /* =========================================================
-   HEADER (TITLE LEFT, ACTIONS RIGHT)
+   HEADER (TITLE + ACTIONS GROUPED)
 ========================================================= */
 
 .header {
   display: flex;
   align-items: center;
-  gap: 12px;          /* space between title and button */
-  margin-bottom: 24px;
+  gap: 12px;
+  margin-bottom: 16px;        /* controlled spacing */
 }
 
 .title {
@@ -25,10 +25,10 @@
   font-weight: 700;
   line-height: 1.2;
   color: #111;
-  margin: 0; /* remove default h1 margin */
+  margin: 0;
 }
 
-/* Action icons (right aligned) */
+/* Action icons */
 .titleActions {
   display: inline-flex;
   gap: 6px;
@@ -50,6 +50,9 @@
   justify-content: center;
 
   color: #ffffff;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
   transition: background 0.15s ease, transform 0.12s ease;
 }
 
@@ -61,7 +64,7 @@
   transform: translateY(0);
 }
 
-/* Background color semantics */
+/* Background semantics */
 .bgPrimary {
   background-color: #2563eb;
 }
@@ -84,7 +87,7 @@
 }
 
 /* =========================================================
-   MAP FOOTER (if still used elsewhere)
+   FOOTER (IF USED)
 ========================================================= */
 
 .footer {
@@ -103,46 +106,31 @@
 }
 
 /* =========================================================
-   MOBILE ADJUSTMENTS
+   MOBILE / TABLET (≤768px)
 ========================================================= */
 
 @media (max-width: 768px) {
-  .container {
-    padding: 12px;
+  .header {
+    margin-bottom: 12px;
   }
 
   .title {
     font-size: 20px;
+    line-height: 1.1;
   }
 
   .iconBtn {
     width: 26px;
     height: 26px;
+    border-radius: 6px;
   }
-}
-@media (max-width: 768px) {
+
+  .footer {
+    margin-top: 8px;
+  }
+
+  /* Prevent overflow issues in map cards */
   .floorCard {
     overflow: visible;
-  }
-}
-@media (max-width: 768px) {
-  .container {
-    padding-top: 8px;    /* was 12px */
-    padding-bottom: 8px;
-  }
-}
-@media (max-width: 768px) {
-  .header {
-    margin-bottom: 12px; /* was 24px */
-  }
-}
-@media (max-width: 768px) {
-  .title {
-    line-height: 1.1;    /* was 1.2 */
-  }
-}
-@media (max-width: 768px) {
-  .footer {
-    margin-top: 8px;     /* was 12px */
   }
 }

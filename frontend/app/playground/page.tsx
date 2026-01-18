@@ -83,24 +83,25 @@ export default function PlaygroundPage() {
   );
 
   return (
-    <>
-    <div className={styles.pageHeader}>
-  <h1 className={styles.pageTitle}>本周排表</h1>
-</div>
-
+    <div className={styles.container}>
+      {/* =======================
+         Page Header (Top Section)
+      ======================= */}
+      <div className={styles.pageHeader}>
+        <h1 className={styles.pageTitle}>本周排表</h1>
+      </div>
 
       {/* =======================
-         Weekly Map
+         Weekly Map (Middle Section)
       ======================= */}
       <section className={styles.mapSection}>
         <WeeklyMap />
       </section>
 
       {/* =======================
-         Schedule Section
+         Schedule Section (Bottom)
       ======================= */}
-      <div className={styles.container}>
-        {/* Header row */}
+      <div className={styles.scheduleSection}>
         <div className={styles.headerRow}>
           <h2 className={styles.title}>排表</h2>
 
@@ -129,6 +130,6 @@ export default function PlaygroundPage() {
           <p className={styles.empty}>暂无本周排表</p>
         )}
       </div>
-    </>
+    </div>
   );
 }
