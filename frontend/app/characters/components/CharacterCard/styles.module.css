@@ -1,15 +1,16 @@
 /* =========================================================
-   🎯 Character Card Layout
+   🎯 Character Card Layout (Responsive)
 ========================================================= */
 .card {
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* keep bottom action fixed */
+  justify-content: space-between;
 
-  min-width: 260px;
-  max-width: 260px;
+  width: 100%;
+  min-width: 0;
   min-height: 140px;
-  padding: 15px;
+
+  padding: 14px;
 
   border: 1px solid #ddd;
   border-radius: 10px;
@@ -20,54 +21,64 @@
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
+@media (min-width: 768px) {
+  .card {
+    padding: 18px;
+  }
+}
+
 .card:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
 }
 
 /* =========================================================
-   🧩 Header
+   🧩 Header (ONE ROW — ALWAYS)
 ========================================================= */
 .headerRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 8px;
+
+  flex-wrap: nowrap;
+  min-width: 0;
 }
 
 .nameBlock {
   flex: 1;
-  overflow: visible;
+  min-width: 0;
 }
 
+/* Name NEVER pushes actions down */
 .name {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 
   font-size: 1rem;
   font-weight: bold;
-  word-break: break-word;
-}
 
-.name button {
-  margin-left: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .classIcon {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
 }
 
 /* =========================================================
-   ⚙️ Header Actions
+   ⚙️ Header Actions (INLINE, NO WRAP)
 ========================================================= */
 .headerActions {
   display: flex;
   align-items: center;
   gap: 6px;
+
+  flex-shrink: 0;
 }
 
 .iconBtn {
@@ -90,29 +101,13 @@
 
 .iconBtn:hover {
   background: #f0f0f0;
-  transform: translateY(-1px);
 }
 
-/* + Add button */
-.addBtn {
-  color: #1d4ed8;
-}
-
-.addBtn:hover {
-  background: rgba(37, 99, 235, 0.1);
-}
-
-/* 📂 Manager button */
 .managerBtn {
   position: relative;
   color: #166534;
 }
 
-.managerBtn:hover {
-  background: rgba(40, 167, 69, 0.1);
-}
-
-/* Badge (storage count) */
 .badge {
   position: absolute;
   top: -3px;
@@ -131,21 +126,6 @@
   font-size: 10px;
   font-weight: 600;
   border-radius: 999px;
-}
-
-/* =========================================================
-   🎨 Role Colors
-========================================================= */
-.tank {
-  background-color: #fff3cd;
-}
-
-.dps {
-  background-color: #d4edda;
-}
-
-.healer {
-  background-color: #f8d7da;
 }
 
 /* =========================================================
@@ -168,7 +148,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 6px;
 
   background-color: #ffe5b4;
   color: #b94a00;
@@ -177,8 +157,6 @@
 
   font-size: 14px;
   font-weight: 700;
-  letter-spacing: 0.2px;
-  padding: 4px 0;
 
   cursor: pointer;
   transition: all 0.2s ease;
@@ -186,89 +164,45 @@
 
 .tradableButton:hover {
   background-color: #ffcf7d;
-  border-color: #e5a832;
-  /* transform: translateY(-1px); */
 }
 
-.tradableButton:active {
-  transform: scale(0.98);
-}
-
-/* Placeholder (no button) */
 .tradeablePlaceholder {
   width: 100%;
   height: 28px;
-  background: transparent;
-  border-radius: 8px;
 }
 
 /* =========================================================
-   📂 Backpack / Loading Helpers
+   🎨 Role Colors
 ========================================================= */
-.backpackWrapper {
-  position: relative;
-  min-height: 110px;
+.tank {
+  background-color: #fff3cd;
 }
 
-/* invisible overlay during refresh — layout stable */
-.invisibleLoading {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  pointer-events: none;
+.dps {
+  background-color: #d4edda;
 }
 
-.loading {
-  text-align: center;
-  font-size: 14px;
-  color: #666;
-  padding: 4px 0;
+.healer {
+  background-color: #f8d7da;
 }
 
-/* =========================================================
-   🚫 Inactive Character
-========================================================= */
 .inactive {
   background-color: #e0e0e0;
-  color: #000;
   opacity: 0.85;
 }
 
 /* =========================================================
-   📱 Mobile ≤600px
+   🧠 Edit Hint (Desktop only)
 ========================================================= */
-@media (max-width: 600px) {
-  .card {
-    padding: 14px 16px;
-  }
-
-  .headerActions {
-    gap: 4px;
-  }
-
-  .tradableButton {
-    font-size: 15px;
-    padding: 7px 0;
-  }
-}
-.nameBlock {
-  position: relative; /* 👈 anchor for absolute hint */
-}
-
 .editHint {
-  position: absolute;
-  top: 100%;          /* place below name */
-  left: 32px;         /* align under text, after icon */
-
+  display: none;
   font-size: 11px;
   color: #888;
-
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease;
+  margin-left: 32px;
 }
 
-/* show on hover */
-.card:hover .editHint {
-  opacity: 1;
+@media (hover: hover) and (min-width: 768px) {
+  .card:hover .editHint {
+    display: block;
+  }
 }
