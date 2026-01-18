@@ -4,7 +4,7 @@
 .card {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 5px;
   background: #fff;
   border: 1px solid #ddd;
   border-radius: 10px;
@@ -19,7 +19,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2px; /* ⬇️ tighter spacing below title */
+  margin-bottom: 2px;
 }
 
 .title {
@@ -34,12 +34,11 @@
 .headerActions {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
   gap: 8px;
 }
 
 /* ==============================
-   🔘 Buttons
+   🔘 Icon Buttons
    ============================== */
 .iconBtn {
   width: 28px;
@@ -61,21 +60,9 @@
   transform: translateY(-1px);
 }
 
-.addBtn {
-  color: #1d4ed8;
-}
-
-.addBtn:hover {
-  background: rgba(37, 99, 235, 0.1);
-}
-
 .managerBtn {
   position: relative;
   color: #166534;
-}
-
-.managerBtn:hover {
-  background: rgba(40, 167, 69, 0.1);
 }
 
 /* === Badge === */
@@ -97,7 +84,18 @@
 }
 
 /* ==============================
-   ⚡ Tradable Button
+   📦 Backpack Content Wrapper
+   ============================== */
+.backpackWrapper {
+  position: relative;
+  min-height: 130px;
+  border-radius: 10px;
+  overflow: hidden;
+  /* border:red 2px solid; */
+}
+
+/* ==============================
+   ⚡ Tradable Action
    ============================== */
 .tradeableWrapper {
   display: flex;
@@ -116,14 +114,14 @@
   border-radius: 6px;
   font-size: 13px;
   font-weight: 600;
-  padding: 4px 0;
+  padding: 6px 0; /* ⬆️ slightly taller for touch */
   cursor: pointer;
-  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 5px;
   letter-spacing: 0.2px;
+  white-space: nowrap;
 }
 
 .tradableButton:hover {
@@ -135,75 +133,15 @@
 .tradableButton:active {
   transform: scale(0.98);
 }
-.backpackWrapper {
-  position: relative;
-  min-height: 110px; /* keep layout stable; no padding added */
-}
 
-.loadingOverlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255,255,255,0.5);
-  backdrop-filter: blur(2px);
-  font-size: 13px;
-  font-weight: 500;
-  color: #333;
-  border-radius: 8px;
-  pointer-events: none; /* don't block clicks underneath */
-  z-index: 2;
-}
-/* === Backpack stable area === */
-.backpackWrapper {
-  position: relative;
-  min-height: 110px; /* 🧱 keeps layout from jumping when BackpackWindow remounts */
-}
-
-/* === Loading overlay (optional visual only) === */
-.loadingOverlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.4); /* translucent, subtle */
-  font-size: 13px;
-  font-weight: 500;
-  color: #333;
-  border-radius: 8px;
-  pointer-events: none; /* doesn't block clicks */
-}
-
-/* Optional: smooth fade if you want */
-.loadingOverlay span {
-  animation: fadeIn 0.25s ease;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-/* === Stable backpack region === */
-.backpackWrapper {
-  position: relative;
-  min-height: 110px; /* prevent collapse while loading */
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-/* === Subtle overlay that doesn't move layout === */
+/* ==============================
+   ⏳ Loading Overlay
+   ============================== */
 .loadingOverlay {
   position: absolute;
   inset: 0;
   background: rgba(255, 255, 255, 0.6);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   font-size: 13px;
@@ -212,19 +150,27 @@
   z-index: 5;
 }
 
-/* Spinner animation */
-.loaderSpinner {
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgba(0, 0, 0, 0.15);
-  border-top-color: #2563eb; /* blue accent */
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-  margin-bottom: 6px;
-}
+/* ==============================
+   📱 Phone Optimizations
+   ============================== */
+@media (max-width: 480px) {
+  .card {
+    padding: 12px;
+    gap: 8px;
+  }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
+  .iconBtn {
+    width: 26px;
+    height: 26px;
+    font-size: 15px;
+  }
+
+  .backpackWrapper {
+    min-height: 96px; /* slightly tighter */
+  }
+
+  .tradableButton {
+    font-size: 12.5px;
+    padding: 6px 0;
   }
 }

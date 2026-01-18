@@ -7,14 +7,17 @@
   padding: 4px 3px;
   background: #fff;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  height: 110px;
+  height: 125px;
 }
+
 .wrapper:hover {
   border-color: rgba(0, 0, 0, 0.15);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-/* === Item List === */
+/* ===============================
+   📋 Item List
+   =============================== */
 .itemList {
   list-style: none;
   padding: 0 3px;
@@ -22,7 +25,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  min-height: calc((22px + 8px) * 3);
+  min-height: calc((24px + 8px) * 3);
 }
 
 .itemRow {
@@ -30,22 +33,25 @@
   justify-content: space-between;
   align-items: center;
   background: #f8fafc;
-  padding: 4px 6px;
+  padding: 6px 6px;
   border-radius: 8px;
   transition: background 0.15s ease, transform 0.1s ease;
 }
+
 .itemRow:hover {
   background: #eef3f9;
   transform: translateY(-1px);
 }
 
-/* === Left Side === */
+/* ===============================
+   ⬅️ Left Side
+   =============================== */
 .itemLeft {
   display: flex;
   align-items: center;
   gap: 6px;
   flex: 1 1 auto;
-  min-width: 0;
+  min-width: 0; /* 🔑 important */
 }
 
 .abilityIcon {
@@ -57,34 +63,36 @@
   flex-shrink: 0;
 }
 
-/* === Text block inside left === */
+/* ===============================
+   🏷 Text
+   =============================== */
 .abilityText {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   width: 100%;
   gap: 6px;
+  min-width: 0;
 }
 
 .abilityName {
   font-weight: 500;
   color: #111827;
-  flex: 1 1 auto;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-   font-size: 14px; 
+  font-size: 14px;
+  white-space: nowrap;   /* single line */
+  overflow: visible;    /* 🔑 NO CUT */
 }
 
+/* Right-side level */
 .currentLevelRight {
-  font-weight: 500; /* ✅ matches left */
+  font-weight: 500;
   color: #1f2937;
   white-space: nowrap;
-  text-align: right;
   font-size: 12px;
 }
 
-/* === Buttons === */
+/* ===============================
+   🔘 Buttons
+   =============================== */
 .buttons {
   display: flex;
   gap: 5px;
@@ -95,7 +103,7 @@
 
 .btn {
   border: none;
-  border-radius: 6px;
+  border-radius: 2px;
   padding: 2px 6px;
   font-size: 12px;
   font-weight: 500;
@@ -112,16 +120,34 @@
 .useBtn:hover:not(:disabled) {
   background: #43a047;
 }
+
 .deleteBtn {
   background: #ffe4e6;
   color: #b91c1c;
 }
+
 .deleteBtn:hover {
   background: #dc2626;
   color: #fff;
 }
 
-/* === Empty / Loading === */
+.yellowBtn {
+  background: #ffc107;
+  color: #212529;
+}
+
+.yellowBtn:hover:not(:disabled) {
+  background: #e0a800;
+}
+
+.btn:disabled {
+  pointer-events: none;
+  opacity: 0.65;
+}
+
+/* ===============================
+   🈳 Empty / Loading
+   =============================== */
 .empty,
 .loading {
   color: #555;
@@ -130,19 +156,17 @@
   padding: 4px 0;
 }
 
-/* === 📱 Phone Layout === */
+/* ===============================
+   📱 Phone (ONLY size tweaks)
+   =============================== */
 @media (max-width: 600px) {
-  .abilityName {
-    display: none;
-  }
-
-  .abilityText {
-    gap: 2px;
-  }
-
   .abilityIcon {
     width: 20px;
     height: 20px;
+  }
+
+  .abilityName {
+    font-size: 12px; /* slightly smaller, but full text */
   }
 
   .currentLevelRight {
@@ -161,17 +185,4 @@
     padding: 2px 4px;
     font-size: 11px;
   }
-}
-.yellowBtn {
-  background: #ffc107;
-  color: #212529;
-}
-
-.yellowBtn:hover:not(:disabled) {
-  background: #e0a800;
-}
-
-.btn:disabled {
-  pointer-events: none;
-  opacity: 0.65;
 }
