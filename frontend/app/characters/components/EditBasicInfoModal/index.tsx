@@ -12,8 +12,8 @@ interface CharacterEditData {
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  onSave: () => void;     // ✅ refresh only
-  onDelete: () => void;   // ✅ trigger parent confirm
+  onSave: () => void;
+  onDelete: () => void;
   characterId: string;
   initialData: CharacterEditData;
 }
@@ -29,7 +29,7 @@ export default function EditBasicInfoModal({
   isOpen,
   onClose,
   onSave,
-  onDelete,          // ✅ RECEIVE IT
+  onDelete,
   characterId,
   initialData,
 }: Props) {
@@ -39,14 +39,13 @@ export default function EditBasicInfoModal({
   const [saving, setSaving] = useState(false);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
-  
-useEffect(() => {
-  if (!isOpen) return;
 
-  setServer(initialData.server);
-  setRole(initialData.role);
-  setActive(initialData.active);
-}, [isOpen]);
+  useEffect(() => {
+    if (!isOpen) return;
+    setServer(initialData.server);
+    setRole(initialData.role);
+    setActive(initialData.active);
+  }, [isOpen, initialData]);
 
   if (!isOpen) return null;
 
@@ -64,7 +63,7 @@ useEffect(() => {
         body: JSON.stringify(field),
       });
       if (!res.ok) throw new Error("Save failed");
-      onSave(); // refresh parent
+      onSave();
     } catch (err) {
       console.error("Auto save failed:", err);
     } finally {
@@ -96,21 +95,28 @@ useEffect(() => {
   };
 
   const handleDeleteClick = () => {
-    onClose();   // close edit modal FIRST
-    onDelete();  // let parent open ConfirmModal
+    onClose();
+    onDelete();
   };
 
   /* ============================
      Render
   ============================ */
   return (
-    <div className={styles.overlay}>
-      <div className={styles.modal}>
-        <h2 className={styles.title}>编辑基础信息</h2>
+    <div className={styles.overlay} onClick={onClose}>
+      <div
+        className={styles.modal}
+        onClick={(e) => e.stopPropagation()} // ⛔ prevent overlay close
+      >
+        {/* Header */}
+        <div className={styles.header}>
+          <h2 className={styles.title}>编辑基础信息</h2>
+ 
+        </div>
 
         {/* 区服 */}
         <div className={styles.field}>
-          <label className={styles.label}>区服:</label>
+          <label className={styles.label}>区服</label>
           <div className={styles.optionGroup}>
             {servers.map((s) => (
               <button
@@ -129,7 +135,7 @@ useEffect(() => {
 
         {/* 定位 */}
         <div className={styles.field}>
-          <label className={styles.label}>定位:</label>
+          <label className={styles.label}>定位</label>
           <div className={styles.optionGroup}>
             {roles.map((r) => (
               <button
@@ -148,7 +154,7 @@ useEffect(() => {
 
         {/* 启用 */}
         <div className={styles.field}>
-          <label className={styles.label}>是否启用:</label>
+          <label className={styles.label}>是否启用</label>
           <div
             className={`${styles.toggle} ${active ? styles.on : ""}`}
             onClick={handleToggle}
