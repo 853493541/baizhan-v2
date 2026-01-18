@@ -1,6 +1,6 @@
 /* =========================
-   ⚙️ Overlay and Modal Base
-   ========================= */
+   ⚙️ Overlay
+========================= */
 .overlay {
   position: fixed;
   inset: 0;
@@ -9,61 +9,78 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
-}
 
-.modal {
-  background: #fff;
-  border-radius: 12px;
-  padding: 28px 32px;
-  width: 440px;
-  max-width: 95%;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  animation: fadeIn 0.2s ease;
+  /* allow scroll on small screens */
+  padding: 16px;
   box-sizing: border-box;
 }
 
+/* =========================
+   🧾 Modal
+========================= */
+.modal {
+  background: #fff;
+  border-radius: 14px;
+  padding: 24px 28px;
+
+  width: 440px;
+  max-width: 100%;
+  max-height: 85dvh;          /* ✅ iOS-safe */
+  overflow-y: auto;           /* ✅ internal scroll */
+
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  box-sizing: border-box;
+
+  animation: fadeIn 0.18s ease;
+}
+
+/* =========================
+   Animation
+========================= */
 @keyframes fadeIn {
   from {
-    transform: scale(0.98);
+    transform: translateY(8px) scale(0.98);
     opacity: 0;
   }
   to {
-    transform: scale(1);
+    transform: translateY(0) scale(1);
     opacity: 1;
   }
 }
 
 /* =========================
-   🧾 Title and Fields
-   ========================= */
+   🧠 Title
+========================= */
 .title {
   font-size: 20px;
   font-weight: 700;
   text-align: center;
-  margin-bottom: 20px; /* compact but clear separation */
+  margin-bottom: 18px;
   color: #1b4332;
 }
 
+/* =========================
+   🧾 Fields
+========================= */
 .field {
   display: flex;
   flex-direction: column;
-  gap: 4px;             /* tight label-to-content spacing */
-  margin-bottom: 16px;  /* consistent section spacing */
+  gap: 6px;
+  margin-bottom: 14px;
 }
 
 .label {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: #333;
-  margin-bottom: 2px;
 }
 
 /* =========================
-   🧩 Option Button Group
-   ========================= */
+   🧩 Option Groups
+========================= */
 .optionGroup {
   display: flex;
-  gap: 8px;             /* balanced horizontal spacing */
+  gap: 8px;
   flex-wrap: wrap;
 }
 
@@ -71,11 +88,11 @@
   background: #f5f5f5;
   border: 1px solid #ccc;
   border-radius: 8px;
-  padding: 7px 13px;
-  font-size: 15px;
+  padding: 7px 14px;
+  font-size: 14px;
   cursor: pointer;
   color: #333;
-  transition: background 0.2s ease, border 0.2s ease, color 0.2s ease;
+  transition: all 0.15s ease;
 }
 
 .optionBtn:hover {
@@ -89,11 +106,11 @@
 }
 
 /* =========================
-   🌙 Custom Toggle Switch
-   ========================= */
+   🌙 Toggle
+========================= */
 .toggle {
-  width: 50px;
-  height: 26px;
+  width: 48px;
+  height: 24px;
   border-radius: 999px;
   background: #ccc;
   position: relative;
@@ -105,8 +122,8 @@
   position: absolute;
   top: 3px;
   left: 3px;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   background: #fff;
   transition: left 0.2s ease;
@@ -121,13 +138,14 @@
 }
 
 /* =========================
-   🔘 Action Buttons
-   ========================= */
+   🔘 Actions
+========================= */
 .actions {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 22px; /* slightly tighter to last field */
+  gap: 12px;
+  margin-top: 20px;
 }
 
 .delete {
@@ -138,7 +156,6 @@
   padding: 8px 18px;
   cursor: pointer;
   font-weight: 600;
-  transition: background 0.2s ease;
 }
 
 .delete:hover {
@@ -152,7 +169,6 @@
   padding: 8px 18px;
   cursor: pointer;
   font-weight: 500;
-  transition: background 0.2s ease;
 }
 
 .cancel:hover {
@@ -160,16 +176,12 @@
 }
 
 /* =========================
-   📱 Mobile Adjustments
-   ========================= */
+   📱 Mobile Optimization
+========================= */
 @media (max-width: 480px) {
   .modal {
-    width: 90%;
-    padding: 22px;
-  }
-
-  .optionGroup {
-    gap: 8px;
+    padding: 20px 16px;
+    max-height: 80dvh; /* slightly shorter for Safari */
   }
 
   .optionBtn {
@@ -179,21 +191,14 @@
 
   .actions {
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
+
+    /* safe area support */
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
   .delete,
   .cancel {
     width: 100%;
   }
-}
-
-/* =========================
-   💾 Saving Indicator
-   ========================= */
-.saving {
-  font-size: 13px;
-  color: #888;
-  text-align: right;
-  margin-top: 10px;
 }
