@@ -35,6 +35,13 @@ interface Props {
   onDelete: () => void;
 }
 
+/* ===== Role display map ===== */
+const ROLE_LABEL_MAP: Record<Character["role"], string> = {
+  DPS: "输出",
+  Tank: "防御",
+  Healer: "治疗",
+};
+
 export default function CharacterBasics({
   character,
   onSave,
@@ -75,13 +82,14 @@ export default function CharacterBasics({
 
         {/* ===== Class / Gender / Role ===== */}
         <div className={styles.lineMuted}>
-          {character.class} · {character.gender} · {character.role}
+          {character.class} · {character.gender} ·{" "}
+          {ROLE_LABEL_MAP[character.role]}
         </div>
 
         {/* ===== Server / Owner / Active ===== */}
         <div className={styles.lineMuted}>
           {character.server} · {character.owner} ·{" "}
-          {character.active ? "激活" : "未激活"}
+          {character.active ? "在役" : "暂离"}
         </div>
 
         {/* ===== Stats ===== */}

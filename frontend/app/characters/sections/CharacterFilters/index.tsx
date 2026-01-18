@@ -223,7 +223,7 @@ export default function CharacterFilters(props: Props) {
                 tradableOnly ? styles.boxTextActive : ""
               }`}
             >
-              紫书
+              可补书
             </span>
           </div>
         </div>
