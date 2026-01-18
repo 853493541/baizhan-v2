@@ -127,18 +127,16 @@ export default function Backpack({
       </div>
 
       {/* === Action Button === */}
-      <div className={styles.tradeableWrapper}>
-        {hasActions ? (
-          <button
-            className={styles.tradableButton}
-            onClick={() => setShowModal(true)}
-          >
-            ⚡ 有书籍可读
-          </button>
-        ) : (
-          <div className={styles.tradeablePlaceholder} />
-        )}
-      </div>
+{hasActions && (
+  <div className={styles.tradeableWrapper}>
+    <button
+      className={styles.tradableButton}
+      onClick={() => setShowModal(true)}
+    >
+      ⚡ 有书籍可读
+    </button>
+  </div>
+)}
 
       {/* === Action Modal === */}
       {showModal && (
