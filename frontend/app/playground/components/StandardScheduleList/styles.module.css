@@ -197,7 +197,7 @@
   padding: 24px;
   border-radius: 14px;
   width: 360px;
-  max-width: calc(100% - 32px);
+  max-width: calc(100% - 60px);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
   position: relative;
 }
@@ -211,7 +211,7 @@
 
 .modal label {
   display: block;
-  font-size: 0.95rem;
+  font-size: 1.2rem;
   font-weight: 500;
   color: #34495e;
   margin-top: 8px;

@@ -239,10 +239,10 @@ export default function StandardScheduleList({
               <X className={styles.closeIcon} />
             </button>
 
-            <h3>编辑</h3>
+            {/* <h3>编辑</h3> */}
 
             <label>
-              排表名称：
+              编辑排表名称：
               <input
                 ref={inputRef}
                 type="text"
