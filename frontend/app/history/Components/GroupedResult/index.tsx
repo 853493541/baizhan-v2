@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import styles from "./styles.module.css";
@@ -25,8 +26,10 @@ interface Props {
   onRevertGroup: (group: GroupedItem) => Promise<void>;
 }
 
-// ✅ Helper: short time format (MM/DD HH:MM)
-function formatShortTime(dateStr: string) {
+/* ===============================
+   Time utils
+=============================== */
+function formatTimeDesktop(dateStr: string) {
   const d = new Date(dateStr);
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const dd = String(d.getDate()).padStart(2, "0");
@@ -35,20 +38,28 @@ function formatShortTime(dateStr: string) {
   return `${mm}/${dd} ${hh}:${mi}`;
 }
 
+function formatTimeMobile(dateStr: string) {
+  const d = new Date(dateStr);
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${mm}/${dd}`;
+}
+
 export default function GroupedResult({ group, onRevert, onRevertGroup }: Props) {
   const [open, setOpen] = useState(false);
   const truncate = (name: string) => (name.length > 2 ? name.slice(0, 2) : name);
 
-  // ─────────────── Modal ───────────────
+  /* ===============================
+     Modal
+  =============================== */
   const modalContent =
     open &&
     createPortal(
       <div className={styles.modalBackdrop} onClick={() => setOpen(false)}>
         <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-          {/* ─────────────── Header Row ─────────────── */}
           <div className={styles.headerRow}>
             <h3 className={styles.title}>
-              {group.characterName} 的批量更新（{formatShortTime(group.updatedAt)}）
+              {group.characterName} · 批量更新
             </h3>
             <div className={styles.headerButtons}>
               <button
@@ -66,29 +77,43 @@ export default function GroupedResult({ group, onRevert, onRevertGroup }: Props)
             </div>
           </div>
 
-          <p className={styles.subTitle}>共 {group.records.length} 条记录</p>
+          <div className={styles.modalMeta}>
+            <span className={styles.timeDesktop}>
+              {formatTimeDesktop(group.updatedAt)}
+            </span>
+            <span className={styles.timeMobile}>
+              {formatTimeMobile(group.updatedAt)}
+            </span>
+            <span> · 共 {group.records.length} 条</span>
+          </div>
 
-          {/* ─────────────── Ability Grid ─────────────── */}
           <div className={styles.grid}>
             {group.records.map((r) => (
               <div key={r._id} className={styles.card}>
-                <img
-                  src={`/icons/${r.abilityName}.png`}
-                  alt={r.abilityName}
-                  className={styles.icon}
-                  onError={(e) =>
-                    ((e.currentTarget as HTMLImageElement).src = "/icons/default.png")
-                  }
-                />
-                <span className={styles.name}>{truncate(r.abilityName)}</span>
+                <div className={styles.cardLeft}>
+                  <img
+                    src={`/icons/${r.abilityName}.png`}
+                    alt={r.abilityName}
+                    className={styles.icon}
+                    onError={(e) =>
+                      ((e.currentTarget as HTMLImageElement).src =
+                        "/icons/default.png")
+                    }
+                  />
+                  <span className={styles.name}>
+                    {truncate(r.abilityName)}
+                  </span>
+                </div>
+
                 <span className={styles.change}>
                   {r.beforeLevel} → {r.afterLevel}
                 </span>
+
                 <button
                   className={styles.revertBtn}
                   onClick={() => onRevert(r._id, r)}
                 >
-                  撤回全部
+                  撤回
                 </button>
               </div>
             ))}
@@ -98,14 +123,23 @@ export default function GroupedResult({ group, onRevert, onRevertGroup }: Props)
       document.body
     );
 
-  // ─────────────── Table Row ───────────────
+  /* ===============================
+     Table Row
+  =============================== */
   return (
     <>
       <tr className={styles.groupRow} onClick={() => setOpen(true)}>
-        <td>{formatShortTime(group.updatedAt)}</td>
-        <td>{group.characterName}</td>
-        <td colSpan={2} style={{ color: "#888" }}>
-          {group.records.length} 个技能（点击查看）
+        <td>
+          <span className={styles.timeDesktop}>
+            {formatTimeDesktop(group.updatedAt)}
+          </span>
+          <span className={styles.timeMobile}>
+            {formatTimeMobile(group.updatedAt)}
+          </span>
+        </td>
+        <td className={styles.nameCell}>{group.characterName}</td>
+        <td colSpan={2} className={styles.summaryCell}>
+          {group.records.length} 个技能
         </td>
         <td>
           <button

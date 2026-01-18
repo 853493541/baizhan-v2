@@ -1,49 +1,164 @@
+/* ===============================
+   Layout
+=============================== */
 .page {
-  padding: 24px;
+  padding: 16px;
+  max-width: 1100px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* ===============================
+   Header
+=============================== */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.headerLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .title {
-  font-size: 1.4rem;
-  font-weight: 600;
-  margin-bottom: 16px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 0;
 }
 
+.subTitle {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.headerRight {
+  display: flex;
+  gap: 8px;
+}
+
+/* ===============================
+   Filters (Desktop / Tablet)
+=============================== */
 .filters {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+  margin-bottom: 14px;
+}
+
+.filterRow {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 10px;
+  align-items: center;
 }
 
 .input {
-  padding: 6px 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  min-width: 160px;
+  padding: 9px 10px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  min-width: 120px;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.input:focus {
+  border-color: #bcdcff;
+  box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.12);
 }
 
 .select {
-  padding: 6px 8px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 0.9rem;
+  padding: 9px 10px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.select:focus {
+  border-color: #bcdcff;
+  box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.12);
+}
+
+/* Checkbox */
+.checkboxLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  background: #fafafa;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: #0078d4;
+}
+
+.checkboxText {
+  font-size: 0.92rem;
+  color: #333;
+}
+
+/* ===============================
+   Buttons
+=============================== */
+.refreshBtn,
+.primaryBtn,
+.secondaryBtn {
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border: none;
 }
 
 .refreshBtn {
-  background-color: #0078d4;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 0.9rem;
-  cursor: pointer;
+  background: #0078d4;
+  color: #fff;
 }
 
-.refreshBtn:hover {
-  background-color: #005fa3;
+.primaryBtn {
+  background: #111;
+  color: #fff;
 }
 
+.secondaryBtn {
+  background: #fff;
+  color: #111;
+  border: 1px solid #ddd;
+}
+
+/* ===============================
+   Table Wrapper
+=============================== */
+.tableWrap {
+  width: 100%;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+  overflow: hidden; /* disable horizontal scroll */
+}
+
+/* ===============================
+   Table
+=============================== */
 .table {
   width: 100%;
   border-collapse: collapse;
@@ -52,169 +167,207 @@
 
 .table th,
 .table td {
-  padding: 8px 10px;
-  border-bottom: 1px solid #e0e0e0;
+  padding: 10px 12px;
+  border-bottom: 1px solid #f0f0f0;
   text-align: left;
+  vertical-align: middle;
 }
 
 .table th {
-  background-color: #fafafa;
+  background: #fafafa;
+  font-weight: 650;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .table tr:hover {
-  background-color: #f7f7f7;
+  background: #fbfbfb;
 }
 
-.revertBtn {
-  padding: 4px 8px;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  cursor: pointer;
-  background-color: #ffe58f;
-  color: #614700;
+/* ===============================
+   Cells
+=============================== */
+.timeCell {
+  white-space: nowrap;
 }
 
-.revertBtn:hover {
-  background-color: #ffd666;
-}
-.groupRow:hover {
-  background: #f5f5f5;
-  cursor: pointer;
-}
-
-/* === Modal Backdrop === */
-.modalBackdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-}
-
-/* === Modal Box === */
-.modal {
-  background: #fff;
-  border-radius: 8px;
-  padding: 16px;
-  width: 500px;
-  max-height: 80vh;
-  overflow-y: auto;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-}
-
-/* === Header Row === */
-.modalHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.modalTitle {
-  font-size: 1rem;
+.nameCell {
   font-weight: 600;
+  white-space: nowrap;
+  max-width: 4em;     /* max 4 chars */
+  overflow: hidden;   /* no ... */
 }
 
-.modalHeaderButtons {
-  display: flex;
-  gap: 6px;
-}
-
-/* === Buttons === */
-.revertBtn {
-  background-color: #ffe58f;
-  color: #614700;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  padding: 4px 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.revertBtn:hover {
-  background-color: #ffd666;
-}
-
-.cancelBtn {
-  background: #fafafa;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  padding: 4px 8px;
-  cursor: pointer;
-}
-
-/* === Modal List === */
-.modalList {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr); /* two per row */
-  gap: 8px;
-  margin-top: 10px;
-}
-
-/* === Modal Items === */
-.modalItem {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border: 1px solid #eee;
-  border-radius: 6px;
-  padding: 6px 8px;
-  background: #fafafa;
-}
-
-/* Icon + name */
-.skillInfo {
-  display: flex;
+.skillCell {
+  display: inline-flex;
   align-items: center;
   gap: 6px;
 }
 
 .skillIcon {
-  width: 24px;
-  height: 24px;
-  border-radius: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
   object-fit: cover;
+  flex-shrink: 0;
 }
 
 .skillName {
-  font-weight: 500;
-  font-size: 0.85rem;
+  font-weight: 600;
+  max-width: 2em;     /* ability max 2 chars */
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .changeText {
-  color: #333;
-  font-size: 0.8rem;
-  width: 90px;
-  text-align: right;
-}
-.skillCell {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  font-variant-numeric: tabular-nums;
 }
 
-.skillIcon {
-  width: 22px;
-  height: 22px;
-  border-radius: 4px;
-  object-fit: cover;
-  flex-shrink: 0;
-}
-.skillCell {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.actionCol {
+  width: 72px;
 }
 
-.skillIcon {
-  width: 22px;
-  height: 22px;
-  border-radius: 4px;
-  object-fit: cover;
-  flex-shrink: 0;
+/* ===============================
+   Buttons (Table)
+=============================== */
+.revertBtn {
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  background: #ffe58f;
+  color: #614700;
+  border: none;
+  cursor: pointer;
+}
+
+/* ===============================
+   Small Group Chain
+=============================== */
+.smallGroupRow {
+  background: #fcfcff;
+}
+
+.chainText {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.goodChain {
+  color: #1a7f37;
+  font-weight: 700;
+}
+
+.badChain {
+  color: #d1242f;
+  font-weight: 700;
+}
+
+/* ===============================
+   Empty / Bottom
+=============================== */
+.loading,
+.empty {
+  padding: 14px 6px;
+  color: #666;
+}
+
+.loadMoreWrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.loadMoreBtn {
+  background: #111;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+}
+
+/* ===============================
+   Tablet
+=============================== */
+@media (max-width: 900px) {
+  .input {
+    min-width: 160px;
+  }
+
+  .filterRow {
+    gap: 8px;
+  }
+}
+
+/* ===============================
+   Phone
+=============================== */
+@media (max-width: 640px) {
+  .page {
+    padding: 12px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  /* Filters stack cleanly */
+  .filterRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .input,
+  .select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .checkboxLabel {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .refreshBtn,
+  .primaryBtn,
+  .secondaryBtn {
+    width: 100%;
+  }
+
+  /* Table compression */
+  .table {
+    font-size: 0.82rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 6px;
+  }
+
+  .timeCell {
+    width: 44px;
+  }
+
+  .nameCell {
+    max-width: 4em;
+    font-size: 0.8rem;
+  }
+
+  .skillIcon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .changeText {
+    font-size: 0.78rem;
+  }
+
+  .revertBtn {
+    padding: 4px 6px;
+    font-size: 0.75rem;
+  }
 }

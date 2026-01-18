@@ -16,9 +16,12 @@ import {
 } from "../controllers/characters/getController";
 
 // ⭐ Page-level lightweight list (NO abilities)
-
 // ⭐ Ultra-basic (legacy / special use)
-import { getBasicCharacters,getCharactersPageLightweight, getCharacterLightById } from "../controllers/characters/getBasicCharacters";
+import {
+  getBasicCharacters,
+  getCharactersPageLightweight,
+  getCharacterLightById,
+} from "../controllers/characters/getBasicCharacters";
 
 // Update / Delete
 import {
@@ -34,6 +37,7 @@ import {
 // Ability history
 import {
   getAbilityHistory,
+  getImportantAbilityHistory, // ✅ NEW
   revertAbilityHistory,
   deleteAbilityHistory,
   revertMultipleHistory,
@@ -49,14 +53,10 @@ import { getCharacterRanking } from "../controllers/characters/getCharacterRanki
 // Tradables / Action
 import { getCharacterTradables } from "../controllers/characters/ActionController";
 
-
-
+// Filters
 import { filterCharactersPage } from "../controllers/characters/Filter";
 
-
-
 const router = express.Router();
-
 
 // ─────────────────────────────────────────────
 // ⚠️ MOST SPECIFIC ROUTES FIRST (CRITICAL)
@@ -76,17 +76,39 @@ router.get("/ranking", getCharacterRanking);
 // Metadata
 router.get("/accounts", getAllAccounts);
 
-
 // ─────────────────────────────────────────────
 // 🧾 Ability History (specific paths first)
 // ─────────────────────────────────────────────
 
-router.get("/abilities/history", getAbilityHistory);
-router.get("/abilities/history/latest/:characterId", getLatestAbilityUpdate);
-router.post("/abilities/history/batch/revert", revertMultipleHistory);
-router.post("/abilities/history/:id/revert", revertAbilityHistory);
-router.delete("/abilities/history/:id", deleteAbilityHistory);
+// ⭐ IMPORTANT abilities only
+router.get("/abilities/history/important", getImportantAbilityHistory);
 
+// Full / filtered history
+router.get("/abilities/history", getAbilityHistory);
+
+// Latest ability update per character
+router.get(
+  "/abilities/history/latest/:characterId",
+  getLatestAbilityUpdate
+);
+
+// Batch revert
+router.post(
+  "/abilities/history/batch/revert",
+  revertMultipleHistory
+);
+
+// Single revert
+router.post(
+  "/abilities/history/:id/revert",
+  revertAbilityHistory
+);
+
+// Delete history record
+router.delete(
+  "/abilities/history/:id",
+  deleteAbilityHistory
+);
 
 // ─────────────────────────────────────────────
 // 🎒 Global Storage (backpack page)
@@ -94,11 +116,13 @@ router.delete("/abilities/history/:id", deleteAbilityHistory);
 
 router.get("/storage/all", getAllStorage);
 
+// Page-level filtering
 router.post("/page/filter", filterCharactersPage);
 
 // ─────────────────────────────────────────────
 // 🎒 Per-character sub-resources
 // ─────────────────────────────────────────────
+
 router.get("/:id/light", getCharacterLightById);
 router.get("/:id/tradables", getCharacterTradables);
 
@@ -106,7 +130,6 @@ router.post("/:id/storage", addToStorage);
 router.get("/:id/storage", getStorage);
 router.put("/:id/storage/use", useStoredAbility);
 router.delete("/:id/storage/delete", deleteFromStorage);
-
 
 // ─────────────────────────────────────────────
 // Character CRUD (generic routes LAST)
@@ -122,7 +145,7 @@ router.put("/:id", updateCharacter);
 router.patch("/:id/abilities", updateCharacterAbilities);
 router.delete("/:id", deleteCharacter);
 
+// Compare
 router.post("/:id/compare-abilities", compareCharacterAbilities);
-
 
 export default router;

@@ -1,9 +1,35 @@
+/* ===============================
+   Table row
+=============================== */
 .groupRow:hover {
-  background: #f5f5f5;
+  background: #f6f7f9;
   cursor: pointer;
 }
 
-/* ─────────────── Modal ─────────────── */
+.nameCell {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.summaryCell {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* ===============================
+   Time display
+=============================== */
+.timeDesktop {
+  display: inline;
+}
+
+.timeMobile {
+  display: none;
+}
+
+/* ===============================
+   Modal
+=============================== */
 .modalBackdrop {
   position: fixed;
   inset: 0;
@@ -11,32 +37,30 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2000;
+  z-index: 3000;
 }
 
 .modal {
-  position: relative;
   background: #fff;
-  border-radius: 10px;
-  padding: 18px 20px;
-  width: 560px;
-  max-height: 80vh;
+  border-radius: 14px;
+  padding: 16px;
+  width: 520px;
+  max-width: 94vw;
+  max-height: 82vh;
   overflow-y: auto;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-  font-size: 0.85rem;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
 }
 
-/* ─────────────── Header Row ─────────────── */
 .headerRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .title {
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
   margin: 0;
 }
 
@@ -45,55 +69,55 @@
   gap: 8px;
 }
 
-/* Buttons in header */
-.revertAllBtn,
-.closeBtn {
-  border-radius: 5px;
-  border: none;
-  padding: 5px 10px;
+.modalMeta {
   font-size: 0.8rem;
-  cursor: pointer;
-  font-weight: 500;
-  height: 28px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  color: #666;
+  margin-bottom: 10px;
 }
 
+/* ===============================
+   Buttons
+=============================== */
 .revertAllBtn {
-  background: #e74c3c;       /* strong red base */
+  background: #e5533d;
   color: #fff;
   border: none;
-  border-radius: 5px;
-  padding: 5px 10px;
+  border-radius: 8px;
+  padding: 6px 10px;
   font-size: 0.8rem;
   cursor: pointer;
-  font-weight: 500;
-  transition: background 0.2s ease;
 }
 
 .revertAllBtn:hover {
-  background: #c0392b;       /* darker red on hover */
+  background: #c94431;
 }
 
 .closeBtn {
   background: #fafafa;
-  color: #333;
   border: 1px solid #ccc;
-}
-
-.closeBtn:hover {
-  background: #f0f0f0;
-}
-
-/* ─────────────── Sub title ─────────────── */
-.subTitle {
-  color: #666;
-  margin-bottom: 10px;
+  border-radius: 8px;
+  padding: 6px 10px;
   font-size: 0.8rem;
+  cursor: pointer;
 }
 
-/* ─────────────── Grid Layout ─────────────── */
+.revertBtn {
+  background: #ffe58f;
+  color: #614700;
+  border: none;
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.revertBtn:hover {
+  background: #ffd666;
+}
+
+/* ===============================
+   Grid
+=============================== */
 .grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -105,56 +129,75 @@
   align-items: center;
   justify-content: space-between;
   border: 1px solid #eee;
-  border-radius: 6px;
-  padding: 5px 8px;
+  border-radius: 10px;
+  padding: 6px 8px;
   background: #fafafa;
   font-size: 0.8rem;
-  height: 38px; /* ✅ uniform height for all cards */
-  box-sizing: border-box;
 }
 
-/* Left section: icon + name */
+.cardLeft {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .icon {
-  width: 26px;
-  height: 26px;
-  border-radius: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
   object-fit: cover;
-  flex-shrink: 0;
 }
 
 .name {
-  font-weight: 500;
+  width: 32px;
   text-align: center;
-  width: 38px;
-  flex-shrink: 0;
+  font-weight: 600;
 }
 
-/* Middle section */
 .change {
-  color: #333;
   flex: 1;
   text-align: center;
-  font-size: 0.8rem;
-  line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
-/* Right section: button */
-.revertBtn {
-  background-color: #ffe58f;
-  color: #614700;
-  border: none;
-  border-radius: 4px;
-  padding: 4px 8px;
-  font-size: 0.75rem;
-  cursor: pointer;
-  height: 26px;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
+/* ===============================
+   Mobile
+=============================== */
+@media (max-width: 640px) {
+  .timeDesktop {
+    display: none;
+  }
 
-.revertBtn:hover {
-  background-color: #ffd666;
+  .timeMobile {
+    display: inline;
+  }
+
+  .modal {
+    width: 100%;
+    border-radius: 14px 14px 0 0;
+    max-height: 88vh;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .name {
+    font-size: 0.75rem;
+    width: 26px;
+  }
+
+  .change {
+    font-size: 0.75rem;
+  }
+
+  .revertBtn {
+    padding: 4px 6px;
+    font-size: 0.7rem;
+  }
 }

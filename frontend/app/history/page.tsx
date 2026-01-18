@@ -1,323 +1,349 @@
 "use client";
-import { useEffect, useState, useMemo } from "react";
+
+import { useEffect, useMemo, useState } from "react";
 import styles from "./styles.module.css";
-import GroupedResult, {
-  GroupedItem,
-  HistoryItem,
-} from "./Components/GroupedResult";
-import { createPinyinMap, pinyinFilter } from "@/utils/pinyinSearch";
+import GroupedResult from "./Components/GroupedResult";
 import ConfirmModal from "@/app/components/ConfirmModal";
+import Dropdown from "@/app/components/layout/dropdown"; // ✅ your dropdown
+import { useAbilityHistory } from "./useAbilityHistory";
 
-import {
-  toastSuccess,
-  toastError,
-} from "@/app/components/toast/toast";
-
-function formatShortTime(dateStr: string) {
+/* ===============================
+   Utils
+=============================== */
+function formatShortTime(dateStr: string, isPhone: boolean) {
   const d = new Date(dateStr);
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const dd = String(d.getDate()).padStart(2, "0");
+  if (isPhone) return `${mm}/${dd}`;
+
   const hh = String(d.getHours()).padStart(2, "0");
   const mi = String(d.getMinutes()).padStart(2, "0");
   return `${mm}/${dd} ${hh}:${mi}`;
 }
 
+function shortenAbility(name: string, isPhone: boolean) {
+  return isPhone ? name.slice(0, 2) : name;
+}
+
+function shortenName(name: string) {
+  return name.slice(0, 4);
+}
+
+function getSmallGroupStatus(
+  records: { beforeLevel: number; afterLevel: number }[]
+) {
+  const levels = [
+    records[0].beforeLevel,
+    ...records.map((r) => r.afterLevel),
+  ];
+  for (let i = 0; i < levels.length - 1; i++) {
+    if (levels[i + 1] < levels[i]) return false;
+  }
+  return levels[levels.length - 1] >= levels[0];
+}
+
+/* ===============================
+   Page
+=============================== */
+const PAGE_SIZE = 100;
+
+const DAY_OPTIONS = ["1 天", "30 天", "60 天", "90 天", "全部"];
+
 export default function AbilityHistoryPage() {
-  const [rawData, setRawData] = useState<HistoryItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filterName, setFilterName] = useState("");
-  const [filterAbility, setFilterAbility] = useState("");
-  const [limit, setLimit] = useState(100);
+  const {
+    loading,
+    groupedData,
 
-  const [nameMap, setNameMap] = useState<Record<string, any>>({});
-  const [abilityMap, setAbilityMap] = useState<Record<string, any>>({});
+    filterName,
+    setFilterName,
+    filterAbility,
+    setFilterAbility,
 
-  /* ===============================
-     Confirm Modal State
-  =============================== */
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [confirmMessage, setConfirmMessage] = useState("");
-  const [onConfirmAction, setOnConfirmAction] = useState<(() => void) | null>(
-    null
-  );
+    days,
+    setDays,
+    importantOnly,
+    setImportantOnly,
 
-  const GROUP_WINDOW = 10000;
-  const FETCH_LIMIT = 1000;
+    refresh,
+    revertSingle,
+    revertGroup,
 
-  /* ===============================
-     Group nearby updates
-  =============================== */
-  const groupHistory = (
-    items: HistoryItem[],
-    maxGroups: number
-  ): GroupedItem[] => {
-    if (!items.length) return [];
+    confirmOpen,
+    confirmMessage,
+    onConfirmAction,
+    closeConfirm,
+  } = useAbilityHistory();
 
-    const groups: GroupedItem[] = [];
-    let current: GroupedItem | null = null;
-
-    for (const item of items) {
-      const t = new Date(item.updatedAt).getTime();
-
-      if (
-        !current ||
-        current.characterName !== item.characterName ||
-        Math.abs(t - new Date(current.updatedAt).getTime()) > GROUP_WINDOW
-      ) {
-        current = {
-          groupId: `${item.characterName}-${item.updatedAt}`,
-          characterName: item.characterName,
-          updatedAt: item.updatedAt,
-          records: [item],
-        };
-        groups.push(current);
-        if (groups.length >= maxGroups) break;
-      } else {
-        current.records.push(item);
-      }
-    }
-    return groups;
-  };
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [isPhone, setIsPhone] = useState(false);
 
   /* ===============================
-     Fetch history
+     Responsive
   =============================== */
-  const fetchHistory = async () => {
-    setLoading(true);
-    try {
-      const url = new URL(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/characters/abilities/history`
-      );
-      url.searchParams.set("limit", FETCH_LIMIT.toString());
-
-      const res = await fetch(url.toString());
-      const json = await res.json();
-      setRawData(json);
-
-      const uniqueNames = [...new Set(json.map((x: any) => x.characterName))];
-      const uniqueAbilities = [...new Set(json.map((x: any) => x.abilityName))];
-
-      const [nameMapBuilt, abilityMapBuilt] = await Promise.all([
-        createPinyinMap(uniqueNames),
-        createPinyinMap(uniqueAbilities),
-      ]);
-
-      setNameMap(nameMapBuilt);
-      setAbilityMap(abilityMapBuilt);
-    } catch (err) {
-      console.error("❌ 获取技能记录失败:", err);
-      toastError("获取技能记录失败");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  /* ===============================
-     Filter + grouping
-  =============================== */
-  const filteredGroups = useMemo(() => {
-    if (!rawData.length) return [];
-
-    let filtered = rawData;
-
-    if (filterName.trim()) {
-      const allNames = [...new Set(rawData.map((x) => x.characterName))];
-      const matchedNames = pinyinFilter(allNames, nameMap, filterName.trim());
-      filtered = filtered.filter((x) =>
-        matchedNames.includes(x.characterName)
-      );
-    }
-
-    if (filterAbility.trim()) {
-      const allAbilities = [...new Set(rawData.map((x) => x.abilityName))];
-      const matchedAbilities = pinyinFilter(
-        allAbilities,
-        abilityMap,
-        filterAbility.trim()
-      );
-      filtered = filtered.filter((x) =>
-        matchedAbilities.includes(x.abilityName)
-      );
-    }
-
-    return groupHistory(filtered, limit);
-  }, [rawData, filterName, filterAbility, limit, nameMap, abilityMap]);
-
-  /* ===============================
-     Single revert (CONFIRM MODAL)
-  =============================== */
-  const handleRevert = (id: string, item: HistoryItem) => {
-    setConfirmMessage(
-      `确认将 ${item.characterName} 的 ${item.abilityName} 撤回到 ${item.beforeLevel}重 吗？`
-    );
-
-    setOnConfirmAction(() => async () => {
-      try {
-        await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/characters/abilities/history/${id}/revert`,
-          { method: "POST" }
-        );
-        toastSuccess("撤回成功");
-        await fetchHistory();
-      } catch (err) {
-        console.error(err);
-        toastError("撤回失败");
-      } finally {
-        setConfirmOpen(false);
-      }
-    });
-
-    setConfirmOpen(true);
-  };
-
-  /* ===============================
-     Batch revert (CONFIRM MODAL)
-  =============================== */
-  const handleRevertGroup = (group: GroupedItem) => {
-    setConfirmMessage(
-      `确定要撤回 ${group.characterName} 的 ${group.records.length} 项技能吗？`
-    );
-
-    setOnConfirmAction(() => async () => {
-      try {
-        const ids = group.records.map((r) => r._id);
-        await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/characters/abilities/history/batch/revert`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ids }),
-          }
-        );
-        toastSuccess("批量撤回成功");
-        await fetchHistory();
-      } catch (err) {
-        console.error(err);
-        toastError("批量撤回失败");
-      } finally {
-        setConfirmOpen(false);
-      }
-    });
-
-    setConfirmOpen(true);
-  };
+  useEffect(() => {
+    const check = () => setIsPhone(window.innerWidth <= 640);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   useEffect(() => {
-    fetchHistory();
-  }, []);
+    setVisibleCount(PAGE_SIZE);
+  }, [groupedData.length, days, importantOnly, filterName, filterAbility]);
+
+  const visibleGroups = useMemo(
+    () => groupedData.slice(0, visibleCount),
+    [groupedData, visibleCount]
+  );
+
+  const canLoadMore = visibleCount < groupedData.length;
+
+  /* ===============================
+     Days dropdown helpers
+  =============================== */
+  const dayValueLabel =
+    days === "all" ? "全部" : `${days} 天`;
+
+  const handleDayChange = (v: string) => {
+    if (v === "全部") {
+      setDays("all");
+    } else {
+      setDays(Number(v.replace(" 天", "")));
+    }
+  };
 
   return (
     <div className={styles.page}>
-      <h2 className={styles.title}>技能更新记录</h2>
+      {/* ================= Header ================= */}
+      <div className={styles.header}>
+        <div className={styles.headerLeft}>
+          <h2 className={styles.title}>技能更新记录</h2>
+          <div className={styles.subTitle}>
+            {loading ? "加载中…" : `共 ${groupedData.length} 组`}
+          </div>
+        </div>
 
-      {/* Filters */}
-      <div className={styles.filters}>
-        <input
-          type="text"
-          placeholder="搜索角色名…"
-          value={filterName}
-          onChange={(e) => setFilterName(e.target.value)}
-          className={styles.input}
-        />
-        <input
-          type="text"
-          placeholder="搜索技能名…"
-          value={filterAbility}
-          onChange={(e) => setFilterAbility(e.target.value)}
-          className={styles.input}
-        />
-        <select
-          className={styles.select}
-          value={limit}
-          onChange={(e) => setLimit(Number(e.target.value))}
-        >
-          <option value={100}>显示 100 组</option>
-          <option value={500}>显示 500 组</option>
-          <option value={1000}>显示 1000 组</option>
-        </select>
-        <button onClick={fetchHistory} className={styles.refreshBtn}>
-          刷新
-        </button>
+        <div className={styles.headerRight}>
+          <button
+            onClick={refresh}
+            className={styles.refreshBtn}
+            disabled={loading}
+          >
+            刷新
+          </button>
+        </div>
       </div>
 
-      {/* Table */}
+      {/* ================= Filters ================= */}
+      <div className={styles.filters}>
+        <div className={styles.filterRow}>
+          <input
+            className={styles.input}
+            placeholder="角色"
+            value={filterName}
+            onChange={(e) => setFilterName(e.target.value)}
+          />
+
+          <input
+            className={styles.input}
+            placeholder="技能"
+            value={filterAbility}
+            onChange={(e) => setFilterAbility(e.target.value)}
+          />
+
+          {/* ✅ Custom Dropdown replaces native select */}
+          <Dropdown
+            label="时间范围"
+            options={DAY_OPTIONS}
+            value={dayValueLabel}
+            onChange={handleDayChange}
+          />
+
+          <label className={styles.checkboxLabel}>
+            <input
+              className={styles.checkbox}
+              type="checkbox"
+              checked={importantOnly}
+              onChange={(e) => setImportantOnly(e.target.checked)}
+            />
+            <span className={styles.checkboxText}>重要</span>
+          </label>
+        </div>
+      </div>
+
+      {/* ================= Table ================= */}
       {loading ? (
-        <p>加载中…</p>
-      ) : filteredGroups.length === 0 ? (
-        <p>暂无记录。</p>
+        <div className={styles.loading}>加载中…</div>
+      ) : groupedData.length === 0 ? (
+        <div className={styles.empty}>暂无记录</div>
       ) : (
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>时间</th>
-              <th>角色</th>
-              <th>技能</th>
-              <th>变化</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredGroups.map((group) =>
-              group.records.length === 1 ? (
-                <tr key={group.groupId}>
-                  <td>{formatShortTime(group.records[0].updatedAt)}</td>
-                  <td>{group.records[0].characterName}</td>
-                  <td>
-                    <div className={styles.skillCell}>
-                      <img
-                        src={`/icons/${group.records[0].abilityName}.png`}
-                        alt={group.records[0].abilityName}
-                        className={styles.skillIcon}
-                        onError={(e) => {
-                          (e.currentTarget as HTMLImageElement).src =
-                            "/icons/default.png";
-                        }}
-                      />
-                      <span>{group.records[0].abilityName}</span>
-                    </div>
-                  </td>
-                  <td>
-                    {group.records[0].beforeLevel}重 →{" "}
-                    {group.records[0].afterLevel}重
-                  </td>
-                  <td>
-                    <button
-                      className={styles.revertBtn}
-                      onClick={() =>
-                        handleRevert(
-                          group.records[0]._id,
-                          group.records[0]
-                        )
-                      }
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>时间</th>
+                <th>角色</th>
+                <th>技能</th>
+                <th>变化</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {visibleGroups.map((group) => {
+                /* ===== Single ===== */
+                if (group.records.length === 1) {
+                  const r = group.records[0];
+                  return (
+                    <tr key={r._id}>
+                      <td className={styles.timeCell}>
+                        {formatShortTime(r.updatedAt, isPhone)}
+                      </td>
+
+                      <td className={styles.nameCell}>
+                        {shortenName(r.characterName)}
+                      </td>
+
+                      <td className={styles.skillCol}>
+                        <div className={styles.skillCell}>
+                          <img
+                            className={styles.skillIcon}
+                            src={`/icons/${r.abilityName}.png`}
+                            onError={(e) =>
+                              ((e.currentTarget as HTMLImageElement).src =
+                                "/icons/default.png")
+                            }
+                          />
+                          <span className={styles.skillName}>
+                            {shortenAbility(r.abilityName, isPhone)}
+                          </span>
+                        </div>
+                      </td>
+
+                      <td className={styles.changeCol}>
+                        <span className={styles.changeText}>
+                          {r.beforeLevel} → {r.afterLevel}
+                        </span>
+                      </td>
+
+                      <td className={styles.actionCol}>
+                        <button
+                          className={styles.revertBtn}
+                          onClick={() => revertSingle(r._id, r)}
+                        >
+                          撤回
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                }
+
+                const abilitySet = new Set(
+                  group.records.map((r) => r.abilityName)
+                );
+                const isSmall =
+                  abilitySet.size === 1 && group.records.length < 6;
+
+                /* ===== Small group ===== */
+                if (isSmall) {
+                  const first = group.records[0];
+                  const ok = getSmallGroupStatus(group.records);
+
+                  return (
+                    <tr
+                      key={group.groupId}
+                      className={styles.smallGroupRow}
                     >
-                      撤回
-                    </button>
-                  </td>
-                </tr>
-              ) : (
-                <GroupedResult
-                  key={group.groupId}
-                  group={group}
-                  onRevert={handleRevert}
-                  onRevertGroup={handleRevertGroup}
-                />
-              )
-            )}
-          </tbody>
-        </table>
+                      <td className={styles.timeCell}>
+                        {formatShortTime(first.updatedAt, isPhone)}
+                      </td>
+
+                      <td className={styles.nameCell}>
+                        {shortenName(first.characterName)}
+                      </td>
+
+                      <td className={styles.skillCol}>
+                        <div className={styles.skillCell}>
+                          <img
+                            className={styles.skillIcon}
+                            src={`/icons/${first.abilityName}.png`}
+                          />
+                          <span className={styles.skillName}>
+                            {shortenAbility(first.abilityName, isPhone)}
+                          </span>
+                        </div>
+                      </td>
+
+                      <td
+                        className={`${styles.changeCol} ${
+                          ok ? styles.goodChain : styles.badChain
+                        }`}
+                      >
+                        <span className={styles.chainText}>
+                          {group.records.map((r, i) => (
+                            <span
+                              key={r._id}
+                              className={styles.chainStep}
+                            >
+                              {i === 0 ? r.beforeLevel : ""}
+                              →{r.afterLevel}
+                            </span>
+                          ))}
+                        </span>
+                      </td>
+
+                      <td className={styles.actionCol}>
+                        <button
+                          className={styles.revertBtn}
+                          onClick={() => revertGroup(group)}
+                        >
+                          撤回
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                }
+
+                /* ===== Big group ===== */
+                return (
+                  <GroupedResult
+                    key={group.groupId}
+                    group={group}
+                    onRevert={revertSingle}
+                    onRevertGroup={revertGroup}
+                    isPhone={isPhone}
+                  />
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
 
-      {/* ✅ Confirm Modal */}
+      {/* ================= Load More ================= */}
+      {!loading && canLoadMore && (
+        <div className={styles.loadMoreWrap}>
+          <button
+            className={styles.loadMoreBtn}
+            onClick={() =>
+              setVisibleCount((v) =>
+                Math.min(v + PAGE_SIZE, groupedData.length)
+              )
+            }
+          >
+            加载更多（+{PAGE_SIZE}）
+          </button>
+        </div>
+      )}
+
+      {/* ================= Confirm ================= */}
       {confirmOpen && onConfirmAction && (
         <ConfirmModal
-        intent = "danger"
+          intent="danger"
           title="确认操作"
           message={confirmMessage}
           confirmText="确认"
-          onCancel={() => {
-            setConfirmOpen(false);
-            setOnConfirmAction(null);
-          }}
+          onCancel={closeConfirm}
           onConfirm={onConfirmAction}
         />
       )}
