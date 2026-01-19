@@ -1,3 +1,7 @@
+/* ===========================
+   Sidebar Wrapper
+=========================== */
+
 .wrap {
   height: 100%;
   background: #fff;
@@ -16,20 +20,59 @@
   font-weight: 600;
 }
 
+/* ===========================
+   Navigation
+=========================== */
+
 .nav {
   display: flex;
   flex-direction: column;
   gap: 6px;
-
 }
 
+/* ===========================
+   Divider (primary → sections)
+=========================== */
 
-/* -----------------------------
-   Mobile adjustments
------------------------------- */
+.divider {
+  margin: 10px 6px 8px;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* ===========================
+   Section Labels (secondary)
+=========================== */
+
+.section {
+  margin: 10px 0 6px;
+  padding: 0 12px;
+
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+/* ===========================
+   Disabled Sidebar Link
+=========================== */
+
+.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.disabled:hover {
+  background: none;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ===========================
+   Mobile Adjustments
+=========================== */
+
 @media (max-width: 768px) {
   .nav {
-    justify-content: flex-start; /* mobile: top-aligned */
     gap: 4px;
   }
 

@@ -8,29 +8,25 @@ export default function Sidebar() {
   return (
     <div className={styles.wrap}>
       <nav className={styles.nav}>
-
-        {/* 主页 */}
+        {/* Primary */}
         <NavLink href="/">🏠 主页</NavLink>
-
-        {/* 角色 */}
         <NavLink href="/characters">🧩 全部角色</NavLink>
-        {/* <NavLink href="/backpack">📦 角色背包</NavLink> */}
-
-        {/* 排表 */}
         <NavLink href="/playground">📊 本周排表</NavLink>
-
-        {/* 地图 */}
-        {/* <NavLink href="/map">🗺️ 本周地图</NavLink> */}
-
-        {/* 地图 */}
         <NavLink href="/ranking">🏆 排行榜</NavLink>
 
-        {/* 地图 */}
+        {/* 🔽 Divider */}
+        <div className={styles.divider} />
+
+        {/* 统计 */}
+        <div className={styles.section}>统计</div>
+        <NavLink href="/stats/appearances">🐲 首领统计</NavLink>
+        <NavLink href="/overallprogress">🧮 收集进度</NavLink>
+
+        {/* 历史 */}
+        <div className={styles.section}>历史</div>
+        <NavLink href="/playground/history">📈 往期排表</NavLink>
+        <NavLink href="/map/history">🗺 历史地图</NavLink>
         <NavLink href="/history">🕒 技能更新记录</NavLink>
-
-        {/* 数据中心（放最后） */}
-        <NavLink href="/infocenter">📚 数据中心</NavLink>
-
       </nav>
     </div>
   );

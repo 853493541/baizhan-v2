@@ -1,22 +1,38 @@
 "use client";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import clsx from "clsx";
 import styles from "./styles.module.css";
 
-export default function NavLink({ href, children }) {
+interface NavLinkProps {
+  href: string;
+  children: React.ReactNode;
+  className?: string;
+  onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
+  "aria-disabled"?: boolean;
+}
+
+export default function NavLink({
+  href,
+  children,
+  className,
+  onClick,
+  "aria-disabled": ariaDisabled,
+}: NavLinkProps) {
   const pathname = usePathname();
-
-  // Convert both paths into segments
-  const pathSeg = pathname.split("/").filter(Boolean);
-  const hrefSeg = href.split("/").filter(Boolean);
-
-  // EXACT segment match
-  const active = pathSeg.join("/") === hrefSeg.join("/");
+  const isActive = pathname === href;
 
   return (
     <Link
       href={href}
-      className={`${styles.link} ${active ? styles.active : ""}`}
+      onClick={onClick}
+      aria-disabled={ariaDisabled}
+      className={clsx(
+        styles.link,
+        isActive && styles.active,
+        className
+      )}
     >
       {children}
     </Link>
