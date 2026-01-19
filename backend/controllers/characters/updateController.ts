@@ -3,21 +3,58 @@ import mongoose from "mongoose";
 import Character from "../../models/Character";
 import AbilityHistory from "../../models/AbilityHistory";
 import { normalizeDefenseAbilities } from "../../utils/normalizeDefenseAbilities";
+import { calculateStats } from "../../utils/calculateStats";
+import bosses from "../../data/boss_skills_collection_reward.json";
+
+/* =====================================================
+   Helper: Recalculate derived stats (energy / durability)
+===================================================== */
+
+function recalcStats(char: any) {
+  let plainAbilities: Record<string, number> = {};
+
+  const abilities: any = char.abilities;
+
+  if (abilities instanceof Map) {
+    plainAbilities = Object.fromEntries(abilities.entries());
+  } else if (abilities && typeof abilities === "object") {
+    plainAbilities = { ...abilities };
+  }
+
+  const { energy, durability } = calculateStats(
+    bosses,
+    plainAbilities,
+    char.gender
+  );
+
+  console.log("[FINAL RESULT]", {
+    characterId: char._id,
+    energy,
+    durability,
+  });
+
+  char.energy = energy;
+  char.durability = durability;
+}
+
 
 // =====================================================
 // ✅ Ability Management
 // =====================================================
 
-// ✅ Update abilities + record every change
+// ✅ Update abilities + record every change (IDEMPOTENT)
 export const updateCharacterAbilities = async (req: Request, res: Response) => {
   try {
     const { abilities } = req.body;
+
     if (!abilities || typeof abilities !== "object") {
       return res.status(400).json({ error: "abilities object is required" });
     }
 
     const char = await Character.findById(req.params.id);
-    if (!char) return res.status(404).json({ error: "Character not found" });
+    if (!char) {
+      return res.status(404).json({ error: "Character not found" });
+    }
 
     const updated: Array<{ name: string; old: number; new: number }> = [];
     const historyEntries: any[] = [];
@@ -34,7 +71,11 @@ export const updateCharacterAbilities = async (req: Request, res: Response) => {
           ? (char.abilities as any).set(name, newVal)
           : ((char.abilities as any)[name] = newVal);
 
-        updated.push({ name, old: Number(oldVal), new: newVal });
+        updated.push({
+          name,
+          old: Number(oldVal),
+          new: newVal,
+        });
 
         historyEntries.push({
           characterId: char._id,
@@ -46,16 +87,14 @@ export const updateCharacterAbilities = async (req: Request, res: Response) => {
       }
     }
 
-    if (updated.length === 0) {
-      return res.status(400).json({ error: "No abilities changed" });
-    }
-
-    // 🔑 Normalize derived defense abilities (ALWAYS)
+    // 🔑 Derived state updates
     normalizeDefenseAbilities(char);
+    recalcStats(char);
 
+    // 💾 Save once
     await char.save();
 
-    // ✅ insert history logs (explicit user changes only)
+    // 🧾 Log ability history ONLY if changed
     if (historyEntries.length > 0) {
       await AbilityHistory.insertMany(historyEntries);
       console.log(
@@ -63,7 +102,14 @@ export const updateCharacterAbilities = async (req: Request, res: Response) => {
       );
     }
 
-    return res.json({ character: char, updated });
+    return res.json({
+      character: char,
+      updated,
+      message:
+        updated.length === 0
+          ? "No abilities changed"
+          : "Abilities updated successfully",
+    });
   } catch (err: any) {
     console.error("❌ updateCharacterAbilities error:", err);
     return res.status(500).json({ error: err.message });
@@ -71,7 +117,7 @@ export const updateCharacterAbilities = async (req: Request, res: Response) => {
 };
 
 // =====================================================
-// ✅ Character Basic Info Management (unchanged)
+// ✅ Character Basic Info Management
 // =====================================================
 
 export const updateCharacter = async (req: Request, res: Response) => {
@@ -179,20 +225,21 @@ export const useStoredAbility = async (req: Request, res: Response) => {
       ? (char.abilities as any).set(ability, level)
       : ((char.abilities as any)[ability] = level);
 
-    // 2️⃣ Remove the used item from storage
+    // 2️⃣ Remove used item from storage
     const before = (char as any).storage.length;
     (char as any).storage = (char as any).storage.filter(
       (item: any) => !(item.ability === ability && item.level === level)
     );
     const removed = before - (char as any).storage.length;
 
-    // 🔑 Normalize derived defense abilities
+    // 🔑 Derived state updates
     normalizeDefenseAbilities(char);
+    recalcStats(char);
 
     // 3️⃣ Save
     await char.save();
 
-    // 4️⃣ Log user-triggered history
+    // 4️⃣ Log ability change
     await AbilityHistory.create({
       characterId: char._id,
       characterName: char.name,

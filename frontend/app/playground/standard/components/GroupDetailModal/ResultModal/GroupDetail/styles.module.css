@@ -126,3 +126,50 @@
   color: #999;
   text-align: center;
 }
+/* ===============================
+   Wasted abilities (inline flow)
+================================ */
+.wastedRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;           /* horizontal + vertical spacing */
+  align-items: center;
+}
+  /* ===============================
+   Core skill states
+================================ */
+
+/* 0 / 3 → missing */
+.coreMissing {
+  color: #c0392b;
+}
+
+.coreMissing img {
+  filter: grayscale(100%);
+  opacity: 0.7;
+}
+
+/* 1–2 / 3 → partial */
+.corePartial {
+  color: #555;
+}
+
+/* 3 / 3 → full */
+.coreFull {
+  color: #1e8449;
+}
+
+.coreFull img {
+  box-shadow: 0 0 0 2px #1e8449 inset;
+  border-radius: 4px;
+}
+
+/* ===============================
+   Wasted abilities (inline layout)
+================================ */
+.wastedRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}

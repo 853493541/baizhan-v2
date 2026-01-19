@@ -5,8 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-     "buildp": "bash ./build.sh",
-    "start": "next start",
+    "buildp": "bash ./build.sh",
+    "start": "node -r /home/ubuntu/baizhan-v2/frontend/disable-child-process.js node_modules/next/dist/bin/next start",
     "lint": "eslint",
     "analyze": "ANALYZE=true next build"
   },
@@ -16,6 +16,7 @@
     "next": "15.5.2",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "react-hot-toast": "^2.6.0",
     "react-icons": "^5.5.0",
     "react-window": "^2.2.3",
     "tesseract.js": "^6.0.1",

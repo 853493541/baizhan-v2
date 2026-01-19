@@ -7,9 +7,9 @@
   padding: 12px;
   background: #fff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  width: fit-content;
-  min-width: 320px;
-  max-width: 320px;
+
+  width: 100%;
+  min-width: 0;        /* 🔑 allow flexbox to size it */
 }
 
 .title {
@@ -145,4 +145,40 @@
   font-weight: 600;
   color: #999;
   text-align: center;
+}
+/* =====================================================
+   📱 PHONE ONLY — Ability name trimming
+   - Show ~4 Chinese characters
+   - Hard cut (no …)
+===================================================== */
+@media (max-width: 768px) {
+  .assignmentText {
+    /* max-width: 4.2ch;    */
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: clip;    /* hard cut, no ellipsis */
+    display: inline-block;  /* 🔥 critical */
+    flex-shrink: 1;
+  }
+
+  .leftContent {
+    min-width: 0;           /* already present, but keep */
+  }
+}
+/* =====================================================
+   📱 PHONE ONLY — Processed section tuning
+   - Box uses 80% width
+   - Character name shows 4 chars
+===================================================== */
+@media (max-width: 768px) {
+  .box {
+    width: 80%;
+    max-width: 80%;
+    min-width: 80%;          /* allow shrink */
+  }
+
+  .leftContent {
+    min-width: 0;          /* critical to allow clipping */
+    gap: 6px;
+  }
 }

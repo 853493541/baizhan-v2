@@ -1,131 +1,228 @@
+/* ===============================
+   Overlay
+=============================== */
+
 .overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   z-index: 50;
 }
 
+/* ===============================
+   Modal (RESPONSIVE WIDTH)
+=============================== */
+
 .modal {
   background: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  width: 400px;
-  max-height: 80vh;
+
+  width: min(92vw, 360px);   /* 👈 reduced width */
+  max-height: 46vh;
+
+  padding: 16px;
+  border-radius: 16px;
+
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.25);
+  animation: modalPopIn 0.18s ease-out;
+}
+
+/* ===============================
+   Header
+=============================== */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
 }
 
 .title {
-  margin-bottom: 10px;
-  font-size: 18px;
-  font-weight: bold;
-  text-align: center;
+  font-size: 17px;
+  font-weight: 600;
 }
 
-.input {
-  padding: 8px;
-  margin-bottom: 10px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 14px;
+.closeBtn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+
+  border: none;
+  background: #f1f1f1;
+  color: #555;
+
+  font-size: 16px;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: background 0.15s ease, transform 0.15s ease;
 }
+
+.closeBtn:hover {
+  background: #e0e0e0;
+  transform: scale(1.08);
+}
+
+/* ===============================
+   Search Input
+=============================== */
+
+.input {
+  padding: 8px 10px;
+  margin-bottom: 10px;
+
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 14px;
+
+  outline: none;
+}
+
+.input:focus {
+  border-color: #2ecc71;
+}
+
+/* ===============================
+   List
+=============================== */
 
 .list {
   flex: 1;
   overflow-y: auto;
+
+  background: #fafafa;
   border: 1px solid #eee;
-  border-radius: 6px;
-  margin-bottom: 10px;
-  padding: 5px;
-  max-height: 250px;
+  border-radius: 12px;
+
+  padding: 4px;
 }
+
+/* ===============================
+   Ability Item (COMPACT)
+=============================== */
 
 .item {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 10px;
+
+  padding: 8px 10px;
+  margin: 4px;
+
+  background: #fff;
+  border-radius: 10px;
+
   cursor: pointer;
-  border-radius: 4px;
-  transition: background 0.2s ease;
+
+  transition:
+    background 0.15s ease,
+    transform 0.12s ease,
+    box-shadow 0.12s ease;
 }
 
 .item:hover {
-  background: #f0f0f0;
+  background: #f6f6f6;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
-.active {
-  background: #007bff;
-  color: white;
-  font-weight: bold;
-}
+/* ===============================
+   Icon + Name
+=============================== */
 
 .icon {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+}
+
+.name {
+  flex: 1;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===============================
+   ➕ Add Button
+=============================== */
+
+.addBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+
+  border: none;
+  background: #2ecc71;
+  color: #fff;
+
+  font-size: 18px;
+  font-weight: bold;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  transition: background 0.12s ease, transform 0.12s ease;
+}
+
+.addBtn:hover {
+  background: #27ae60;
+  transform: scale(1.1);
+}
+
+/* ===============================
+   Load more / Empty
+=============================== */
+
+.loadMore {
+  text-align: center;
+  padding: 8px 0;
+}
+
+.loadMore button {
+  background: none;
+  border: none;
+  color: #007bff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.loadMore button:hover {
+  text-decoration: underline;
 }
 
 .noResult {
-  padding: 10px;
+  padding: 14px;
   text-align: center;
   color: #888;
   font-size: 14px;
 }
 
-.actions {
-  display: flex;
-  justify-content: center;
-}
+/* ===============================
+   Animations
+=============================== */
 
-.cancel {
-  background: #ccc;
-  color: black;
-  padding: 8px 14px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.cancel:hover {
-  background: #999;
-}
-
-.item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  cursor: pointer;
-  border: 2px solid transparent;
-  border-radius: 6px;
-  position: relative;
-}
-
-.item:hover {
-  background: #f0f0f0;
-}
-
-.active {
-  border-color: #28a745; /* green border */
-  background: #eaffea;   /* light green background */
-}
-
-.icon {
-  width: 24px;
-  height: 24px;
-}
-
-.checkmark {
-  position: absolute;
-  right: 8px;
-  color: #28a745;
-  font-weight: bold;
+@keyframes modalPopIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }

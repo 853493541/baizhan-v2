@@ -1,9 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import styles from "./styles.module.css";   // ✅ this points to the CSS file
+import { useState, useEffect } from "react";
+import styles from "./styles.module.css";
 import { getDefaultAbilityPool } from "@/utils/playgroundHelpers";
-import { toastError } from "@/app/components/toast/toast";
+import {
+  toastError,
+  toastSuccess,
+} from "@/app/components/toast/toast";
+
 interface Ability {
   name: string;
   level: number;
@@ -27,10 +31,16 @@ function generateTimestampName(server: string) {
   return `${server}${mm}${dd}-${hh}${min}`;
 }
 
-
 export default function CreateScheduleModal({ onClose, onConfirm }: Props) {
-  const [name, setName] = useState("");
-  const [server, setServer] = useState<string | null>(null);
+  // ✅ default: 全服
+  const [server, setServer] = useState<string>(ALL_SERVERS);
+  const [name, setName] = useState<string>("");
+
+  // ✅ auto-select toast (success) + default name
+  useEffect(() => {
+    setName(generateTimestampName(ALL_SERVERS));
+    toastSuccess("已自动选择全服");
+  }, []);
 
   const handleSelectServer = (s: string) => {
     setServer(s);
@@ -82,8 +92,13 @@ export default function CreateScheduleModal({ onClose, onConfirm }: Props) {
   };
 
   return (
-    <div className={styles.overlay}>
-      <div className={styles.modal}>
+    // ✅ click outside to close
+    <div className={styles.overlay} onClick={onClose}>
+      {/* ❌ prevent modal click from closing */}
+      <div
+        className={styles.modal}
+        onClick={(e) => e.stopPropagation()}
+      >
         <h2 className={styles.title}>新建排表</h2>
 
         <div className={styles.label}>服务器</div>
@@ -92,7 +107,9 @@ export default function CreateScheduleModal({ onClose, onConfirm }: Props) {
             <button
               key={s}
               type="button"
-              className={`${styles.serverBtn} ${server === s ? styles.selected : ""}`}
+              className={`${styles.serverBtn} ${
+                server === s ? styles.selected : ""
+              }`}
               onClick={() => handleSelectServer(s)}
             >
               {s}
@@ -118,7 +135,6 @@ export default function CreateScheduleModal({ onClose, onConfirm }: Props) {
           <button
             className={styles.btnPrimary}
             onClick={handleSubmit}
-            disabled={!server}
           >
             确认
           </button>

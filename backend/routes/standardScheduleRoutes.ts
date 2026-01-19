@@ -1,5 +1,8 @@
 import { Router } from "express";
 
+/* ===============================
+   Schedule-level controllers
+================================ */
 import {
   createStandardSchedule,
   getStandardSchedules,
@@ -7,86 +10,107 @@ import {
   updateStandardSchedule,
   deleteStandardSchedule,
   updateGroupStatus,
-  updateGroupKill,
-  deleteGroupKill,
   updateScheduleName,
-  getGroupKills,
   updateScheduleCharacters,
 } from "../controllers/playground/standardScheduleController";
 
+/* ===============================
+   Summary
+================================ */
 import { getScheduleSummaryByWeek } from "../controllers/playground/standardSchedules/getScheduleSummaryByWeek";
 
-// ⭐ NEW: ultra-light toggle controller
+/* ===============================
+   Character toggles / edits
+================================ */
 import { toggleScheduleCharacter } from "../controllers/playground/standardSchedules/toggleScheduleCharacter";
-
-// ⭐ NEW: safe manual-edit controller
 import { manualEditGroups } from "../controllers/playground/standardSchedules/manualEditGroups";
 
-// ⭐ NEW: boss adjustment controller
+/* ===============================
+   Boss adjustments
+================================ */
 import {
   updateGroupAdjustedBoss,
   getGroupAdjustedBoss,
+  toggleGroupDowngradedFloor,
+  getGroupDowngradedFloors,
 } from "../controllers/playground/standardSchedules/bossAdjustController";
 
-// ⭐ NEW: group lifecycle controllers (START / FINISH)
+/* ===============================
+   Group lifecycle
+================================ */
 import {
   markGroupStarted,
   markGroupFinished,
 } from "../controllers/playground/standardSchedules/groupLifecycleController";
 
+/* ===============================
+   ✅ GROUP KILLS (NEW, CORRECT)
+================================ */
+import {
+  updateGroupKill,
+  updateSecondaryDrop,
+  deleteGroupKill,
+  getGroupKills,
+} from "../controllers/playground/standardSchedules/groupKills";
+
 const router = Router();
 
 /* -----------------------------------------------------
-   🔹 HIGH-LEVEL SUMMARY ROUTES (must come first)
+   🔹 HIGH-LEVEL SUMMARY
 ----------------------------------------------------- */
 router.get("/summary", getScheduleSummaryByWeek);
 
 /* -----------------------------------------------------
    🔹 CREATE & READ
 ----------------------------------------------------- */
-// Create a new standard schedule
 router.post("/", createStandardSchedule);
-
-// Get all schedules
 router.get("/", getStandardSchedules);
-
-// Get one schedule (full details)
 router.get("/:id", getStandardScheduleById);
 
 /* -----------------------------------------------------
-   🔹 CHARACTERS (OLD + NEW)
+   🔹 CHARACTERS
 ----------------------------------------------------- */
-// Full replace characters (Save button)
 router.patch("/:id/characters", updateScheduleCharacters);
-
-// Ultra-light instant toggle (add/remove)
 router.patch("/:id/toggle-character", toggleScheduleCharacter);
 
 /* -----------------------------------------------------
-   🔹 GROUP KILLS (lightweight fetch)
+   🔹 GROUP KILLS (FULL SET)
 ----------------------------------------------------- */
-// Get kills of one group
-router.get("/:id/groups/:index/kills", getGroupKills);
+// Get kills for one group (lightweight)
+router.get(
+  "/:id/groups/:index/kills",
+  getGroupKills
+);
+
+// Primary drop (overwrite floor)
+router.put(
+  "/:id/groups/:index/floor/:floor",
+  updateGroupKill
+);
+
+// Secondary drop (replace / overwrite)
+router.post(
+  "/:id/groups/:index/floor/:floor/secondary-drop",
+  updateSecondaryDrop
+);
+
+// Reset / delete kill (wipe both primary + secondary)
+router.delete(
+  "/:id/groups/:index/floor/:floor",
+  deleteGroupKill
+);
 
 /* -----------------------------------------------------
    🔹 GROUP UPDATES
 ----------------------------------------------------- */
-// Solver — replace groups ENTIRELY (dangerous)
 router.put("/:id", updateStandardSchedule);
-
-// ⭐ Manual Edit — safe, updates ONLY characters
 router.patch("/:id/manual-groups", manualEditGroups);
-
-// Update only group status (generic)
 router.patch("/:id/groups/:index/status", updateGroupStatus);
 
 /* -----------------------------------------------------
-   🔹 GROUP LIFECYCLE (NEW)
+   🔹 GROUP LIFECYCLE
 ----------------------------------------------------- */
-// Mark group started (sets startTime + status)
 router.post("/:id/groups/:index/start", markGroupStarted);
-
-// Mark group finished (sets endTime + status)
 router.post("/:id/groups/:index/finish", markGroupFinished);
 
 /* -----------------------------------------------------
@@ -97,28 +121,28 @@ router.get(
   getGroupAdjustedBoss
 );
 
-// Adjust boss for floor 90 / 100
 router.patch(
   "/:id/groups/:index/adjust-boss",
   updateGroupAdjustedBoss
 );
 
 /* -----------------------------------------------------
-   🔹 GROUP KILL RECORDS
+   🔹 GROUP FLOOR DOWNGRADE
 ----------------------------------------------------- */
-// Update a kill record
-router.put("/:id/groups/:index/floor/:floor", updateGroupKill);
+router.patch(
+  "/:id/groups/:index/downgrade-floor",
+  toggleGroupDowngradedFloor
+);
 
-// Delete kill record
-router.delete("/:id/groups/:index/floor/:floor", deleteGroupKill);
+router.get(
+  "/:id/groups/:index/downgraded-floors",
+  getGroupDowngradedFloors
+);
 
 /* -----------------------------------------------------
-   🔹 SCHEDULE NAME / DELETE
+   🔹 SCHEDULE META
 ----------------------------------------------------- */
-// Rename schedule
 router.patch("/:id/name", updateScheduleName);
-
-// Delete schedule
 router.delete("/:id", deleteStandardSchedule);
 
 export default router;

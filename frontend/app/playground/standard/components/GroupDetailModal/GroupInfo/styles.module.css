@@ -85,3 +85,9 @@
     margin-bottom: 6px;
   }
 }
+/* Hide on mobile only */
+@media (max-width: 768px) {
+  .warningRow {
+    display: none !important;
+  }
+}

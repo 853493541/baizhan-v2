@@ -212,3 +212,74 @@
   font-size: 14px;
   font-weight: 700;
 }
+/* =========================================================
+   📱 Mobile Responsive — horizontal scroll, fixed boss width
+   (≤ 640px)
+========================================================= */
+@media (max-width: 640px) {
+  /* --- Wrapper --- */
+  .previewBox {
+    margin-top: 6px;
+  }
+
+  /* --- Header --- */
+  .headerRow {
+    margin-bottom: 6px;
+  }
+
+  .toggleBtn {
+    padding: 5px 10px;
+    font-size: 13px;
+  }
+
+  /* --- Table Wrapper --- */
+  .tableWrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* --- Table --- */
+  .chartTable {
+    width: max-content;   /* 🔑 allow natural width */
+    min-width: 100%;
+    font-size: 12px;
+  }
+
+  /* --- Ability column --- */
+  .chartTable th:first-child,
+  .chartTable td:first-child {
+    min-width: 120px;
+    width: 120px;
+  }
+
+  .abilityCell {
+    gap: 5px;
+    font-size: 12px;
+  }
+
+  .icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* --- Boss / group columns --- */
+  .chartTable th:not(:first-child),
+  .chartTable td:not(:first-child) {
+    min-width: 36px;
+    width: 36px;
+  }
+
+  .cell {
+    font-size: 14px;
+    padding: 4px 2px;
+  }
+
+  .cross {
+    font-size: 13px;
+  }
+
+  /* --- Hover (disable on phone) --- */
+  .hoverBox {
+    display: none;
+  }
+}

@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect, Fragment } from "react";
+import { useState, useRef, useEffect, Fragment, useMemo } from "react";
 import Link from "next/link";
 import { Settings, X, Lock } from "lucide-react";
 import styles from "./styles.module.css";
 import { getGameWeekFromDate } from "@/utils/weekUtils";
 import ConfirmModal from "@/app/components/ConfirmModal";
 import { toastError } from "@/app/components/toast/toast";
+
 interface Group {
   status?: "not_started" | "started" | "finished";
 }
@@ -28,7 +29,26 @@ interface Props {
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
-export default function StandardScheduleList({ schedules, setSchedules }: Props) {
+/* ===============================
+   Week helpers (FIX)
+=============================== */
+function parseWeek(week: string) {
+  // "2026-W1" → { year: 2026, week: 1 }
+  const m = week.match(/^(\d{4})-W(\d{1,2})$/);
+  if (!m) return null;
+  return { year: Number(m[1]), week: Number(m[2]) };
+}
+
+function weekIndex(week: string) {
+  const p = parseWeek(week);
+  if (!p) return -1;
+  return p.year * 100 + p.week; // ✅ YEAR-AWARE
+}
+
+export default function StandardScheduleList({
+  schedules,
+  setSchedules,
+}: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [tempName, setTempName] = useState("");
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -42,21 +62,45 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
   }, [editingId]);
 
   /* ===============================
-     Group by week
+     ✅ FIXED GROUPING (YEAR SAFE)
   =============================== */
-  const grouped = schedules.reduce(
-    (acc: Record<string, StandardSchedule[]>, s) => {
-      const rawWeek = getGameWeekFromDate(new Date(s.createdAt));
-      const weekNumber = rawWeek.split("-W")[1];
+  const grouped = useMemo(() => {
+    const acc: Record<
+      string,
+      { week: string; index: number; items: StandardSchedule[] }
+    > = {};
 
-      if (!acc[weekNumber]) acc[weekNumber] = [];
-      acc[weekNumber].push(s);
-      return acc;
-    },
-    {}
+    for (const s of schedules) {
+      const fullWeek = getGameWeekFromDate(new Date(s.createdAt)); // "2026-W1"
+      const idx = weekIndex(fullWeek);
+
+      if (!acc[fullWeek]) {
+        acc[fullWeek] = {
+          week: fullWeek,
+          index: idx,
+          items: [],
+        };
+      }
+
+      acc[fullWeek].items.push(s);
+    }
+
+    return acc;
+  }, [schedules]);
+
+  /* ===============================
+     ✅ FIXED SORT (NO W53 BUG)
+  =============================== */
+  const weekList = useMemo(() => {
+    return Object.values(grouped)
+      .sort((a, b) => b.index - a.index)
+      .map((g) => g.week);
+  }, [grouped]);
+
+  console.log(
+    "[weekh] final week order:",
+    weekList
   );
-
-  const weekList = Object.keys(grouped).sort((a, b) => Number(b) - Number(a));
 
   const handleRename = async (id: string, name: string) => {
     try {
@@ -93,7 +137,7 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
       {weekList.map((week) => (
         <Fragment key={week}>
           <div className={styles.weekRow}>
-            {grouped[week].map((s) => {
+            {grouped[week].items.map((s) => {
               const rawWeek = getGameWeekFromDate(new Date(s.createdAt));
               const cardWeek = rawWeek.split("-W")[1];
 
@@ -135,7 +179,6 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
                         {s.characterCount}
                       </p>
 
-                      {/* 完成进度 */}
                       <div className={styles.progressLine}>
                         <span className={styles.label}>完成进度:</span>
 
@@ -196,10 +239,10 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
               <X className={styles.closeIcon} />
             </button>
 
-            <h3>编辑</h3>
+            {/* <h3>编辑</h3> */}
 
             <label>
-              排表名称：
+              编辑排表名称：
               <input
                 ref={inputRef}
                 type="text"
@@ -222,9 +265,7 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
                     }`}
                     disabled={locked}
                     onClick={() => {
-                      if (!locked) {
-                        setConfirmDeleteId(editingId);
-                      }
+                      if (!locked) setConfirmDeleteId(editingId);
                     }}
                   >
                     <Lock className={styles.lockIcon} />
@@ -247,9 +288,9 @@ export default function StandardScheduleList({ schedules, setSchedules }: Props)
         </div>
       )}
 
-      {/* ✅ CONFIRM DELETE MODAL */}
       {confirmDeleteId && (
         <ConfirmModal
+          intent="danger"
           title="确认删除"
           message="确认删除？此操作不可撤销"
           confirmText="删除"

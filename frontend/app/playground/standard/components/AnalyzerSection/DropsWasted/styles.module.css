@@ -1,11 +1,8 @@
 /* === Container === */
 .container {
-  border: none;             /* 🟢 remove border */
-  border-radius: 0;         /* 🟢 no rounded corners */
-  background: transparent;  /* 🟢 seamless background */
-  padding: 0;               /* 🟢 remove internal spacing */
-  margin-top: 0;            /* 🟢 flush with tab content */
-  box-shadow: none;         /* 🟢 no shadow */
+  background: transparent;
+  padding: 0;
+  margin-top: 0;
 }
 
 /* === Top Summary Bar === */
@@ -13,21 +10,18 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px; /* tighter spacing */
+  margin-bottom: 10px;
 }
 
-/* === Summary Text (Right Side) === */
+/* === Summary === */
 .summaryLeft {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 15px;
-  font-weight: 500;
-  color: #333;
+  font-size: 14px;
 }
 
 .label {
-  font-size: 14px;
   color: #333;
 }
 
@@ -46,85 +40,28 @@
   font-weight: 600;
 }
 
-/* === Level Switch Buttons (Left Side) === */
+/* === Level Buttons === */
 .levelTabs {
   display: flex;
   gap: 8px;
 }
 
 .levelBtn {
-  padding: 6px 13px;       /* same size as toggleBtn */
+  padding: 6px 13px;
   border: 1px solid #ccc;
   border-radius: 8px;
   background: #f7f7f7;
   cursor: pointer;
   font-size: 14px;
-  color: #333;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.levelBtn:hover {
-  background: #eee;
-  border-color: #999;
 }
 
 .levelBtn.active {
   background: #0070f3;
   color: #fff;
   border-color: #0070f3;
-  font-weight: 700;
-  box-shadow: 0 1px 4px rgba(0, 112, 243, 0.3);
 }
 
-/* === Group Waste Display === */
-.groupRow {
-  display: flex;
-  align-items: center;
-  margin: 2px 0;
-  padding: 2px 0;           /* 🟢 remove inner box spacing */
-  border-bottom: 1px solid #eee;
-}
-
-.groupLabel {
-  width: 55px;
-  font-weight: 600;
-  color: #333;
-  flex-shrink: 0;
-}
-
-.iconRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  align-items: center;
-}
-
-.pipe {
-  margin: 0 10px;
-  font-weight: 600;
-  color: #555;
-}
-
-.abilityIcon {
-  border-radius: 6px;
-  background: #fafafa;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.noWaste {
-  color: #888;
-  font-size: 14px;
-}
-
-/* === Loading State === */
-.loading {
-  font-size: 14px;
-  color: #888;
-  font-style: italic;
-  margin-top: 8px;
-}
-/* === Table Wrapper === */
+/* === Table === */
 .tableWrapper {
   overflow-x: auto;
   margin-top: 10px;
@@ -136,45 +73,40 @@
   font-size: 14px;
   background: #fff;
   border: 1px solid #ddd;
-  border-radius: 8px;
 }
 
 .wasteTable th,
 .wasteTable td {
   border: 1px solid #ddd;
   padding: 8px 10px;
-  vertical-align: middle;
+  vertical-align: top; /* ✅ CRITICAL */
 }
 
 .wasteTable th {
   background: #f8f9fa;
   font-weight: 600;
-  color: #333;
-  text-align: left;
 }
 
 .groupCol {
   width: 80px;
   text-align: center;
   font-weight: 600;
-  color: #333;
   background: #fafafa;
 }
 
 .iconCol {
+  padding: 6px 8px; /* ❌ NO flex here */
+}
+
+/* === Icon Row (flex lives HERE) === */
+.iconRow {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 4px;
-  padding: 8px 10px;
+  gap: 6px;
+  min-height: 26px; /* ✅ guarantees single visual row */
 }
 
-.pipe {
-  margin: 0 8px;
-  font-weight: 600;
-  color: #555;
-}
-
+/* === Icons === */
 .abilityIcon {
   border-radius: 6px;
   background: #fafafa;
@@ -188,6 +120,76 @@
 
 .noWaste {
   color: #888;
-  font-size: 14px;
   font-style: italic;
+}
+
+/* === Loading === */
+.loading {
+  font-size: 14px;
+  color: #888;
+  font-style: italic;
+}
+/* =========================================================
+   📱 Mobile Responsive — horizontal scroll, natural width
+   (≤ 640px)
+========================================================= */
+@media (max-width: 640px) {
+  /* --- Top bar --- */
+  .topBar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .summaryLeft {
+    font-size: 13px;
+    flex-wrap: wrap;
+  }
+
+  .levelBtn {
+    padding: 5px 10px;
+    font-size: 13px;
+  }
+
+  /* --- Table Wrapper --- */
+  .tableWrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* --- Table --- */
+  .wasteTable {
+    width: max-content;   /* 🔑 allow natural width */
+    min-width: 100%;
+    font-size: 13px;
+  }
+
+  /* --- Group column --- */
+  .groupCol {
+    width: 70px;
+    min-width: 70px;
+    font-size: 13px;
+  }
+
+  /* --- Icon columns --- */
+  .iconCol {
+    min-width: 140px;   /* each section owns its width */
+    padding: 6px;
+  }
+
+  .iconRow {
+    gap: 5px;
+    flex-wrap: nowrap;  /* single horizontal row */
+  }
+
+  /* --- Icons --- */
+  .abilityIcon {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* --- Empty state --- */
+  .noWaste {
+    font-size: 12px;
+  }
 }

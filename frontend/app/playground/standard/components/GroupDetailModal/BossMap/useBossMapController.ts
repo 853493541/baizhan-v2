@@ -1,10 +1,10 @@
 // BossMap/useBossMapController.ts
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useState } from "react";
 import type { ExtendedGroup } from "./types";
-
-type Status = "not_started" | "started" | "finished";
+import { useBossMapState } from "./useBossMapState";
+import { useBossMapSelection } from "./useBossMapSelection";
 
 export function useBossMapController(args: {
   scheduleId: string;
@@ -13,289 +13,127 @@ export function useBossMapController(args: {
   onRefresh?: () => void;
   onGroupUpdate?: (g: ExtendedGroup) => void;
 }) {
-  const { scheduleId, group, weeklyMap, onRefresh, onGroupUpdate } = args;
+  const state = useBossMapState(args);
+  const selection = useBossMapSelection();
 
-  const [localGroup, setLocalGroup] = useState<ExtendedGroup>(group);
-  const lastLocalUpdate = useRef<number>(Date.now());
-
-  /* ================= confirmation state ================= */
-  const [confirmOpen, setConfirmOpen] = useState(false);
-
-  /* ================= selection state ================= */
-  const [selected, setSelected] = useState<{
-    floor: number;
-    boss: string;
-    dropList: string[];
-    tradableList: string[];
-    dropLevel: 9 | 10;
-  } | null>(null);
-
-  const [bossModal, setBossModal] = useState<{
-    floor: 90 | 100;
-    currentBoss?: string;
-  } | null>(null);
-
-  /* ================= active members ================= */
   const [activeMembers, setActiveMembers] = useState<number[]>([0, 1, 2]);
   const toggleMember = (i: number) =>
-    setActiveMembers((p) => (p.includes(i) ? p.filter((x) => x !== i) : [...p, i]));
+    setActiveMembers((p) =>
+      p.includes(i) ? p.filter((x) => x !== i) : [...p, i]
+    );
 
-  /* ================= status helpers ================= */
-  const status = (localGroup.status ?? "not_started") as Status;
-
-  const statusLabel = useMemo(
-    () => ({
-      not_started: "未开始",
-      started: "进行中",
-      finished: "已完成",
-    }),
-    []
-  );
-
-  /* ================= resolve boss ================= */
-  const resolveBoss = (floor: number) => {
-    if (floor === 90 && localGroup.adjusted90) return localGroup.adjusted90;
-    if (floor === 100 && localGroup.adjusted100) return localGroup.adjusted100;
-    return weeklyMap[floor];
-  };
-
-  const applyAdjustedBossLocal = (floor: 90 | 100, boss: string) => {
-    // update local
-    setLocalGroup((prev) => {
-      const next = { ...prev };
-      if (floor === 90) next.adjusted90 = boss;
-      if (floor === 100) next.adjusted100 = boss;
-      return next;
-    });
-
-    // update parent sync
-    if (onGroupUpdate) {
-      const next = { ...localGroup } as ExtendedGroup;
-      if (floor === 90) next.adjusted90 = boss;
-      if (floor === 100) next.adjusted100 = boss;
-      onGroupUpdate(next);
-    }
-  };
-
-  /* ================= lifecycle timestamp helpers ================= */
-  const markGroupStartedTime = async () => {
-    try {
-      await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/start`,
-        { method: "POST" }
-      );
-    } catch (err) {
-      console.error("❌ markGroupStartedTime error:", err);
-    }
-  };
-
-  const markGroupFinishedTime = async () => {
-    try {
-      await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/end`,
-        { method: "POST" }
-      );
-    } catch (err) {
-      console.error("❌ markGroupFinishedTime error:", err);
-    }
-  };
-
-  /* ================= keep local in sync but don't overwrite fresher local ================= */
-  useEffect(() => {
-    const parentKillCount = group.kills?.length || 0;
-    const localKillCount = localGroup.kills?.length || 0;
-
-    if (parentKillCount >= localKillCount || Date.now() - lastLocalUpdate.current > 3000) {
-      setLocalGroup(group);
-    }
-    // NOTE: this matches your original behavior (it intentionally checks localGroup.kills)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [group, localGroup.kills]);
-
-  /* ================= update group status ================= */
-  const updateGroupStatus = async (next: Status) => {
-    try {
-      await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/status`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: next }),
-        }
-      );
-
-      setLocalGroup((p) => ({ ...p, status: next }));
-      onRefresh?.();
-      onGroupUpdate?.({ ...localGroup, status: next });
-    } catch (err) {
-      console.error("❌ updateGroupStatus error:", err);
-    }
-  };
-
-  /* ================= update kills ================= */
-  const updateGroupKill = async (floor: number, boss: string, selection: any) => {
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/floor/${floor}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ boss, selection }),
-        }
-      );
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const updated = await res.json();
-
-      const newGroup: ExtendedGroup = {
-        ...localGroup,
-        kills: updated.updatedGroup?.kills || localGroup.kills,
-      };
-
-      setLocalGroup(newGroup);
-      lastLocalUpdate.current = Date.now();
-      onRefresh?.();
-      onGroupUpdate?.(newGroup);
-    } catch (err) {
-      console.error("❌ updateGroupKill error:", err);
-    }
-  };
-
-  /* ================= instant fetch on open ================= */
-  useEffect(() => {
-    const instantFetch = async () => {
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${scheduleId}/groups/${localGroup.index}/kills`
-        );
-        if (!res.ok) return;
-
-        const data = await res.json();
-        const newGroup: ExtendedGroup = {
-          ...localGroup,
-          kills: data.kills || localGroup.kills,
-          status: data.status || localGroup.status,
-        };
-
-        setLocalGroup(newGroup);
-        lastLocalUpdate.current = Date.now();
-        onGroupUpdate?.(newGroup);
-      } catch (err) {
-        console.error("❌ Instant fetch failed:", err);
-      }
-    };
-
-    instantFetch();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scheduleId, localGroup.index]);
-
-  /* ================= header actions ================= */
-  const handleFinish = () => setConfirmOpen(true);
-
-  /* ================= Drops handlers ================= */
-  const handleSelectBossCard = (
-    floor: number,
-    boss: string,
-    dropList: string[],
-    tradableList: string[],
-    dropLevel: 9 | 10
-  ) => setSelected({ floor, boss, dropList, tradableList, dropLevel });
-
-  const closeDrops = () => setSelected(null);
+  const closeDrops = () => selection.setSelected(null);
 
   const onDropsSave = async (floor: number, data: any) => {
-    if (!selected) return;
+    const sel = selection.selected;
+    if (!sel) return;
 
-    await updateGroupKill(floor, selected.boss, data);
-    setSelected(null);
+    if (sel.mode === "secondary") {
+      await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${args.scheduleId}/groups/${state.localGroup.index}/floor/${floor}/secondary-drop`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ selection: data }),
+        }
+      );
+    } else {
+      await state.updateGroupKill(floor, sel.boss, data);
 
-    console.log("🧪 [BossMap] onSave floor received:", floor);
-
-    if (status === "not_started" && floor !== 100) {
-      await markGroupStartedTime();
-      await updateGroupStatus("started");
+      if (state.status === "not_started" && floor !== 100) {
+        await state.markGroupStartedTime();
+        await state.updateGroupStatus("started");
+      }
     }
-  };
 
-  const onMarkStarted = async (floor?: number) => {
-    console.log("[BossMap] onMarkStarted called, floor =", floor);
-
-    if (typeof floor !== "number") return;
-
-    if (status === "not_started" && floor !== 100) {
-      await markGroupStartedTime();
-      await updateGroupStatus("started");
-    }
+    selection.setSelected(null);
+    args.onRefresh?.();
   };
 
   const onAfterReset = () => {
-    const floorToRemove = selected?.floor;
+    const floor = selection.selected?.floor;
+    if (!floor) return;
 
-    const newGroup: ExtendedGroup = {
-      ...localGroup,
-      kills: localGroup.kills?.filter((k: any) => k.floor !== floorToRemove) || [],
-    };
+    state.setLocalGroup((prev) => ({
+      ...prev,
+      kills: prev.kills?.filter((k) => k.floor !== floor) || [],
+    }));
 
-    setLocalGroup(newGroup);
-    onRefresh?.();
-    onGroupUpdate?.(newGroup);
-    setSelected(null);
+    selection.setSelected(null);
+    args.onRefresh?.();
   };
 
-  /* ================= boss override modal handlers ================= */
-  const openBossModal = (floor: 90 | 100) => {
-    setBossModal({
+  const openBossModal = (floor: 90 | 100) =>
+    selection.setBossModal({
       floor,
-      currentBoss: resolveBoss(floor),
+      currentBoss: state.resolveBoss(floor),
     });
+
+  const closeBossModal = () => selection.setBossModal(null);
+
+  const onBossOverrideSuccess = (boss: string) => {
+    const modal = selection.bossModal;
+    if (!modal) return;
+
+    state.setLocalGroup((prev) => ({
+      ...prev,
+      ...(modal.floor === 90 && { adjusted90: boss }),
+      ...(modal.floor === 100 && { adjusted100: boss }),
+    }));
+
+    selection.setBossModal(null);
+    args.onRefresh?.();
   };
 
-  const closeBossModal = () => setBossModal(null);
+  const handleFinish = () => selection.setConfirmOpen(true);
 
-  const onBossOverrideSuccess = (newBoss: string) => {
-    if (!bossModal) return;
-
-    applyAdjustedBossLocal(bossModal.floor, newBoss);
-    setBossModal(null);
-    onRefresh?.();
-  };
-
-  /* ================= confirm finish handlers ================= */
-  const cancelConfirm = () => setConfirmOpen(false);
+  const cancelConfirm = () => selection.setConfirmOpen(false);
 
   const confirmFinish = async () => {
-    setConfirmOpen(false);
-    await markGroupFinishedTime();
-    await updateGroupStatus("finished");
+    selection.setConfirmOpen(false);
+    await state.markGroupFinishedTime();
+    await state.updateGroupStatus("finished");
   };
+const createSecondarySlot = async (floor: number) => {
+  await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/standard-schedules/${args.scheduleId}/groups/${state.localGroup.index}/floor/${floor}/secondary-drop`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ selection: {} }),
+    }
+  );
+
+  args.onRefresh?.();
+};
 
   return {
-    // state
-    localGroup,
-    selected,
-    bossModal,
+    localGroup: state.localGroup,
+    selected: selection.selected,
+    bossModal: selection.bossModal,
     activeMembers,
-    confirmOpen,
-    status,
-    statusLabel,
+    confirmOpen: selection.confirmOpen,
+    status: state.status,
+    statusLabel: state.statusLabel,
 
-    // setters/actions
     toggleMember,
-    resolveBoss,
-    setSelected,
-    handleSelectBossCard,
+    resolveBoss: state.resolveBoss,
+    toggleMutationFloor: state.toggleMutationFloor,
+
+    handleSelectBossCard: selection.handleSelectBossCard,
+    handleSelectSecondaryDrop: selection.handleSelectSecondaryDrop,
 
     openBossModal,
     closeBossModal,
     onBossOverrideSuccess,
 
-    handleFinish,
-    cancelConfirm,
-    confirmFinish,
-
-    // Drops hooks
     closeDrops,
     onDropsSave,
     onAfterReset,
-    onMarkStarted,
+
+    handleFinish,
+    cancelConfirm,
+    confirmFinish,
+    createSecondarySlot,
   };
 }

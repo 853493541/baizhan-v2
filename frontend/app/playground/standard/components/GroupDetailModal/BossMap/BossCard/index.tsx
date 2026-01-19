@@ -1,236 +1,207 @@
 "use client";
 
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo, useEffect, useCallback } from "react";
 import styles from "./styles.module.css";
-import { calcBossNeeds } from "./calcBossNeeds";
+
+import BossCardHeader from "./BossControl";
+import BossCardNeeds from "./NeedsList";
+import { renderPrimaryDrop, renderSecondaryDrop } from "./DropsResults";
 
 /* ✅ SINGLE SOURCE OF TRUTH */
 import tradableAbilities from "@/app/data/tradable_abilities.json";
 
-interface BossCardProps {
-  floor: number;
-  boss?: string;
-  group: any;
-  bossData: Record<string, string[]>;
-  highlightAbilities: string[];
-  kill?: any;
-  activeMembers?: number[];
-  onSelect: (
-    floor: number,
-    boss: string,
-    dropList: string[],
-    tradableList: string[],
-    dropLevel: 9 | 10
-  ) => void;
-  onChangeBoss?: (floor: 90 | 100) => void;
-}
+import { useBossCardLogic } from "./bossCard.logic";
 
-const getAbilityIcon = (ability: string) => `/icons/${ability}.png`;
+/* ======================================================
+   🧬 MUTATION → DOWNGRADED BOSS MAP
+====================================================== */
+const MUTATION_DOWNGRADE_MAP: Record<string, string> = {
+  "困境韦柔丝": "韦柔丝",
+  "青年程沐华": "程沐华",
+  "肖红": "肖童",
+};
 
-/* 🧬 Mutated Boss（异类） */
-const mutatedBosses = new Set([
-  "肖红",
-  "青年程沐华",
-  "困境韦柔丝",
-]);
+export default function BossCard(props: any) {
+  const {
+    floor,
+    boss,
+    group,
+    bossData,
+    highlightAbilities,
+    kill,
+    activeMembers = [0, 1, 2],
+    onSelect,
+    onSelectSecondary,
+    canShowSecondary,
+  } = props;
 
-export default function BossCard({
-  floor,
-  boss,
-  group,
-  bossData,
-  highlightAbilities,
-  kill,
-  activeMembers = [0, 1, 2],
-  onSelect,
-  onChangeBoss,
-}: BossCardProps) {
-  useEffect(() => {}, [floor, kill]);
-
-  /* ===============================
-     Tradable set
-  ================================= */
   const tradableSet = useMemo(
     () => new Set<string>(tradableAbilities),
     []
   );
 
+  /* ===============================
+     DROP RENDERING
+  ================================ */
+  const primary = renderPrimaryDrop({ kill, group });
+  const secondary = renderSecondaryDrop({ kill, group });
+
+  /* ===============================
+     🧬 DOWNGRADED BOSS (SECONDARY ONLY)
+  ================================ */
+  const downgradedBoss =
+    canShowSecondary && MUTATION_DOWNGRADE_MAP[boss]
+      ? MUTATION_DOWNGRADE_MAP[boss]
+      : boss;
+
+  /* ===============================
+     ✅ WRAPPED SECONDARY SELECT
+     - downgrade boss
+     - downgrade dropList
+     - downgrade tradableList
+     - page 1 untouched
+  ================================ */
+  const handleSelectSecondaryWrapped = useCallback(
+    (
+      floor: number,
+      _boss: string,
+      _dropList: string[],
+      _tradableList: string[],
+      dropLevel: 9 | 10
+    ) => {
+      const downgradedDropList = bossData[downgradedBoss] ?? [];
+
+      const downgradedTradables = downgradedDropList.filter((a: string) =>
+        tradableSet.has(a)
+      );
+
+      onSelectSecondary(
+        floor,
+        downgradedBoss,
+        downgradedDropList,
+        downgradedTradables,
+        dropLevel
+      );
+    },
+    [onSelectSecondary, downgradedBoss, bossData, tradableSet]
+  );
+
+  /* ===============================
+     LOGIC (AUTHORITATIVE)
+     ⚠️ Logic always uses original boss
+  ================================ */
+  const {
+    dropPage,
+    setDropPage,
+    needs,
+    canPage,
+    activeCardClass,
+    handleCardClick,
+    handleNextButtonClick,
+    willDirectOpenSecondary,
+  } = useBossCardLogic({
+    floor,
+    boss, // ❌ NEVER downgraded here
+    group,
+    bossData,
+    highlightAbilities,
+    kill,
+    activeMembers,
+    canShowSecondary,
+    onSelect,
+    onSelectSecondary: handleSelectSecondaryWrapped, // ✅ injected
+    tradableSet,
+    primaryClassName: primary?.className,
+  });
+
+  /* ===============================
+     ✅ RESET FIX
+  ================================ */
+  useEffect(() => {
+    if (!kill && dropPage !== 1) {
+      setDropPage(1);
+    }
+  }, [kill, dropPage, setDropPage]);
+
+  /* ===============================
+     GUARD
+  ================================ */
   if (!boss) {
     return (
-      <div key={floor} className={styles.card}>
+      <div className={styles.card}>
         <div className={styles.floorLabel}>{floor}</div>
         <div className={styles.noNeed}>未选择</div>
       </div>
     );
   }
 
-  const fullDropList: string[] = bossData[boss] || [];
-  const tradableList = fullDropList.filter((a) =>
-    tradableSet.has(a)
-  );
-  const dropList = fullDropList.filter(
-    (a) => !tradableSet.has(a)
-  );
-
-  const dropLevel: 9 | 10 =
-    floor >= 81 && floor <= 90 ? 9 : 10;
-
-  /* ===============================
-     Needs
-  ================================= */
-  const needs = calcBossNeeds({
-    boss,
-    bossData,
-    group,
-    activeMembers,
-    dropLevel,
-    highlightAbilities,
-  });
-
-  const content =
-    needs.length > 0 ? (
-      <ul className={styles.needList}>
-        {needs.map((n) => (
-          <li
-            key={n.ability}
-            className={n.isHighlight ? styles.coreHighlight : ""}
-          >
-            {n.ability} ({n.needCount})
-          </li>
-        ))}
-      </ul>
-    ) : (
-      <p className={styles.noNeed}>无需求</p>
-    );
-
-  /* ===============================
-     Drop + card state
-  ================================= */
-  let dropDisplay: React.ReactNode = null;
-  let cardStateClass = "";
-  let dropResultClass = "";
-
-  if (kill?.selection) {
-    const sel = kill.selection;
-
-    /* ❌ No drop */
-    if (sel.noDrop || (!sel.ability && !sel.characterId)) {
-      cardStateClass = styles.cardHealer;
-      dropResultClass = styles.noDrop;
-
-      dropDisplay = (
-        <div className={`${styles.dropResult} ${dropResultClass}`}>
-          <img
-            src="/icons/no_drop.svg"
-            alt="无掉落"
-            className={`${styles.iconLarge} ${styles.iconNoDrop}`}
-          />
-          <div>无掉落</div>
-        </div>
-      );
-
-    /* 🟣 Purple book */
-    } else if (sel.ability && tradableSet.has(sel.ability)) {
-      cardStateClass = styles.cardPurple;
-      dropResultClass = styles.purple;
-
-      dropDisplay = (
-        <div className={`${styles.dropResult} ${dropResultClass}`}>
-          <img
-            src={getAbilityIcon(sel.ability)}
-            alt={sel.ability}
-            className={styles.iconLarge}
-          />
-          <div>{sel.ability}</div>
-          <div>{sel.level}重</div>
-          <div>(无)</div>
-        </div>
-      );
-
-    /* ❌ Wasted */
-    } else if (sel.ability && !sel.characterId) {
-      cardStateClass = styles.cardHealer;
-      dropResultClass = styles.wasted;
-
-      dropDisplay = (
-        <div className={`${styles.dropResult} ${dropResultClass}`}>
-          <img
-            src={getAbilityIcon(sel.ability)}
-            alt={sel.ability}
-            className={`${styles.iconLarge} ${styles.iconWasted}`}
-          />
-          <div>{sel.ability}</div>
-          <div>{sel.level}重</div>
-          <div>(无)</div>
-        </div>
-      );
-
-    /* ✅ Normal assigned */
-    } else if (sel.ability && sel.characterId) {
-      cardStateClass = styles.cardNormal;
-      dropResultClass = styles.normal;
-
-      const char = group.characters.find(
-        (c: any) => c._id === sel.characterId
-      );
-      const assignedName = char ? char.name : sel.characterId;
-
-      dropDisplay = (
-        <div className={`${styles.dropResult} ${dropResultClass}`}>
-          <img
-            src={getAbilityIcon(sel.ability)}
-            alt={sel.ability}
-            className={styles.iconLarge}
-          />
-          <div>{sel.ability}</div>
-          <div>{sel.level}重</div>
-          {assignedName && <div>{assignedName}</div>}
-        </div>
-      );
-    }
-  }
-
-  /* 🧬 Mutated boss */
-  const isMutatedBoss = mutatedBosses.has(boss);
-
-  /* ⭐ SPECIAL DISPLAY RULE
-     100 + 青年谢云流 → hide floor number
-  */
-  const hideFloorInHeader =
-    floor === 100 && boss === "青年谢云流";
-
   return (
     <div
-      key={floor}
-      className={`${styles.card} ${styles.cardInteractive} ${cardStateClass}`}
-      onClick={() =>
-        onSelect(floor, boss, dropList, tradableList, dropLevel)
-      }
+      className={`${styles.card} ${styles.cardInteractive} ${activeCardClass}`}
+      onClick={handleCardClick}
     >
-      {/* 🧬 Mutated boss badge */}
-      {isMutatedBoss && (
-        <div className={styles.mutatedBossBadge}>异</div>
+      <BossCardHeader {...props} />
+
+      {/* =========================
+         PAGE 1 — PRIMARY
+         ❌ NEVER downgraded
+      ========================= */}
+      {dropPage === 1 && (
+        <>
+          {!primary && <BossCardNeeds needs={needs} />}
+          {primary && primary.node}
+        </>
       )}
 
-      {/* 🔁 Swap badge */}
-      {(floor === 90 || floor === 100) && onChangeBoss && (
-        <button
-          className={styles.changeBtn}
-          title="更换首领"
-          onClick={(e) => {
-            e.stopPropagation();
-            onChangeBoss(floor);
-          }}
-        >
-          换
-        </button>
+      {/* =========================
+         PAGE 2 — SECONDARY
+         ✅ DOWNGRADED BOSS + DROPS + TRADABLES
+      ========================= */}
+      {dropPage === 2 && (
+        <>
+          {secondary ? (
+            secondary
+          ) : (
+            canShowSecondary && (
+              <div className={styles.secondaryEmptyDrop}>
+                <div className={styles.secondaryPlusIcon}>+</div>
+                <div className={styles.secondaryHint}>
+                  点击添加掉落（{downgradedBoss}）
+                </div>
+              </div>
+            )
+          )}
+        </>
       )}
 
-      <div className={styles.header}>
-        {hideFloorInHeader ? boss : `${floor} ${boss}`}
-      </div>
+      {/* =========================
+         PAGER
+      ========================= */}
+      {canShowSecondary && (
+        <div className={styles.dropPager}>
+          {dropPage === 1 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleNextButtonClick();
+              }}
+            >
+              {willDirectOpenSecondary ? "+" : "›"}
+            </button>
+          )}
 
-      {dropDisplay || content}
+          {dropPage === 2 && canPage && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setDropPage(1);
+              }}
+            >
+              ‹
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,40 +1,92 @@
-/* styles.module.css */
+/* =========================================================
+   GLOBAL LAYOUT (SINGLE CONTAINER)
+========================================================= */
 
-/* ---------- Layout ---------- */
 .container {
-  max-width: 1000px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0 20px;
+
   font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   color: #222;
+  box-sizing: border-box;
 }
 
-/* ---------- Title ---------- */
-.title {
-  font-size: 2rem;
+/* =========================================================
+   PAGE HEADER (TOP)
+========================================================= */
+
+.pageHeader {
+  padding: 24px 0 8px;
+}
+
+.pageTitle {
+  font-size: 28px;
   font-weight: 700;
-  margin-bottom: 1.5rem;
-  text-align: center;
-  color: #2c3e50;
+  color: #111;
+  margin-bottom:4px;
 }
 
-/* ---------- Button Row ---------- */
-.buttonRow {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 2rem;
+/* =========================================================
+   WEEKLY MAP (MIDDLE)
+========================================================= */
+
+.mapSection {
+  margin: 0;
+  padding: 0 0 16px;
+  border-bottom: 1px solid #e5e7eb;
 }
+
+/* =========================================================
+   SCHEDULE SECTION (BOTTOM)
+========================================================= */
+
+.scheduleSection {
+  padding-top: 20px;
+}
+
+/* =========================================================
+   HEADER ROW
+========================================================= */
+
+.headerRow {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #2c3e50;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   CREATE BUTTON
+========================================================= */
 
 .createBtn {
+  justify-self: center;
+
   background: linear-gradient(135deg, #4facfe, #00f2fe);
   color: #fff;
   font-size: 1rem;
   font-weight: 600;
-  padding: 0.8rem 1.6rem;
+
+  padding: 0.7rem 1.6rem;
+  min-height: 42px;
+  min-width: 42px;
+
   border: none;
-  border-radius: 0.75rem;
+  border-radius: 12px;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .createBtn:hover {
@@ -47,16 +99,10 @@
   box-shadow: 0 3px 7px rgba(0, 0, 0, 0.1);
 }
 
-/* ---------- Subtitle (cleaned) ---------- */
-.subtitle {
-  margin-top: -6px;
-  margin-bottom: 20px;
-  font-size: 18px;
-  color: #6b7280;   /* gray-500 */
-  text-align: center;
-}
+/* =========================================================
+   EMPTY / LOADING
+========================================================= */
 
-/* ---------- Empty State ---------- */
 .empty {
   font-style: italic;
   text-align: center;
@@ -64,49 +110,96 @@
   margin: 1rem 0 2rem;
 }
 
-/* ---------- Show past section ---------- */
-.pastSection {
-  margin-top: 20px;
+.loading {
   text-align: center;
+  color: #555;
+  padding: 40px 0;
+  font-size: 16px;
 }
 
-.showPastBtn {
-  background-color: #f1f1f1;
-  border: 1px solid #ccc;
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background 0.2s, transform 0.2s;
-}
+/* =========================================================
+   MID-SIZE SCREENS (≤1024px)
+========================================================= */
 
-.showPastBtn:hover {
-  background-color: #e2e2e2;
-  transform: translateY(-1px);
-}
-
-.showPastBtn:active {
-  background-color: #d6d6d6;
-  transform: translateY(0);
-}
-
-/* ---------- Mobile adjustments ---------- */
-@media (max-width: 768px) {
-  .container {
-    padding: 1rem;
+@media (max-width: 1024px) {
+  .pageTitle {
+    font-size: 24px;
   }
 
   .title {
-    font-size: 1.6rem;
+    font-size: 22px;
   }
 
   .createBtn {
-    padding: 0.6rem 1.2rem;
     font-size: 0.95rem;
+    padding: 0.6rem 1.4rem;
+  }
+}
+
+/* =========================================================
+   PHONE (≤600px)
+========================================================= */
+
+@media (max-width: 600px) {
+  .container {
+    padding: 0 16px;
   }
 
-  .subtitle {
-    font-size: 16px;
+  .pageHeader {
+    padding: 12px 0 4px;
+  }
+
+  .pageTitle {
+    font-size: 22px;
+  }
+
+  .mapSection {
+    padding-bottom: 12px;
+  }
+
+  .headerRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .createBtn {
+    width: 26px;
+    height: 26px;
+    padding: 0;
+  min-height: 22px;
+  min-width: 22px;
+    background: #2563eb;
+    border-radius: 6px;
+
+    font-size: 0;
+    box-shadow: none;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .createBtn::after {
+    content: "+";
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+  }
+
+  .createBtn:hover {
+    background: #1d4ed8;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .createBtn:active {
+    transform: none;
   }
 }

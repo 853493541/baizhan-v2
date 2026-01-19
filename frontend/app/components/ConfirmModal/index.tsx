@@ -22,16 +22,14 @@ export default function ConfirmModal({
   onCancel,
 }: ConfirmModalProps) {
   return (
-    <div
-      className={styles.overlay}
-      onClick={onCancel} // 👈 click outside to close
-    >
+    <div className={styles.overlay} onClick={onCancel}>
       <div
-        className={styles.modal}
-        onClick={(e) => e.stopPropagation()} // 👈 prevent close when clicking inside
+        className={`${styles.modal} ${styles[intent]}`}
+        onClick={(e) => e.stopPropagation()}
       >
-        <div className={`${styles.header} ${styles[intent]}`}>
-          <span>{title}</span>
+        {/* ================= Header ================= */}
+        <div className={styles.header}>
+          <span className={styles.title}>{title}</span>
           <button
             className={styles.close}
             onClick={onCancel}
@@ -41,15 +39,24 @@ export default function ConfirmModal({
           </button>
         </div>
 
+        {/* ================= Body ================= */}
         <div className={styles.body}>
-          <div className={`${styles.icon} ${styles[intent]}`}>⚠️</div>
+          <div className={`${styles.icon} ${styles[intent]}`}>
+            {intent === "danger" && "✖"}
+            {intent === "warning" && "!"}
+            {intent === "success" && "✔"}
+            {intent === "neutral" && "?"}
+          </div>
+
           <p>{message}</p>
         </div>
 
+        {/* ================= Footer ================= */}
         <div className={styles.footer}>
           <button className={styles.cancelBtn} onClick={onCancel}>
             {cancelText}
           </button>
+
           <button
             className={`${styles.confirmBtn} ${styles[intent]}`}
             onClick={onConfirm}

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import StandardScheduleList from "../components/StandardScheduleList";
-import styles from "../styles.module.css";
+import styles from "./styles.module.css";
 import { getCurrentGameWeek } from "@/utils/weekUtils";
 
 interface StandardSchedule {
@@ -25,10 +25,32 @@ export default function HistoryPage() {
   useEffect(() => {
     const fetchPast = async () => {
       try {
+        setLoading(true);
+
+        const before = encodeURIComponent(currentWeek);
+
         const res = await fetch(
-          `${API_BASE}/api/standard-schedules/summary?before=${currentWeek}`
+          `${API_BASE}/api/standard-schedules/summary?before=${before}`
         );
-        const data = res.ok ? await res.json() : [];
+
+        const data: StandardSchedule[] = res.ok ? await res.json() : [];
+
+        /* ===============================
+           ✅ ONLY FIX:
+           sort by createdAt DESC
+           (single source of truth)
+        =============================== */
+        data.sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() -
+            new Date(a.createdAt).getTime()
+        );
+
+        console.log(
+          "[weekh] sorted by createdAt:",
+          data.map((d) => d.createdAt)
+        );
+
         setPastSchedules(data);
       } finally {
         setLoading(false);
@@ -40,7 +62,7 @@ export default function HistoryPage() {
 
   return (
     <div className={styles.container}>
-      <h2 className={styles.title}>历史排表</h2>
+      <div className={styles.title}>历史排表</div>
 
       {loading ? (
         <p className={styles.loading}>加载中...</p>

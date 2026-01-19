@@ -1,0 +1,155 @@
+/* =========================================================
+   📦 Manager Modal Shell
+========================================================= */
+
+/* ---------- Overlay ---------- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 300;
+
+  /* allow safe spacing on mobile */
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+/* ---------- Modal ---------- */
+.modal {
+  background: #fff;
+  border-radius: 14px;
+  padding: 14px 16px;
+
+  width: 380px;
+  max-width: 100%;
+  max-height: 85dvh;          /* ✅ Safari-safe */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  overflow: hidden;           /* 🔑 control scroll internally */
+
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+
+  animation: modalIn 0.18s ease;
+}
+
+/* ---------- Animation ---------- */
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ---------- Header ---------- */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.header h2 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.closeBtn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #666;
+  padding: 6px;
+
+  /* ✅ critical fixes */
+  flex: 0 0 auto;
+  width: auto;
+  min-width: unset;
+  align-self: center;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closeBtn:hover {
+  color: #000;
+}
+
+/* ---------- Scrollable Content ---------- */
+/* everything between header and footer scrolls */
+.modal > :not(.header):not(.footer) {
+  overflow-y: auto;
+  padding-right: 2px; /* avoids scrollbar overlap */
+}
+
+/* ---------- Footer ---------- */
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  padding-top: 6px;
+  border-top: 1px solid #eee;
+}
+
+.cancelBtn {
+  border: none;
+  background: #eee;
+  border-radius: 8px;
+  padding: 6px 16px;
+  cursor: pointer;
+  font-weight: 500;
+}
+.cancelBtn:hover {
+  background: #ddd;
+}
+
+/* =========================================================
+   📱 Mobile Optimization
+========================================================= */
+@media (max-width: 480px) {
+  .modal {
+    width: 100%;
+    max-height: 80dvh;
+    padding: 12px 12px;
+  }
+
+  .header h2 {
+    font-size: 16px;
+  }
+
+  .footer {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .cancelBtn {
+    width: 100%;
+  }
+}
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+/* 🔑 关键修复 */
+.cancelBtn {
+  display: inline-flex;      
+  align-items: center;
+  justify-content: center;
+
+  width: auto;               
+  flex: 0 0 auto;            
+
+  padding: 6px 14px;
+}

@@ -3,14 +3,54 @@
 ================================= */
 .card {
   position: relative;
+  box-sizing: border-box;
+
   border: 1px solid #ddd;
   border-radius: 8px;
-  padding: 10px;
+  padding: 8px;
+  padding-bottom: 28px;
   background: #fff;
   box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+
   font-size: 12px;
   line-height: 1.4;
+
   min-height: 142px;
+  max-height: 142px;
+
+  display: grid;
+  grid-template-rows:
+    auto
+    1fr
+    auto;
+  align-items: start;
+}
+
+/* ===============================
+   Header
+================================= */
+.header {
+  text-align: center;
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.headerRed {
+  color: red;
+  font-weight: 700;
+}
+
+.floorLabel {
+  font-weight: bold;
+  font-size: 13px;
+  margin-right: 2px;
+}
+
+.bossName {
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
 }
 
 /* ===============================
@@ -25,14 +65,12 @@
   list-style: none;
   font-size: 12px;
   text-align: center;
-  width: 100%;
 }
 
 .noNeed {
   color: rgb(0, 103, 27);
   font-weight: bold;
   text-align: center;
-  width: 100%;
 }
 
 .coreHighlight {
@@ -45,10 +83,7 @@
 ================================= */
 .cardInteractive {
   cursor: pointer;
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease,
-    border-color 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
   z-index: 1;
 }
 
@@ -70,12 +105,16 @@
   margin-top: 6px;
   font-size: 12px;
   font-weight: bold;
+
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  text-align: center;
   gap: 2px;
+  text-align: center;
+}
+
+.secondaryDrop {
+  margin-top: 6px;
 }
 
 .assignedTo {
@@ -89,17 +128,17 @@
 ================================= */
 .noDrop,
 .wasted {
-  color: #721c24; /* dark red */
+  color: #721c24;
   font-weight: bold;
 }
 
 .normal {
-  color: #155724; /* dark green */
+  color: #155724;
   font-weight: bold;
 }
 
 .purple {
-  color: #6f42c1; /* purple text */
+  color: #6f42c1;
   font-weight: bold;
 }
 
@@ -107,52 +146,27 @@
    Card background states
 ================================= */
 .card.cardNormal {
-  background-color: #d4edda; /* green */
+  background-color: #d4edda;
   border-color: #c3e6cb;
 }
 
 .card.cardHealer {
-  background-color: #f8d7da; /* red / wasted */
+  background-color: #f8d7da;
   border-color: #f5c6cb;
 }
 
-/* 🟣 Purple book (FIXED – specificity safe) */
-/* 🟣 Purple book card (matched to purpleBookBtn) */
 .card.cardPurple {
-  background-color: #e9d5ff; /* SAME as button bg */
-  /* border-color: #9333ea; */
+  background-color: #e9d5ff;
 }
 
-/* Purple book content text */
 .card.cardPurple .dropResult {
-  color: #4c1d95; /* SAME as button text */
+  color: #4c1d95;
   font-weight: bold;
 }
 
-.card.cardPurple .iconLarge {
-  filter: none;
-}
-
-/* ===============================
-   Header
-================================= */
-.header {
-  text-align: center;
-  font-size: 14px;
-  font-weight: bold;
-  margin-bottom: 6px;
-}
-
-.floorLabel {
-  font-weight: bold;
-  font-size: 13px;
-  margin-right: 2px;
-}
-
-.bossName {
-  font-size: 14px;
-  font-weight: bold;
-  text-align: center;
+.card.cardTank {
+  background-color: #fff3cd;
+  border-color: #ffeeba;
 }
 
 /* ===============================
@@ -181,7 +195,6 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
   gap: 2px;
   line-height: 1.2;
 }
@@ -191,20 +204,25 @@
 ================================= */
 .changeBtn {
   position: absolute;
-  top: -10px;
-  right: -8px;
+  top: -12px;
+  right: -10px;
+
   width: 28px;
   height: 28px;
   border-radius: 50%;
+
   border: none;
   background: orange;
   color: #fff;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
+
+  font-size: 15px;
+  font-weight: 700;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
+  cursor: pointer;
   z-index: 2;
   box-shadow: 0 1px 3px rgba(0,0,0,0.25);
 }
@@ -212,25 +230,216 @@
 .changeBtn:hover {
   transform: scale(1.05);
 }
-.mutatedBossBadge {
+
+/* ===============================
+   Mutation badge
+================================= */
+.mutatedBossBadge,
+.mutatedBossBadgeGray {
   position: absolute;
   top: -12px;
-  right: -10px;
+  right: -9px;
 
-  width: 25px;
-  height: 25px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
 
-  background: #7c3aed;
   color: #fff;
-
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 700;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-  pointer-events: none;
+  z-index: 2;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+}
+
+.mutatedBossBadge {
+  background: #7c3aed;
+}
+
+.mutatedBossBadgeGray {
+  background-color: #9e9e9e;
+}
+
+/* ===============================
+   Add secondary drop button
+================================= */
+.addSecondaryBtn {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+
+  background: #ffd966;
+  color: #7a5a00;
+
+  border: 1px solid #e0b800;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* ===============================
+   Drop pager
+================================= */
+.dropPager {
+  position: absolute;
+  bottom: -5px;
+  right: -6px;
+  z-index: 5;
+}
+
+.dropPager button {
+  width: 24px;
+  height: 24px;
+
+  background: #ffd966;
+  color: #7a5a00;
+  border: 1px solid #e0b800;
+
+  font-size: 20px;
+  font-weight: bold;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+}
+
+/* ===============================
+   Secondary empty drop
+================================= */
+.secondaryEmptyDrop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 0;
+  gap: 6px;
+}
+
+.secondaryPlusIcon {
+  font-size: 28px;
+  font-weight: 700;
+  color: #2b2b2b;
+}
+
+.secondaryHint {
+  font-size: 13px;
+  color: #2b2b2b;
+  font-weight: 700;
+}
+
+/* =====================================================
+   📱 PHONE — BossCard + horizontal map contract
+===================================================== */
+@media (max-width: 768px) {
+
+  /* row container (10-wide scrollable map) */
+  .row {
+    display: grid;
+    grid-template-columns: repeat(10, 120px);
+    grid-auto-rows: 120px;
+    gap: 10px;
+
+    overflow-x: auto;
+    overflow-y: visible;
+
+    padding-top: 14px;
+    padding-bottom: 8px;
+
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .row::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* card size contract */
+  .card {
+    min-width: 120px;
+    max-width: 100px;
+    min-height: 100px;
+    max-height: 120px;
+
+    padding: 6px;
+    padding-bottom: 24px;
+
+    font-size: 11px;
+    line-height: 1.25;
+
+overflow: visible; 
+  }
+
+  /* tighter header */
+  .header {
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+
+  .bossName {
+    font-size: 12px;
+  }
+
+  .floorLabel {
+    font-size: 11px;
+  }
+
+  .needList li {
+    font-size: 11px;
+    line-height: 1.2;
+  }
+
+  .dropResult {
+    margin-top: 4px;
+    font-size: 11px;
+    gap: 1px;
+  }
+
+  .iconLarge {
+    width: 28px;
+    height: 28px;
+    margin-bottom: 1px;
+  }
+
+  .secondaryEmptyDrop {
+    padding: 10px 0;
+    gap: 4px;
+  }
+
+  .secondaryPlusIcon {
+    font-size: 22px;
+  }
+
+  .secondaryHint {
+    font-size: 11px;
+  }
+
+  .dropPager {
+    bottom: -4px;
+    right: -4px;
+  }
+
+  .dropPager button {
+    width: 20px;
+    height: 20px;
+    font-size: 16px;
+  }
+
+  .mutatedBossBadge,
+  .mutatedBossBadgeGray,
+  .changeBtn {
+    width: 22px;
+    height: 22px;
+    font-size: 13px;
+    top: -10px;
+    right: -8px;
+  }
 }

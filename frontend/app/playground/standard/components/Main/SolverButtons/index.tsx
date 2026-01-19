@@ -1,99 +1,181 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState, useRef } from "react";
+import { FaCog } from "react-icons/fa";
 import styles from "./styles.module.css";
-import ConfirmModal from "@/app/components/ConfirmModal";
+import SolverOptions from "./SolverOptions";
+
+/* =========================
+   Types
+========================= */
+interface CacheSlot {
+  id: number;
+}
 
 interface Props {
   solving: boolean;
-  disabled?: boolean;
+  disabled?: boolean; // locked
   onCore: () => void;
   onFull: () => void;
-  onManual: () => void;
+  onEdit: () => void;
+
+  // SolverOptions
+  allAbilities: { name: string; level: number }[];
+  enabledAbilities: Record<string, boolean>;
+  setEnabledAbilities: React.Dispatch<
+    React.SetStateAction<Record<string, boolean>>
+  >;
+
+  // 🗂 Temp cache
+  cache: (CacheSlot | undefined)[];
+  onSaveCache: () => void;
+  onRestoreCache: (idx: number) => void;
+  onDeleteCache: (idx: number) => void;
 }
+
+const CACHE_CAP = 10;
+const LONG_PRESS_MS = 600;
 
 export default function SolverButtons({
   solving,
   disabled,
   onCore,
   onFull,
-  onManual,
+  onEdit,
+  allAbilities,
+  enabledAbilities,
+  setEnabledAbilities,
+  cache,
+  onSaveCache,
+  onRestoreCache,
+  onDeleteCache,
 }: Props) {
   const isLocked = disabled ?? false;
 
-  // ⭐ Tracks if user already confirmed in this session
-  const manualWarnedRef = useRef(false);
+  // 🔒 HIDE EVERYTHING WHEN LOCKED
+  if (isLocked) return null;
 
-  // ⭐ Custom confirm modal state
-  const [confirmOpen, setConfirmOpen] = useState(false);
+  /* =========================
+     Solver options
+  ========================= */
+  const [optionsOpen, setOptionsOpen] = useState(false);
 
-  const handleManualClick = () => {
-    // If NOT locked, open immediately
-    if (!isLocked) {
-      onManual();
-      return;
+  /* =========================
+     Long-press handling (touch)
+  ========================= */
+  const longPressTimer = useRef<number | null>(null);
+
+  const clearLongPress = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
     }
-
-    // If locked but already confirmed once → open directly
-    if (manualWarnedRef.current) {
-      onManual();
-      return;
-    }
-
-    // First-time warning → open custom confirm modal
-    setConfirmOpen(true);
   };
 
-  const handleConfirmManual = () => {
-    manualWarnedRef.current = true; // ✔ remember choice
-    setConfirmOpen(false);
-    onManual();
-  };
-
+  /* =========================
+     Render
+  ========================= */
   return (
     <>
       <div className={styles.solverButtons}>
-        {/* Custom Solver — hidden when locked */}
-        {!isLocked && (
-          <button
-            className={`${styles.solverBtn} ${styles.coreBtn}`}
-            onClick={onCore}
-            disabled={solving}
-          >
-            {solving ? "处理中..." : "自定义排表"}
-          </button>
-        )}
-
-        {/* Full Solver / Locked indicator */}
+        {/* ⚙️ Ability options */}
         <button
-          className={`${styles.solverBtn} ${styles.fullBtn} ${
-            isLocked ? styles.disabledLight : ""
-          }`}
-          onClick={() => !isLocked && onFull()}
-          disabled={solving || isLocked}
+          type="button"
+          className={styles.iconBtn}
+          onClick={() => !solving && setOptionsOpen(true)}
+          disabled={solving}
+          title="技能选择"
         >
-          {isLocked ? "🔒 已锁定" : solving ? "排表中..." : "全局排表"}
+          <FaCog />
         </button>
 
-        {/* Manual Edit — always visible, ask ONCE */}
+        {/* 自定义排表 */}
         <button
-          className={`${styles.solverBtn} ${styles.manualBtn}`}
-          onClick={handleManualClick}
+          type="button"
+          className={`${styles.solverBtn} ${styles.lightBtn}`}
+          onClick={onCore}
+          disabled={solving}
         >
-          手动编辑
+          {solving ? "处理中......" : "自定义排表"}
         </button>
+
+        {/* 全局排表 */}
+        <button
+          type="button"
+          className={`${styles.solverBtn} ${styles.lightBtn}`}
+          onClick={() => !solving && onFull()}
+          disabled={solving}
+        >
+          {solving ? "排表中..." : "全局排表"}
+        </button>
+
+        {/* =========================
+           🗂 Temp Cache (10 slots)
+        ========================= */}
+        <div className={styles.cacheBar}>
+<button
+  className={`${styles.solverBtn} ${styles.cacheBtn}`}
+  onClick={onSaveCache}
+  disabled={solving}
+>
+  暂时保存
+</button>
+
+
+          <div className={styles.cacheSlots}>
+            {Array.from({ length: CACHE_CAP }).map((_, i) => {
+              const hasCache = Boolean(cache[i]);
+
+              return (
+                <button
+                  key={i}
+                  className={`${styles.cacheSlot} ${
+                    hasCache
+                      ? styles.cacheActive
+                      : styles.cacheEmpty
+                  }`}
+                  onClick={() => {
+                    if (!hasCache || solving) return;
+                    onRestoreCache(i);
+                  }}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    if (!hasCache || solving) return;
+                    onDeleteCache(i);
+                  }}
+                  onTouchStart={() => {
+                    if (!hasCache || solving) return;
+
+                    longPressTimer.current = window.setTimeout(() => {
+                      onDeleteCache(i);
+                    }, LONG_PRESS_MS);
+                  }}
+                  onTouchEnd={clearLongPress}
+                  onTouchMove={clearLongPress}
+                  onTouchCancel={clearLongPress}
+                  title={
+                    hasCache
+                      ? "点击恢复｜右键 / 长按删除"
+                      : "空槽位"
+                  }
+                >
+                  {i + 1}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
-      {/* ✅ Custom Confirm Modal */}
-      {confirmOpen && (
-        <ConfirmModal
-          title="确认手动编辑"
-          message="当前排表已锁定，确定要手动编辑吗？"
-          confirmText="继续编辑"
-          onCancel={() => setConfirmOpen(false)}
-          onConfirm={handleConfirmManual}
-        />
-      )}
+      {/* Solver Options Modal */}
+      <SolverOptions
+        open={optionsOpen}
+        onClose={() => setOptionsOpen(false)}
+        disabled={false}
+        allAbilities={allAbilities}
+        enabledAbilities={enabledAbilities}
+        setEnabledAbilities={setEnabledAbilities}
+      />
     </>
   );
 }

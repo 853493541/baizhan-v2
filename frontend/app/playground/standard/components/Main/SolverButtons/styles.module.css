@@ -1,88 +1,168 @@
+/* ================================
+   Solver Buttons Container
+   ================================ */
+
 .solverButtons {
   display: flex;
+  align-items: center;   /* 🔥 vertical alignment fix */
   gap: 12px;
- margin-top:8px;
- /* border:2px green solid; */
+  margin-top: 20px;
 }
 
+/* ================================
+   Base Button (shared)
+   ================================ */
+
 .solverBtn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 6px;
-  color: white;
-  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 6px 14px;
+  min-height: 32px;
+
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;        /* 🔥 prevents text vertical drift */
+
+  border-radius: 8px;
   cursor: pointer;
-  margin-bottom: 16px;
-  transition: background 0.2s;
+  white-space: nowrap;
+
+  transition: background-color 0.15s ease;
+}
+
+/* ================================
+   Light Pill Style
+   ================================ */
+
+.lightBtn {
+  border: 1px solid #c7d2fe;
+  background-color: #eef2ff;
+  color: #2563eb;
+}
+
+.lightBtn:hover:not(:disabled) {
+  background-color: #e0e7ff;
+}
+
+/* ================================
+   Disabled State
+   ================================ */
+
+.disabledLight {
+  background-color: #e5edff !important;
+  border-color: #c7d2fe !important;
+  color: #94a3b8 !important;
+  cursor: not-allowed !important;
 }
 
 .solverBtn:disabled {
-  opacity: 0.6;
   cursor: not-allowed;
 }
 
-.coreBtn {
-  background: #0070f3; /* blue */
-}
-.coreBtn:hover {
-  background: #0059c1;
-}
+/* ================================
+   Gear Icon Button (compact)
+   ================================ */
 
-.fullBtn {
-  background: #0070f3; /* green */
-}
-.fullBtn:hover {
-  background: #0059c1;
-}
+.iconBtn {
+  width: 28px;          /* 🔥 smaller */
+  height: 28px;
 
-.lockedBtn {
-  background: #ccc !important;
-  color: #444 !important;
-  cursor: not-allowed !important;
-}
-.manualBtn {
-  background: #0070f3;
-}
+  padding: 0;
+  border-radius: 50%;
 
-.manualBtn:hover {
-  background: #0059c1;
-}
-.manualBtn:hover {
-  background: #0059c1;
-}
-.solverButtons {
-  display: flex;
-  gap: 12px;
-  margin-top: 8px;
-}
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
-.solverBtn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 6px;
-  color: white;
-  font-size: 14px;
+  border: 1px solid #c7d2fe;
+  background-color: #eef2ff;
+  color: #2563eb;
+
   cursor: pointer;
-  margin-bottom: 16px;
-  transition: background 0.2s;
+  transition: background-color 0.15s ease, transform 0.15s ease;
 }
 
-/* Blue button */
-.coreBtn,
-.fullBtn,
-.manualBtn {
-  background: #0070f3;
-}
-.coreBtn:hover,
-.fullBtn:hover,
-.manualBtn:hover {
-  background: #0059c1;
+/* Normalize icon size inside */
+.iconBtn svg {
+  width: 15px;          /* 🔥 prevents “fat” look */
+  height: 15px;
 }
 
-/* ⭐ NEW — light blue disabled state */
-.disabledLight {
-  background: #7fb8ff !important; /* light blue */
-  color: white !important;
-  cursor: not-allowed !important;
-  opacity: 0.9 !important;
+/* Hover effect */
+.iconBtn:hover:not(:disabled) {
+  background-color: #e0e7ff;
+  transform: rotate(15deg);
+}
+
+.iconBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+/* =========================
+   🗂 Temp Cache
+========================= */
+.cacheBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 0px;
+}
+
+.cacheSaveBtn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid #aaa;
+  background: #fff;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.cacheSaveBtn:hover {
+  background: #f5f5f5;
+}
+
+.cacheSlots {
+  display: flex;
+  gap: 6px;
+}
+
+.cacheSlot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 12px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+}
+
+.cacheActive {
+  background: #d4edda;
+  border-color: #28a745;
+}
+
+.cacheEmpty {
+  background: #f0f0f0;
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.cacheSlot {
+  user-select: none;                 /* Standard */
+  -webkit-user-select: none;         /* iOS Safari */
+  -webkit-touch-callout: none;       /* Disable copy menu */
+  touch-action: manipulation;        /* Prevent double-tap zoom */
+}
+.cacheBtn {
+  background-color: #ffedd5;   /* light orange */
+  color: #9a3412;              /* dark orange text */
+  border: 1px solid #fdba74;
+}
+
+.cacheBtn:hover:not(:disabled) {
+  background-color: #fed7aa;
+}
+
+.cacheBtn:active:not(:disabled) {
+  background-color: #fdba74;
 }

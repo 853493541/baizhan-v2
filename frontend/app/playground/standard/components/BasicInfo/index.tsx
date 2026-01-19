@@ -4,9 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Settings, X, Trash2, Lock, Plus } from "lucide-react";
 import styles from "./styles.module.css";
 import ConfirmModal from "@/app/components/ConfirmModal";
-import {
-  toastError,
-} from "@/app/components/toast/toast";
+import { toastError } from "@/app/components/toast/toast";
 
 interface Props {
   schedule: {
@@ -24,7 +22,7 @@ interface Props {
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
-export default function BasicInfoSection({
+export default function ScheduleHeader({
   schedule,
   onBack,
   onDelete,
@@ -32,13 +30,10 @@ export default function BasicInfoSection({
   locked = false,
 }: Props) {
   const [localSchedule, setLocalSchedule] = useState(schedule);
-  const [editing, setEditing] = useState(false);
+  const [open, setOpen] = useState(false);
   const [tempName, setTempName] = useState(schedule.name);
 
-  // 🔹 ConfirmModal (quick delete)
   const [showQuickConfirm, setShowQuickConfirm] = useState(false);
-
-  // 🔹 Typed confirm delete (LOCKED – untouched)
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleteInput, setDeleteInput] = useState("");
 
@@ -50,11 +45,11 @@ export default function BasicInfoSection({
   }, [schedule]);
 
   useEffect(() => {
-    if (editing && inputRef.current) {
+    if (open && inputRef.current) {
       inputRef.current.focus();
       inputRef.current.select();
     }
-  }, [editing]);
+  }, [open]);
 
   const handleRename = async () => {
     if (!localSchedule._id) return;
@@ -72,29 +67,25 @@ export default function BasicInfoSection({
       if (!res.ok) throw new Error("Failed");
 
       setLocalSchedule((p) => ({ ...p, name: tempName }));
-      setEditing(false);
+      setOpen(false);
     } catch {
       toastError("更新失败，请稍后再试");
     }
   };
 
-  /* ===============================================================
-     🗑 Delete handlers
-  =============================================================== */
+  /* ================= DELETE ================= */
+
   const handleDeleteClick = () => {
-    if (locked) {
-      setConfirmingDelete(true); // typed confirm (unchanged)
-    } else {
-      setShowQuickConfirm(true); // ✅ ConfirmModal
-    }
+    if (locked) setConfirmingDelete(true);
+    else setShowQuickConfirm(true);
   };
 
   const handleConfirmDelete = () => {
     if (deleteInput.trim() === "确认删除") {
       onDelete?.();
       setConfirmingDelete(false);
-      setEditing(false);
       setDeleteInput("");
+      setOpen(false);
     } else {
       toastError("请输入正确的确认文字：确认删除");
     }
@@ -102,102 +93,107 @@ export default function BasicInfoSection({
 
   const handleCancelDelete = () => {
     setConfirmingDelete(false);
-    setEditing(false);
     setDeleteInput("");
   };
 
+  const isInvalidCount =
+    localSchedule.characterCount % 3 !== 0 &&
+    localSchedule.characterCount !== 0;
+
   return (
-    <section className={styles.section}>
-      <div className={styles.header}>
-        <button className={styles.backBtn} onClick={onBack}>
+    <>
+      {/* ================= HEADER ================= */}
+      <div className={styles.headerBar}>
+        {/* Row 1: Back */}
+        {/* <button className={styles.backBtn} onClick={onBack}>
           ← 返回
-        </button>
-        <h2 className={styles.title}>排表详情</h2>
-      </div>
+        </button> */}
 
-      <div className={styles.card}>
-        <div className={styles.cardHeader}>
-          <h3 className={styles.cardTitle}>基本信息</h3>
-          <button className={styles.gearBtn} onClick={() => setEditing(true)}>
-            <Settings size={18} />
-          </button>
-        </div>
+        {/* Row 2: Title + Actions */}
+        <div className={styles.titleRow}>
+          <div className={styles.headerTitle}>
+            排表详情 · {localSchedule.name || "未命名排表"}
+          </div>
 
-        <div className={styles.infoRow}>
-          <span className={styles.label}>排表名称:</span>
-          <span className={styles.value}>
-            {localSchedule.name || "未命名排表"}
-          </span>
-        </div>
-
-        <div className={styles.infoRow}>
-          <span className={styles.label}>服务器:</span>
-          <span className={styles.value}>{localSchedule.server}</span>
-        </div>
-
-        <div className={styles.infoRow}>
-          <span className={styles.label}>角色数量:</span>
-          <span className={styles.valueWithBtn}>
-            {localSchedule.characterCount}
+          <div className={styles.titleActions}>
             <button
-              className={styles.inlineAddBtn}
-              onClick={onOpenEditCharacters}
-              title="编辑参与角色"
+              className={styles.iconBtn}
+              onClick={() => setOpen(true)}
+              title="排表设置"
             >
-              <Plus size={14} />
+              <Settings size={18} />
             </button>
-          </span>
-        </div>
 
-        <div className={styles.infoRow}>
-          <span className={styles.label}>创建时间:</span>
-          <span className={styles.value}>
-            {new Date(localSchedule.createdAt).toLocaleString()}
-          </span>
+            <div className={styles.editWrapper}>
+              <button
+                className={styles.iconBtnPrimary}
+                onClick={onOpenEditCharacters}
+                title="编辑参与角色"
+              >
+                <Plus size={18} />
+              </button>
+
+              {isInvalidCount && (
+                <span className={styles.countWarning}>
+                  ❌ 排表人数错误（{localSchedule.characterCount}）
+                </span>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* ================= Edit Modal ================= */}
-      {editing && (
+      {/* ================= SETTINGS MODAL ================= */}
+      {open && (
         <div
           className={styles.modalOverlay}
           onClick={(e) => {
-            if (e.target === e.currentTarget) setEditing(false);
+            if (e.target === e.currentTarget) setOpen(false);
           }}
         >
           <div className={styles.modal}>
             <button
               className={styles.closeBtn}
-              onClick={() => setEditing(false)}
+              onClick={() => setOpen(false)}
             >
               <X size={20} />
             </button>
 
-            <h3>编辑排表</h3>
+            <h3>排表设置</h3>
 
             <label>
-              排表名称:
+              排表名称
               <input
                 ref={inputRef}
-                type="text"
                 value={tempName}
                 onChange={(e) => setTempName(e.target.value)}
               />
             </label>
 
+            <div className={styles.readonlyRow}>
+              <span>服务器</span>
+              <span>{localSchedule.server}</span>
+            </div>
+
+            <div className={styles.readonlyRow}>
+              <span>角色数量</span>
+              <span>{localSchedule.characterCount}</span>
+            </div>
+
+            <div className={styles.readonlyRow}>
+              <span>创建时间</span>
+              <span>
+                {new Date(localSchedule.createdAt).toLocaleString()}
+              </span>
+            </div>
+
             <div className={styles.modalActions}>
-              <button className={styles.deleteBtn} onClick={handleDeleteClick}>
-                {locked ? (
-                  <>
-                    <Lock size={14} style={{ marginRight: 4 }} />
-                    删除
-                  </>
-                ) : (
-                  <>
-                    <Trash2 size={14} style={{ marginRight: 4 }} />
-                    删除
-                  </>
-                )}
+              <button
+                className={styles.deleteBtn}
+                onClick={handleDeleteClick}
+              >
+                {locked ? <Lock size={14} /> : <Trash2 size={14} />}
+                删除
               </button>
 
               <button className={styles.saveBtn} onClick={handleRename}>
@@ -208,7 +204,7 @@ export default function BasicInfoSection({
         </div>
       )}
 
-      {/* ================= Locked Typed Delete (UNCHANGED) ================= */}
+      {/* ================= LOCKED DELETE ================= */}
       {confirmingDelete && (
         <div
           className={styles.modalOverlay}
@@ -217,7 +213,10 @@ export default function BasicInfoSection({
           }}
         >
           <div className={styles.modal}>
-            <button className={styles.closeBtn} onClick={handleCancelDelete}>
+            <button
+              className={styles.closeBtn}
+              onClick={handleCancelDelete}
+            >
               <X size={20} />
             </button>
 
@@ -226,23 +225,27 @@ export default function BasicInfoSection({
             <p className={styles.warningText}>
               该排表已开始，是否确认删除？
               <br />
-              请输入 <strong>确认删除</strong> 以继续。
+              请输入 <strong>确认删除</strong>
             </p>
 
             <input
               className={styles.confirmInput}
-              type="text"
               value={deleteInput}
               onChange={(e) => setDeleteInput(e.target.value)}
-              placeholder="请输入 确认删除"
             />
 
             <div className={styles.modalActions}>
-              <button className={styles.deleteBtn} onClick={handleConfirmDelete}>
+              <button
+                className={styles.deleteBtn}
+                onClick={handleConfirmDelete}
+              >
                 确认删除
               </button>
 
-              <button className={styles.cancelBtn} onClick={handleCancelDelete}>
+              <button
+                className={styles.cancelBtn}
+                onClick={handleCancelDelete}
+              >
                 取消
               </button>
             </div>
@@ -250,9 +253,10 @@ export default function BasicInfoSection({
         </div>
       )}
 
-      {/* ================= Quick Delete ConfirmModal ================= */}
+      {/* ================= QUICK DELETE ================= */}
       {showQuickConfirm && (
         <ConfirmModal
+        intent = "danger"
           title="确认删除"
           message="确定要删除这个排表吗？此操作不可撤销。"
           confirmText="删除"
@@ -260,10 +264,10 @@ export default function BasicInfoSection({
           onConfirm={() => {
             onDelete?.();
             setShowQuickConfirm(false);
-            setEditing(false);
+            setOpen(false);
           }}
         />
       )}
-    </section>
+    </>
   );
 }

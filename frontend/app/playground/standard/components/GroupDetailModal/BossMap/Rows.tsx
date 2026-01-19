@@ -14,9 +14,27 @@ export default function BossRows(props: {
   highlightAbilities: string[];
   tradableSet: Set<string>;
   activeMembers: number[];
-  onSelect: (floor: number, boss: string, dropList: string[], tradableList: string[], dropLevel: 9 | 10) => void;
+
+  onSelect: (
+    floor: number,
+    boss: string,
+    dropList: string[],
+    tradableList: string[],
+    dropLevel: 9 | 10
+  ) => void;
+
+  onSelectSecondary?: (
+    floor: number,
+    boss: string,
+    dropList: string[],
+    dropLevel: 9 | 10
+  ) => void;
+
   // optional
   onChangeBoss?: (floor: 90 | 100) => void;
+
+  // ⭐ mutation toggle (异)
+  onToggleMutation?: (floor: number) => void;
 }) {
   const {
     floors,
@@ -27,30 +45,63 @@ export default function BossRows(props: {
     tradableSet,
     activeMembers,
     onSelect,
+    onSelectSecondary,
     onChangeBoss,
+    onToggleMutation,
   } = props;
+
+  console.log("[BossRows] render", { floors });
 
   return (
     <div className={styles.row}>
-      {floors.map((f) => (
-        <BossCard
-          key={f}
-          floor={f}
-          boss={resolveBoss(f)}
-          group={localGroup}
-          bossData={bossData}
-          highlightAbilities={highlightAbilities}
-          tradableSet={tradableSet}
-          kill={localGroup.kills?.find((k) => k.floor === f)}
-          activeMembers={activeMembers}
-          onSelect={onSelect}
-          onChangeBoss={
-            onChangeBoss
-              ? (floor) => onChangeBoss(floor)
-              : undefined
-          }
-        />
-      ))}
+      {floors.map((f) => {
+        const kill = localGroup.kills?.find((k) => k.floor === f);
+        const boss = resolveBoss(f);
+
+        const hasPrimaryDrop =
+          !!kill?.selection &&
+          !kill.selection.noDrop &&
+          !!kill.selection.ability;
+
+        console.log("[BossRows -> floor]", {
+          floor: f,
+          boss,
+          hasKill: !!kill,
+          hasPrimaryDrop,
+        });
+
+        return (
+          <BossCard
+            key={f}
+            floor={f}
+            boss={boss}
+            group={localGroup}
+            bossData={bossData}
+            highlightAbilities={highlightAbilities}
+            tradableSet={tradableSet}
+            kill={kill}
+            activeMembers={activeMembers}
+            onSelect={onSelect}
+            onSelectSecondary={onSelectSecondary}
+            onChangeBoss={
+              onChangeBoss
+                ? (floor) => {
+                    console.log("[BossRows CLICK 换]", floor);
+                    onChangeBoss(floor);
+                  }
+                : undefined
+            }
+            onToggleMutation={
+              onToggleMutation
+                ? (floor) => {
+                    console.log("[BossRows CLICK 异]", floor);
+                    onToggleMutation(floor);
+                  }
+                : undefined
+            }
+          />
+        );
+      })}
     </div>
   );
 }

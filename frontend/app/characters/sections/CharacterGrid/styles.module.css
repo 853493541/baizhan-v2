@@ -1,23 +1,16 @@
 /* =========================
    📦 Card Grid Layout
-   ========================= */
+========================= */
 .cardGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
   width: 100%;
   box-sizing: border-box;
 }
 
-/* Desktop: lock to 3 columns for perfect alignment */
+/* 📱 iPad Pro & up: force 4 columns */
 @media (min-width: 1024px) {
-  .cardGrid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-/* Ultra-wide screens: 4 columns */
-@media (min-width: 1440px) {
   .cardGrid {
     grid-template-columns: repeat(4, 1fr);
   }
@@ -25,21 +18,31 @@
 
 /* =========================
    🧩 Character Card
-   ========================= */
+========================= */
 .card {
   position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+
   border: 1px solid #ddd;
   border-radius: 10px;
-  padding: 20px;
-  min-width: 280px;
-  min-height: 180px;
-  cursor: pointer;
+
+  padding: 16px;              /* phone default */
   background: #fff;
+
+  cursor: pointer;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  min-width: 0;               /* ✅ critical */
+}
+
+/* 💻 Desktop polish */
+@media (min-width: 768px) {
+  .card {
+    padding: 20px;
+  }
 }
 
 .card:hover {
@@ -49,75 +52,76 @@
 
 .content {
   flex-grow: 1;
+  min-width: 0;
 }
 
+/* =========================
+   🧱 Header Area
+========================= */
 .headerRow {
   display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
+  align-items: center;
+  justify-content: space-between;
   gap: 8px;
-}
 
-.classIcon {
-  width: 28px;
-  height: 28px;
-  margin-top: 2px;
+  flex-wrap: nowrap;          /* 🔑 keep one line */
 }
 
 .nameBlock {
-  flex-grow: 1;
+  flex: 1;
+  min-width: 0;               /* 🔑 allow shrink */
 }
 
 .name {
   font-size: 1.05rem;
   font-weight: bold;
+
   display: flex;
   align-items: center;
   gap: 4px;
+
+  white-space: nowrap;        /* 🔑 prevent wrap */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.gender {
-  font-size: 1.2rem;
-  font-weight: bold;
-  line-height: 1;
-}
-
-.male {
-  color: #1e90ff;
-  text-shadow: 0 0 1px #000;
-}
-
-.female {
-  color: #ff1493;
-  text-shadow: 0 0 1px #000;
-}
-
-.server {
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin-top: 2px;
+.classIcon {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
 }
 
 /* =========================
-   ⚙️ Floating Settings Button (Top Right)
-   ========================= */
+   ⚙️ Header Actions
+========================= */
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  flex-shrink: 0;             /* 🔑 never wrap */
+}
+
+/* =========================
+   ⚙️ Action Buttons
+========================= */
 .iconButton {
-  position: absolute;
-  top: 10px;
-  right: 10px;
   background: none;
   border: none;
   color: #444;
+
   cursor: pointer;
   font-size: 22px;
-  width: 38px;
-  height: 38px;
+
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   transition: background 0.2s ease, color 0.2s ease, transform 0.1s ease;
-  z-index: 2;
 }
 
 .iconButton:hover {
@@ -132,19 +136,19 @@
 
 /* =========================
    🎨 Role Colors
-   ========================= */
+========================= */
 .tank {
-  background-color: #fff3cd; /* light yellow */
+  background-color: #fff3cd;
   color: #8b4513;
 }
 
 .dps {
-  background-color: #d4edda; /* light green */
+  background-color: #d4edda;
   color: #155724;
 }
 
 .healer {
-  background-color: #f8d7da; /* light pink */
+  background-color: #f8d7da;
   color: #721c24;
 }
 
@@ -152,4 +156,20 @@
   background-color: #e0e0e0;
   color: #000;
   opacity: 0.85;
+}
+
+/* =========================
+   ───────── Divider
+========================= */
+.divider {
+  grid-column: 1 / -1;
+  height: 1px;
+  margin: 4px 0;
+
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(0, 0, 0, 0.25),
+    transparent
+  );
 }

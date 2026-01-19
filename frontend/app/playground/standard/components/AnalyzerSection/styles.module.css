@@ -92,3 +92,41 @@
   position: relative;
   z-index: 1;
 }
+/* =========================================================
+   📱 Mobile Responsive (≤ 640px)
+========================================================= */
+@media (max-width: 640px) {
+  /* --- Tab Bar --- */
+  .tabBar {
+    gap: 4px;
+    overflow-x: auto;          /* allow horizontal scroll */
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0px;
+  }
+
+  /* hide scrollbar (mobile aesthetic) */
+  .tabBar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* --- Tabs --- */
+  .tabBtn {
+    flex: 0 0 auto;            /* prevent squish */
+    padding: 6px 12px 5px;     /* tighter */
+    font-size: 13px;
+    line-height: 1.5;
+    white-space: normal;       /* allow Chinese wrapping */
+    text-align: center;
+    min-width: 92px;           /* tap-friendly width */
+  }
+
+  .tabBtn.active {
+    box-shadow: none;          /* cleaner on mobile */
+  }
+
+  /* --- Tab Content --- */
+  .tabContent {
+    padding: 10px 10px;
+    border-radius: 0 0 10px 10px;
+  }
+}

@@ -129,7 +129,7 @@ export default function AbilityCoverage({ groups }: Props) {
                   // ❌ Only true error: none have the ability
                   if (count === 0) {
                     cellClass = styles.over;
-                    content = <span className={styles.cross}>✖</span>;
+                    content = <span className={styles.cross}>缺</span>;
                   }
                   // 🟢 count === 3 is now treated as OK (no icon)
 

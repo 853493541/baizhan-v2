@@ -26,7 +26,7 @@ export function calcBossNeeds({
     (ability) => !TRADABLE_SET.has(ability)
   );
 
-  const healerAbilities = ["万花金创药", "特制金创药", "毓秀灵药", "霞月长针","陀罗曲静壁","特制止血钳"];
+  const healerAbilities = ["万花金创药", "特制金创药", "毓秀灵药", "霞月长针","陀罗曲静壁","特制止血钳","云海听弦"];
 
   const includedChars = (group?.characters || []).filter(
     (_: any, i: number) => activeMembers.includes(i)

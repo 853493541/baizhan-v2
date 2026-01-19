@@ -172,3 +172,81 @@
   background: #f5c6cb;
   border-color: #b02a37;
 }
+/* =========================================
+   📱 Mobile Responsive Overrides
+========================================= */
+@media (max-width: 768px) {
+  .overlay {
+    padding: 12px;
+    align-items: center;     /* ✅ vertical center */
+    justify-content: center; /* ✅ horizontal center (explicit) */
+  }
+
+  /* Modal becomes full-width card */
+  .modal {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 10px;
+    padding: 14px;
+    max-height: calc(70vh - 24px);
+    overflow-y: auto;
+  }
+
+  /* Header tighter */
+  .headerRow {
+    margin-bottom: 10px;
+  }
+
+  .headerLeft {
+    font-size: 1rem;
+    gap: 4px;
+  }
+
+  .headerRight {
+    font-size: 0.85rem;
+  }
+
+  /* 🔁 Stack columns vertically */
+  .columns {
+    flex-direction: column;
+    gap: 14px;
+    align-items: stretch;
+  }
+
+  /* Footer buttons full-width friendly */
+  .footer {
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 14px;
+  }
+
+
+  /* Confirm modal scale */
+  .confirmModal {
+    width: 92vw;
+    min-width: unset;
+    padding: 14px;
+  }
+}
+@media (max-width: 768px) {
+  .columns {
+    flex-direction: row;      /* ✅ keep same row */
+    gap: 8px;
+    align-items: flex-start;
+  }
+}
+@media (max-width: 768px) {
+  .footer {
+    flex-direction: row;        /* ✅ keep same row */
+    justify-content: flex-end;  /* ✅ bottom right */
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .closeBtn,
+  .deleteBtn {
+    width: auto;                /* ✅ normal button width */
+    padding: 6px 12px;
+    font-size: 14px;
+  }
+}

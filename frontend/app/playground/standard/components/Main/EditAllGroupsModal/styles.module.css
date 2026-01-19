@@ -289,3 +289,111 @@
   color: #888 !important;
   opacity: 0.6;
 }
+/* =========================================================
+   📱 Mobile Responsive — 2 columns layout
+   (≤ 640px)
+========================================================= */
+@media (max-width: 640px) {
+  /* --- Modal sizing --- */
+  .characterModal {
+    width: 96%;
+    min-height: auto;
+    max-height: 92vh;
+    padding: 14px 12px 12px;
+  }
+
+  /* --- Header --- */
+  .headerRow {
+    margin-bottom: 8px;
+  }
+
+  .title {
+    font-size: 18px;
+  }
+
+  .closeTextBtn {
+    padding: 5px 12px;
+    font-size: 13px;
+  }
+
+  /* --- Group number buttons --- */
+  .groupNumberRow {
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .groupNumberBtn {
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+    border-radius: 8px;
+  }
+
+  /* --- Split layout → stack --- */
+  .splitLayout {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .leftPane,
+  .rightPane {
+    flex: unset;
+    width: 100%;
+  }
+
+  /* --- Account grid: 2 per row --- */
+  .accountGrid {
+    grid-template-columns: repeat(2, 1fr); /* ✅ 2 per row */
+    gap: 10px;
+  }
+
+  /* --- Account column --- */
+  .accountColumn,
+  .singleColumn {
+    padding: 8px;
+    border-radius: 8px;
+  }
+
+  .accountHeader,
+  .singleHeader {
+    font-size: 12px;
+    padding: 5px 8px;
+    margin-bottom: 8px;
+  }
+
+  /* --- Character list --- */
+  .characterList {
+    gap: 6px;
+  }
+
+  /* --- Character pill --- */
+  .characterPill {
+    padding: 6px 8px;
+    font-size: 12px;
+    min-height: 32px;
+  }
+
+  .charName {
+    font-size: 12px;
+    gap: 3px;
+  }
+
+  .starMark {
+    font-size: 12px;
+  }
+
+  .groupText {
+    font-size: 11px;
+  }
+}
+/* =========================================================
+   📱 Mobile — reduce modal height
+   (≤ 640px)
+========================================================= */
+@media (max-width: 640px) {
+  .characterModal {
+    max-height: 50vh;   /* ⬇ reduce overall height */
+    min-height: unset; /* ⬇ remove forced tall modal */
+    padding: 12px 12px 10px;
+  }
+}

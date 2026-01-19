@@ -1,23 +1,28 @@
-/* ---- Basic Info Section ---- */
-.section {
-  margin-bottom: 32px;
+/* =====================================================
+   HEADER BAR
+===================================================== */
+
+.headerBar {
+  /* ✅ do NOT fight the page container padding */
+  padding: 0 0 10px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #eee;
+  background: #fff;
 }
 
-.header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
+/* If this header is ever used outside a padded container, give it a tiny safe pad on phones */
+@media (max-width: 600px) {
+  .headerBar {
+    padding: 0 6px 10px;
+  }
 }
 
-.title {
-  font-size: 22px;
-  font-weight: 700;
-  color: #333;
-  margin: 0;
-}
+/* =====================================================
+   BACK BUTTON (UNCHANGED)
+===================================================== */
 
 .backBtn {
+  margin-bottom: 6px;
   padding: 6px 14px;
   border: 1px solid #ccc;
   border-radius: 6px;
@@ -25,114 +30,166 @@
   color: #333;
   font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .backBtn:hover {
   background: #eaeaea;
 }
 
-/* ---- Info Card ---- */
-.card {
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-  padding: 16px 20px;
-  border: 1px solid #eee;
-  width: 380px; /* stays left */
-}
+/* =====================================================
+   TITLE ROW (KEEP ACTIONS NEXT TO TITLE, NOT FAR RIGHT)
+===================================================== */
 
-.cardHeader {
+.titleRow {
+  margin-top: 5px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  gap: 10px;
+
+  /* ✅ keep one line */
+  flex-wrap: nowrap;
+
+  /* ✅ prevent title from stretching and pushing actions away */
+  justify-content: flex-start;
 }
 
-.cardTitle {
-  font-size: 16px;
-  font-weight: 600;
-  color: #444;
-  margin: 0;
-}
-
-/* Gear button fits better */
-.gearBtn {
-  background: transparent;
-  border: none;
-  color: #666;
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 50%;
-  transition: background 0.2s, color 0.2s;
-}
-
-.gearBtn:hover {
-  background: #f0f0f0;
-  color: #000;
-}
-
-.infoRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 6px 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.infoRow:last-child {
-  border-bottom: none;
-}
-
-.label {
-  font-weight: 600;
-  color: #555;
-}
-
-.value {
-  color: #222;
+/* Title */
+.headerTitle {
+  font-size: 20px;
   font-weight: 500;
-  text-align: right;
+  color: #1f2937;
+  line-height: 1.3;
+
+  /* ✅ key change: do NOT use flex: 1 here */
+  flex: 0 1 auto;
+  min-width: 0;
+
+  /* ✅ keep ONE line, ellipsis if too long */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  /* ✅ cap width so buttons stay visually “next to” title */
+  max-width: clamp(220px, 52vw, 720px);
 }
 
-/* ---- Modal ---- */
+/* Buttons next to title (stay close, not pushed to far right) */
+.titleActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  /* ✅ never wrap */
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+/* =====================================================
+   HEADER ICON BUTTONS (⚙ and ＋)
+===================================================== */
+
+.iconBtn,
+.iconBtnPrimary {
+  background: #eef4ff;
+  border: 1px solid #c7dbff;
+  border-radius: 8px;
+  padding: 5px 8px 7px; /* optical centering */
+
+  min-width: 32px;
+  min-height: 32px;
+
+  cursor: pointer;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.iconBtn:hover,
+.iconBtnPrimary:hover {
+  background: #dbeafe;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* =====================================================
+   EDIT WRAPPER + WARNING (KEEP INLINE, NEVER BREAK)
+===================================================== */
+
+.editWrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.countWarning {
+  /* ✅ keep it compact so phone layout doesn’t explode */
+  font-size: 16px;
+  font-weight: 700;
+  color: #d93025;
+
+  /* ✅ badge style to reduce “screaming” width */
+  background: #fde8e7;
+  border: 1px solid #f6c7c4;
+  padding: 2px 8px;
+  border-radius: 2px;
+
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+/* =====================================================
+   MODAL OVERLAY
+===================================================== */
+
 .modalOverlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.4);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 100;
 }
 
+/* =====================================================
+   MODAL CONTAINER
+===================================================== */
+
 .modal {
   background: #fff;
-  padding: 20px;
+  padding: 20px 22px;
   border-radius: 12px;
-  min-width: 320px;
-  max-width: 400px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+  min-width: 340px;
+  max-width: 420px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
   position: relative;
+
+  /* ✅ mobile safe */
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .modal h3 {
-  margin-top: 0;
-  margin-bottom: 1rem;
+  margin: 0 0 16px;
   font-size: 1.25rem;
   font-weight: 600;
   color: #2c3e50;
 }
+
+/* =====================================================
+   FORM ELEMENTS
+===================================================== */
 
 .modal label {
   font-size: 0.95rem;
   font-weight: 500;
   color: #34495e;
   display: block;
-  margin-bottom: 0.5rem;
+  margin-bottom: 12px;
 }
 
 .modal input {
@@ -149,12 +206,42 @@
   box-shadow: 0 0 4px rgba(79, 172, 254, 0.6);
 }
 
-/* ---- Modal Buttons ---- */
+/* =====================================================
+   READ-ONLY ROWS
+===================================================== */
+
+.readonlyRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 0.95rem;
+}
+
+.readonlyRow:last-of-type {
+  border-bottom: none;
+}
+
+.readonlyRow span:first-child {
+  font-weight: 600;
+  color: #555;
+}
+
+.readonlyRow span:last-child {
+  color: #222;
+  font-weight: 500;
+}
+
+/* =====================================================
+   MODAL BUTTONS
+===================================================== */
+
 .modalActions {
-  margin-top: 16px;
+  margin-top: 20px;
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 12px;
 }
 
 .saveBtn {
@@ -163,9 +250,8 @@
   font-weight: 600;
   border: none;
   border-radius: 6px;
-  padding: 6px 14px;
+  padding: 6px 16px;
   cursor: pointer;
-  transition: opacity 0.2s;
 }
 
 .saveBtn:hover {
@@ -179,13 +265,32 @@
   border-radius: 6px;
   padding: 6px 14px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .deleteBtn:hover {
   background: #f5c6cb;
 }
 
-/* ---- Close Button ---- */
+.cancelBtn {
+  background: #f0f0f0;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 6px 14px;
+  cursor: pointer;
+}
+
+.cancelBtn:hover {
+  background: #e2e2e2;
+}
+
+/* =====================================================
+   CLOSE BUTTON
+===================================================== */
+
 .closeBtn {
   position: absolute;
   top: 12px;
@@ -196,7 +301,6 @@
   color: #666;
   padding: 4px;
   border-radius: 50%;
-  transition: background 0.2s, color 0.2s;
 }
 
 .closeBtn:hover {
@@ -204,34 +308,14 @@
   color: #000;
 }
 
-/* ---- Responsive ---- */
-@media (max-width: 600px) {
-  .card {
-    width: 100%;
-  }
+/* =====================================================
+   DANGER CONFIRM
+===================================================== */
 
-  .infoRow {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
-
-  .label,
-  .value {
-    font-size: 14px;
-  }
-}
-.disabledBtn {
-  opacity: 0.6;
-  cursor: not-allowed;
-  background: #eee !important;
-  color: #888 !important;
-  border: 1px solid #ddd !important;
-}
 .warningText {
   color: #a94442;
   font-size: 0.95rem;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   line-height: 1.6;
 }
 
@@ -244,59 +328,87 @@
   font-size: 0.95rem;
 }
 
-.confirmInput:focus {
-  outline: none;
-  border-color: #d9534f;
-  box-shadow: 0 0 4px rgba(217, 83, 79, 0.4);
+/* =====================================================
+   DISABLED
+===================================================== */
+
+.disabledBtn {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #eee !important;
+  color: #888 !important;
+  border: 1px solid #ddd !important;
 }
 
-.cancelBtn {
-  background: #f0f0f0;
-  color: #333;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  padding: 6px 14px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
+/* =====================================================
+   MOBILE (PHONES)
+   - keep ONE LINE
+   - keep actions next to title
+   - shrink title width so it ellipses sooner
+===================================================== */
 
-.cancelBtn:hover {
-  background: #e2e2e2;
-}
-.addBtn {
-  background: none;
-  border: none;
-  padding: 4px;
-  cursor: pointer;
-  margin-left: 6px;
-  color: #444;
-}
+@media (max-width: 600px) {
+  .headerTitle {
+    font-size: 16px;
+    max-width: clamp(140px, 44vw, 260px);
+  }
 
-.addBtn:hover {
-  color: #000;
-  transform: scale(1.1);
-}
-.valueWithBtn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
+  .titleRow {
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
 
-.inlineAddBtn {
-  background: #4a8fff;
-  color: #fff;
-  border: none;
-  width: 22px;
-  height: 22px;
-  border-radius: 4px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  padding: 0;
-  transition: background 0.15s ease;
-}
+  .iconBtn,
+  .iconBtnPrimary {
+    min-width: 30px;
+    min-height: 30px;
+    padding: 4px 7px 6px;
+  }
 
-.inlineAddBtn:hover {
-  background: #3a7be0;
+  .countWarning {
+    font-size: 13px;
+    padding: 2px 6px;
+  }
+
+  .modal {
+    width: 92%;
+  }
+}
+/* =====================================================
+   PHONE LAYOUT OVERRIDE
+   - Row 1: title (full width)
+   - Row 2: actions + error
+===================================================== */
+
+@media (max-width: 600px) {
+  .titleRow {
+    flex-wrap: wrap;          /* allow second row */
+    align-items: flex-start;
+    gap: 6px 8px;             /* row-gap / column-gap */
+  }
+
+  /* Title becomes its own full row */
+  .headerTitle {
+    flex: 0 0 100%;
+    max-width: 100%;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Actions move to second row */
+  .titleActions {
+    flex: 0 0 auto;
+  }
+
+  .editWrapper {
+    flex: 0 0 auto;
+  }
+
+  /* Keep buttons + error inline */
+  .titleActions,
+  .editWrapper {
+    white-space: nowrap;
+  }
 }

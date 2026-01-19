@@ -1,0 +1,133 @@
+/* =========================================================
+   🎒 Backpack Display (Responsive, Safari-safe)
+========================================================= */
+
+.title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+/* ---------- List ---------- */
+.itemList {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 8px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #fafafa;
+}
+
+/* ---------- Row ---------- */
+.itemRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+.itemRow:hover {
+  background: #eef3f9;
+}
+
+/* ---------- Left (flexible) ---------- */
+.itemLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  flex: 1;
+  min-width: 0; /* 🔥 critical for Safari */
+}
+
+.abilityIcon {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+
+  object-fit: contain;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.nameGroup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.abilityName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  white-space: nowrap;
+}
+
+.abilityLevel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+/* ---------- Right (fixed actions) ---------- */
+.buttons {
+  display: inline-flex; /* 🔥 prevents Safari full-width */
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 auto;       /* 🔥 never grow/shrink */
+  white-space: nowrap;
+
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* ---------- Button variants ---------- */
+.useBtn {
+  background: #4caf50;
+  color: #fff;
+}
+.useBtn:hover:not(:disabled) {
+  background: #43a047;
+}
+
+.yellowBtn {
+  background: #ffc107;
+  color: #212529;
+}
+
+.deleteBtn {
+  background: #dc3545;
+  color: #fff;
+}
+.deleteBtn:hover {
+  background: #c82333;
+}

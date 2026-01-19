@@ -13,20 +13,20 @@ import Backpack from "./sections/Backpack";
 import ConfirmModal from "@/app/components/ConfirmModal";
 import styles from "./styles.module.css";
 
-import {
-  toastSuccess,
-  toastError,
-} from "@/app/components/toast/toast";
+import { toastSuccess, toastError } from "@/app/components/toast/toast";
 
 interface Character {
   _id: string;
   name: string;
   account: string;
+  owner: string;
   server: string;
   gender: "男" | "女";
   class: string;
   role: "DPS" | "Tank" | "Healer";
   active: boolean;
+  energy: number;
+  durability: number;
   abilities: Record<string, number>;
   storage?: any[];
 }
@@ -38,18 +38,13 @@ export default function CharacterDetailPage() {
 
   const [character, setCharacter] = useState<Character | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  /* ============================
-     Confirm state
-  ============================ */
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-  /* ============================
+  /* =========================
      Load character
-  ============================ */
+  ========================= */
   useEffect(() => {
     if (!characterId) return;
 
@@ -59,93 +54,55 @@ export default function CharacterDetailPage() {
         setCharacter(data);
         setLoading(false);
       })
-      .catch((err) => {
-        console.error(err);
-        setError("Failed to load character");
+      .catch(() => {
+        toastError("角色加载失败");
         setLoading(false);
       });
   }, [characterId, API_URL]);
 
-  /* ============================
-     Refresh after edit
-  ============================ */
-  const refreshAfterEdit = async () => {
+  /* =========================
+     Refresh helpers
+  ========================= */
+  const refreshCharacter = async () => {
     if (!characterId) return;
 
     try {
       const res = await fetch(`${API_URL}/api/characters/${characterId}`);
-      if (!res.ok) throw new Error("Refresh failed");
-
+      if (!res.ok) throw new Error();
       const updated = await res.json();
       setCharacter(updated);
-    } catch (err) {
-      console.error("❌ refreshAfterEdit error:", err);
+    } catch {
+      toastError("刷新角色失败");
     }
   };
 
-  /* ============================
-     Delete character (step 1)
-  ============================ */
-  const handleDelete = () => {
-    setConfirmOpen(true);
-  };
-
-  /* ============================
-     Delete character (step 2)
-  ============================ */
+  /* =========================
+     Delete flow
+  ========================= */
   const confirmDelete = async () => {
     if (!characterId) return;
-
     setConfirmOpen(false);
 
     try {
       const res = await fetch(`${API_URL}/api/characters/${characterId}`, {
         method: "DELETE",
       });
-
-      if (!res.ok) throw new Error("Delete failed");
+      if (!res.ok) throw new Error();
 
       toastSuccess("角色已删除");
       router.push("/characters");
-    } catch (err) {
-      console.error(err);
+    } catch {
       toastError("删除失败");
     }
   };
 
-  const cancelDelete = () => {
-    setConfirmOpen(false);
-  };
-
-  /* ============================
-     Refresh character (Backpack)
-  ============================ */
-  const refreshCharacter = async (): Promise<void> => {
-    if (!characterId) return;
-
-    try {
-      const res = await fetch(`${API_URL}/api/characters/${characterId}`);
-      if (!res.ok) throw new Error("刷新失败");
-
-      const updated = await res.json();
-      setCharacter(updated);
-    } catch (err) {
-      console.error("❌ refreshCharacter error:", err);
-      toastError("刷新角色失败，请稍后再试");
-    }
-  };
-
-  /* ============================
-     Render
-  ============================ */
   if (loading) return <p>Loading...</p>;
-  if (error) return <p>{error}</p>;
   if (!character) return <p>No character found</p>;
 
   return (
     <>
       <div className={styles.page}>
-        {/* === Header === */}
+        {/* ================= Header ================= */}
         <div className={styles.headerRow}>
           <button className={styles.backButton} onClick={() => router.back()}>
             ← 返回
@@ -153,29 +110,40 @@ export default function CharacterDetailPage() {
           <h1 className={styles.pageTitle}>角色详情</h1>
         </div>
 
-        {/* === Top Section === */}
+        {/* ================= TOP SECTION ================= */}
         <div className={styles.topGrid}>
-          <div className={styles.topLeft}>
+          {/* Character Basics */}
+          <div className={styles.topCol}>
             <CharacterBasics
               character={character}
-              onSave={refreshAfterEdit}
-              onDelete={handleDelete}
+              onSave={refreshCharacter}
+              onDelete={() => setConfirmOpen(true)}
             />
           </div>
 
-          <div className={styles.topRight}>
+          {/* Backpack */}
+          <div className={styles.topCol}>
+            <Backpack
+              character={character}
+              API_URL={API_URL}
+              refreshCharacter={refreshCharacter}
+            />
+          </div>
+
+          {/* OCR */}
+          <div className={styles.topCol}>
             <div className={styles.card}>
               <CharacterOCRSection
                 characterId={character._id}
                 currentAbilities={character.abilities}
-                onAbilitiesUpdated={(updatedAbilities) => {
+                onAbilitiesUpdated={(updated) => {
                   setCharacter((prev) =>
                     prev
                       ? {
                           ...prev,
                           abilities: {
                             ...prev.abilities,
-                            ...updatedAbilities,
+                            ...updated,
                           },
                         }
                       : prev
@@ -186,8 +154,9 @@ export default function CharacterDetailPage() {
           </div>
         </div>
 
-        {/* === Middle Section === */}
+        {/* ================= MIDDLE SECTION ================= */}
         <div className={styles.midGrid}>
+          {/* Ability highlights */}
           <div className={styles.leftStack}>
             <div className={styles.card}>
               <AbilityHighlights
@@ -195,14 +164,14 @@ export default function CharacterDetailPage() {
                 abilities={character.abilities}
                 characterGender={character.gender === "男" ? "male" : "female"}
                 characterClass={character.class}
-                onAbilityUpdate={(ability, newLevel) => {
+                onAbilityUpdate={(ability, level) => {
                   setCharacter((prev) =>
                     prev
                       ? {
                           ...prev,
                           abilities: {
                             ...prev.abilities,
-                            [ability]: newLevel,
+                            [ability]: level,
                           },
                         }
                       : prev
@@ -212,20 +181,20 @@ export default function CharacterDetailPage() {
             </div>
           </div>
 
-          {/* RIGHT → Editor + Backpack */}
+          {/* Ability editor */}
           <div className={styles.rightStack}>
             <div className={styles.halfCard}>
               <AbilityEditor
                 characterId={character._id}
                 abilities={character.abilities}
-                onAbilityUpdate={(ability, newLevel) => {
+                onAbilityUpdate={(ability, level) => {
                   setCharacter((prev) =>
                     prev
                       ? {
                           ...prev,
                           abilities: {
                             ...prev.abilities,
-                            [ability]: newLevel,
+                            [ability]: level,
                           },
                         }
                       : prev
@@ -233,18 +202,10 @@ export default function CharacterDetailPage() {
                 }}
               />
             </div>
-
-            <div className={styles.backpackSection}>
-              <Backpack
-                character={character}
-                API_URL={API_URL}
-                refreshCharacter={refreshCharacter}
-              />
-            </div>
           </div>
         </div>
 
-        {/* === Collection === */}
+        {/* ================= COLLECTION ================= */}
         <div className={styles.card}>
           <CollectionStatus character={character} />
         </div>
@@ -257,7 +218,7 @@ export default function CharacterDetailPage() {
           message="确认删除角色？"
           intent="danger"
           confirmText="删除"
-          onCancel={cancelDelete}
+          onCancel={() => setConfirmOpen(false)}
           onConfirm={confirmDelete}
         />
       )}

@@ -89,3 +89,106 @@ export const getGroupAdjustedBoss = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const toggleGroupDowngradedFloor = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { id, index } = req.params;
+    const { floor } = req.body;
+
+    const groupIndex = parseInt(index, 10);
+
+    // ✅ basic validation
+    if (typeof floor !== "number" || Number.isNaN(floor)) {
+      return res.status(400).json({
+        error: "floor must be a number",
+      });
+    }
+
+    // 🔍 fetch schedule (only groups needed)
+    const schedule = await StandardSchedule.findOne(
+      { _id: id, "groups.index": groupIndex },
+      { "groups.$": 1 }
+    );
+
+    if (!schedule || !schedule.groups?.length) {
+      return res.status(404).json({
+        error: "Schedule or group not found",
+      });
+    }
+
+    const group = schedule.groups[0];
+
+    const current = group.downgradedFloors ?? [];
+    const exists = current.includes(floor);
+
+    // 🔁 toggle logic
+    const nextFloors = exists
+      ? current.filter((f) => f !== floor)
+      : [...current, floor];
+
+    // ✅ persist update
+    const updated = await StandardSchedule.findOneAndUpdate(
+      { _id: id, "groups.index": groupIndex },
+      {
+        $set: {
+          "groups.$.downgradedFloors": nextFloors,
+        },
+      },
+      { new: true }
+    )
+      .populate("characters")
+      .populate("groups.characters");
+
+    if (!updated) {
+      return res.status(404).json({
+        error: "Failed to update group",
+      });
+    }
+
+    const updatedGroup = updated.groups.find(
+      (g: any) => g.index === groupIndex
+    );
+
+    res.json({
+      success: true,
+      group: updatedGroup,
+    });
+  } catch (err) {
+    console.error("❌ toggleGroupDowngradedFloor error:", err);
+    res.status(500).json({
+      error: "Failed to toggle downgraded floor",
+    });
+  }
+};
+export const getGroupDowngradedFloors = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { id, index } = req.params;
+    const groupIndex = parseInt(index, 10);
+
+    const schedule = await StandardSchedule.findOne(
+      { _id: id, "groups.index": groupIndex },
+      { "groups.$": 1 } // 🔥 fetch only this group
+    ).lean();
+
+    if (!schedule || !schedule.groups?.length) {
+      return res.status(404).json({ error: "Group not found" });
+    }
+
+    const group = schedule.groups[0];
+
+    res.json({
+      downgradedFloors: group.downgradedFloors ?? [],
+    });
+  } catch (err) {
+    console.error("❌ getGroupDowngradedFloors error:", err);
+    res.status(500).json({
+      error: "Failed to fetch downgraded floors",
+    });
+  }
+};

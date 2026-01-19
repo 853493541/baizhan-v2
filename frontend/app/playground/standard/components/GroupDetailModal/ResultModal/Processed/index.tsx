@@ -75,8 +75,11 @@ export default function Processed({
                     isLastChar ? styles.lastChar : ""
                   }`}
                 >
-                  {sortedList.map((a, i) => (
-                    <li key={i} className={styles.assignmentItem}>
+                  {sortedList.map((a) => (
+                    <li
+                      key={`${a.floor}-${a.slot}-${a.ability}`}
+                      className={styles.assignmentItem}
+                    >
                       <div className={styles.leftContent}>
                         <img
                           src={getAbilityIcon(a.ability)}

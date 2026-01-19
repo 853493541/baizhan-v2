@@ -7,12 +7,16 @@
   border-radius: 12px;
 }
 
+/* ============================= */
 /* === Header === */
+/* ============================= */
 .headerRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1rem;
   margin-bottom: 1.5rem;
+  flex-wrap: wrap;
 }
 
 .title {
@@ -29,16 +33,16 @@
 }
 
 .energy {
-  color: #7b3fe4; /* purple */
+  color: #7b3fe4;
 }
 
 .durability {
-  color: #e67e22; /* dark orange */
+  color: #e67e22;
 }
 
-/* ======================================== */
-/* 🧩 Section Card Containers (Normal/Elite/Challenge) */
-/* ======================================== */
+/* ============================= */
+/* 🧩 Section Card */
+/* ============================= */
 .sectionCard {
   background: #fff;
   border: 1px solid #ddd;
@@ -46,7 +50,6 @@
   padding: 1.2rem 1.4rem;
   margin-bottom: 1.5rem;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 /* === Section Title === */
@@ -59,56 +62,72 @@
   gap: 8px;
 }
 
-/* Accent bar before title */
 .sectionTitle::before {
   content: "";
-  display: inline-block;
   width: 6px;
   height: 18px;
   border-radius: 2px;
   background-color: #4e73df;
 }
 
-/* Distinct accent colors per section */
+/* Accent colors */
 .sectionCard:nth-of-type(1) .sectionTitle::before {
-  background-color: #4e73df; /* 普通 Boss - blue */
+  background-color: #4e73df;
 }
 .sectionCard:nth-of-type(2) .sectionTitle::before {
-  background-color: #28a745; /* 精英 Boss - green */
+  background-color: #28a745;
 }
 .sectionCard:nth-of-type(3) .sectionTitle::before {
-  background-color: #ff6b6b; /* 挑战 Boss - red */
+  background-color: #ff6b6b;
 }
 
-/* === Grid inside each section === */
+/* ============================= */
+/* 📐 Boss Grid (RESPONSIVE CORE) */
+/* ============================= */
 .cardGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 1rem;
 }
 
-/* ======================================== */
-/* 🧩 Boss Card Styles */
-/* ======================================== */
+/* Desktop */
+@media (min-width: 1201px) {
+  .cardGrid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+}
+
+/* Tablet */
+@media (max-width: 1200px) {
+  .cardGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Phone */
+@media (max-width: 600px) {
+  .cardGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================= */
+/* 🧩 Boss Card */
+/* ============================= */
 .bossCard {
   background: #fff;
   border: 1px solid #e2e2e2;
   border-radius: 10px;
   padding: 0.7rem 0.9rem;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
 }
-
-
 
 .bossCardComplete {
   background: #eaf8ec;
   border-color: #b4e0b8;
 }
 
-/* === Boss Header === */
+/* === Header === */
 .bossHeader {
   display: flex;
   justify-content: space-between;
@@ -122,13 +141,55 @@
   color: #333;
 }
 
+.bossProgress {
+  font-size: 0.8rem;
+  padding: 0;
+}
 
-/* === Missing Abilities === */
+/* Progress colors */
+.progressPink {
+  color: #d63384;
+  font-weight: 600;
+}
+
+.progressYellow {
+  color: #d4a017;
+  font-weight: 700;
+}
+
+.progressGreen {
+  color: #1e8c42;
+  font-weight: 700;
+}
+
+/* ============================= */
+/* 🧩 Missing Abilities Grid */
+/* ============================= */
 .missingGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
   gap: 0.45rem;
   margin-top: 0.4rem;
+}
+
+/* Desktop */
+@media (min-width: 901px) {
+  .missingGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+  .missingGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Phone */
+@media (max-width: 480px) {
+  .missingGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .abilityItem {
@@ -142,8 +203,8 @@
   width: 30px;
   height: 30px;
   object-fit: contain;
-  margin-bottom: 0.15rem;
   border-radius: 6px;
+  margin-bottom: 0.15rem;
 }
 
 .abilityName {
@@ -152,26 +213,43 @@
   line-height: 1.1;
   word-break: keep-all;
 }
-.bossProgress {
-  font-size: 0.8rem;
-  color: #666;
-  background-color:none;
 
-  padding: 0;       /* remove extra spacing */
-}
-/* === Progress Color States === */
-.progressPink {
-  color: #d63384; /* vivid rose pink */
-  font-weight: 600;
-}
+/* ============================= */
+/* 📱 Mobile Refinements */
+/* ============================= */
+@media (max-width: 600px) {
+  .collectionStatus {
+    padding: 1rem;
+  }
 
-.progressYellow {
-  color: #d4a017; /* deep golden yellow, readable on white */
-  font-weight: 700;
-  
-}
+  .headerRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 
-.progressGreen {
-  color: #1e8c42; /* strong medium green */
-  font-weight: 700;
+  .totalStats {
+    gap: 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .bossCard {
+    padding: 0.6rem 0.7rem;
+  }
+
+  .bossName {
+    font-size: 0.9rem;
+  }
+
+  .bossProgress {
+    font-size: 0.75rem;
+  }
+
+  .abilityIcon {
+    width: 26px;
+    height: 26px;
+  }
+
+  .abilityName {
+    font-size: 0.65rem;
+  }
 }

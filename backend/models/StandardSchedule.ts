@@ -23,6 +23,7 @@ interface Kill {
   boss: string;
   completed: boolean;
   selection?: KillSelection;
+  selectionSecondary?: KillSelection;  
   recordedAt: Date;
 }
 
@@ -39,6 +40,9 @@ interface Group {
   // ⭐ boss overrides (NEW)
   adjusted90?: string | null;
   adjusted100?: string | null;
+
+
+    downgradedFloors: number[];
 }
 
 export interface IStandardSchedule extends Document {
@@ -82,6 +86,18 @@ const KillSchema = new Schema<Kill>(
         default: "assigned",
       },
     },
+        // ⭐ secondary drop (NEW)
+    selectionSecondary: {
+      ability: { type: String },
+      level: { type: Number },
+      characterId: { type: Schema.Types.ObjectId, ref: "Character" },
+      noDrop: { type: Boolean },
+      status: {
+        type: String,
+        enum: ["assigned", "pending", "used", "saved"],
+      },
+    },
+
 
     recordedAt: { type: Date, default: Date.now },
   },
@@ -109,6 +125,11 @@ const GroupSchema = new Schema<Group>(
     // ⭐ boss overrides
     adjusted90: { type: String, default: null },
     adjusted100: { type: String, default: null },
+
+
+     downgradedFloors: { type: [Number], default: [] },
+
+     
   },
   { _id: false }
 );

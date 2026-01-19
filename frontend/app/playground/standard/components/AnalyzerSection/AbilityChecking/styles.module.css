@@ -2,10 +2,8 @@
    Main Wrapper
 ================================ */
 .previewBox {
-  border: none;
-  border-radius: 0;
-  padding: 0;
   margin-top: 10px;
+  padding: 0;
   background: transparent;
 }
 
@@ -15,7 +13,6 @@
 .headerRow {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
   margin-bottom: 8px;
 }
 
@@ -31,8 +28,8 @@
   background: #f7f7f7;
   cursor: pointer;
   font-size: 14px;
-  color: #333;
   font-weight: 500;
+  color: #333;
   transition: all 0.2s ease;
 }
 
@@ -50,26 +47,26 @@
 }
 
 /* ===============================
-   Table
+   Table Wrapper
 ================================ */
 .tableWrapper {
   overflow-x: auto;
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  padding: 0;
-  box-shadow: none;
 }
 
+/* ===============================
+   Table Core
+================================ */
 .chartTable {
   width: 100%;
   border-collapse: collapse;
-  min-width: 600px;
+  table-layout: fixed;
   font-size: 13px;
 }
 
+/* Ensure width math is sane */
 .chartTable th,
 .chartTable td {
+  box-sizing: border-box;
   border: 1px solid #ddd;
   padding: 6px 8px;
   text-align: center;
@@ -87,8 +84,13 @@
 }
 
 /* ===============================
-   Ability Cells
+   Ability Column
 ================================ */
+.chartTable th:first-child,
+.chartTable td:first-child {
+  width: 130px;
+}
+
 .abilityCell {
   display: flex;
   align-items: center;
@@ -103,41 +105,41 @@
 }
 
 /* ===============================
-   Cell States (FIRST-GLANCE ONLY)
+   Group Cells
 ================================ */
 .cell {
+  width: 30px;
+  min-width: 30px;
+  max-width: 30px;
+  padding: 4px 2px;
   font-size: 15px;
   font-weight: 600;
   white-space: pre-line;
 }
 
-/* ✅ OK — fades into background */
+/* OK state */
 .ok {
   color: #2f855a;
   background: #f7fff9;
 }
 
-/* ❌ OVER — subtle, calm, visible */
+/* OVER state */
 .over {
-  background-color: #ffecee; /* extremely light red */
+  background-color: #ffecee;
   color: #dc2626;
 }
 
-/* ❌ icon — restrained */
 .cross {
-  color: #dc2626;
   font-size: 14px;
   font-weight: 600;
   opacity: 0.85;
 }
 
 /* ===============================
-   Hover Tooltip (unchanged logic)
-   (still allowed, but NOT required)
+   Hover Tooltip
 ================================ */
 .hoverBox {
   position: fixed;
-  display: inline-block;
   background: #fff;
   border: 1px solid #eee;
   border-radius: 10px;
@@ -168,21 +170,17 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #444;
-  white-space: nowrap;
 }
 
 /* ===============================
    Role Badges
 ================================ */
 .roleBadge {
-  display: inline-block;
   padding: 2px 8px;
   border-radius: 6px;
   font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
-  margin-top: 2px;
 }
 
 .tank {
@@ -211,5 +209,69 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+/* =========================================================
+   📱 Mobile: horizontal scroll, fixed cell widths
+   (≤ 640px)
+========================================================= */
+@media (max-width: 640px) {
+  /* --- Wrapper scroll --- */
+  .tableWrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* --- Table sizing --- */
+  .chartTable {
+    width: max-content;      /* 🔑 let table grow naturally */
+    min-width: 100%;
+    table-layout: fixed;
+  }
+
+  /* --- Ability column --- */
+  .chartTable th:first-child,
+  .chartTable td:first-child {
+    width: 120px;
+    min-width: 120px;
+  }
+
+  /* --- Each boss / group column --- */
+  .cell {
+    width: 36px;
+    min-width: 36px;
+    max-width: 36px;
+    padding: 4px 2px;
+    font-size: 14px;
+  }
+
+  .chartTable th:not(:first-child),
+  .chartTable td:not(:first-child) {
+    width: 36px;
+    min-width: 36px;
+  }
+
+  /* --- Header compact --- */
+  .chartTable th {
+    font-size: 12px;
+    padding: 5px 4px;
+    white-space: nowrap;
+  }
+
+  /* --- Ability cell tighter --- */
+  .abilityCell {
+    gap: 5px;
+    font-size: 12px;
+  }
+
+  .icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* --- Toggle buttons tighter --- */
+  .toggleBtn {
+    padding: 5px 10px;
+    font-size: 13px;
   }
 }

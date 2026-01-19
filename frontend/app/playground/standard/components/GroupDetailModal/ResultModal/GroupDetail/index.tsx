@@ -135,6 +135,15 @@ export default function GroupDetail({ group, checkedAbilities }: Props) {
     [allAbilityCounts, checkedLv10Set]
   );
 
+  /* ===============================
+     Core ability UI state
+  ================================ */
+  const getCoreStateClass = (count: number) => {
+    if (count === 0) return styles.coreMissing;
+    if (count === 3) return styles.coreFull;
+    return styles.corePartial;
+  };
+
   return (
     <div className={styles.box}>
       <div className={styles.title}>信息</div>
@@ -162,7 +171,7 @@ export default function GroupDetail({ group, checkedAbilities }: Props) {
         {coreAbilities.map((ab) => (
           <div
             key={ab.name}
-            className={styles.abilityItem}
+            className={`${styles.abilityItem} ${getCoreStateClass(ab.count)}`}
             title={`${ab.name} × ${ab.count}`}
           >
             <img
@@ -187,7 +196,7 @@ export default function GroupDetail({ group, checkedAbilities }: Props) {
       {wastedAbilities.length === 0 ? (
         <div className={styles.emptyBox}>无浪费技能</div>
       ) : (
-        <div className={`${styles.abilityGrid} ${styles.wastedGrid}`}>
+        <div className={styles.wastedRow}>
           {wastedAbilities.map((name) => (
             <div
               key={name}

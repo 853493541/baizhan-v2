@@ -19,7 +19,9 @@ export default function RecommandWindow({
 
   /* 🪶 取最后一个成功或 fallback 原因，作为摘要显示 */
   const summary =
-    [...steps].reverse().find((s) => s.passed === true || s.passed === "fallback")
+    [...steps]
+      .reverse()
+      .find((s) => s.passed === true || s.passed === "fallback")
       ?.reason || "暂无推荐理由";
 
   const getClass = (passed: boolean | "fallback" | undefined) => {
@@ -43,29 +45,37 @@ export default function RecommandWindow({
         </button>
       </div>
 
-      {/* === Modal window (only shown when open) === */}
+      {/* === Modal overlay + window === */}
       {open && (
-        <div className={styles.window}>
-          <div className={styles.header}>
-            <span className={styles.title}>推荐决策过程</span>
-            <button
-              className={styles.closeBtn}
-              onClick={() => setOpen(false)}
-              aria-label="关闭"
-              title="关闭"
-            >
-              ✕
-            </button>
-          </div>
+        <div
+          className={styles.windowOverlay}
+          onClick={() => setOpen(false)}
+        >
+          <div
+            className={styles.window}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.header}>
+              <span className={styles.title}>推荐决策过程</span>
+              <button
+                className={styles.closeBtn}
+                onClick={() => setOpen(false)}
+                aria-label="关闭"
+                title="关闭"
+              >
+                ✕
+              </button>
+            </div>
 
-          <div className={styles.content}>
-            <ul className={styles.stepList}>
-              {steps.map((step, i) => (
-                <li key={i} className={getClass(step.passed)}>
-                  {step.reason}
-                </li>
-              ))}
-            </ul>
+            <div className={styles.content}>
+              <ul className={styles.stepList}>
+                {steps.map((step, i) => (
+                  <li key={i} className={getClass(step.passed)}>
+                    {step.reason}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       )}
