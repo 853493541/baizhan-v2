@@ -73,6 +73,14 @@ export default function CharacterFilters(props: Props) {
     { name: string; icon: string }[]
   >([]);
 
+  /**
+   * IMPORTANT:
+   * This component is now a PURE VIEW.
+   * - Dropdown options come from parent-provided COMPLETE metadata
+   * - No caching, no normalization, no side effects
+   * - All state authority lives in the parent
+   */
+
   const DISPLAY_ABILITIES = [...CORE_ABILITIES, ...extraAbilities];
 
   const handleAbilityToggle = (ability: string) => {

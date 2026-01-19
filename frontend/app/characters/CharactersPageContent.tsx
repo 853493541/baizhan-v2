@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
 import CreateCharacterModal from "@/app/characters/components/CreateCharacterModal";
@@ -18,7 +18,7 @@ export default function CharactersPageContent() {
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setModalOpen] = useState(false);
 
-  // 🔒 Cached dropdown sources (NEVER filtered)
+  // ✅ TRUE metadata cache (UNFILTERED, COMPLETE)
   const [allOwners, setAllOwners] = useState<string[]>([]);
   const [allServers, setAllServers] = useState<string[]>([]);
 
@@ -35,6 +35,7 @@ export default function CharactersPageContent() {
   const [activeOnly, setActiveOnly] = useState(true);
   const [tradableOnly, setTradableOnly] = useState(false);
 
+  // 🔐 restore gate
   const [restored, setRestored] = useState(false);
 
   const abilityFilters =
@@ -42,7 +43,7 @@ export default function CharactersPageContent() {
       ? selectedAbilities.map((a) => ({ ability: a, level: globalLevel }))
       : [];
 
-  /* -------------------- 🔹 Session Restore -------------------- */
+  /* -------------------- 🔹 Session Restore (FIRST) -------------------- */
   useEffect(() => {
     const saved = sessionStorage.getItem("characterFilters");
     if (saved) {
@@ -57,12 +58,19 @@ export default function CharactersPageContent() {
         setActiveOnly(
           typeof parsed.activeOnly === "boolean" ? parsed.activeOnly : true
         );
-        setTradableOnly(!!parsed.tradableOnly);
-      } catch {}
+        setTradableOnly(
+          typeof parsed.tradableOnly === "boolean"
+            ? parsed.tradableOnly
+            : false
+        );
+      } catch {
+        // ignore corrupted cache
+      }
     }
     setRestored(true);
   }, []);
 
+  /* -------------------- 🔹 Persist Session (AFTER restore) -------------------- */
   useEffect(() => {
     if (!restored) return;
     sessionStorage.setItem(
@@ -90,41 +98,37 @@ export default function CharactersPageContent() {
     tradableOnly,
   ]);
 
-  /* -------------------- 🔹 Initial load (CACHE) -------------------- */
+  /* -------------------- 🔹 LOAD FILTER METADATA (UNFILTERED, ONCE) -------------------- */
   useEffect(() => {
-    const loadInitial = async () => {
+    const fetchMeta = async () => {
       try {
         const res = await fetch(
           `${API_URL}/api/characters/page/filter`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({}),
+            body: JSON.stringify({}), // ✅ ALWAYS unfiltered
           }
         );
 
-        if (!res.ok) throw new Error("初始化加载失败");
+        if (!res.ok) throw new Error("meta load failed");
 
         const data: Character[] = await res.json();
-        setCharacters(data);
 
-        // 🔒 Cache dropdown sources ONCE
         setAllOwners([...new Set(data.map((c) => c.owner))]);
         setAllServers([...new Set(data.map((c) => c.server))]);
       } catch (err) {
-        console.error(err);
-        setError("角色加载失败");
-      } finally {
-        setInitialLoading(false);
+        console.error("Failed to load filter metadata", err);
       }
     };
 
-    loadInitial();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    fetchMeta();
+  }, [API_URL]);
 
-  /* -------------------- 🔹 Backend Filter Fetch -------------------- */
-  const fetchFilteredCharacters = async () => {
+  /* -------------------- 🔹 Backend Filter Fetch (GRID ONLY) -------------------- */
+  const fetchFilteredCharacters = useCallback(async () => {
+    if (!restored) return;
+
     try {
       setFiltering(true);
 
@@ -138,7 +142,7 @@ export default function CharactersPageContent() {
             owner: ownerFilter || undefined,
             server: serverFilter || undefined,
             role: roleFilter || undefined,
-            active: activeOnly,
+            active: activeOnly, // ✅ always boolean
             tradable: tradableOnly ? true : undefined,
             abilityFilters,
           }),
@@ -147,22 +151,18 @@ export default function CharactersPageContent() {
 
       if (!res.ok) throw new Error("加载失败");
 
-      const data = await res.json();
+      const data: Character[] = await res.json();
       setCharacters(data);
     } catch (err) {
       console.error(err);
       setError("角色加载失败");
     } finally {
       setFiltering(false);
+      setInitialLoading(false);
     }
-  };
-
-  /* Any filter change */
-  useEffect(() => {
-    if (!restored) return;
-    fetchFilteredCharacters();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
+    restored,
+    API_URL,
     nameFilter,
     ownerFilter,
     serverFilter,
@@ -170,6 +170,22 @@ export default function CharactersPageContent() {
     activeOnly,
     tradableOnly,
     JSON.stringify(abilityFilters),
+  ]);
+
+  /* -------------------- 🔹 React to filter changes (AND first load) -------------------- */
+  useEffect(() => {
+    if (!restored) return;
+    fetchFilteredCharacters();
+  }, [
+    restored,
+    nameFilter,
+    ownerFilter,
+    serverFilter,
+    roleFilter,
+    activeOnly,
+    tradableOnly,
+    JSON.stringify(abilityFilters),
+    fetchFilteredCharacters,
   ]);
 
   /* -------------------- 🔹 Create Character -------------------- */
@@ -215,8 +231,8 @@ export default function CharactersPageContent() {
         roleFilter={roleFilter}
         activeOnly={activeOnly}
         tradableOnly={tradableOnly}
-        uniqueOwners={allOwners}     // ✅ FIXED
-        uniqueServers={allServers}   // ✅ FIXED
+        uniqueOwners={allOwners}   // ✅ COMPLETE, UNFILTERED
+        uniqueServers={allServers} // ✅ COMPLETE, UNFILTERED
         selectedAbilities={selectedAbilities}
         globalLevel={globalLevel}
         setOwnerFilter={setOwnerFilter}
