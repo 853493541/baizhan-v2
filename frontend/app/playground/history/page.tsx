@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import StandardScheduleList from "../components/StandardScheduleList";
-import styles from "../styles.module.css";
+import styles from "./styles.module.css";
 import { getCurrentGameWeek } from "@/utils/weekUtils";
 
 interface StandardSchedule {
@@ -62,7 +62,7 @@ export default function HistoryPage() {
 
   return (
     <div className={styles.container}>
-      <h2 className={styles.title}>历史排表</h2>
+      <div className={styles.title}>历史排表</div>
 
       {loading ? (
         <p className={styles.loading}>加载中...</p>
