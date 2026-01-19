@@ -3,15 +3,13 @@
 .container {
   display: flex;
   flex-direction: column;
-
-  /* 🔑 IMPORTANT: allow children to stretch full width */
   align-items: stretch;
 
-  padding: 48px 20px;
+  padding: 10px 20px;
   min-height: 100%;
   box-sizing: border-box;
 
-  max-width: 1200px;
+  max-width: 1280px;
   margin: 0 auto;
 }
 
@@ -26,7 +24,6 @@
   font-size: 2.2rem;
   font-weight: 700;
   margin-bottom: 6px;
-  
 }
 
 .subtitle {
@@ -43,15 +40,7 @@
 
   width: 100%;
   max-width: 900px;
-
-  margin: 0 auto 0px; /* center + strong separation */
-}
-
-/* Mobile fallback */
-@media (max-width: 520px) {
-  .quickAccess {
-    grid-template-columns: 1fr;
-  }
+  margin: 0 auto;
 }
 
 .card {
@@ -61,7 +50,7 @@
   align-items: center;
   justify-content: center;
 
-  border: 1.5px solid #bfdbfe; /* light blue border */
+  border: 1.5px solid #bfdbfe;
   border-radius: 12px;
   background: #ffffff;
 
@@ -85,20 +74,20 @@
 /* ================= Week Section ================= */
 
 .weekSection {
-  width: 85%;                 /* ✅ take middle 80% */
- 
-  margin: 40px auto 48px;     /* ✅ center horizontally */
+  width: 85%;
+  max-width: 900px;
 
+  margin: 40px auto 20px;
   padding-top: 12px;
+
   border-top: 1px solid #eef2f7;
-  
 }
 
 .sectionTitle {
   font-size: 1.5rem;
   font-weight: 600;
   margin-bottom: 16px;
-  text-align: center; /* ✅ */
+  text-align: center;
 }
 
 .muted {
@@ -117,4 +106,61 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+/* ================= Mobile (Phone) ================= */
+
+@media (max-width: 640px) {
+  /* Container */
+  .container {
+    padding: 5px 12px;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 5px;
+  }
+
+  .title {
+    font-size: 1.85rem;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+  }
+
+  /* Quick Access — keep 2 per row */
+  .quickAccess {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 0px;
+  }
+
+  .card {
+    height: 64px;
+    font-size: 0.95rem;
+  }
+
+  /* Week Section */
+  .weekSection {
+    width: 95%;
+      margin: 10px auto 5px;
+  padding-top: 6px;
+
+  border-top: 1px solid #eef2f7;
+
+  }
+
+  .sectionTitle {
+    font-size: 1.2rem;
+    margin-bottom: 5px;
+  }
+
+  /* Footer */
+  .footer {
+    font-size: 0.85rem;
+  }
+
+
+
 }
