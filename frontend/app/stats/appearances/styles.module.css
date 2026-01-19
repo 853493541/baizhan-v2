@@ -3,6 +3,8 @@
 =========================== */
 .page {
   padding: 20px 30px;
+    max-width: 1280px;
+   margin: 0 auto;
 }
 
 .title {
