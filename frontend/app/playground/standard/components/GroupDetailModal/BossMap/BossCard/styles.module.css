@@ -365,8 +365,8 @@
   /* card size contract */
   .card {
     min-width: 120px;
-    max-width: 120px;
-    min-height: 120px;
+    max-width: 100px;
+    min-height: 100px;
     max-height: 120px;
 
     padding: 6px;
