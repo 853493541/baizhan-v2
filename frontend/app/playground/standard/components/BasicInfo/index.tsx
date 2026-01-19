@@ -135,7 +135,7 @@ export default function ScheduleHeader({
 
               {isInvalidCount && (
                 <span className={styles.countWarning}>
-                  排表人数错误！（{localSchedule.characterCount}）
+                  ❌ 排表人数错误（{localSchedule.characterCount}）
                 </span>
               )}
             </div>
