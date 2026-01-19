@@ -1,38 +1,40 @@
 /* =====================================================
-   CLEANED & FINAL — MIDSECTION SCROLL (AUTHORITATIVE)
+   MODAL OVERLAY — SINGLE AUTHORITATIVE DEFINITION
    ===================================================== */
-
-/* === Overlay + modal === */
 .overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  
-  justify-content: center;
-  align-items: center;
+
+  display: flex;               /* ✅ REQUIRED */
+  justify-content: center;     /* ✅ horizontal centering */
+  align-items: center;         /* ✅ vertical centering */
+
   z-index: 1000;
-  /* border:red solid 2px; */
-  display: block; 
 }
 
+/* =====================================================
+   MODAL CONTAINER
+   ===================================================== */
 .modal {
   background: white;
   padding: 24px;
   border-radius: 8px;
+
   width: 95%;
   max-width: 1500px;
   max-height: 95vh;
+
+  margin: 0;                   /* 🔑 do NOT center here */
+  box-sizing: border-box;
   position: relative;
-    justify-content: center;
 
   overflow-y: auto;
-  overflow-x: hidden; /* 🔒 modal never scrolls horizontally */
+  overflow-x: hidden;          /* 🔒 never horizontal scroll */
 }
 
-
 /* =====================================================
-   MID SECTION — SINGLE SCROLL CONTAINER (KEY)
+   MID SECTION — SINGLE HORIZONTAL SCROLL AREA
    ===================================================== */
 .midSection {
   display: flex;
@@ -40,14 +42,15 @@
   width: 100%;
   min-height: 350px;
 
-  overflow-x: auto;          /* ✅ SCROLL LIVES HERE */
+  overflow-x: auto;            /* ✅ scroll lives HERE */
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
+  margin-bottom:10px;
 }
 
-/* 🔥 Force overflow so scrolling actually happens */
+/* Force scroll width */
 .midSection > * {
-  min-width: 900px;          /* adjust if needed */
+  min-width: 900px;
 }
 
 /* =====================================================
@@ -68,144 +71,15 @@
   flex: 0 0 220px;
 }
 
-/* Middle panels */
+/* Flexible middle panels */
 .row > :nth-child(2),
 .row > :nth-child(3) {
   flex: 1 1 0;
 }
 
 /* =====================================================
-   📱 PHONE
-===================================================== */
-@media (max-width: 768px) {
-
-  .overlay {
-    align-items: flex-start;
-    padding: 24px 12px;
-  }
-
-  .modal {
-    width: 100%;
-    max-width: 420px;
-    padding: 14px;
-    border-radius: 12px;
-  }
-
-  /* Stack internal layout vertically */
-  .row {
-    flex-direction: column;
-    gap: 14px;
-  }
-
-  /* Fixed panels relax */
-  .row > :nth-child(1),
-  .row > :nth-child(4) {
-    width: 100%;
-  }
-}
-/* =====================================================
-   🔧 FIX — CENTER THE MODAL HORIZONTALLY (AND VERTICALLY)
+   CLOSE BUTTON
    ===================================================== */
-
-/* Overlay MUST center its direct child */
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-
-  display: flex;
-  justify-content: center;   /* ✅ horizontal center */
-  align-items: center;       /* ✅ vertical center */
-
-  z-index: 1000;
-}
-
-/* Modal must NOT have margins that break centering */
-.modal {
-  background: white;
-  padding: 24px;
-  border-radius: 8px;
-
-  width: 95%;
-  max-width: 1500px;
-  max-height: 95vh;
-
-  margin: 0;                 /* 🔥 remove any implicit margin */
-  position: relative;
-
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-/* =====================================================
-   📱 PHONE — still centered, but top-aligned
-   ===================================================== */
-@media (max-width: 768px) {
-  .overlay {
-    align-items: flex-start; /* phone UX choice */
-    padding: 24px 12px;
-
-  }
-
-  .modal {
-    width: 100%;
-    max-width: 420px;
-    height:75vh;
-    margin-left: auto;       /* ✅ explicit horizontal centering */
-    margin-right: auto;
-  }
-}
-/* =====================================================
-   OVERLAY — true centering container
-===================================================== */
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-
-  display: flex;
-  justify-content: center;   /* horizontal center */
-  align-items: center;       /* vertical center */
-
-  z-index: 1000;
-}
-
-/* =====================================================
-   MODAL — centered by parent, NOT by itself
-===================================================== */
-.modal {
-  background: white;
-  padding: 24px;
-  border-radius: 8px;
-
-  width: 95%;
-  max-width: 1500px;
-  max-height: 95vh;
-
-  margin: 0;                 /* 🔑 IMPORTANT */
-  box-sizing: border-box;
-
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-/* =====================================================
-   📱 PHONE — visually centered card
-===================================================== */
-@media (max-width: 768px) {
-  .overlay {
-    align-items: flex-start;     /* phone UX */
-    padding: 24px 12px;
-  }
-
-  .modal {
-    width: 100%;
-    max-width: 420px;
-
-    margin-left: auto;          /* 🔥 force visual centering */
-    margin-right: auto;
-  }
-}
 .closeBtn {
   position: absolute;
   top: 18px;
@@ -220,8 +94,8 @@
 
   font-size: 28px;
   line-height: 1;
-
   cursor: pointer;
+
   color: #666;
 
   display: flex;
@@ -234,4 +108,42 @@
 .closeBtn:hover {
   background: rgba(0, 0, 0, 0.06);
   color: #111;
+}
+
+/* =====================================================
+   📱 MOBILE
+   ===================================================== */
+@media (max-width: 768px) {
+  .overlay {
+    align-items: flex-start;   /* mobile UX */
+    padding: 24px 12px;
+  }
+
+  .modal {
+    top:10vh;
+    height:75vh;
+
+    width: 100%;
+    max-width: 420px;
+    padding: 14px;
+    border-radius: 12px;
+
+    margin-left: auto;         /* force horizontal centering */
+    margin-right: auto;
+    margin-bottom:5px;
+  }
+
+  .row {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .row > :nth-child(1),
+  .row > :nth-child(4) {
+    width: 100%;
+  }
+
+  .closeBtn {
+    top:12px;
+  }
 }
