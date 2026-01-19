@@ -9,28 +9,31 @@
 }
 
 /* ============================================
-   MODAL BOX — SAME AS OTHER MODAL
+   MODAL BOX — DESKTOP / IPAD (UNCHANGED)
 ============================================ */
 .characterModal {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+
   width: 85%;
   max-width: 1100px;
   max-height: 85vh;
-  min-height: 730px;                 /* ⭐ SAME MIN HEIGHT */
+  min-height: 730px;
+
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
   padding: 20px 20px 16px;
+
   overflow-y: auto;
   box-sizing: border-box;
   z-index: 1000;
 }
 
 /* ============================================
-   HEADER — SAME LOOK
+   HEADER
 ============================================ */
 .headerRow {
   position: relative;
@@ -41,7 +44,6 @@
   margin-bottom: 10px;
 }
 
-/* Title */
 .title {
   position: absolute;
   left: 50%;
@@ -63,12 +65,12 @@
   font-weight: 700;
 }
 
-/* Close button */
 .closeTextBtn {
   position: absolute;
   right: 10px;
   top: 50%;
   transform: translateY(-50%);
+
   background: #4a8fff;
   border: none;
   padding: 6px 14px;
@@ -87,12 +89,13 @@
 }
 
 /* ============================================
-   SERVER FILTER BAR — MATCH SPACING
+   SERVER FILTER BAR
 ============================================ */
 .serverFilterRow {
   display: flex;
   gap: 8px;
   margin-bottom: 18px;
+  flex-wrap: wrap;
 }
 
 .serverFilterBtn {
@@ -117,7 +120,7 @@
 }
 
 /* ============================================
-   LAYOUT (兩欄版)
+   LAYOUT — DESKTOP / IPAD
 ============================================ */
 .splitLayout {
   display: flex;
@@ -133,7 +136,7 @@
 }
 
 /* ============================================
-   ACCOUNT GRID (左側四欄)
+   ACCOUNT GRID
 ============================================ */
 .accountGrid {
   display: grid;
@@ -156,7 +159,6 @@
   padding: 10px;
 }
 
-/* Headers */
 .accountHeader,
 .singleHeader {
   background: #f5f5f5;
@@ -172,7 +174,7 @@
 }
 
 /* ============================================
-   CHARACTER LIST — SAME SPACING
+   CHARACTER LIST / PILL
 ============================================ */
 .characterList {
   display: flex;
@@ -180,16 +182,12 @@
   gap: 8px;
 }
 
-/* ============================================
-   CHARACTER PILL — MATCH OTHER MODAL EXACTLY
-============================================ */
 .characterPill {
   display: flex;
   align-items: center;
-  justify-content: flex-start;       /* ⭐ LEFT ALIGN TEXT */
+  justify-content: flex-start;
   border-radius: 6px;
-  padding: 6px 10px;
-  padding-left: 12px;                /* ⭐ same spacing */
+  padding: 6px 10px 6px 12px;
   font-size: 13px;
   font-weight: 600;
   border: 1px solid rgba(0, 0, 0, 0.05);
@@ -201,7 +199,6 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
 }
 
-/* Selected colors */
 .tank {
   background: #fff8d7;
   color: #6b4e00;
@@ -217,30 +214,84 @@
   color: #842029;
 }
 
-/* Inactive */
 .inactive {
   background: #f2f2f2 !important;
   color: #888 !important;
 }
 
-/* ============================================
-   STAR — MATCH OTHER MODAL
-============================================ */
 .starMark {
   font-size: 13px;
   font-weight: 900;
-  color: #000 !important;       /* ⭐ BLACK */
+  color: #000 !important;
   margin-right: 4px;
 }
 
-/* Name */
 .charName {
   display: flex;
   align-items: center;
   gap: 4px;
 }
-/* When the pill is inactive, star should also become gray */
+
 .inactive .starMark {
   color: #888 !important;
   opacity: 0.6;
+}
+
+/* ======================================================
+   📱 PHONE REFINEMENT ONLY (≤600px)
+====================================================== */
+@media (max-width: 600px) {
+  /* modal should NOT fill screen */
+  .characterModal {
+    width: 90%;
+    max-width: 420px;
+    max-height: 78vh;
+    min-height: unset;
+    padding: 12px 12px 10px;
+  }
+
+  /* header tighter */
+  .title {
+    font-size: 16px;
+  }
+
+  .countInline {
+    font-size: 13px;
+  }
+
+  /* center server buttons */
+  .serverFilterRow {
+    justify-content: center;
+    margin-bottom: 14px;
+  }
+
+  /* vertical layout */
+  .splitLayout {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .leftPane,
+  .rightPane {
+    width: 100%;
+  }
+
+  /* two columns only */
+  .accountGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  /* character pills smaller */
+  .characterPill {
+    font-size: 12px;
+    padding: 6px 8px 6px 10px;
+  }
+
+  /* 🔑 limit name to 4 characters, no ellipsis */
+
+  .closeTextBtn {
+    padding: 5px 10px;
+    font-size: 13px;
+  }
 }
