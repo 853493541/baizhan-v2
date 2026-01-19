@@ -1,12 +1,19 @@
+/* =====================================================
+   CLEANED & FINAL — MIDSECTION SCROLL (AUTHORITATIVE)
+   ===================================================== */
+
 /* === Overlay + modal === */
 .overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.4);
   display: flex;
+  
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  /* border:red solid 2px; */
+  display: block; 
 }
 
 .modal {
@@ -16,129 +23,62 @@
   width: 95%;
   max-width: 1500px;
   max-height: 95vh;
-  overflow-y: auto;
   position: relative;
+    justify-content: center;
+
+  overflow-y: auto;
+  overflow-x: hidden; /* 🔒 modal never scrolls horizontally */
 }
 
-.closeBtn {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  border: none;
-  background: transparent;
-  font-size: 20px;
-  cursor: pointer;
-}
 
-/* === Mid Section Layout === */
+/* =====================================================
+   MID SECTION — SINGLE SCROLL CONTAINER (KEY)
+   ===================================================== */
 .midSection {
   display: flex;
-  justify-content: center;
-  align-items: stretch;
   gap: 24px;
-  margin-bottom: 20px;
   width: 100%;
   min-height: 350px;
+
+  overflow-x: auto;          /* ✅ SCROLL LIVES HERE */
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* === Core Ability Table === */
-.tableWrapper {
-  display: flex;
-  justify-content: center;
-  margin: 16px auto;
-  max-width: 100%;
-  overflow-x: auto;
-  flex: 1;
-}
-
-.abilityTable {
-  border-collapse: collapse;
-  margin-bottom: 16px;
-  width: auto;
-}
-
-.abilityTable th,
-.abilityTable td {
-  border: 1px solid #ddd;
-  padding: 6px 12px;
-  text-align: center;
-  vertical-align: middle;
-  min-width: 60px;
-  white-space: nowrap;
-}
-
-.abilityNameCell {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 500;
-}
-
-.abilityLogo {
-  width: 20px;
-  height: 20px;
-}
-
-/* === Highlight states === */
-.below { background-color: #fff3cd; }
-.above { background-color: #e8fbe8; }
-
-/* === Role colors === */
-.tank { background: #fff4c2; color: #6b4e00; }
-.dps { background: #d5f5d5; color: #0f5132; }
-.healer { background: #fddde6; color: #842029; }
-
-.upgrade { background-color: #ffe0b2; color: #c63f17; }
-.ready { background-color: #c8e6c9; color: #256029; }
-.canUse { background-color: #5fd463; color: #256029; }
-
-/* === Result window === */
-.resultContent {
-  display: flex;
-  gap: 16px;
-  flex: 1;
-}
-
-.resultSubBox {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  padding: 12px;
-  background: #fff;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-}
-
-.refreshing {
-  color: #999;
-  font-size: 13px;
-  margin-bottom: 4px;
-  text-align: right;
-}
-
-/* Countdown row */
-.resultRow {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 6px;
-}
-
-.countdown {
-  font-size: 13px;
-  color: #6b7280;
-  white-space: nowrap;
+/* 🔥 Force overflow so scrolling actually happens */
+.midSection > * {
+  min-width: 900px;          /* adjust if needed */
 }
 
 /* =====================================================
-   📱 PHONE-ONLY RESPONSIVE DESIGN
-   - Does NOT cover full screen
-   - Centered floating card
-   - Clear visual breathing space
+   RESULT WINDOW INTERNAL LAYOUT
+   ===================================================== */
+.row {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+}
+
+/* Fixed panels */
+.row > :nth-child(1) {
+  flex: 0 0 260px;
+}
+
+.row > :nth-child(4) {
+  flex: 0 0 220px;
+}
+
+/* Middle panels */
+.row > :nth-child(2),
+.row > :nth-child(3) {
+  flex: 1 1 0;
+}
+
+/* =====================================================
+   📱 PHONE
 ===================================================== */
 @media (max-width: 768px) {
+
   .overlay {
     align-items: flex-start;
     padding: 24px 12px;
@@ -146,99 +86,152 @@
 
   .modal {
     width: 100%;
-    max-width: 420px;        /* ❗ phone-friendly card width */
-    max-height: calc(90vh - 48px);
+    max-width: 420px;
     padding: 14px;
     border-radius: 12px;
   }
 
-  .closeBtn {
-    top: 10px;
-    right: 10px;
-    font-size: 18px;
-  }
-
-  /* Stack content */
-  .midSection {
+  /* Stack internal layout vertically */
+  .row {
     flex-direction: column;
     gap: 14px;
-    margin: 12px 0;
-    min-height: auto;
   }
 
-  /* Tables scroll instead of squeezing */
-  .tableWrapper {
-    justify-content: flex-start;
-    margin: 8px 0;
-  }
-
-  .abilityTable th,
-  .abilityTable td {
-    padding: 4px 8px;
-    font-size: 12px;
-    min-width: 48px;
-  }
-
-  .abilityLogo {
-    width: 16px;
-    height: 16px;
-  }
-
-  /* Result blocks */
-  .resultContent {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .resultSubBox {
-    padding: 10px;
-  }
-
-  /* Softer colors on phone */
-  .tank { background-color: #fff9dc; }
-  .dps { background-color: #e9f9e9; }
-  .healer { background-color: #ffe9ee; }
-}
-@media (max-width: 768px) {
-
-  /* Stack sections vertically */
-  .midSection {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  /* Force each section to occupy a full row */
-  .midSection > * {
+  /* Fixed panels relax */
+  .row > :nth-child(1),
+  .row > :nth-child(4) {
     width: 100%;
-    max-width: 100%;
-    flex: none;
   }
-
 }
 /* =====================================================
-   📱 PHONE ONLY — BossMap containment
-   - BossMap takes full modal width
-   - Does NOT extend modal height
-   - Scrolls internally if tall
-===================================================== */
-@media (max-width: 768px) {
-  .bossMapWrapper,
-  .bossMap,
-  .bossMapContainer {
-    width: 100%;
-    max-width: 100%;
+   🔧 FIX — CENTER THE MODAL HORIZONTALLY (AND VERTICALLY)
+   ===================================================== */
 
-    max-height: 40vh;     /* ❗ limit height on phone */
-    overflow-y: auto;     /* internal scroll */
+/* Overlay MUST center its direct child */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+
+  display: flex;
+  justify-content: center;   /* ✅ horizontal center */
+  align-items: center;       /* ✅ vertical center */
+
+  z-index: 1000;
+}
+
+/* Modal must NOT have margins that break centering */
+.modal {
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+
+  width: 95%;
+  max-width: 1500px;
+  max-height: 95vh;
+
+  margin: 0;                 /* 🔥 remove any implicit margin */
+  position: relative;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* =====================================================
+   📱 PHONE — still centered, but top-aligned
+   ===================================================== */
+@media (max-width: 768px) {
+  .overlay {
+    align-items: flex-start; /* phone UX choice */
+    padding: 24px 12px;
+
+  }
+
+  .modal {
+    width: 100%;
+    max-width: 420px;
+    height:75vh;
+    margin-left: auto;       /* ✅ explicit horizontal centering */
+    margin-right: auto;
   }
 }
-@media (max-width: 768px) {
-  .midSection > * {
-    width: 100%;
-    max-width: 100%;
-    flex: none;
+/* =====================================================
+   OVERLAY — true centering container
+===================================================== */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
 
-    min-width: 0;      /* 🔥 THIS is the missing piece */
-    overflow-x: auto;  /* safe guard */
+  display: flex;
+  justify-content: center;   /* horizontal center */
+  align-items: center;       /* vertical center */
+
+  z-index: 1000;
+}
+
+/* =====================================================
+   MODAL — centered by parent, NOT by itself
+===================================================== */
+.modal {
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+
+  width: 95%;
+  max-width: 1500px;
+  max-height: 95vh;
+
+  margin: 0;                 /* 🔑 IMPORTANT */
+  box-sizing: border-box;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* =====================================================
+   📱 PHONE — visually centered card
+===================================================== */
+@media (max-width: 768px) {
+  .overlay {
+    align-items: flex-start;     /* phone UX */
+    padding: 24px 12px;
   }
+
+  .modal {
+    width: 100%;
+    max-width: 420px;
+
+    margin-left: auto;          /* 🔥 force visual centering */
+    margin-right: auto;
+  }
+}
+.closeBtn {
+  position: absolute;
+  top: 18px;
+  right: 12px;
+
+  width: 36px;
+  height: 36px;
+
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+
+  font-size: 28px;
+  line-height: 1;
+
+  cursor: pointer;
+  color: #666;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.closeBtn:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: #111;
 }

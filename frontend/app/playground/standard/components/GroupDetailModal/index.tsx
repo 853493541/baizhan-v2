@@ -111,9 +111,14 @@ export default function GroupDetailModal({
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <button className={styles.closeBtn} onClick={onClose}>
-          ✖
-        </button>
+  <button
+  className={styles.closeBtn}
+  onClick={onClose}
+  aria-label="Close"
+>
+  ✕
+</button>
+
 
         <GroupInfo
           group={groupData}

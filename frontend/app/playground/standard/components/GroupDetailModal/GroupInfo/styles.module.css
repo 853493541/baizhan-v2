@@ -85,13 +85,9 @@
     margin-bottom: 6px;
   }
 }
-/* =====================================================
-   📱 Mobile: hide GroupInfo entirely
-   - Warnings + member pills removed on phone
-   - Desktop / tablet unchanged
-===================================================== */
+/* Hide on mobile only */
 @media (max-width: 768px) {
-  .groupInfoRow {
-    display: none;
+  .warningRow {
+    display: none !important;
   }
 }
