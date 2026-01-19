@@ -122,12 +122,13 @@ export default function GroupDetailModal({
         />
 
         <div className={styles.midSection}>
-          <GroupDetail
+          {/* <GroupDetail
             group={groupData}
             checkedAbilities={checkedAbilities}
-          />
+          /> */}
 
           <ResultWindow
+           checkedAbilities={checkedAbilities}
             scheduleId={scheduleId}
             group={groupData}
             onRefresh={syncKills}
