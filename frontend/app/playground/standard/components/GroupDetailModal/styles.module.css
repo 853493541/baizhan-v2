@@ -1,10 +1,7 @@
 /* === Overlay + modal === */
 .overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: rgba(0, 0, 0, 0.4);
   display: flex;
   justify-content: center;
@@ -36,30 +33,28 @@
 /* === Mid Section Layout === */
 .midSection {
   display: flex;
-  justify-content: center;   /* ✅ center the whole row */
-  align-items: stretch;      /* ✅ children match tallest */
+  justify-content: center;
+  align-items: stretch;
   gap: 24px;
-  margin-bottom:20px;
+  margin-bottom: 20px;
   width: 100%;
-  min-height: 350px;         /* ✅ baseline height */
+  min-height: 350px;
 }
 
 /* === Core Ability Table === */
 .tableWrapper {
   display: flex;
-  justify-content: center;   /* ✅ center table inside box */
+  justify-content: center;
   margin: 16px auto;
   max-width: 100%;
-  height: auto;
   overflow-x: auto;
-  flex: 1;                   /* ✅ fill chartBox height */
+  flex: 1;
 }
 
 .abilityTable {
   border-collapse: collapse;
   margin-bottom: 16px;
   width: auto;
-  max-width: 100%;
 }
 
 .abilityTable th,
@@ -72,66 +67,36 @@
   white-space: nowrap;
 }
 
-/* Ability name + logo */
 .abilityNameCell {
   display: flex;
   align-items: center;
   gap: 6px;
   font-weight: 500;
-  white-space: nowrap;
 }
 
 .abilityLogo {
   width: 20px;
   height: 20px;
-  object-fit: contain;
 }
 
-/* highlight below/above requirement */
-.below {
-  background-color: #fff3cd;
-}
+/* === Highlight states === */
+.below { background-color: #fff3cd; }
+.above { background-color: #e8fbe8; }
 
-.above {
-  background-color: #e8fbe8;
-}
+/* === Role colors === */
+.tank { background: #fff4c2; color: #6b4e00; }
+.dps { background: #d5f5d5; color: #0f5132; }
+.healer { background: #fddde6; color: #842029; }
 
-/* Role-based header colors */
-.tank {
-  background: #fff4c2;
-  color: #6b4e00;
-}
+.upgrade { background-color: #ffe0b2; color: #c63f17; }
+.ready { background-color: #c8e6c9; color: #256029; }
+.canUse { background-color: #5fd463; color: #256029; }
 
-.dps {
-  background: #d5f5d5;
-  color: #0f5132;
-}
-
-.healer {
-  background: #fddde6;
-  color: #842029;
-}
-
-.upgrade {
-  background-color: #ffe0b2;
-  color: #c63f17;
-}
-
-.ready {
-  background-color: #c8e6c9;
-  color: #256029;
-}
-
-.canUse {
-  background-color: #5fd463;
-  color: #256029;
-}
-
-/* === Result Window internals (optional split) === */
+/* === Result window === */
 .resultContent {
   display: flex;
   gap: 16px;
-  flex: 1;                   /* ✅ fill resultBox height */
+  flex: 1;
 }
 
 .resultSubBox {
@@ -144,49 +109,74 @@
   background: #fff;
   box-shadow: 0 1px 4px rgba(0,0,0,0.05);
 }
+
 .refreshing {
   color: #999;
   font-size: 13px;
   margin-bottom: 4px;
   text-align: right;
 }
-/* === 📱 Responsive for phone screens === */
+
+/* Countdown row */
+.resultRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.countdown {
+  font-size: 13px;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+/* =====================================================
+   📱 PHONE-ONLY RESPONSIVE DESIGN
+   - Does NOT cover full screen
+   - Centered floating card
+   - Clear visual breathing space
+===================================================== */
 @media (max-width: 768px) {
-  /* Modal adjustments */
+  .overlay {
+    align-items: flex-start;
+    padding: 24px 12px;
+  }
+
   .modal {
-    padding: 16px;
-    width: 98%;
-    max-width: 100%;
-    max-height: 90vh;
-    border-radius: 6px;
+    width: 100%;
+    max-width: 420px;        /* ❗ phone-friendly card width */
+    max-height: calc(90vh - 48px);
+    padding: 14px;
+    border-radius: 12px;
   }
 
   .closeBtn {
-    top: 8px;
-    right: 8px;
+    top: 10px;
+    right: 10px;
     font-size: 18px;
   }
 
-  /* Stack mid section vertically */
+  /* Stack content */
   .midSection {
     flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
-    margin: 14px 0;
+    gap: 14px;
+    margin: 12px 0;
     min-height: auto;
   }
 
-  /* Allow tables to scroll horizontally */
+  /* Tables scroll instead of squeezing */
   .tableWrapper {
-    overflow-x: auto;
     justify-content: flex-start;
+    margin: 8px 0;
   }
 
   .abilityTable th,
   .abilityTable td {
     padding: 4px 8px;
-    font-size: 13px;
-    min-width: 50px;
+    font-size: 12px;
+    min-width: 48px;
   }
 
   .abilityLogo {
@@ -194,39 +184,61 @@
     height: 16px;
   }
 
-  /* Reduce padding and simplify result boxes */
+  /* Result blocks */
   .resultContent {
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
   }
 
   .resultSubBox {
     padding: 10px;
   }
 
-  /* Make role colors slightly subtler on mobile */
-  .tank {
-    background-color: #fff9dc;
-  }
-  .dps {
-    background-color: #e6f7e6;
-  }
-  .healer {
-    background-color: #ffe5ea;
-  }
+  /* Softer colors on phone */
+  .tank { background-color: #fff9dc; }
+  .dps { background-color: #e9f9e9; }
+  .healer { background-color: #ffe9ee; }
 }
-/* Countdown next to “无警告” button */
-.resultRow {
-  display: flex;
-  align-items: center;       /* vertical centering */
-  justify-content: flex-end; /* align both to the right */
-  gap: 8px;                  /* space between button and countdown */
-  margin-top: 6px;           /* optional small top spacing */
-}
+@media (max-width: 768px) {
 
-/* Countdown text style */
-.countdown {
-  font-size: 13px;
-  color: #6b7280; /* subtle gray tone */
-  white-space: nowrap; /* keep on same line */
+  /* Stack sections vertically */
+  .midSection {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* Force each section to occupy a full row */
+  .midSection > * {
+    width: 100%;
+    max-width: 100%;
+    flex: none;
+  }
+
+}
+/* =====================================================
+   📱 PHONE ONLY — BossMap containment
+   - BossMap takes full modal width
+   - Does NOT extend modal height
+   - Scrolls internally if tall
+===================================================== */
+@media (max-width: 768px) {
+  .bossMapWrapper,
+  .bossMap,
+  .bossMapContainer {
+    width: 100%;
+    max-width: 100%;
+
+    max-height: 40vh;     /* ❗ limit height on phone */
+    overflow-y: auto;     /* internal scroll */
+  }
+}
+@media (max-width: 768px) {
+  .midSection > * {
+    width: 100%;
+    max-width: 100%;
+    flex: none;
+
+    min-width: 0;      /* 🔥 THIS is the missing piece */
+    overflow-x: auto;  /* safe guard */
+  }
 }

@@ -146,3 +146,39 @@
   color: #999;
   text-align: center;
 }
+/* =====================================================
+   📱 PHONE ONLY — Ability name trimming
+   - Show ~4 Chinese characters
+   - Hard cut (no …)
+===================================================== */
+@media (max-width: 768px) {
+  .assignmentText {
+    max-width: 4.2ch;       /* ≈ 4 Chinese characters */
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: clip;    /* hard cut, no ellipsis */
+    display: inline-block;  /* 🔥 critical */
+    flex-shrink: 1;
+  }
+
+  .leftContent {
+    min-width: 0;           /* already present, but keep */
+  }
+}
+/* =====================================================
+   📱 PHONE ONLY — Processed section tuning
+   - Box uses 80% width
+   - Character name shows 4 chars
+===================================================== */
+@media (max-width: 768px) {
+  .box {
+    width: 80%;
+    max-width: 80%;
+    min-width: 80%;          /* allow shrink */
+  }
+
+  .leftContent {
+    min-width: 0;          /* critical to allow clipping */
+    gap: 6px;
+  }
+}

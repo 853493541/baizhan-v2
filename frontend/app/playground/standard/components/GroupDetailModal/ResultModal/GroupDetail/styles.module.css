@@ -173,3 +173,13 @@
   gap: 8px;
   align-items: center;
 }
+/* =====================================================
+   📱 Mobile: hide detail summary box
+   - Dense analytical panel is desktop-only
+   - Prevents vertical bloat on phone
+===================================================== */
+@media (max-width: 768px) {
+  .box {
+    display: none;
+  }
+}

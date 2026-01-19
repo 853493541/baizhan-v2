@@ -165,3 +165,11 @@
   color: #6b7280;
   white-space: nowrap;
 }
+@media (max-width: 768px) {
+  .row {
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    max-width: 100%;
+    overflow-x: auto;
+    padding-bottom: 6px; /* space for scroll bar */
+  }
+}

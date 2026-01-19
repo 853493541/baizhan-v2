@@ -50,9 +50,9 @@
 /* character pill (compact, no stretch) */
 .charBubble {
   display: inline-block;
-  padding: 6px 8px;
+  padding: 4px 8px;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -76,8 +76,7 @@
   list-style: none;
   padding: 0 0 6px 12px;
   margin: 0;
-
-  border-left: 1px solid #eee; /* keep vertical divider */
+  border-left: 1px solid #eee;
 }
 
 /* ability rows */
@@ -100,11 +99,13 @@
   flex: 1;
   min-width: 150px;
 }
+
 .assignmentIcon {
   width: 20px;
   height: 20px;
   flex-shrink: 0;
 }
+
 .assignmentText {
   font-size: 14px;
   white-space: nowrap;
@@ -130,6 +131,7 @@
   font-size: 13px;
   white-space: nowrap;
 }
+
 .useBtn {
   background: #4caf50;
 }
@@ -155,4 +157,33 @@
   font-weight: 600;
   color: #999;
   text-align: center;
+}
+
+/* =====================================================
+   📱 PHONE ONLY — SPACE SAVING
+   - Hide ability name text
+   - Limit box width to 60% of modal
+   - Height grows instead of width
+===================================================== */
+@media (max-width: 768px) {
+  .box {
+    width: 80%;
+    min-width: 80%;
+    max-width: 80%;
+  }
+
+  /* 🔥 Hide ability name to save horizontal space */
+  .assignmentText {
+    max-width: 4ch;        /* ≈ 2 Chinese characters */
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: clip;     /* no …, hard cut */
+    display: inline-block;
+  }
+
+  /* tighten left content since text is gone */
+  .leftContent {
+    min-width: 0;
+    gap: 6px;
+  }
 }
