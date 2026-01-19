@@ -158,15 +158,19 @@ export default function BossMap({
             {c.localGroup.characters?.map((cc: any, i: number) => {
               const isActive = c.activeMembers.includes(i);
               return (
-                <button
-                  key={i}
-                  onClick={() => c.toggleMember(i)}
-                  className={`${styles.actionBtn} ${getRoleClass(cc.role)} ${
-                    !isActive ? styles.inactiveBtn : ""
-                  }`}
-                >
-                  {cc.name}
-                </button>
+ <button
+  key={i}
+  onClick={() => c.toggleMember(i)}
+  className={`${styles.actionBtn} ${getRoleClass(cc.role)} ${
+    !isActive ? styles.inactiveBtn : ""
+  }`}
+>
+  <span className={styles.memberText}>{cc.name}</span>
+</button>
+
+
+
+
               );
             })}
           </div>

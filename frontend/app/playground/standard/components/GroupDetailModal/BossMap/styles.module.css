@@ -1,16 +1,17 @@
 /* ===============================
    🔲 General Layout
-   =============================== */
+=============================== */
 .row {
   display: grid;
   grid-template-columns: repeat(10, 1fr);
   gap: 8px;
   margin-bottom: 14px;
+  align-items: stretch;
 }
 
 /* ===============================
    🧭 Header Layout
-   =============================== */
+=============================== */
 .headerRow {
   display: flex;
   align-items: center;
@@ -27,6 +28,7 @@
 
 .title {
   margin: 0;
+  white-space: nowrap;
 }
 
 .rightControls {
@@ -37,7 +39,7 @@
 
 /* ===============================
    🔘 Status Indicators
-   =============================== */
+=============================== */
 .statusWrap {
   display: inline-flex;
   align-items: center;
@@ -58,38 +60,30 @@
   border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.statusIdleDot {
-  background: #e5e7eb;
-  color: #6b7280;
-}
-
-.statusBusyDot {
-  background: #fb923c;
-  color: #f97316;
-}
-
-.statusDoneDot {
-  background: #34d399;
-  color: #059669;
-}
+.statusIdleDot { background: #e5e7eb; }
+.statusBusyDot { background: #fb923c; }
+.statusDoneDot { background: #34d399; }
 
 /* ===============================
    🟩 Main Action Button
-   =============================== */
+=============================== */
 .actionBtn {
   padding: 6px 14px;
+  height: 36px;
+
   border-radius: 6px;
   border: 1.5px solid #166534;
   background-color: #bbf7d0;
   color: #166534;
+
   font-size: 16px;
   font-weight: 600;
   line-height: 1.2;
-  cursor: pointer;
+
   display: inline-flex;
   align-items: center;
-  height: 36px;
-  transition: background 0.2s ease;
+  cursor: pointer;
+  transition: filter 0.2s ease;
 }
 
 .actionBtn:hover {
@@ -98,27 +92,32 @@
 
 /* ===============================
    👥 Member Buttons
-   =============================== */
+=============================== */
 .memberButtons {
   display: flex;
-  flex-wrap: wrap;
-  margin-left: 5px;  /* balanced spacing from title */
+  gap: 6px;
+  margin-left: 5px;
 }
 
 .memberButtons button {
-  transform: scale(0.9);
-  transform-origin: center;
-  min-width: 80px;
-  max-width: 140px;
   height: 34px;
+  padding: 0 10px;
+
+  min-width: 80px;
+
   font-size: 15px;
   line-height: 1.15;
   border-radius: 6px;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  padding: 0 10px;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  transform: scale(0.9);
   transition: transform 0.15s ease;
 }
 
@@ -136,7 +135,7 @@
 
 /* ===============================
    🎨 Role Color Variants
-   =============================== */
+=============================== */
 .tankBtn {
   background-color: #fff3cd;
   color: #8b4513;
@@ -157,7 +156,7 @@
 
 /* ===============================
    ⏱ Countdown Text
-   =============================== */
+=============================== */
 .countdownText {
   margin-left: 8px;
   font-size: 13px;
@@ -165,48 +164,41 @@
   color: #6b7280;
   white-space: nowrap;
 }
-@media (max-width: 768px) {
-  .row {
-    grid-template-columns: repeat(10, minmax(0, 1fr));
-    max-width: 100%;
-    overflow-x: auto;
-    padding-bottom: 6px; /* space for scroll bar */
-  }
-}
+
 /* =====================================================
-   📱 BossMapHeader — phone layout control (no hiding)
+   📱 MOBILE — BossMapHeader + horizontal map
 ===================================================== */
 @media (max-width: 768px) {
+
+  /* Header stacks vertically */
   .headerRow {
     flex-direction: column;
     align-items: stretch;
     gap: 6px;
   }
 
-  /* Row 1: title + leftSlot */
+  /* Left section: single-row scroll */
   .leftSection {
-    display: flex;
-    align-items: center;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    white-space: nowrap;
     gap: 8px;
-    flex-wrap: wrap;     /* allow member buttons to wrap */
   }
 
-  /* Row 2: status + countdown + action */
+  .memberButtons {
+    flex-wrap: nowrap;
+  }
+
+  .memberButtons button {
+    flex-shrink: 0;
+    
+  }
+
+  /* Right controls stay one row */
   .rightControls {
-    display: flex;
-    align-items: center;
     justify-content: space-between;
     gap: 10px;
-    flex-wrap: nowrap;   /* ❗ prevent vertical explosion */
-  }
-
-  .statusWrap {
-    flex-shrink: 0;
-  }
-
-  .countdownText {
-    font-size: 13px;
-    white-space: nowrap;
+    flex-wrap: nowrap;
   }
 
   .actionBtn {
@@ -215,69 +207,31 @@
     font-size: 14px;
     flex-shrink: 0;
   }
-}
-/* =====================================================
-   📱 BossMapHeader — force left section to single row
-===================================================== */
-@media (max-width: 768px) {
-  .leftSection {
-    flex-wrap: nowrap;        /* ❗ no wrapping */
-    overflow-x: auto;         /* allow horizontal scroll */
-    overflow-y: hidden;
-    white-space: nowrap;
-    gap: 8px;
-  }
 
-  /* Prevent title from forcing wrap */
-  .title {
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-
-  /* Member buttons must not wrap */
-  .memberButtons {
-    flex-wrap: nowrap;
-    flex-shrink: 0;
-  }
-
-  .memberButtons button {
-    flex-shrink: 0;           /* keep buttons intact */
-  }
-}
-/* ===============================
-   ✅ FIX: prevent row items from collapsing / stacking
-   =============================== */
-.row {
-  align-items: stretch;
-}
-
-/* ===============================
-   📱 MOBILE — enforce horizontal card layout
-   =============================== */
-@media (max-width: 768px) {
+  /* Map row: fixed-size horizontal scroll */
   .row {
-    display: grid;
-    grid-template-columns: repeat(10, 120px); /* fixed card width */
-    grid-auto-rows: 120px;                    /* fixed card height */
+    grid-template-columns: repeat(10, 120px);
+    grid-auto-rows: 120px;
     gap: 10px;
 
     overflow-x: auto;
     overflow-y: visible;
-
-    align-items: stretch;
-    justify-items: stretch;
+    padding-top: 10px;
 
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
   }
 
   .row::-webkit-scrollbar {
     display: none;
   }
 }
+
 @media (max-width: 768px) {
-  .row {
-    overflow-x: auto;
-    overflow-y: visible;   
-    padding-top: 10px;   
+  .memberText {
+    display: inline-block;
+    max-width: 8ch;      /* ≈ 4 Chinese characters */
+    white-space: nowrap;
+    overflow: hidden;
   }
 }
