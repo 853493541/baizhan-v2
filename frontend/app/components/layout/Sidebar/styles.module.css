@@ -1,7 +1,3 @@
-/* ===========================
-   Sidebar Wrapper
-=========================== */
-
 .wrap {
   height: 100%;
   background: #fff;
@@ -20,42 +16,31 @@
   font-weight: 600;
 }
 
-/* ===========================
-   Navigation
-=========================== */
-
 .nav {
+  margin-top:1vh;
+  /* background-color: red; */
   display: flex;
   flex-direction: column;
   gap: 6px;
+
 }
 
-/* ===========================
-   Divider (primary → sections)
-=========================== */
 
-.divider {
-  margin: 10px 6px 8px;
-  border-top: 1px solid #e5e7eb;
+/* -----------------------------
+   Mobile adjustments
+------------------------------ */
+@media (max-width: 768px) {
+  .nav {
+    justify-content: flex-start; /* mobile: top-aligned */
+    gap: 4px;
+  }
+
+  .nav a {
+    padding: 4px 6px !important;
+    font-size: 14px;
+  }
 }
-
-/* ===========================
-   Section Labels (secondary)
-=========================== */
-
-.section {
-  margin: 10px 0 6px;
-  padding: 0 12px;
-
-  font-size: 13px;
-  font-weight: 500;
-  color: #6b7280;
-}
-
-/* ===========================
-   Disabled Sidebar Link
-=========================== */
-
+/* Disabled sidebar link */
 .disabled {
   opacity: 0.45;
   cursor: not-allowed;
@@ -66,18 +51,80 @@
   transform: none;
   box-shadow: none;
 }
+.section {
+  margin: 12px 0 6px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #9ca3af;
+}
 
+.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.disabled:hover {
+  background: none;
+}
+.section {
+  margin: 15px 0 4px;        /* stronger separation */
+  padding: 0 12px;
+
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+}
+.bottomSections {
+  margin-top: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}/* Divider between primary and sections */
+.divider {
+  margin: 10px 6px 8px;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* Section labels (secondary) */
+.section {
+  margin: 10px 0 6px;
+  padding: 0 12px;
+
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+}
 /* ===========================
-   Mobile Adjustments
+   📱 Mobile Sidebar (Phone)
 =========================== */
 
-@media (max-width: 768px) {
-  .nav {
-    gap: 4px;
+@media (max-width: 640px) {
+  .wrap {
+    padding: 8px 6px;
   }
 
+  .nav {
+    gap: 2px;
+  }
+
+  /* NavLink buttons */
   .nav a {
-    padding: 4px 6px !important;
+    padding: 8px 10px !important;
     font-size: 14px;
+    border-radius: 8px;
+  }
+
+  /* Section labels */
+  .section {
+    margin: 12px 0 4px;
+    padding: 0 10px;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+  }
+
+  /* Divider spacing */
+  .divider {
+    margin: 8px 6px;
   }
 }
