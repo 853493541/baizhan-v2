@@ -8,7 +8,7 @@
 }
 
 /* ===============================
-   Grid layout
+   Grid layout (desktop default)
    =============================== */
 .groupsGrid {
   display: grid;
@@ -43,10 +43,10 @@
    🟠 Group status: started
    =============================== */
 .groupStarted {
-  border-color: #f3c77a;
+  border-color: #f59e0b;
   box-shadow:
-    0 0 0 1px rgba(243, 199, 122, 0.25),
-    0 2px 8px rgba(243, 199, 122, 0.15);
+    0 0 0 1px rgba(245, 158, 11, 0.45),
+    0 3px 10px rgba(245, 158, 11, 0.35);
 }
 
 /* ===============================
@@ -83,15 +83,14 @@
   z-index: 4;
 }
 
-/* Status variants */
 .metaDone {
   border: 1px solid #22c55e;
   color: #16a34a;
 }
 
 .metaInProgress {
-  border: 1px solid #eab308;
-  color: #b45309;
+  border: 1px solid #f59e0b;
+  color: #92400e;
 }
 
 .metaNotStarted {
@@ -222,28 +221,28 @@
 }
 
 /* ===============================
-   📱 Mobile responsive
+   📱 Mobile responsive — TWO PER ROW
    =============================== */
 @media (max-width: 640px) {
   .groupsGrid {
-    grid-template-columns: 1fr;
-    gap: 14px;
+    grid-template-columns: repeat(2, 1fr); /* ✅ two per row */
+    gap: 12px;
     margin-top: 12px;
   }
 
   .groupCard {
-    max-width: 100%;
-    padding: 14px 10px 12px;
+    max-width: 100%;     /* allow grid to control width */
+    padding: 12px 8px 10px;
   }
 
   .memberItem {
     width: 90%;
-    font-size: 15px;
+    font-size: 14px;
   }
 
   .groupMeta {
     top: -8px;
-    left: 10px;
+    left: 8px;
     font-size: 11px;
     height: 17px;
     padding: 0 6px;
@@ -252,19 +251,4 @@
   .groupViolation {
     font-size: 12px;
   }
-}
-/* ===============================
-   🟠 Group status: STARTED (stronger emphasis)
-   =============================== */
-.groupStarted {
-  border-color: #f59e0b; /* stronger amber */
-  box-shadow:
-    0 0 0 1px rgba(245, 158, 11, 0.45),
-    0 3px 10px rgba(245, 158, 11, 0.35);
-}
-
-/* Meta chip sync (optional but recommended) */
-.metaInProgress {
-  border: 1px solid #f59e0b;
-  color: #92400e;
 }
