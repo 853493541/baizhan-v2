@@ -244,3 +244,40 @@
     flex-shrink: 0;           /* keep buttons intact */
   }
 }
+/* ===============================
+   ✅ FIX: prevent row items from collapsing / stacking
+   =============================== */
+.row {
+  align-items: stretch;
+}
+
+/* ===============================
+   📱 MOBILE — enforce horizontal card layout
+   =============================== */
+@media (max-width: 768px) {
+  .row {
+    display: grid;
+    grid-template-columns: repeat(10, 120px); /* fixed card width */
+    grid-auto-rows: 120px;                    /* fixed card height */
+    gap: 10px;
+
+    overflow-x: auto;
+    overflow-y: visible;
+
+    align-items: stretch;
+    justify-items: stretch;
+
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .row::-webkit-scrollbar {
+    display: none;
+  }
+}
+@media (max-width: 768px) {
+  .row {
+    overflow-x: auto;
+    overflow-y: visible;   
+    padding-top: 10px;   
+  }
+}
