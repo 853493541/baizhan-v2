@@ -1,35 +1,120 @@
+/* ================= Container ================= */
+
 .container {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  text-align: center;
+
+  /* 🔑 IMPORTANT: allow children to stretch full width */
+  align-items: stretch;
+
+  padding: 48px 20px;
   min-height: 100%;
+  box-sizing: border-box;
+
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ================= Header ================= */
+
+.header {
+  text-align: center;
+  margin-bottom: 24px;
 }
 
 .title {
   font-size: 2.2rem;
-  font-weight: bold;
-  margin-bottom: 10px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  
 }
 
 .subtitle {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   color: #666;
-  margin-bottom: 40px;
 }
 
-.footer {
-  font-size: 0.95rem;
+/* ================= Quick Access ================= */
+
+.quickAccess {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+
+  width: 100%;
+  max-width: 900px;
+
+  margin: 0 auto 0px; /* center + strong separation */
+}
+
+/* Mobile fallback */
+@media (max-width: 520px) {
+  .quickAccess {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  height: 96px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1.5px solid #bfdbfe; /* light blue border */
+  border-radius: 12px;
+  background: #ffffff;
+
+  text-decoration: none;
+  color: inherit;
+  font-weight: 600;
+  font-size: 1.05rem;
+
+  transition:
+    box-shadow 0.15s ease,
+    transform 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.card:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 8px 18px rgba(59, 130, 246, 0.18);
+  transform: translateY(-2px);
+}
+
+/* ================= Week Section ================= */
+
+.weekSection {
+  width: 85%;                 /* ✅ take middle 80% */
+ 
+  margin: 40px auto 48px;     /* ✅ center horizontally */
+
+  padding-top: 12px;
+  border-top: 1px solid #eef2f7;
+  
+}
+
+.sectionTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  text-align: center; /* ✅ */
+}
+
+.muted {
   color: #888;
+  font-size: 0.95rem;
+}
+
+/* ================= Footer ================= */
+
+.footer {
+  margin-top: auto;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #888;
+
   display: flex;
   flex-direction: column;
   gap: 4px;
-}
-
-.createBtnWrapper {
-  display: flex;
-  justify-content: flex-end; /* ✅ push button to the right */
-  padding: 10px 0;           /* vertical space instead of margin */
 }
