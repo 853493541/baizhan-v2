@@ -320,3 +320,43 @@
   object-fit: contain;
   flex-shrink: 0;
 }
+/* 📱 Mobile: shrink member column + hard-cut name to 8ch */
+@media (max-width: 768px) {
+  .rightColumn {
+    width: 180px;
+    min-width: 180px;
+    max-width: 180px;
+  }
+
+  .memberBtn {
+    min-width: 180px;
+    max-width: 180px;
+    padding: 4px 10px;
+  }
+
+  .nameAndIcon {
+    /* max-width: 6ch; */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: clip; /* hard cut, no … */
+  }
+}
+/* 📱 Mobile: cut character name to 4 chars, keep (x重) visible */
+@media (max-width: 768px) {
+  .charName {
+    max-width: 6ch;
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: clip; /* hard cut, no … */
+    vertical-align: bottom;
+  }
+}
+/* =========================================
+   📱 Mobile: hide floating recommendation window
+========================================= */
+@media (max-width: 768px) {
+  .window {
+    display: none !important;
+  }
+}

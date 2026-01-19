@@ -226,12 +226,17 @@
     display: none;
   }
 }
-
 @media (max-width: 768px) {
-  .memberText {
-    display: inline-block;
-    max-width: 8ch;      /* ≈ 4 Chinese characters */
+  .memberButtons button {
+    max-width: 8ch;          /* 4 Chinese chars ≈ 8ch */
     white-space: nowrap;
     overflow: hidden;
+  }
+}
+@media (max-width: 768px) {
+  .columns {
+    flex-direction: row;      /* ✅ keep same row */
+    gap: 8px;
+    align-items: flex-start;
   }
 }

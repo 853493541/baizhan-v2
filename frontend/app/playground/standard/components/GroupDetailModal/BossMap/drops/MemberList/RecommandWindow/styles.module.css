@@ -11,6 +11,7 @@
   z-index: 9999;
   font-family: "Segoe UI", "PingFang SC", sans-serif;
   animation: fadeIn 0.25s ease-out;
+  /* background-color: red; */
 
 }
 
@@ -86,4 +87,27 @@
   color: #856404;
   background: #fff3cd;
   border-left: 4px solid #ffc107;
+}
+/* 📱 Mobile: hide recommendation window completely */
+/* 🧱 Modal overlay container */
+.windowOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 9998;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+/* 📱 Mobile: completely disable recommendation modal */
+@media (max-width: 768px) {
+  .windowOverlay {
+    background-color: red;
+    display: none !important;
+  }
+  .window {
+    background-color: red;
+    display: none !important;
+  }
 }

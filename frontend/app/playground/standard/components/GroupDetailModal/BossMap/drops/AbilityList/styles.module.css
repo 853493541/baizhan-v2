@@ -35,7 +35,7 @@
   color: inherit;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
+  /* text-overflow: ellipsis; */
 }
 
 /* ===========================================
@@ -114,7 +114,7 @@
   font-weight: 600;
   font-size: 0.9rem;
   margin: 10px 0;
-  line-height: 1.2;
+  /* line-height: 1.2; */
   text-align: center;
 }
 
@@ -147,4 +147,57 @@
 .redDivider::before,
 .redDivider::after {
   border-color: #f5a3a3;
+}
+/* 📱 Mobile: limit ability name to 8 characters */
+/* 📱 Mobile: when text is cut, allow tap-to-expand */
+@media (max-width: 768px) {
+  .dropText {
+    max-width: 7.2ch;
+    white-space: nowrap;
+    overflow: hidden;
+    /* text-overflow: ellipsis; */
+    transition: all 0.15s ease;
+  }
+
+}
+/* 📱 Mobile: reduce button width */
+@media (max-width: 768px) {
+  .dropBtn,
+  .noDropBtn {
+    min-width: 140px;
+    max-width: 140px;
+    padding: 6px 10px;
+  }
+}
+/* 📱 Mobile: shrink entire ability section to 140px */
+@media (max-width: 768px) {
+  .leftColumn {
+    width: 140px;
+    min-width: 140px;
+    max-width: 140px;
+  }
+
+  .dropBtn,
+  .noDropBtn {
+    min-width: 140px;
+    max-width: 140px;
+    padding: 6px 8px;
+  }
+}
+/* 📱 Mobile: allow internal scroll for left column */
+@media (max-width: 768px) {
+  .leftColumn {
+    max-height: calc(70vh - 80px); /* match modal height, leave header space */
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* optional: nicer thin scrollbar */
+  .leftColumn::-webkit-scrollbar {
+    width: 6px;
+  }
+  .leftColumn::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 3px;
+  }
 }

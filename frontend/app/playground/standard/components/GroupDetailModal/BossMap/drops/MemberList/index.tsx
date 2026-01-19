@@ -254,20 +254,21 @@ export default function MemberList({
               disabled={disabled}
             >
               <div className={styles.topRow}>
-                <span className={styles.nameAndIcon}>
-                  {c.name}
 
-                  {/* ✔ FIXED: use iconSmall, not abilityIconSmall */}
-                  {abilityIcon && (
-                    <img
-                      src={abilityIcon}
-                      alt={shownAbility}
-                      className={styles.iconSmall}
-                    />
-                  )}
 
-                  <span>({shownLevel}重)</span>
-                </span>
+      <span className={styles.nameAndIcon}>
+  <span className={styles.charName}>{c.name}</span>
+
+  {abilityIcon && (
+    <img
+      src={abilityIcon}
+      alt={shownAbility}
+      className={styles.iconSmall}
+    />
+  )}
+
+  <span className={styles.levelText}>({shownLevel}重)</span>
+</span>
 
                 <span className={`${styles.progressText} ${progressColor}`}>
                   {progressText}
