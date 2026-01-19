@@ -173,3 +173,74 @@
     padding-bottom: 6px; /* space for scroll bar */
   }
 }
+/* =====================================================
+   📱 BossMapHeader — phone layout control (no hiding)
+===================================================== */
+@media (max-width: 768px) {
+  .headerRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  /* Row 1: title + leftSlot */
+  .leftSection {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;     /* allow member buttons to wrap */
+  }
+
+  /* Row 2: status + countdown + action */
+  .rightControls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: nowrap;   /* ❗ prevent vertical explosion */
+  }
+
+  .statusWrap {
+    flex-shrink: 0;
+  }
+
+  .countdownText {
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .actionBtn {
+    height: 32px;
+    padding: 4px 10px;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+}
+/* =====================================================
+   📱 BossMapHeader — force left section to single row
+===================================================== */
+@media (max-width: 768px) {
+  .leftSection {
+    flex-wrap: nowrap;        /* ❗ no wrapping */
+    overflow-x: auto;         /* allow horizontal scroll */
+    overflow-y: hidden;
+    white-space: nowrap;
+    gap: 8px;
+  }
+
+  /* Prevent title from forcing wrap */
+  .title {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Member buttons must not wrap */
+  .memberButtons {
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+  }
+
+  .memberButtons button {
+    flex-shrink: 0;           /* keep buttons intact */
+  }
+}
