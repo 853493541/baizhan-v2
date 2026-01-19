@@ -175,12 +175,11 @@
 /* =========================================
    📱 Mobile Responsive Overrides
 ========================================= */
-
 @media (max-width: 768px) {
-  /* Overlay padding so modal doesn't touch edges */
   .overlay {
     padding: 12px;
-    align-items: flex-start;
+    align-items: center;     /* ✅ vertical center */
+    justify-content: center; /* ✅ horizontal center (explicit) */
   }
 
   /* Modal becomes full-width card */
@@ -221,12 +220,6 @@
     margin-top: 14px;
   }
 
-  .closeBtn,
-  .deleteBtn {
-    width: 100%;
-    padding: 10px 0;
-    font-size: 15px;
-  }
 
   /* Confirm modal scale */
   .confirmModal {
@@ -240,5 +233,20 @@
     flex-direction: row;      /* ✅ keep same row */
     gap: 8px;
     align-items: flex-start;
+  }
+}
+@media (max-width: 768px) {
+  .footer {
+    flex-direction: row;        /* ✅ keep same row */
+    justify-content: flex-end;  /* ✅ bottom right */
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .closeBtn,
+  .deleteBtn {
+    width: auto;                /* ✅ normal button width */
+    padding: 6px 12px;
+    font-size: 14px;
   }
 }
