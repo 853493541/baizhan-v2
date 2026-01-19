@@ -211,3 +211,67 @@
     transform: translateY(0);
   }
 }
+/* =========================================================
+   📱 Mobile: horizontal scroll, fixed cell widths
+   (≤ 640px)
+========================================================= */
+@media (max-width: 640px) {
+  /* --- Wrapper scroll --- */
+  .tableWrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* --- Table sizing --- */
+  .chartTable {
+    width: max-content;      /* 🔑 let table grow naturally */
+    min-width: 100%;
+    table-layout: fixed;
+  }
+
+  /* --- Ability column --- */
+  .chartTable th:first-child,
+  .chartTable td:first-child {
+    width: 120px;
+    min-width: 120px;
+  }
+
+  /* --- Each boss / group column --- */
+  .cell {
+    width: 36px;
+    min-width: 36px;
+    max-width: 36px;
+    padding: 4px 2px;
+    font-size: 14px;
+  }
+
+  .chartTable th:not(:first-child),
+  .chartTable td:not(:first-child) {
+    width: 36px;
+    min-width: 36px;
+  }
+
+  /* --- Header compact --- */
+  .chartTable th {
+    font-size: 12px;
+    padding: 5px 4px;
+    white-space: nowrap;
+  }
+
+  /* --- Ability cell tighter --- */
+  .abilityCell {
+    gap: 5px;
+    font-size: 12px;
+  }
+
+  .icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* --- Toggle buttons tighter --- */
+  .toggleBtn {
+    padding: 5px 10px;
+    font-size: 13px;
+  }
+}

@@ -129,3 +129,67 @@
   color: #888;
   font-style: italic;
 }
+/* =========================================================
+   📱 Mobile Responsive — horizontal scroll, natural width
+   (≤ 640px)
+========================================================= */
+@media (max-width: 640px) {
+  /* --- Top bar --- */
+  .topBar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .summaryLeft {
+    font-size: 13px;
+    flex-wrap: wrap;
+  }
+
+  .levelBtn {
+    padding: 5px 10px;
+    font-size: 13px;
+  }
+
+  /* --- Table Wrapper --- */
+  .tableWrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* --- Table --- */
+  .wasteTable {
+    width: max-content;   /* 🔑 allow natural width */
+    min-width: 100%;
+    font-size: 13px;
+  }
+
+  /* --- Group column --- */
+  .groupCol {
+    width: 70px;
+    min-width: 70px;
+    font-size: 13px;
+  }
+
+  /* --- Icon columns --- */
+  .iconCol {
+    min-width: 140px;   /* each section owns its width */
+    padding: 6px;
+  }
+
+  .iconRow {
+    gap: 5px;
+    flex-wrap: nowrap;  /* single horizontal row */
+  }
+
+  /* --- Icons --- */
+  .abilityIcon {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* --- Empty state --- */
+  .noWaste {
+    font-size: 12px;
+  }
+}
