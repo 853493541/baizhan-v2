@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { X } from "lucide-react";
 import styles from "./styles.module.css";
 import ConfirmModal from "@/app/components/ConfirmModal";
 
@@ -104,6 +103,9 @@ export default function Manager({
     char?.abilities?.[ability] ??
     0;
 
+  /* ===============================
+     Loading State
+  =============================== */
   if (loadingChar || !char) {
     return (
       <div className={styles.overlay}>
@@ -123,15 +125,20 @@ export default function Manager({
         onClick={(e) => e.target === e.currentTarget && onClose()}
       >
         <div className={styles.modal}>
-          {/* Header */}
+          {/* ================= Header ================= */}
           <div className={styles.header}>
             <h2>技能管理</h2>
-            <button className={styles.closeBtn} onClick={onClose}>
-              <X size={20} />
+
+            {/* 🔑 Close action lives here now */}
+            <button
+              className={styles.headerClose}
+              onClick={onClose}
+            >
+              关闭
             </button>
           </div>
 
-          {/* Modify */}
+          {/* ================= Modify ================= */}
           <ModifySection
             characterId={char._id}
             insertSearch={insertSearch}
@@ -143,7 +150,7 @@ export default function Manager({
             addLevel10Book={addLevel10Book}
           />
 
-          {/* Backpack */}
+          {/* ================= Backpack ================= */}
           <BackpackDisplay
             search={search}
             setSearch={setSearch}
@@ -154,15 +161,10 @@ export default function Manager({
             requestDelete={requestDelete}
             onAddClick={() => {}}
           />
-
-          <div className={styles.footer}>
-            <button onClick={onClose} className={styles.cancelBtn}>
-              关闭
-            </button>
-          </div>
         </div>
       </div>
 
+      {/* ================= Confirm Modal ================= */}
       {confirmOpen && onConfirmAction && (
         <ConfirmModal
           intent="neutral"

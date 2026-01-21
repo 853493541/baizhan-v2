@@ -1,5 +1,5 @@
 /* =========================================================
-   🧩 Modify / Insert Section
+   🧩 Modify / Insert Section — TUNED
 ========================================================= */
 
 .insertSection {
@@ -7,8 +7,7 @@
   flex-direction: column;
   gap: 6px;
 
-  margin-bottom: 10px;
-  padding-bottom: 10px;
+  padding-bottom: 6px;         /* 🔽 reduced */
   border-bottom: 1px dashed #ddd;
 }
 
@@ -19,27 +18,28 @@
   width: 100%;
   border: 1px solid #ccc;
   border-radius: 6px;
-  padding: 6px 8px;
-  font-size: 14px;
+
+  padding: 5px 8px;            /* 🔽 tighter */
+  font-size: 13px;             /* 🔽 slightly smaller */
 }
 
 .search:focus {
   outline: none;
-  border-color: #2563eb;
+  border-color: #1e40af;       /* darker focus */
 }
 
 .previewHint {
-  font-size: 12px;
+  font-size: 11px;             /* 🔽 */
   color: #999;
   padding: 2px 4px;
 }
 
 /* =========================
-   📦 Scroll Container (CRITICAL)
+   📦 Scroll Container
 ========================= */
 .resultList {
-  max-height: 168px;
-  min-height: 168px;       /* 🔒 stabilizes flexbox */
+  max-height: 160px;           /* 🔽 */
+  min-height: 130px;
   overflow-y: auto;
   overflow-x: hidden;
 
@@ -49,7 +49,7 @@
 }
 
 /* =========================
-   🧩 Ability Row (LOCKED)
+   🧩 Ability Row
 ========================= */
 .abilityRow {
   display: flex;
@@ -57,12 +57,13 @@
   justify-content: space-between;
 
   gap: 8px;
-  flex-wrap: nowrap;       /* 🔒 FORCE SINGLE ROW */
+  flex-wrap: nowrap;
 
   background: #fff;
   border: 1px solid #eee;
   border-radius: 6px;
-  padding: 8px;
+
+  padding: 6px 8px;            /* 🔽 tighter */
 }
 
 /* =========================
@@ -74,12 +75,12 @@
   gap: 8px;
 
   flex: 1;
-  min-width: 0;            /* 🔥 REQUIRED for flex truncation */
+  min-width: 0;
 }
 
 .abilityIcon {
-  width: 28px;
-  height: 28px;
+  width: 26px;                 /* 🔽 */
+  height: 26px;
   flex-shrink: 0;
 
   object-fit: contain;
@@ -89,7 +90,7 @@
 }
 
 .abilityName {
-  font-size: 15px;
+  font-size: 14px;             /* 🔽 from 15 */
   font-weight: 500;
 
   white-space: nowrap;
@@ -98,23 +99,24 @@
 }
 
 /* =========================
-   🎛 Controls (IMMUNE TO WRAP)
+   🎛 Controls
 ========================= */
 .buttons {
-  display: inline-flex;    /* 🔒 prevents Safari reflow */
+  display: inline-flex;
   align-items: center;
   gap: 6px;
 
-  flex-shrink: 0;          /* 🔥 CRITICAL on mobile */
+  flex-shrink: 0;
   white-space: nowrap;
 }
 
 .btn {
-  flex: 0 0 auto;          /* 🔒 never stretch */
+  flex: 0 0 auto;
   border: none;
   border-radius: 6px;
-  padding: 4px 10px;
-  font-size: 13px;
+
+  padding: 3px 8px;            /* 🔽 */
+  font-size: 12px;             /* 🔽 */
   cursor: pointer;
 }
 
@@ -142,42 +144,48 @@
 }
 
 .level {
-  min-width: 20px;
+  min-width: 18px;
   text-align: center;
-  font-size: 13px;
+  font-size: 12px;             /* 🔽 */
   font-weight: 600;
 }
 
-/* insert */
+/* =========================
+   🔵 Insert Button (DARKER / CALMER)
+========================= */
 .insertBtn {
   flex: 0 0 auto;
 
-  min-height: 25px;          /* ✅ visual + touch target */
-  padding: 4px 10px;         /* ✅ vertical breathing room */
+  min-height: 24px;            /* 🔽 */
+ 
+  padding: 3px 8px;   
 
-  font-size: 12px;
+  font-size: 12px;             /* 🔽 */
   font-weight: 600;
 
-  border-radius: 6px;
-  border: 1px solid #2563eb;
-  background: #2563eb;
+  border-radius: 3px;
+  border: 1px solid #1e40af;   /* 🔵 darker blue */
+  background: #1e40af;
   color: #fff;
+
   cursor: pointer;
 
-  display: inline-flex;      /* keeps text centered */
+  display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
-
 .insertBtn:hover {
-  background: #1d4ed8;
+  background: #1e3a8a;
 }
 
+/* =========================
+   Empty State
+========================= */
 .emptyHint {
-  font-size: 13px;
+  font-size: 12px;             /* 🔽 */
   color: #aaa;
-  padding: 8px;
+  padding: 6px;
   text-align: center;
 }
 
@@ -186,21 +194,21 @@
 ========================= */
 @media (max-width: 480px) {
   .resultList {
-    max-height: 140px;
-    min-height: 120px;     /* 🔒 stable but compact */
+    max-height: 132px;
+    min-height: 120px;
   }
 
   .abilityName {
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .btn {
-    padding: 4px 8px;
-    font-size: 12px;
+    padding: 3px 6px;
+    font-size: 11px;
   }
 
   .insertBtn {
-    font-size: 11px;
+    font-size: 10px;
     padding: 2px 6px;
   }
 }
