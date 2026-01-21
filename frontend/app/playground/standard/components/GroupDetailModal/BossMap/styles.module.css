@@ -102,7 +102,6 @@
 .memberButtons button {
   height: 34px;
   padding: 0 10px;
-
   min-width: 80px;
 
   font-size: 15px;
@@ -115,7 +114,6 @@
 
   white-space: nowrap;
   overflow: hidden;
-  /* text-overflow: ellipsis; */
 
   transform: scale(0.9);
   transition: transform 0.15s ease;
@@ -165,19 +163,31 @@
   white-space: nowrap;
 }
 
+/* ===============================
+   👤 Member name text (flex-safe)
+=============================== */
+.memberText {
+  display: block;
+  white-space: nowrap;
+
+  min-width: 0;        /* REQUIRED for flex truncation */
+  flex: 1 1 auto;
+
+  overflow: hidden;
+  text-overflow: clip; /* hard cut, no ... */
+}
+
 /* =====================================================
    📱 MOBILE — BossMapHeader + horizontal map
 ===================================================== */
 @media (max-width: 768px) {
 
-  /* Header stacks vertically */
   .headerRow {
     flex-direction: column;
     align-items: stretch;
     gap: 6px;
   }
 
-  /* Left section: single-row scroll */
   .leftSection {
     flex-wrap: nowrap;
     overflow-x: auto;
@@ -185,16 +195,6 @@
     gap: 8px;
   }
 
-  .memberButtons {
-    flex-wrap: nowrap;
-  }
-
-  .memberButtons button {
-    flex-shrink: 0;
-    
-  }
-
-  /* Right controls stay one row */
   .rightControls {
     justify-content: space-between;
     gap: 10px;
@@ -208,7 +208,20 @@
     flex-shrink: 0;
   }
 
-  /* Map row: fixed-size horizontal scroll */
+  .memberButtons {
+    flex-wrap: nowrap;
+    gap: 2px;                 /* tighter spacing */
+  }
+
+  .memberButtons button {
+    flex-shrink: 0;
+    padding: 0 6px;           /* tighter button */
+  }
+
+  .memberText {
+    max-width: 5.9ch;         /* final clamp */
+  }
+
   .row {
     grid-template-columns: repeat(10, 120px);
     grid-auto-rows: 120px;
@@ -225,70 +238,10 @@
   .row::-webkit-scrollbar {
     display: none;
   }
-}
-@media (max-width: 768px) {
-  .memberButtons button {
-        /* 4 Chinese chars ≈ 8ch */
-    white-space: nowrap;
-    overflow: hidden;
-  }
-}
-@media (max-width: 768px) {
+
   .columns {
-    flex-direction: row;      /* ✅ keep same row */
+    flex-direction: row;
     gap: 8px;
     align-items: flex-start;
-  }
-}
-@media (max-width: 768px) {
-  .memberButtons {
-    gap: 4px;   /* ⬅️ tighter spacing on phone */
-  }
-}
-/* ===============================
-   👤 Member name text
-=============================== */
-.memberText {
-  display: inline-block;
-  white-space: nowrap;
-}
-
-/* 📱 Mobile: clamp TEXT, not button */
-@media (max-width: 768px) {
-  .memberText {
-    max-width: 8ch;          /* ✅ text only */
-    overflow: hidden;
-    text-overflow: ellipsis;
-    /* text-overflow: clip; */
-  }
-}
-/* ===============================
-   👤 Member name text (flex-safe)
-=============================== */
-.memberText {
-  display: block;         /* better in flex */
-  white-space: nowrap;
-
-  min-width: 0;           /* ✅ REQUIRED: allow shrinking in flex */
-  flex: 1 1 auto;         /* ✅ take available space */
-
-  overflow: hidden;
-  text-overflow: clip;    /* ✅ default: no ... */
-}
-
-/* 📱 Mobile: clamp TEXT */
-@media (max-width: 768px) {
-  .memberText {
-    max-width: 5.9ch;
-  }
-}
-@media (max-width: 768px) {
-  .memberButtons {
-    gap: 2px;              /* tighter gap */
-  }
-
-  .memberButtons button {
-    padding: 0 6px;        /* reduce internal spacing */
-
   }
 }
