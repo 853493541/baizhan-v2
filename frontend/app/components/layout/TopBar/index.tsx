@@ -52,7 +52,7 @@ export default function TopBar({ onMenuClick }: TopBarProps) {
 
       {/* Logo + Title */}
       <Link href="/" className={styles.titleWrap}>
-        <Image src="/icons/app_icon.png" alt="logo" width={22} height={22} />
+        <Image src="/icons/app_icon.png?v=20260122" alt="logo" width={22} height={22} />
         <span className={styles.title}>百战异闻录</span>
       </Link>
 
