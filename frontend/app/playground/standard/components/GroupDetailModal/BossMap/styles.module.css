@@ -115,7 +115,7 @@
 
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
+  /* text-overflow: ellipsis; */
 
   transform: scale(0.9);
   transition: transform 0.15s ease;
@@ -228,7 +228,7 @@
 }
 @media (max-width: 768px) {
   .memberButtons button {
-    max-width: 8ch;          /* 4 Chinese chars ≈ 8ch */
+        /* 4 Chinese chars ≈ 8ch */
     white-space: nowrap;
     overflow: hidden;
   }
@@ -243,5 +243,52 @@
 @media (max-width: 768px) {
   .memberButtons {
     gap: 4px;   /* ⬅️ tighter spacing on phone */
+  }
+}
+/* ===============================
+   👤 Member name text
+=============================== */
+.memberText {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* 📱 Mobile: clamp TEXT, not button */
+@media (max-width: 768px) {
+  .memberText {
+    max-width: 8ch;          /* ✅ text only */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* text-overflow: clip; */
+  }
+}
+/* ===============================
+   👤 Member name text (flex-safe)
+=============================== */
+.memberText {
+  display: block;         /* better in flex */
+  white-space: nowrap;
+
+  min-width: 0;           /* ✅ REQUIRED: allow shrinking in flex */
+  flex: 1 1 auto;         /* ✅ take available space */
+
+  overflow: hidden;
+  text-overflow: clip;    /* ✅ default: no ... */
+}
+
+/* 📱 Mobile: clamp TEXT */
+@media (max-width: 768px) {
+  .memberText {
+    max-width: 5.9ch;
+  }
+}
+@media (max-width: 768px) {
+  .memberButtons {
+    gap: 2px;              /* tighter gap */
+  }
+
+  .memberButtons button {
+    padding: 0 6px;        /* reduce internal spacing */
+
   }
 }
