@@ -10,10 +10,13 @@ import AuthGate from "./components/auth/AuthGate";
    ✅ GLOBAL METADATA
    ====================================================== */
 export const metadata = {
-  title: "Baizhan App",
-  description: "百战异闻录 · 内部工具",
+  title: "百战",
+  description: "百战统计排表工具",
+  icons: {
+    icon: "/icons/app_icon_no_background.png",        // browser tab
+    apple: "/icons/app_icon_no_background.png",       // iOS fallback
+  },
 };
-
 /* ======================================================
    📱 VIEWPORT (MUST BE SEPARATE — FIXES MOBILE ZOOM)
    ====================================================== */
