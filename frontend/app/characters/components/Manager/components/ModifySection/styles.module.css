@@ -42,7 +42,7 @@
   min-height: 130px;
   overflow-y: auto;
   overflow-x: hidden;
-
+margin-top:2px;
   display: flex;
   flex-direction: column;
   gap: 6px;

@@ -6,7 +6,8 @@
 .title {
   font-size: 14px;
   font-weight: 700;
-  /* margin-bottom: 6px; */
+  padding-left:6px;
+  
 }
 
 /* ---------- Row (PRIMARY UNIT) ---------- */

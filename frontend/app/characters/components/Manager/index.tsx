@@ -126,17 +126,19 @@ export default function Manager({
       >
         <div className={styles.modal}>
           {/* ================= Header ================= */}
-          <div className={styles.header}>
-            <h2>技能管理</h2>
+        <div className={styles.header}>
+  <h2 className={styles.headerTitle}>
+    技能管理{char.name ? ` · ${char.name}` : ""}
+  </h2>
 
-            {/* 🔑 Close action lives here now */}
-            <button
-              className={styles.headerClose}
-              onClick={onClose}
-            >
-              关闭
-            </button>
-          </div>
+  <button
+    className={styles.headerClose}
+    onClick={onClose}
+  >
+    关闭
+  </button>
+</div>
+
 
           {/* ================= Modify ================= */}
           <ModifySection
