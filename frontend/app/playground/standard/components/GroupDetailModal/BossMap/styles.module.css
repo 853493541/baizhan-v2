@@ -102,7 +102,6 @@
 .memberButtons button {
   height: 34px;
   padding: 0 10px;
-
   min-width: 80px;
 
   font-size: 15px;
@@ -115,7 +114,6 @@
 
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
 
   transform: scale(0.9);
   transition: transform 0.15s ease;
@@ -165,19 +163,32 @@
   white-space: nowrap;
 }
 
+/* ===============================
+   👤 Member name text (flex-safe)
+=============================== */
+.memberText {
+  display: block;
+  white-space: nowrap;
+
+  min-width: 0;
+  flex: 1 1 auto;
+
+  overflow: hidden;
+  text-overflow: clip;
+}
+
 /* =====================================================
    📱 MOBILE — BossMapHeader + horizontal map
 ===================================================== */
 @media (max-width: 768px) {
 
-  /* Header stacks vertically */
+  /* Header */
   .headerRow {
     flex-direction: column;
     align-items: stretch;
     gap: 6px;
   }
 
-  /* Left section: single-row scroll */
   .leftSection {
     flex-wrap: nowrap;
     overflow-x: auto;
@@ -185,20 +196,11 @@
     gap: 8px;
   }
 
-  .memberButtons {
-    flex-wrap: nowrap;
-  }
-
-  .memberButtons button {
-    flex-shrink: 0;
-    
-  }
-
-  /* Right controls stay one row */
   .rightControls {
     justify-content: space-between;
     gap: 10px;
     flex-wrap: nowrap;
+    margin-top:4px;
   }
 
   .actionBtn {
@@ -208,15 +210,37 @@
     flex-shrink: 0;
   }
 
-  /* Map row: fixed-size horizontal scroll */
+  /* Member buttons */
+  .memberButtons {
+    flex-wrap: nowrap;
+    gap: 2px;
+  }
+
+  .memberButtons button {
+    flex-shrink: 0;
+    padding: 0 6px;
+  }
+
+  .memberText {
+    max-width: 5.9ch;
+  }
+
+  /* ===============================
+     ROW — FINAL AUTHORITATIVE FIX
+  =============================== */
   .row {
-    grid-template-columns: repeat(10, 120px);
-    grid-auto-rows: 120px;
-    gap: 10px;
+    grid-template-columns: repeat(10, 110px);
+    grid-auto-rows: minmax(120px, auto);
+    align-items: start;
 
     overflow-x: auto;
     overflow-y: visible;
+
+    touch-action: pan-x;
+margin-top:8px;
     padding-top: 10px;
+    padding-bottom: 8px;
+    margin-bottom: 0px;
 
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
@@ -225,23 +249,24 @@
   .row::-webkit-scrollbar {
     display: none;
   }
-}
-@media (max-width: 768px) {
-  .memberButtons button {
-    max-width: 8ch;          /* 4 Chinese chars ≈ 8ch */
-    white-space: nowrap;
-    overflow: hidden;
+
+  /* ===============================
+     CARD — REMOVE HARD CAPS
+  =============================== */
+  .card {
+    min-width: 120px;
+    max-width: 120px;
+
+    min-height: 120px;
+    max-height: none;
+
+    overflow: visible;
+    grid-template-rows: auto auto auto;
   }
-}
-@media (max-width: 768px) {
+
   .columns {
-    flex-direction: row;      /* ✅ keep same row */
+    flex-direction: row;
     gap: 8px;
     align-items: flex-start;
-  }
-}
-@media (max-width: 768px) {
-  .memberButtons {
-    gap: 4px;   /* ⬅️ tighter spacing on phone */
   }
 }

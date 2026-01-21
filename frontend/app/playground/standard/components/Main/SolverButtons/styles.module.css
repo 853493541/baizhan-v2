@@ -166,3 +166,82 @@
 .cacheBtn:active:not(:disabled) {
   background-color: #fdba74;
 }
+/* =====================================================
+   📱 Phone — single row + horizontal scroll
+   ===================================================== */
+@media (max-width: 520px) {
+  .solverButtons {
+    flex-wrap: nowrap;              /* 🚫 no wrapping */
+    overflow-x: auto;               /* 👉 horizontal scroll */
+    overflow-y: hidden;
+
+    -webkit-overflow-scrolling: touch; /* smooth iOS scroll */
+    scroll-behavior: smooth;
+
+    gap: 10px;
+    margin-top: 14px;
+    padding-bottom: 4px;            /* space for scrollbar */
+  }
+
+  /* Prevent children from shrinking */
+  .solverButtons > * {
+    flex-shrink: 0;
+  }
+
+  /* Slightly larger tap targets on phone */
+  .solverBtn {
+    padding: 8px 12px;
+    min-height: 36px;
+    font-size: 13px;
+  }
+
+  /* Gear button stays compact but scroll-friendly */
+  .iconBtn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .iconBtn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Cache bar stays inline, no wrap */
+  .cacheBar {
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+    gap: 8px;
+  }
+
+  /* Cache buttons slightly larger for finger */
+  .cacheSaveBtn {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .cacheSlot {
+    width: 30px;
+    height: 30px;
+    font-size: 12px;
+  }
+}
+
+/* =====================================================
+   📱 Very small phones (<= 360px)
+   ===================================================== */
+@media (max-width: 360px) {
+  .solverButtons {
+    gap: 8px;
+  }
+
+  .solverBtn {
+    padding: 8px 10px;
+    min-height: 36px;
+    font-size: 12px;
+  }
+
+  .cacheSlot {
+    width: 28px;
+    height: 28px;
+  }
+}

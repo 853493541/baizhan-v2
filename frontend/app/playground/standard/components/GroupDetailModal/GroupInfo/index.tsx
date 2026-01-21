@@ -4,33 +4,43 @@ import React from "react";
 import styles from "./styles.module.css";
 import type { GroupResult, AbilityCheck } from "@/utils/solver";
 
+/* ======================================================
+   QA CHECK LOGIC (PURE)
+====================================================== */
 function checkGroupQA(
   group: GroupResult,
   conflictLevel: number,
   checkedAbilities: AbilityCheck[] = []
 ): string[] {
   const warnings: string[] = [];
-  if (!group || !group.characters) return warnings;
+  if (!group || !group.characters || group.characters.length === 0) {
+    return warnings;
+  }
 
-  // 🔹 Check healer presence
+  /* 🔹 Healer presence */
   if (!group.characters.some((c) => c.role === "Healer")) {
     warnings.push("缺少治疗");
   }
 
-  // 🔹 Check duplicate accounts
+  /* 🔹 Duplicate accounts */
   const seen = new Set<string>();
   const dups = new Set<string>();
+
   for (const c of group.characters) {
-    if (seen.has(c.account)) dups.add(c.account);
-    seen.add(c.account);
+    if (c.account) {
+      if (seen.has(c.account)) dups.add(c.account);
+      seen.add(c.account);
+    }
   }
+
   if (dups.size > 0) {
     warnings.push(`重复账号: ${Array.from(dups).join("、")}`);
   }
 
-  // 🔹 Check ability conflicts
+  /* 🔹 Ability conflicts */
   const activeAbilities = checkedAbilities.filter((a) => a.available);
   const abilityCount: Record<string, number> = {};
+
   for (const c of group.characters) {
     for (const a of activeAbilities) {
       const lvl = c.abilities?.[a.name] ?? 0;
@@ -49,18 +59,34 @@ function checkGroupQA(
   return warnings;
 }
 
+/* ======================================================
+   TYPES
+====================================================== */
 interface Props {
   group: GroupResult;
   checkedAbilities: AbilityCheck[];
   conflictLevel: number;
+  onClose: () => void;
+
+  /** ✅ click character → open Manager modal */
+  onOpenManager: (characterId: string) => void;
 }
 
-export default function GroupInfo({ group, checkedAbilities, conflictLevel }: Props) {
+/* ======================================================
+   COMPONENT
+====================================================== */
+export default function GroupInfo({
+  group,
+  checkedAbilities,
+  conflictLevel,
+  onClose,
+  onOpenManager,
+}: Props) {
   const qaWarnings = checkGroupQA(group, conflictLevel, checkedAbilities);
 
   return (
     <div className={styles.groupInfoRow}>
-      {/* ⚠️ Warnings on the left */}
+      {/* ⚠️ WARNINGS — LEFT */}
       <div className={styles.warningRow}>
         {qaWarnings.length > 0 ? (
           qaWarnings.map((v, idx) => (
@@ -73,11 +99,12 @@ export default function GroupInfo({ group, checkedAbilities, conflictLevel }: Pr
         )}
       </div>
 
-      {/* 👥 Characters centered on the same line */}
+      {/* 👥 MEMBERS — CENTER (CLICKABLE) */}
       <div className={styles.memberList}>
         {group.characters.map((c) => (
-          <span
+          <button
             key={c._id}
+            type="button"
             className={`${styles.characterBox} ${
               c.role === "Tank"
                 ? styles.tank
@@ -85,11 +112,22 @@ export default function GroupInfo({ group, checkedAbilities, conflictLevel }: Pr
                 ? styles.healer
                 : styles.dps
             }`}
+            onClick={() => onOpenManager(c._id)}
+            title="打开技能管理"
           >
             {c.name}
-          </span>
+          </button>
         ))}
       </div>
+
+      {/* ❌ CLOSE — RIGHT */}
+      <button
+        className={styles.closeBtn}
+        onClick={onClose}
+        aria-label="关闭"
+      >
+        关闭
+      </button>
     </div>
   );
 }

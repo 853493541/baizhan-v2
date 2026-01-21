@@ -349,3 +349,8 @@
     padding: 20px;
   }
 }
+@media (max-width: 600px) {
+  .weekDivider {
+    margin: 16px 0;   /* ⬅️ reduced from 36px → ~45% */
+  }
+}

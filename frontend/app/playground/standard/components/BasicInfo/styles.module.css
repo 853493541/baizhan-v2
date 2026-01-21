@@ -10,15 +10,15 @@
   background: #fff;
 }
 
-/* If this header is ever used outside a padded container, give it a tiny safe pad on phones */
+/* If header is used outside padded container */
 @media (max-width: 600px) {
   .headerBar {
-    padding: 0 6px 10px;
+    padding: 0 0px 8px;
   }
 }
 
 /* =====================================================
-   BACK BUTTON (UNCHANGED)
+   BACK BUTTON
 ===================================================== */
 
 .backBtn {
@@ -38,7 +38,7 @@
 }
 
 /* =====================================================
-   TITLE ROW (KEEP ACTIONS NEXT TO TITLE, NOT FAR RIGHT)
+   TITLE ROW (DESKTOP BASELINE)
 ===================================================== */
 
 .titleRow {
@@ -47,10 +47,8 @@
   align-items: center;
   gap: 10px;
 
-  /* ✅ keep one line */
+  /* single line */
   flex-wrap: nowrap;
-
-  /* ✅ prevent title from stretching and pushing actions away */
   justify-content: flex-start;
 }
 
@@ -61,32 +59,29 @@
   color: #1f2937;
   line-height: 1.3;
 
-  /* ✅ key change: do NOT use flex: 1 here */
   flex: 0 1 auto;
   min-width: 0;
 
-  /* ✅ keep ONE line, ellipsis if too long */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 
-  /* ✅ cap width so buttons stay visually “next to” title */
+  /* keep actions visually close on desktop */
   max-width: clamp(220px, 52vw, 720px);
 }
 
-/* Buttons next to title (stay close, not pushed to far right) */
+/* Actions (desktop: next to title) */
 .titleActions {
   display: flex;
   align-items: center;
   gap: 8px;
 
-  /* ✅ never wrap */
   flex: 0 0 auto;
   white-space: nowrap;
 }
 
 /* =====================================================
-   HEADER ICON BUTTONS (⚙ and ＋)
+   HEADER ICON BUTTONS
 ===================================================== */
 
 .iconBtn,
@@ -94,7 +89,7 @@
   background: #eef4ff;
   border: 1px solid #c7dbff;
   border-radius: 8px;
-  padding: 5px 8px 7px; /* optical centering */
+  padding: 5px 8px 7px;
 
   min-width: 32px;
   min-height: 32px;
@@ -114,31 +109,27 @@
 }
 
 /* =====================================================
-   EDIT WRAPPER + WARNING (KEEP INLINE, NEVER BREAK)
+   EDIT WRAPPER + WARNING
 ===================================================== */
 
 .editWrapper {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 0 0 auto;
   white-space: nowrap;
 }
 
 .countWarning {
-  /* ✅ keep it compact so phone layout doesn’t explode */
   font-size: 16px;
   font-weight: 700;
   color: #d93025;
 
-  /* ✅ badge style to reduce “screaming” width */
   background: #fde8e7;
   border: 1px solid #f6c7c4;
   padding: 2px 8px;
   border-radius: 2px;
 
   white-space: nowrap;
-  flex: 0 0 auto;
 }
 
 /* =====================================================
@@ -168,7 +159,6 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
   position: relative;
 
-  /* ✅ mobile safe */
   max-height: 90vh;
   overflow-y: auto;
 }
@@ -309,26 +299,6 @@
 }
 
 /* =====================================================
-   DANGER CONFIRM
-===================================================== */
-
-.warningText {
-  color: #a94442;
-  font-size: 0.95rem;
-  margin-bottom: 12px;
-  line-height: 1.6;
-}
-
-.confirmInput {
-  width: 100%;
-  padding: 8px 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  margin-bottom: 12px;
-  font-size: 0.95rem;
-}
-
-/* =====================================================
    DISABLED
 ===================================================== */
 
@@ -342,20 +312,25 @@
 
 /* =====================================================
    MOBILE (PHONES)
-   - keep ONE LINE
-   - keep actions next to title
-   - shrink title width so it ellipses sooner
+   - SINGLE ROW
+   - TITLE LEFT, ACTIONS RIGHT
 ===================================================== */
 
 @media (max-width: 600px) {
   .headerTitle {
     font-size: 16px;
-    max-width: clamp(140px, 44vw, 260px);
+    max-width: none;
+    flex: 1 1 auto;
   }
 
   .titleRow {
     gap: 8px;
     flex-wrap: nowrap;
+    align-items: center;
+  }
+
+  .titleActions {
+    margin-left: auto; /* 🔑 push to right */
   }
 
   .iconBtn,
@@ -372,43 +347,5 @@
 
   .modal {
     width: 92%;
-  }
-}
-/* =====================================================
-   PHONE LAYOUT OVERRIDE
-   - Row 1: title (full width)
-   - Row 2: actions + error
-===================================================== */
-
-@media (max-width: 600px) {
-  .titleRow {
-    flex-wrap: wrap;          /* allow second row */
-    align-items: flex-start;
-    gap: 6px 8px;             /* row-gap / column-gap */
-  }
-
-  /* Title becomes its own full row */
-  .headerTitle {
-    flex: 0 0 100%;
-    max-width: 100%;
-
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  /* Actions move to second row */
-  .titleActions {
-    flex: 0 0 auto;
-  }
-
-  .editWrapper {
-    flex: 0 0 auto;
-  }
-
-  /* Keep buttons + error inline */
-  .titleActions,
-  .editWrapper {
-    white-space: nowrap;
   }
 }

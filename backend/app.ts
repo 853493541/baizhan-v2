@@ -1,28 +1,36 @@
 import express from "express";
 import cors from "cors";
 import compression from "compression";
+import cookieParser from "cookie-parser";
 import { connectDB } from "./db";
 import cron from "node-cron";
 import fetch from "node-fetch";
+
 import TargetedPlan from "./models/TargetedPlan";
-import SystemJob from "./models/SystemJob"; // ✅ Track last cron execution
+import SystemJob from "./models/SystemJob";
+
+// 🔐 AUTH
+import authRoutes from "./routes/authRoutes";
+import { requireAuth } from "./middleware/requireAuth";
 
 // 🧩 Route imports
 import characterRoutes from "./routes/characterRoutes";
 import mapRoutes from "./routes/mapRoutes";
 import standardScheduleRoutes from "./routes/standardScheduleRoutes";
 import targetedPlanRoutes from "./routes/targetedPlanRoutes";
-
+import adminRoutes from "./routes/admin";
 const app = express();
 
-// ✅ Allowed origins (dev + prod)
+/* =====================================================
+   🌐 CORS (same domain, safe defaults)
+===================================================== */
+
 const allowedOrigins = [
-  "http://localhost:3000",       // local dev
-  "https://baizhan.renstoolbox.com",     // production
-  "https://www.baizhan.renstoolbox.com", // production (www)
+  "http://localhost:3000",
+  "https://baizhan.renstoolbox.com",
+  "https://www.baizhan.renstoolbox.com",
 ];
 
-// ✅ Enable CORS
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -32,33 +40,60 @@ app.use(
         callback(new Error("CORS blocked: " + origin));
       }
     },
+    credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type"],
   })
 );
 
-// ✅ Middleware
-app.use(express.json());
+/* =====================================================
+   🔧 Core middleware
+===================================================== */
+
+app.use(express.json({ limit: "2mb" }));
+app.use(cookieParser());
 app.use(compression());
 
-// ✅ Connect to MongoDB
+/* =====================================================
+   🗄️ Database
+===================================================== */
+
 connectDB();
 
-// ✅ API Routes
+/* =====================================================
+   🔓 PUBLIC ROUTES (NO LOGIN REQUIRED)
+===================================================== */
+
+// Health check (keep public)
+app.get("/", (_, res) => {
+  res.send("✅ API is running (auth enabled)");
+});
+app.use("/api/admin", adminRoutes);
+// Auth routes
+app.use("/api/auth", authRoutes);
+
+/* =====================================================
+   🔒 HARD GATE — EVERYTHING BELOW REQUIRES LOGIN
+===================================================== */
+
+app.use("/api", requireAuth);
+
+/* =====================================================
+   🧩 PROTECTED API ROUTES
+===================================================== */
+
 app.use("/api/characters", characterRoutes);
 app.use("/api/weekly-map", mapRoutes);
 app.use("/api/standard-schedules", standardScheduleRoutes);
 app.use("/api/targeted-plans", targetedPlanRoutes);
 
-// ✅ Health check route
-app.get("/", (_, res) => {
-  res.send("✅ API is running (TargetedPlans integrated)");
-});
+/* =====================================================
+   ⏰ CRON JOB — Weekly auto-reset
+   (runs internally, NOT via HTTP)
+===================================================== */
 
-// ====================================================================
-// ⏰ CRON JOB — Weekly auto-reset (Monday 7 AM China / Sunday 4 PM California)
-// ====================================================================
-// 7 AM Monday China (UTC+8) → 23:00 UTC Sunday → cron "0 23 * * 0"
+// 7 AM Monday China (UTC+8)
+// → 23:00 UTC Sunday
 const API_BASE = process.env.API_BASE_URL || "https://renstoolbox.com/api";
 
 cron.schedule("0 23 * * 0", async () => {
@@ -68,55 +103,75 @@ cron.schedule("0 23 * * 0", async () => {
   try {
     console.log("⏰ [Cron] Weekly auto-reset triggered:", now.toISOString());
 
-    // === Step 1: Prevent duplicate runs if backend restarts ===
+    // Prevent duplicate runs
     const existing = await SystemJob.findOne({ jobName });
-    if (existing && existing.lastRunAt) {
-      const diffDays = (now.getTime() - existing.lastRunAt.getTime()) / (1000 * 60 * 60 * 24);
+    if (existing?.lastRunAt) {
+      const diffDays =
+        (now.getTime() - existing.lastRunAt.getTime()) /
+        (1000 * 60 * 60 * 24);
+
       if (diffDays < 6) {
-        console.log("⏩ [Cron] Skipping reset — already ran recently on", existing.lastRunAt);
+        console.log("⏩ [Cron] Skipping reset — already ran on", existing.lastRunAt);
         return;
       }
     }
 
-    // === Step 2: Get all plan IDs ===
     const plans = await TargetedPlan.find({}, "planId name").lean();
     if (!plans.length) {
-      console.log("⚠️ [Cron] No targeted plans found, skipping reset.");
+      console.log("⚠️ [Cron] No targeted plans found.");
       return;
     }
 
-    // === Step 3: Call each plan’s /reset endpoint ===
     for (const plan of plans) {
       try {
-        const res = await fetch(`${API_BASE}/targeted-plans/${plan.planId}/reset`, { method: "POST" });
-        const data: any = await res.json().catch(() => ({})); // 👈 type-safe
+        const res = await fetch(
+          `${API_BASE}/targeted-plans/${plan.planId}/reset`,
+          {
+            method: "POST",
+            headers: {
+              // 🔑 INTERNAL AUTH BYPASS TOKEN (OPTIONAL, SAFE)
+              "x-internal-cron": process.env.CRON_SECRET || "",
+            },
+          }
+        );
+
+        const data: any = await res.json().catch(() => ({}));
 
         if (res.ok) {
-          console.log(`✅ [Cron] ${plan.name || plan.planId} reset at ${data?.lastResetAt || now.toISOString()}`);
+          console.log(
+            `✅ [Cron] ${plan.name || plan.planId} reset at ${
+              data?.lastResetAt || now.toISOString()
+            }`
+          );
         } else {
-          console.warn(`⚠️ [Cron] Reset failed for ${plan.name || plan.planId}: ${res.status} ${data?.error || ""}`);
+          console.warn(
+            `⚠️ [Cron] Reset failed for ${plan.name || plan.planId}: ${res.status}`
+          );
         }
       } catch (err) {
-        console.error(`❌ [Cron] Error resetting ${plan.name || plan.planId}:`, err);
+        console.error(
+          `❌ [Cron] Error resetting ${plan.name || plan.planId}:`,
+          err
+        );
       }
     }
 
-    // === Step 4: Record cron run time ===
     await SystemJob.findOneAndUpdate(
       { jobName },
       { lastRunAt: now },
       { upsert: true, new: true }
     );
 
-    console.log("✅ [Cron] Weekly auto-reset completed at", now.toISOString());
+    console.log("✅ [Cron] Weekly auto-reset completed");
   } catch (err) {
     console.error("❌ [Cron] Weekly auto-reset failed:", err);
   }
 });
 
-// ====================================================================
-// 🧪 Manual trigger — run reset immediately (for testing)
-// ====================================================================
+/* =====================================================
+   🧪 MANUAL SYSTEM ROUTES (PROTECTED)
+===================================================== */
+
 app.post("/api/system/run-reset-now", async (_, res) => {
   const now = new Date();
   console.log("🧪 [Manual] Running reset now:", now.toISOString());
@@ -124,23 +179,13 @@ app.post("/api/system/run-reset-now", async (_, res) => {
   try {
     const plans = await TargetedPlan.find({}, "planId name").lean();
     if (!plans.length) {
-      console.log("⚠️ [Manual] No targeted plans found.");
       return res.json({ success: false, message: "No plans to reset" });
     }
 
     for (const plan of plans) {
-      try {
-        const resp = await fetch(`${API_BASE}/targeted-plans/${plan.planId}/reset`, { method: "POST" });
-        const data: any = await resp.json().catch(() => ({}));
-
-        if (resp.ok) {
-          console.log(`✅ [Manual] ${plan.name || plan.planId} reset at ${data?.lastResetAt || now.toISOString()}`);
-        } else {
-          console.warn(`⚠️ [Manual] Reset failed for ${plan.name || plan.planId}: ${resp.status}`);
-        }
-      } catch (err) {
-        console.error(`❌ [Manual] Error resetting ${plan.name || plan.planId}:`, err);
-      }
+      await fetch(`${API_BASE}/targeted-plans/${plan.planId}/reset`, {
+        method: "POST",
+      });
     }
 
     await SystemJob.findOneAndUpdate(
@@ -149,17 +194,19 @@ app.post("/api/system/run-reset-now", async (_, res) => {
       { upsert: true, new: true }
     );
 
-    res.json({ success: true, message: "Manual reset completed", lastRunAt: now });
+    res.json({ success: true, lastRunAt: now });
   } catch (err) {
     console.error("❌ [Manual] Reset failed:", err);
-    res.status(500).json({ success: false, error: "Manual reset failed" });
+    res.status(500).json({ success: false });
   }
 });
 
-// ✅ Optional: check last cron run time
 app.get("/api/system/last-reset", async (_, res) => {
   try {
-    const job = await SystemJob.findOne({ jobName: "weekly-targeted-reset" }).lean();
+    const job = await SystemJob.findOne({
+      jobName: "weekly-targeted-reset",
+    }).lean();
+
     res.json({ lastRunAt: job?.lastRunAt || null });
   } catch {
     res.status(500).json({ error: "Failed to fetch last reset time" });

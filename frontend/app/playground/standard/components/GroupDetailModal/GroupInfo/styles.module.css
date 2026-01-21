@@ -1,23 +1,28 @@
+/* =====================================================
+   GROUP INFO ROW — FLEX WITH 3 ZONES
+   Left: warnings | Center: members | Right: close
+   ===================================================== */
 .groupInfoRow {
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: center; /* center characters across full width */
-  margin: 4px 0 12px 0;
-  width: 100%;
-  /* border:2px red solid; */
+
+  margin: 4px 0 8px 0;
+  width: calc(100% + 12px);   /* desktop full-bleed (right) */
+  min-height: 32px;
+  box-sizing: border-box;
 }
 
-/* === Warning section (absolute left) === */
+/* =====================================================
+   ⚠️ Warning section — LEFT
+   ===================================================== */
 .warningRow {
-  position: absolute;
-  left: 0;                  /* ✅ lock to the left edge */
-  top: 50%;
-  transform: translateY(-50%);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
+
+  flex: 0 0 auto;
 }
 
 .inlineWarn {
@@ -36,26 +41,35 @@
   font-size: 14px;
 }
 
-/* === Characters centered across full container === */
+/* =====================================================
+   👥 Characters — CENTER (desktop default)
+   ===================================================== */
 .memberList {
   display: flex;
-  justify-content: center; /* ✅ perfectly center across full width */
+  justify-content: center;
   align-items: center;
-  flex-wrap: wrap;
   gap: 8px;
-  width: 100%;
+
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  text-align: center;
 }
 
-/* === Character pill === */
+/* =====================================================
+   👤 Character pill
+   ===================================================== */
 .characterBox {
   padding: 4px 10px;
   border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
   cursor: default;
+  min-height:32px;
 }
 
-/* === Role colors === */
+/* =====================================================
+   🎭 Role colors
+   ===================================================== */
 .tank {
   background-color: #fff4c2;
   color: #6b4e00;
@@ -71,23 +85,118 @@
   color: #842029;
 }
 
-/* 📱 Responsive (stack vertically) */
-@media (max-width: 768px) {
+/* =====================================================
+   ❌ Close button — RIGHT
+   ===================================================== */
+.closeBtn {
+  flex: 0 0 auto;
+  margin-left: auto;
+
+  padding: 6px 14px;
+  min-height: 32px;
+
+  border-radius: 6px;
+  border: 1px solid #c9d9f2;
+
+  background: #f4f8ff;
+  color: #2c4a78;
+
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+
+  cursor: pointer;
+  user-select: none;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    color 0.15s ease;
+}
+
+.closeBtn:hover {
+  background: #e9f1ff;
+  border-color: #b6c9ee;
+  color: #1f3d6d;
+}
+
+.closeBtn:active {
+  background: #dde9ff;
+}
+
+/* =====================================================
+   📱 Phone (≤520px)
+   - warnings hidden
+   - members left-aligned, single row, scrollable
+   - close button right-aligned, never drops
+   - width hack reverted
+   ===================================================== */
+@media (max-width: 520px) {
   .groupInfoRow {
-    flex-direction: column;
-    align-items: center;
+    width: 100%;
+    justify-content: space-between;
   }
 
   .warningRow {
-    position: static;
-    transform: none;
-    justify-content: center;
-    margin-bottom: 6px;
+    display: none;
+  }
+
+  .memberList {
+    justify-content: flex-start;
+    flex-wrap: nowrap;        /* 🔑 single row */
+    overflow-x: auto;         /* 🔑 allow scroll */
+    white-space: nowrap;
+  }
+
+  .closeBtn {
+    flex-shrink: 0;           /* 🔑 never move to next line */
+    margin-left: 12px;
   }
 }
-/* Hide on mobile only */
-@media (max-width: 768px) {
-  .warningRow {
-    display: none !important;
+
+/* =====================================================
+   📱 Tablet (521px–1024px)
+   - revert width adjustment
+   - otherwise desktop layout
+   ===================================================== */
+@media (min-width: 521px) and (max-width: 1024px) {
+  .groupInfoRow {
+    width: 100%;
   }
+}
+/* =====================================================
+   🖱 Desktop hover (devices that support hover)
+   ===================================================== */
+@media (hover: hover) and (pointer: fine) {
+  .characterBox {
+    cursor: pointer;
+    transition:
+      box-shadow 0.15s ease,
+      transform 0.1s ease,
+      filter 0.15s ease;
+  }
+
+  .characterBox:hover {
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25);
+    filter: brightness(1.05);
+  }
+}
+
+/* =====================================================
+   📱 Touch feedback (phones & tablets)
+   ===================================================== */
+.characterBox:active {
+  transform: scale(0.96);
+  filter: brightness(0.95);
+}
+.characterBox {
+  border: none;
+  outline: none;
+  box-shadow: none;
+  background-clip: padding-box;
 }

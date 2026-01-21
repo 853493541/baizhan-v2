@@ -107,6 +107,9 @@
   .count {
     font-size: 13px;
   }
+.progressTrack {
+  width: 120px;
 
+}
   /* button intentionally unchanged */
 }

@@ -72,7 +72,7 @@ export default function ModifySection({
       {/* Search */}
       <input
         className={styles.search}
-        placeholder="输入技能名 / 拼音..."
+        placeholder="输入技能名..."
         value={insertSearch}
         onChange={(e) => setInsertSearch(e.target.value)}
       />
