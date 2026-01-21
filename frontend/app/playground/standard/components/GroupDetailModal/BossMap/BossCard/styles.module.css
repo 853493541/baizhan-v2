@@ -344,8 +344,8 @@
   /* row container (10-wide scrollable map) */
   .row {
     display: grid;
-    grid-template-columns: repeat(10, 120px);
-    grid-auto-rows: 120px;
+    grid-template-columns: repeat(10, 110px);
+    grid-auto-rows: 136px;
     gap: 10px;
 
     overflow-x: auto;
@@ -364,18 +364,18 @@
 
   /* card size contract */
   .card {
-    min-width: 120px;
-    max-width: 100px;
-    min-height: 100px;
+    min-width: 110px;
+    max-width: 110px;
+    min-height: 120px;
     max-height: 120px;
-
+overflow: visible; 
     padding: 6px;
     padding-bottom: 24px;
 
     font-size: 11px;
     line-height: 1.25;
 
-overflow: visible; 
+
   }
 
   /* tighter header */

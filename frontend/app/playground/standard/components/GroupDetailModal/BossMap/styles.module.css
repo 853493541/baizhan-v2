@@ -170,11 +170,11 @@
   display: block;
   white-space: nowrap;
 
-  min-width: 0;        /* REQUIRED for flex truncation */
+  min-width: 0;
   flex: 1 1 auto;
 
   overflow: hidden;
-  text-overflow: clip; /* hard cut, no ... */
+  text-overflow: clip;
 }
 
 /* =====================================================
@@ -182,6 +182,7 @@
 ===================================================== */
 @media (max-width: 768px) {
 
+  /* Header */
   .headerRow {
     flex-direction: column;
     align-items: stretch;
@@ -199,6 +200,7 @@
     justify-content: space-between;
     gap: 10px;
     flex-wrap: nowrap;
+    margin-top:4px;
   }
 
   .actionBtn {
@@ -208,28 +210,37 @@
     flex-shrink: 0;
   }
 
+  /* Member buttons */
   .memberButtons {
     flex-wrap: nowrap;
-    gap: 2px;                 /* tighter spacing */
+    gap: 2px;
   }
 
   .memberButtons button {
     flex-shrink: 0;
-    padding: 0 6px;           /* tighter button */
+    padding: 0 6px;
   }
 
   .memberText {
-    max-width: 5.9ch;         /* final clamp */
+    max-width: 5.9ch;
   }
 
+  /* ===============================
+     ROW — FINAL AUTHORITATIVE FIX
+  =============================== */
   .row {
-    grid-template-columns: repeat(10, 120px);
-    grid-auto-rows: 120px;
-    gap: 10px;
+    grid-template-columns: repeat(10, 110px);
+    grid-auto-rows: minmax(120px, auto);
+    align-items: start;
 
     overflow-x: auto;
     overflow-y: visible;
-    padding-top: 10px;
+
+    touch-action: pan-x;
+margin-top:4px;
+    padding-top: 8px;
+    /* padding-bottom: 8px; */
+    margin-bottom: 0px;
 
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
@@ -237,6 +248,20 @@
 
   .row::-webkit-scrollbar {
     display: none;
+  }
+
+  /* ===============================
+     CARD — REMOVE HARD CAPS
+  =============================== */
+  .card {
+    min-width: 120px;
+    max-width: 120px;
+
+    min-height: 120px;
+    max-height: none;
+
+    overflow: visible;
+    grid-template-rows: auto auto auto;
   }
 
   .columns {
