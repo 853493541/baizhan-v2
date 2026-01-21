@@ -110,20 +110,16 @@ export default function GroupDetailModal({
   ------------------------------------------------------- */
   return (
     <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-  <button
-  className={styles.closeBtn}
-  onClick={onClose}
-  aria-label="Close"
->
-  ✕
-</button>
-
-
+      <div
+        className={styles.modal}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* 🔝 GROUP HEADER (warnings | members | close) */}
         <GroupInfo
           group={groupData}
           checkedAbilities={checkedAbilities}
           conflictLevel={conflictLevel}
+          onClose={onClose}  
         />
 
         <div className={styles.midSection}>
@@ -133,7 +129,7 @@ export default function GroupDetailModal({
           /> */}
 
           <ResultWindow
-           checkedAbilities={checkedAbilities}
+            checkedAbilities={checkedAbilities}
             scheduleId={scheduleId}
             group={groupData}
             onRefresh={syncKills}
@@ -146,8 +142,8 @@ export default function GroupDetailModal({
           weeklyMap={weeklyMap}
           onRefresh={syncKills}
           onGroupUpdate={(updated) =>
-            // ✅ PATCH, never replace
-            setGroupData(prev => ({
+            /* ✅ PATCH, never replace */
+            setGroupData((prev) => ({
               ...prev,
               ...updated,
             }))
