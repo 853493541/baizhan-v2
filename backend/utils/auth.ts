@@ -13,7 +13,6 @@ export const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365; // 365 days
 /**
  * ✅ APPLICATION JWT PAYLOAD
  * tokenVersion is REQUIRED to support global logout
- * (password change, force logout all sessions, etc.)
  */
 export type AppJwtPayload = {
   uid: string;
@@ -63,4 +62,27 @@ export function getCookieOptions(req: Request) {
     path: "/",
     maxAge: ONE_YEAR_SECONDS * 1000, // milliseconds
   };
+}
+
+/* =========================
+   IP HELPER (NEW)
+========================= */
+
+/**
+ * Safely extract client IP
+ * - Works behind nginx / proxy / cloud LB
+ * - Returns single IP (no list)
+ */
+export function getClientIp(req: Request): string | null {
+  const forwarded = req.headers["x-forwarded-for"];
+
+  if (typeof forwarded === "string") {
+    return forwarded.split(",")[0].trim();
+  }
+
+  if (Array.isArray(forwarded) && forwarded.length > 0) {
+    return forwarded[0].trim();
+  }
+
+  return req.socket?.remoteAddress || null;
 }

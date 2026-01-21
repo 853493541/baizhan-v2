@@ -17,10 +17,11 @@ interface Props {
 const DISPLAY_NAME_MAP: Record<string, string> = {
   admin: "管理员",
   wuxi: "五溪",
-  douzi: "豆子",
+  douzhi: "豆子",
   juzi: "桔子",
   tianmei: "甜妹",
   guest: "游客账号",
+  catcake: "猫猫糕",
 };
 
 function getDisplayName(username: string) {
@@ -28,9 +29,14 @@ function getDisplayName(username: string) {
 }
 
 function getAvatarLetter(displayName: string) {
-  // If Chinese, use first char; otherwise uppercase first letter
+  // Chinese: first char; English: uppercase first letter
   return displayName.charAt(0).toUpperCase();
 }
+
+/* ===============================
+   🔐 Frontend-only visibility rule
+   =============================== */
+const ACTIVITY_PAGE_ALLOWED_USERS = new Set(["admin", "catcake"]);
 
 export default function UserMenu({ username }: Props) {
   const router = useRouter();
@@ -40,6 +46,10 @@ export default function UserMenu({ username }: Props) {
 
   const displayName = getDisplayName(username);
   const avatarLetter = getAvatarLetter(displayName);
+
+  // ✅ IMPORTANT: use RAW username for permission
+  const canViewActivityPage =
+    ACTIVITY_PAGE_ALLOWED_USERS.has(username);
 
   /* ===============================
      Click-away + ESC (Google behavior)
@@ -94,7 +104,7 @@ export default function UserMenu({ username }: Props) {
       {/* Avatar trigger */}
       <button
         className={styles.avatarBtn}
-        onClick={() => setOpen(v => !v)}
+        onClick={() => setOpen((v) => !v)}
         aria-label="账户菜单"
       >
         <div className={styles.avatarCircle}>
@@ -119,7 +129,23 @@ export default function UserMenu({ username }: Props) {
 
           <div className={styles.divider} />
 
-          {/* Actions */}
+          {/* 🔐 Admin-only entry (frontend UX only) */}
+          {canViewActivityPage && (
+            <button
+              className={styles.menuItem}
+              onClick={() => {
+                setOpen(false);
+                router.push("/admin/activity");
+              }}
+            >
+              <span className="material-symbols-outlined">
+                admin_panel_settings
+              </span>
+              查看记录
+            </button>
+          )}
+
+          {/* Change password */}
           <button
             className={styles.menuItem}
             onClick={() => {

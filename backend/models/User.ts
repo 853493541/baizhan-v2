@@ -1,9 +1,13 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface IUser extends Document {
-  username: string;          // stored normalized (lowercase)
-  passwordHash: string;      // bcrypt hash
-  tokenVersion: number;      // 🔐 used to invalidate all existing tokens
+  username: string;
+  passwordHash: string;
+  tokenVersion: number;
+
+  lastSeenAt?: Date;
+  lastSeenIp?: string;
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -22,17 +26,28 @@ const UserSchema = new Schema<IUser>(
       required: true,
     },
 
-    // 🔑 IMPORTANT: token version for global logout
     tokenVersion: {
       type: Number,
       required: true,
       default: 0,
     },
+
+    // 👀 Presence
+    lastSeenAt: {
+      type: Date,
+      default: null,
+    },
+
+    // 🌐 Last known IP (overwritten, not audit)
+    lastSeenIp: {
+      type: String,
+      default: null,
+    },
   },
   { timestamps: true }
 );
 
-// Always store username as lowercase + trimmed
+// Normalize username
 UserSchema.pre("save", function (next) {
   if (this.isModified("username")) {
     this.username = this.username.trim().toLowerCase();

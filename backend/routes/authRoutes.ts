@@ -5,15 +5,16 @@ import {
   hashPassword,
   signToken,
   verifyPassword,
+  getClientIp, // ✅ centralized IP helper
 } from "../utils/auth";
 import { requireAuth } from "../middleware/requireAuth";
 
 const router = Router();
 
+const LAST_SEEN_THROTTLE_MS = 10 * 60 * 1000; // 10 minutes
+
 /**
  * POST /api/auth/login
- * body: { username, password }
- * sets httpOnly cookie auth_token (1 year)
  */
 router.post("/login", async (req, res) => {
   try {
@@ -29,15 +30,14 @@ router.post("/login", async (req, res) => {
 
     const user = await User.findOne({ username });
     if (!user) {
-      return res.status(401).json({ error: "Invalid credentials" });
+      return res.status(401).json({ error: "账号密码错误！" });
     }
 
     const ok = await verifyPassword(password, user.passwordHash);
     if (!ok) {
-      return res.status(401).json({ error: "Invalid credentials" });
+      return res.status(401).json({ error: "账号密码错误！" });
     }
 
-    // 🔑 INCLUDE tokenVersion in JWT
     const token = signToken({
       uid: String(user._id),
       username: user.username,
@@ -57,7 +57,6 @@ router.post("/login", async (req, res) => {
 
 /**
  * POST /api/auth/logout
- * clears cookie (current session only)
  */
 router.post("/logout", async (_req, res) => {
   try {
@@ -67,37 +66,59 @@ router.post("/logout", async (_req, res) => {
     console.error("[auth/logout] error:", err);
     return res.status(500).json({ error: "Server error" });
   }
-}
-
-);
-
-/**
- * GET /api/auth/me
- * returns current user if logged in
- */
-router.get("/me", requireAuth, async (req, res) => {
-  return res.json({
-    ok: true,
-    user: {
-      uid: req.auth!.uid,
-      username: req.auth!.username,
-    },
-  });
 });
 
 /**
- * OPTIONAL (backend-only bootstrap):
+ * GET /api/auth/me
+ * 👀 Updates lastSeenAt + lastSeenIp (throttled)
+ */
+router.get("/me", requireAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.auth!.uid);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const now = Date.now();
+    const lastSeen = user.lastSeenAt?.getTime() ?? 0;
+
+    // ⏱️ Throttle presence updates
+    if (!user.lastSeenAt || now - lastSeen > LAST_SEEN_THROTTLE_MS) {
+      user.lastSeenAt = new Date();
+
+      // 🌐 Record last-seen IP (overwritten, not audit)
+      const ip = getClientIp(req);
+      user.lastSeenIp = ip ?? undefined;
+
+
+      await user.save();
+    }
+
+    return res.json({
+      ok: true,
+      user: {
+        uid: user._id,
+        username: user.username,
+      },
+    });
+  } catch (err) {
+    console.error("[auth/me] error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
+/**
  * POST /api/auth/bootstrap
- * Allows creating the FIRST user only IF no users exist.
+ * Allows creating the FIRST user only
  */
 router.post("/bootstrap", async (req, res) => {
   try {
     const count = await User.countDocuments();
-    if (count > 0) {
-      return res
-        .status(403)
-        .json({ error: "Bootstrap disabled (users already exist)" });
-    }
+    // if (count > 0) {
+    //   return res
+    //     .status(403)
+    //     .json({ error: "Bootstrap disabled (users already exist)" });
+    // }
 
     const usernameRaw = String(req.body?.username || "");
     const passwordRaw = String(req.body?.password || "");
@@ -114,7 +135,7 @@ router.post("/bootstrap", async (req, res) => {
     const user = await User.create({
       username,
       passwordHash,
-      tokenVersion: 0, // explicit for clarity
+      tokenVersion: 0,
     });
 
     return res.json({
@@ -129,11 +150,9 @@ router.post("/bootstrap", async (req, res) => {
 
 /**
  * POST /api/auth/change-password
- * body: { currentPassword, newPassword }
- *
- * IMPORTANT:
- * - increments tokenVersion
- * - invalidates ALL existing sessions
+ * - Verifies current password
+ * - Updates password
+ * - Increments tokenVersion (global logout)
  */
 router.post("/change-password", requireAuth, async (req, res) => {
   try {
@@ -153,17 +172,13 @@ router.post("/change-password", requireAuth, async (req, res) => {
       return res.status(401).json({ error: "Current password is incorrect" });
     }
 
-    // 🔐 Update password
     user.passwordHash = await hashPassword(newPassword);
-
-    // 🔥 GLOBAL LOGOUT: bump tokenVersion
     user.tokenVersion += 1;
 
     await user.save();
 
     // Invalidate current browser session
     res.clearCookie("auth_token", { path: "/" });
-
     return res.json({ ok: true });
   } catch (err) {
     console.error("[auth/change-password] error:", err);

@@ -18,7 +18,7 @@ import characterRoutes from "./routes/characterRoutes";
 import mapRoutes from "./routes/mapRoutes";
 import standardScheduleRoutes from "./routes/standardScheduleRoutes";
 import targetedPlanRoutes from "./routes/targetedPlanRoutes";
-
+import adminRoutes from "./routes/admin";
 const app = express();
 
 /* =====================================================
@@ -68,7 +68,7 @@ connectDB();
 app.get("/", (_, res) => {
   res.send("✅ API is running (auth enabled)");
 });
-
+app.use("/api/admin", adminRoutes);
 // Auth routes
 app.use("/api/auth", authRoutes);
 
