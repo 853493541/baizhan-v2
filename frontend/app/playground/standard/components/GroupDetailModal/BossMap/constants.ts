@@ -42,6 +42,7 @@ export const highlightAbilities = [
   "电挈昆吾",
   "土崩炸弹",
   "特制止血钳",
-  "破裂"
+  "破裂",
+  "血狱隐杀"
 
 ];

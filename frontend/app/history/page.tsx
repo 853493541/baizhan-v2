@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import styles from "./styles.module.css";
 import GroupedResult from "./Components/GroupedResult";
 import ConfirmModal from "@/app/components/ConfirmModal";
-import Dropdown from "@/app/components/layout/dropdown"; // ✅ your dropdown
+import Dropdown from "@/app/components/layout/dropdown";
 import { useAbilityHistory } from "./useAbilityHistory";
 
 /* ===============================
@@ -25,8 +25,9 @@ function shortenAbility(name: string, isPhone: boolean) {
   return isPhone ? name.slice(0, 2) : name;
 }
 
-function shortenName(name: string) {
-  return name.slice(0, 4);
+/** ✅ Phone: 4 chars | PC/iPad: 6 chars */
+function shortenName(name: string, isPhone: boolean) {
+  return name.slice(0, isPhone ? 4 : 6);
 }
 
 function getSmallGroupStatus(
@@ -46,7 +47,6 @@ function getSmallGroupStatus(
    Page
 =============================== */
 const PAGE_SIZE = 100;
-
 const DAY_OPTIONS = ["1 天", "30 天", "60 天", "90 天", "全部"];
 
 export default function AbilityHistoryPage() {
@@ -101,8 +101,7 @@ export default function AbilityHistoryPage() {
   /* ===============================
      Days dropdown helpers
   =============================== */
-  const dayValueLabel =
-    days === "all" ? "全部" : `${days} 天`;
+  const dayValueLabel = days === "all" ? "全部" : `${days} 天`;
 
   const handleDayChange = (v: string) => {
     if (v === "全部") {
@@ -151,7 +150,6 @@ export default function AbilityHistoryPage() {
             onChange={(e) => setFilterAbility(e.target.value)}
           />
 
-          {/* ✅ Custom Dropdown replaces native select */}
           <Dropdown
             label="时间范围"
             options={DAY_OPTIONS}
@@ -201,7 +199,7 @@ export default function AbilityHistoryPage() {
                       </td>
 
                       <td className={styles.nameCell}>
-                        {shortenName(r.characterName)}
+                        {shortenName(r.characterName, isPhone)}
                       </td>
 
                       <td className={styles.skillCol}>
@@ -259,7 +257,7 @@ export default function AbilityHistoryPage() {
                       </td>
 
                       <td className={styles.nameCell}>
-                        {shortenName(first.characterName)}
+                        {shortenName(first.characterName, isPhone)}
                       </td>
 
                       <td className={styles.skillCol}>
@@ -281,13 +279,18 @@ export default function AbilityHistoryPage() {
                       >
                         <span className={styles.chainText}>
                           {group.records.map((r, i) => (
-                            <span
-                              key={r._id}
-                              className={styles.chainStep}
-                            >
-                              {i === 0 ? r.beforeLevel : ""}
-                              →{r.afterLevel}
-                            </span>
+
+
+                         <span
+  key={r._id}
+  className={styles.chainStep}
+>
+  {i === 0 ? `${r.beforeLevel} → ` : "→ "}
+  {r.afterLevel}
+</span>
+
+
+
                           ))}
                         </span>
                       </td>

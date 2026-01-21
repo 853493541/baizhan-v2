@@ -195,7 +195,7 @@
 .nameCell {
   font-weight: 600;
   white-space: nowrap;
-  max-width: 4em;     /* max 4 chars */
+  /* max-width: 4em;    */
   overflow: hidden;   /* no ... */
 }
 
@@ -353,7 +353,7 @@
   }
 
   .nameCell {
-    max-width: 4em;
+    /* max-width: 4em; */
     font-size: 0.8rem;
   }
 
@@ -370,4 +370,12 @@
     padding: 4px 6px;
     font-size: 0.75rem;
   }
+
+  .nameCell {
+  font-weight: 600;
+  white-space: nowrap;
+  max-width: 4em;  
+  overflow: hidden;   /* no ... */
+}
+
 }
