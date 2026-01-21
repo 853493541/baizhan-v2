@@ -1,8 +1,10 @@
-// app/layout.tsx
+// app/layout.tsx (SERVER COMPONENT)
 import "./globals.css";
 import { ReactNode } from "react";
+
 import LayoutShell from "./components/layout/LayoutShell";
 import ToastProvider from "@/app/components/toast/ToastProvider";
+import AuthGate from "./components/auth/AuthGate";
 
 export const metadata = {
   title: "Baizhan App",
@@ -13,9 +15,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="zh-CN">
       <body>
-        <LayoutShell>{children}</LayoutShell>
+        <AuthGate>
+          <LayoutShell>{children}</LayoutShell>
+        </AuthGate>
 
-        {/* ✅ REQUIRED: mount toast system ONCE */}
+        {/* ✅ mount toast system ONCE */}
         <ToastProvider />
       </body>
     </html>

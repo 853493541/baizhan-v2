@@ -107,3 +107,43 @@ router.post("/bootstrap", async (req, res) => {
 });
 
 export default router;
+/**
+ * POST /api/auth/change-password
+ * body: { currentPassword, newPassword }
+ */
+router.post("/change-password", requireAuth, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body || {};
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: "Missing passwords" });
+    }
+
+    if (typeof newPassword !== "string" || newPassword.length < 8) {
+      return res
+        .status(400)
+        .json({ error: "New password must be at least 8 characters" });
+    }
+
+    const user = await User.findById(req.auth!.uid);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const ok = await verifyPassword(currentPassword, user.passwordHash);
+    if (!ok) {
+      return res.status(401).json({ error: "Current password is incorrect" });
+    }
+
+    user.passwordHash = await hashPassword(newPassword);
+    await user.save();
+
+    // 🔒 IMPORTANT: invalidate current session by clearing cookie
+    res.clearCookie("auth_token", { path: "/" });
+
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error("[auth/change-password] error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
