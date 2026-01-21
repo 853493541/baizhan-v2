@@ -237,9 +237,9 @@
     overflow-y: visible;
 
     touch-action: pan-x;
-margin-top:4px;
-    padding-top: 8px;
-    /* padding-bottom: 8px; */
+margin-top:8px;
+    padding-top: 10px;
+    padding-bottom: 8px;
     margin-bottom: 0px;
 
     -webkit-overflow-scrolling: touch;
