@@ -5,6 +5,7 @@ import { ReactNode } from "react";
 import LayoutShell from "./components/layout/LayoutShell";
 import ToastProvider from "@/app/components/toast/ToastProvider";
 import AuthGate from "./components/auth/AuthGate";
+import "./styles/material-symbols.css";
 
 /* ======================================================
    ✅ GLOBAL METADATA
@@ -32,13 +33,13 @@ export const viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="zh-CN">
-      <head>
-        {/* ✅ Google Material Symbols (Outlined) */}
-        <link
+      {/* <head> */}
+       {/* ✅ Google Material Symbols (Outlined) */}
+        {/* <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
           rel="stylesheet"
         />
-      </head>
+      </head> */}
 
       <body>
         {/* 🔐 Auth guard wraps the entire app */}
