@@ -10,10 +10,20 @@ if (!JWT_SECRET) {
 
 export const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365; // 365 days
 
-export type JwtPayload = {
+/**
+ * ✅ APPLICATION JWT PAYLOAD
+ * tokenVersion is REQUIRED to support global logout
+ * (password change, force logout all sessions, etc.)
+ */
+export type AppJwtPayload = {
   uid: string;
   username: string;
+  tokenVersion: number;
 };
+
+/* =========================
+   PASSWORD HELPERS
+========================= */
 
 export async function hashPassword(plain: string) {
   const saltRounds = 12;
@@ -24,24 +34,33 @@ export async function verifyPassword(plain: string, hash: string) {
   return bcrypt.compare(plain, hash);
 }
 
-export function signToken(payload: JwtPayload) {
+/* =========================
+   JWT HELPERS
+========================= */
+
+export function signToken(payload: AppJwtPayload) {
   // 1-year token lifetime
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: ONE_YEAR_SECONDS });
+  return jwt.sign(payload, JWT_SECRET, {
+    expiresIn: ONE_YEAR_SECONDS,
+  });
 }
 
-export function verifyToken(token: string): JwtPayload {
-  return jwt.verify(token, JWT_SECRET) as JwtPayload;
+export function verifyToken(token: string): AppJwtPayload {
+  return jwt.verify(token, JWT_SECRET) as AppJwtPayload;
 }
 
-// Since you are on SAME DOMAIN, cookie handling is simple:
+/* =========================
+   COOKIE OPTIONS
+========================= */
+
 export function getCookieOptions(req: Request) {
   const isProd = process.env.NODE_ENV === "production";
 
   return {
     httpOnly: true,
-    secure: isProd,          // must be true in production https
+    secure: isProd, // must be true in production (HTTPS)
     sameSite: "lax" as const,
     path: "/",
-    maxAge: ONE_YEAR_SECONDS * 1000, // ms
+    maxAge: ONE_YEAR_SECONDS * 1000, // milliseconds
   };
 }

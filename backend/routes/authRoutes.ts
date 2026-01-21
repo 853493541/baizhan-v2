@@ -29,7 +29,6 @@ router.post("/login", async (req, res) => {
 
     const user = await User.findOne({ username });
     if (!user) {
-      // Do NOT leak which part failed
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
@@ -38,10 +37,18 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    const token = signToken({ uid: String(user._id), username: user.username });
+    // 🔑 INCLUDE tokenVersion in JWT
+    const token = signToken({
+      uid: String(user._id),
+      username: user.username,
+      tokenVersion: user.tokenVersion,
+    });
 
     res.cookie("auth_token", token, getCookieOptions(req));
-    return res.json({ ok: true, user: { id: user._id, username: user.username } });
+    return res.json({
+      ok: true,
+      user: { id: user._id, username: user.username },
+    });
   } catch (err) {
     console.error("[auth/login] error:", err);
     return res.status(500).json({ error: "Server error" });
@@ -50,9 +57,9 @@ router.post("/login", async (req, res) => {
 
 /**
  * POST /api/auth/logout
- * clears cookie
+ * clears cookie (current session only)
  */
-router.post("/logout", async (req, res) => {
+router.post("/logout", async (_req, res) => {
   try {
     res.clearCookie("auth_token", { path: "/" });
     return res.json({ ok: true });
@@ -60,7 +67,9 @@ router.post("/logout", async (req, res) => {
     console.error("[auth/logout] error:", err);
     return res.status(500).json({ error: "Server error" });
   }
-});
+}
+
+);
 
 /**
  * GET /api/auth/me
@@ -69,7 +78,10 @@ router.post("/logout", async (req, res) => {
 router.get("/me", requireAuth, async (req, res) => {
   return res.json({
     ok: true,
-    user: { uid: req.auth!.uid, username: req.auth!.username },
+    user: {
+      uid: req.auth!.uid,
+      username: req.auth!.username,
+    },
   });
 });
 
@@ -77,13 +89,14 @@ router.get("/me", requireAuth, async (req, res) => {
  * OPTIONAL (backend-only bootstrap):
  * POST /api/auth/bootstrap
  * Allows creating the FIRST user only IF no users exist.
- * You can delete this route after initial setup.
  */
 router.post("/bootstrap", async (req, res) => {
   try {
     const count = await User.countDocuments();
     if (count > 0) {
-      return res.status(403).json({ error: "Bootstrap disabled (users already exist)" });
+      return res
+        .status(403)
+        .json({ error: "Bootstrap disabled (users already exist)" });
     }
 
     const usernameRaw = String(req.body?.username || "");
@@ -92,24 +105,35 @@ router.post("/bootstrap", async (req, res) => {
     const username = usernameRaw.trim().toLowerCase();
     const password = passwordRaw;
 
-    if (!username || !password || password.length < 8) {
-      return res.status(400).json({ error: "Need username + password (min 8 chars)" });
+    if (!username || !password) {
+      return res.status(400).json({ error: "Need username + password" });
     }
 
     const passwordHash = await hashPassword(password);
-    const user = await User.create({ username, passwordHash });
 
-    return res.json({ ok: true, user: { id: user._id, username: user.username } });
+    const user = await User.create({
+      username,
+      passwordHash,
+      tokenVersion: 0, // explicit for clarity
+    });
+
+    return res.json({
+      ok: true,
+      user: { id: user._id, username: user.username },
+    });
   } catch (err) {
     console.error("[auth/bootstrap] error:", err);
     return res.status(500).json({ error: "Server error" });
   }
 });
 
-export default router;
 /**
  * POST /api/auth/change-password
  * body: { currentPassword, newPassword }
+ *
+ * IMPORTANT:
+ * - increments tokenVersion
+ * - invalidates ALL existing sessions
  */
 router.post("/change-password", requireAuth, async (req, res) => {
   try {
@@ -117,12 +141,6 @@ router.post("/change-password", requireAuth, async (req, res) => {
 
     if (!currentPassword || !newPassword) {
       return res.status(400).json({ error: "Missing passwords" });
-    }
-
-    if (typeof newPassword !== "string" || newPassword.length < 8) {
-      return res
-        .status(400)
-        .json({ error: "New password must be at least 8 characters" });
     }
 
     const user = await User.findById(req.auth!.uid);
@@ -135,10 +153,15 @@ router.post("/change-password", requireAuth, async (req, res) => {
       return res.status(401).json({ error: "Current password is incorrect" });
     }
 
+    // 🔐 Update password
     user.passwordHash = await hashPassword(newPassword);
+
+    // 🔥 GLOBAL LOGOUT: bump tokenVersion
+    user.tokenVersion += 1;
+
     await user.save();
 
-    // 🔒 IMPORTANT: invalidate current session by clearing cookie
+    // Invalidate current browser session
     res.clearCookie("auth_token", { path: "/" });
 
     return res.json({ ok: true });
@@ -147,3 +170,5 @@ router.post("/change-password", requireAuth, async (req, res) => {
     return res.status(500).json({ error: "Server error" });
   }
 });
+
+export default router;

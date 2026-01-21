@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import styles from "./LoginPage.module.css";
+import { toastError } from "@/app/components/toast/toast";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -27,101 +29,77 @@ export default function LoginPage() {
 
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data?.error || "Login failed");
+        setError(data?.error || "登录失败");
         setLoading(false);
         return;
       }
 
-      // Success → go to home
       router.replace("/");
     } catch {
-      setError("Network error");
+      setError("网络错误，请稍后再试");
       setLoading(false);
     }
   }
 
   return (
-    <div style={wrap}>
-      <form onSubmit={onSubmit} style={card}>
-        <h2 style={{ marginBottom: 12 }}>Login</h2>
+    <div className={styles.page}>
+      <div className={styles.card}>
+        {/* App logo / name */}
+        <div className={styles.logo}>百战异闻录</div>
 
-        <label style={label}>Username</label>
-        <input
-          style={input}
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          autoComplete="username"
-          required
-        />
+        {/* Header */}
+        <div className={styles.header}>
+          <div className={styles.subTitle}>请输入账号信息</div>
+          <h1 className={styles.title}>欢迎回来</h1>
+        </div>
 
-        <label style={label}>Password</label>
-        <input
-          style={input}
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          autoComplete="current-password"
-          required
-        />
+        {/* Login form */}
+        <form className={styles.form} onSubmit={onSubmit}>
+          <input
+            className={styles.input}
+            placeholder="用户名"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            autoComplete="username"
+            required
+          />
 
-        {error && <div style={errorBox}>{error}</div>}
+          <input
+            className={styles.input}
+            type="password"
+            placeholder="密码"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
+            required
+          />
 
-        <button style={button} disabled={loading}>
-          {loading ? "Logging in..." : "Login"}
-        </button>
-      </form>
+          {error && <div className={styles.error}>{error}</div>}
+
+          <button className={styles.loginBtn} disabled={loading}>
+            {loading ? "登录中…" : "登录"}
+          </button>
+        </form>
+
+        {/* Links */}
+        <div className={styles.links}>
+          <button
+            type="button"
+            className={styles.linkBtn}
+            onClick={() => toastError("请联系管理员")}
+          >
+            忘记密码？
+          </button>
+
+          <button
+            type="button"
+            className={styles.linkBtn}
+            onClick={() => toastError("注册暂未开放")}
+          >
+            注册
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
-
-const wrap: React.CSSProperties = {
-  minHeight: "100vh",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  background: "#f5f7fb",
-};
-
-const card: React.CSSProperties = {
-  width: 360,
-  padding: 24,
-  borderRadius: 8,
-  background: "#fff",
-  boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
-  display: "flex",
-  flexDirection: "column",
-};
-
-const label: React.CSSProperties = {
-  fontSize: 13,
-  marginTop: 10,
-  marginBottom: 4,
-  color: "#555",
-};
-
-const input: React.CSSProperties = {
-  padding: "10px 12px",
-  borderRadius: 6,
-  border: "1px solid #ddd",
-  fontSize: 14,
-};
-
-const button: React.CSSProperties = {
-  marginTop: 16,
-  padding: "10px 12px",
-  borderRadius: 6,
-  border: "none",
-  background: "#2563eb",
-  color: "#fff",
-  fontWeight: 600,
-  cursor: "pointer",
-};
-
-const errorBox: React.CSSProperties = {
-  marginTop: 10,
-  padding: 8,
-  borderRadius: 6,
-  background: "#fee2e2",
-  color: "#7f1d1d",
-  fontSize: 13,
-};
