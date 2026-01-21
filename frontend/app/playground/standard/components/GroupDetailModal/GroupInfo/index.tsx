@@ -66,7 +66,10 @@ interface Props {
   group: GroupResult;
   checkedAbilities: AbilityCheck[];
   conflictLevel: number;
-  onClose: () => void;   // ✅ ADDED
+  onClose: () => void;
+
+  /** ✅ click character → open Manager modal */
+  onOpenManager: (characterId: string) => void;
 }
 
 /* ======================================================
@@ -77,6 +80,7 @@ export default function GroupInfo({
   checkedAbilities,
   conflictLevel,
   onClose,
+  onOpenManager,
 }: Props) {
   const qaWarnings = checkGroupQA(group, conflictLevel, checkedAbilities);
 
@@ -95,11 +99,12 @@ export default function GroupInfo({
         )}
       </div>
 
-      {/* 👥 MEMBERS — CENTER */}
+      {/* 👥 MEMBERS — CENTER (CLICKABLE) */}
       <div className={styles.memberList}>
         {group.characters.map((c) => (
-          <span
+          <button
             key={c._id}
+            type="button"
             className={`${styles.characterBox} ${
               c.role === "Tank"
                 ? styles.tank
@@ -107,9 +112,11 @@ export default function GroupInfo({
                 ? styles.healer
                 : styles.dps
             }`}
+            onClick={() => onOpenManager(c._id)}
+            title="打开技能管理"
           >
             {c.name}
-          </span>
+          </button>
         ))}
       </div>
 

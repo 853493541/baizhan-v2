@@ -64,6 +64,7 @@
   font-size: 14px;
   font-weight: 500;
   cursor: default;
+  min-height:32px;
 }
 
 /* =====================================================
@@ -167,4 +168,35 @@
   .groupInfoRow {
     width: 100%;
   }
+}
+/* =====================================================
+   🖱 Desktop hover (devices that support hover)
+   ===================================================== */
+@media (hover: hover) and (pointer: fine) {
+  .characterBox {
+    cursor: pointer;
+    transition:
+      box-shadow 0.15s ease,
+      transform 0.1s ease,
+      filter 0.15s ease;
+  }
+
+  .characterBox:hover {
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25);
+    filter: brightness(1.05);
+  }
+}
+
+/* =====================================================
+   📱 Touch feedback (phones & tablets)
+   ===================================================== */
+.characterBox:active {
+  transform: scale(0.96);
+  filter: brightness(0.95);
+}
+.characterBox {
+  border: none;
+  outline: none;
+  box-shadow: none;
+  background-clip: padding-box;
 }

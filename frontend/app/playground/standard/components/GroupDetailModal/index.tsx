@@ -6,8 +6,8 @@ import type { GroupResult, AbilityCheck } from "@/utils/solver";
 
 import GroupInfo from "./GroupInfo";
 import ResultWindow from "./ResultModal";
-import GroupDetail from "./ResultModal/GroupDetail";
 import BossMap from "./BossMap";
+import Manager from "@/app/characters/components/Manager";
 
 import { getGameWeekFromDate } from "@/utils/weekUtils";
 import { usePageSync } from "./pageSync";
@@ -45,6 +45,7 @@ export default function GroupDetailModal({
   createdAt,
 }: Props) {
   const [weeklyMap, setWeeklyMap] = useState<Record<number, string>>({});
+  const [managerCharId, setManagerCharId] = useState<string | null>(null);
 
   /* -------------------------------------------------------
      ⭐ Page sync (authoritative server sync)
@@ -63,10 +64,10 @@ export default function GroupDetailModal({
   /* -------------------------------------------------------
      ⭐ Unified GAME-WEEK
   ------------------------------------------------------- */
-  const { weekCode } = useMemo(() => {
-    const code = getGameWeekFromDate(createdAt);
-    return { weekCode: code };
-  }, [createdAt]);
+  const weekCode = useMemo(
+    () => getGameWeekFromDate(createdAt),
+    [createdAt]
+  );
 
   /* -------------------------------------------------------
      ⭐ Load historical weekly map
@@ -109,47 +110,72 @@ export default function GroupDetailModal({
      ⭐ RENDER
   ------------------------------------------------------- */
   return (
-    <div className={styles.overlay} onClick={onClose}>
-      <div
-        className={styles.modal}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* 🔝 GROUP HEADER (warnings | members | close) */}
-        <GroupInfo
-          group={groupData}
-          checkedAbilities={checkedAbilities}
-          conflictLevel={conflictLevel}
-          onClose={onClose}  
-        />
-
-        <div className={styles.midSection}>
-          {/* <GroupDetail
+    <>
+      {/* ================== GROUP DETAIL MODAL ================== */}
+      <div className={styles.overlay} onClick={onClose}>
+        <div
+          className={styles.modal}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* 🔝 GROUP HEADER */}
+          <GroupInfo
             group={groupData}
             checkedAbilities={checkedAbilities}
-          /> */}
+            conflictLevel={conflictLevel}
+            onClose={onClose}
+            onOpenManager={(id) => setManagerCharId(id)}
+          />
 
-          <ResultWindow
-            checkedAbilities={checkedAbilities}
+          <div className={styles.midSection}>
+            <ResultWindow
+              checkedAbilities={checkedAbilities}
+              scheduleId={scheduleId}
+              group={groupData}
+              onRefresh={syncKills}
+            />
+          </div>
+
+          <BossMap
             scheduleId={scheduleId}
-            group={groupData}
+            group={groupData as any}
+            weeklyMap={weeklyMap}
             onRefresh={syncKills}
+            onGroupUpdate={(updated) =>
+              setGroupData((prev) => ({
+                ...prev,
+                ...updated,
+              }))
+            }
           />
         </div>
+      </div>
 
-        <BossMap
-          scheduleId={scheduleId}
-          group={groupData as any}
-          weeklyMap={weeklyMap}
-          onRefresh={syncKills}
-          onGroupUpdate={(updated) =>
-            /* ✅ PATCH, never replace */
+      {/* ================== MANAGER MODAL ================== */}
+      {managerCharId && (
+        <Manager
+          characterId={managerCharId}
+          API_URL={process.env.NEXT_PUBLIC_API_URL!}
+          onClose={() => setManagerCharId(null)}
+          onUpdated={(updatedChar) => {
+            /**
+             * ✅ IMPORTANT:
+             * We DO NOT replace the solver character.
+             * We PATCH only fields that logically belong to the solver snapshot.
+             */
             setGroupData((prev) => ({
               ...prev,
-              ...updated,
-            }))
-          }
+              characters: prev.characters.map((c) =>
+                c._id === updatedChar._id
+                  ? {
+                      ...c,
+                      abilities: updatedChar.abilities ?? c.abilities,
+                    }
+                  : c
+              ),
+            }));
+          }}
         />
-      </div>
-    </div>
+      )}
+    </>
   );
 }
