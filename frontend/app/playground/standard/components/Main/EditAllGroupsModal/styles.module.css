@@ -393,7 +393,7 @@
 @media (max-width: 640px) {
   .characterModal {
     max-height: 50vh;   /* ⬇ reduce overall height */
-    min-height: unset; /* ⬇ remove forced tall modal */
+    min-height: 50vh; /* ⬇ remove forced tall modal */
     padding: 12px 12px 10px;
   }
 }

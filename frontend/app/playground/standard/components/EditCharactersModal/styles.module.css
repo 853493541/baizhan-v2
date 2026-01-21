@@ -245,8 +245,8 @@
   .characterModal {
     width: 90%;
     max-width: 420px;
-    max-height: 78vh;
-    min-height: unset;
+    max-height: 65vh;
+    min-height: 65vh;
     padding: 12px 12px 10px;
   }
 
