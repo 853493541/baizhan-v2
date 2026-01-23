@@ -66,18 +66,30 @@ function detectResourceTags(html: string): ResourceTag[] {
   }
 
   const separators = ["，", "。", "；", "\n"];
-
-  for (const start of starts) {
-    let end = html.length;
-    for (const sep of separators) {
-      const j = html.indexOf(sep, start);
-      if (j !== -1 && j < end) end = j;
-    }
-    const clause = html.slice(start, end);
-
-    if (clause.includes("点精神")) tags.add("耗精");
-    if (clause.includes("点耐力")) tags.add("耗耐");
+for (const start of starts) {
+  let end = html.length;
+  for (const sep of separators) {
+    const j = html.indexOf(sep, start);
+    if (j !== -1 && j < end) end = j;
   }
+  const clause = html.slice(start, end);
+
+  // ✅ 耗精神：必须包含“点精神”，但不能是“点精神打击”
+  if (
+    clause.includes("点精神") &&
+    !clause.includes("点精神打击")
+  ) {
+    tags.add("耗精");
+  }
+
+  // ✅ 耗耐力：必须包含“点耐力”，但不能是“点耐力打击”
+  if (
+    clause.includes("点耐力") &&
+    !clause.includes("点耐力打击")
+  ) {
+    tags.add("耗耐");
+  }
+}
 
   return Array.from(tags);
 }
