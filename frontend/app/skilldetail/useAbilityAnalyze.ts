@@ -85,11 +85,10 @@ export function useAbilityAnalyze() {
   /* ---------- Filter ---------- */
   const filtered = useMemo(() => {
     let list = parsed;
-
 if (query.trim()) {
   const q = query.trim();
 
-  // ① name / pinyin match (existing)
+  // ① name / pinyin match
   const matchedNames = pinyinFilter(
     list.map((s) => s.name),
     pinyinMap,
@@ -100,8 +99,12 @@ if (query.trim()) {
     // name / pinyin hit
     if (matchedNames.includes(s.name)) return true;
 
-    // ② desc text hit (plain includes)
+    // desc text hit
     if (s.desc && s.desc.includes(q)) return true;
+
+    // ③ tag hit (resource + damage)
+    if (s.resourceTags?.some((t) => t.includes(q))) return true;
+    if (s.damageTags?.some((t) => t.includes(q))) return true;
 
     return false;
   });
