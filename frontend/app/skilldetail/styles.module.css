@@ -497,3 +497,7 @@
   border-radius: 4px;
   padding: 0 3px;
 }
+/* push cooldown bubble to end of header row */
+.cooldownTag {
+  margin-left: auto;
+}
