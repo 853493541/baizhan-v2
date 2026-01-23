@@ -238,3 +238,48 @@
     grid-template-columns: 1fr;
   }
 }
+/* ===============================
+   Break-color FILTER buttons
+=============================== */
+
+/* 蓝 */
+.filterGroup button[data-break="蓝"] {
+  color: #4078ff;
+  background: rgba(64, 120, 255, 0.15);
+}
+
+/* 红 */
+.filterGroup button[data-break="红"] {
+  color: #dc3c3c;
+  background: rgba(220, 60, 60, 0.15);
+}
+
+/* 黄 */
+.filterGroup button[data-break="黄"] {
+  color: #c9a100;
+  background: rgba(240, 190, 60, 0.2);
+}
+
+/* 紫 */
+.filterGroup button[data-break="紫"] {
+  color: #9b5cff;
+  background: rgba(160, 90, 255, 0.18);
+}
+
+/* 绿 */
+.filterGroup button[data-break="绿"] {
+  color: #3fa46b;
+  background: rgba(70, 180, 120, 0.18);
+}
+
+/* 黑 */
+.filterGroup button[data-break="黑"] {
+  color: #333;
+  background: rgba(60, 60, 60, 0.2);
+}
+
+/* 无颜色 */
+.filterGroup button[data-break="无颜色"] {
+  color: #666;
+  background: #eee;
+}

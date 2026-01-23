@@ -135,19 +135,27 @@ export default function AbilityAnalyzePage() {
 
         {/* Break Color */}
         <div className={styles.filterGroup}>
-          {(
-            ["ALL", "蓝", "红", "黄", "紫", "绿", "黑", "无颜色"] as BreakColorFilter[]
-          ).map((c) => (
-            <button
-              key={c}
-              className={`${styles.filterBtn} ${
-                breakColorFilter === c ? styles.filterActive : ""
-              }`}
-              onClick={() => setBreakColorFilter(c)}
-            >
-              {c === "ALL" ? "全部破招" : c}
-            </button>
-          ))}
+
+
+
+{(
+  ["ALL", "蓝", "红", "黄", "紫", "绿", "黑", "无颜色"] as BreakColorFilter[]
+).map((c) => (
+  <button
+    key={c}
+    data-break={c !== "ALL" ? c : undefined}
+    className={`${styles.filterBtn} ${
+      breakColorFilter === c ? styles.filterActive : ""
+    }`}
+    onClick={() => setBreakColorFilter(c)}
+  >
+    {c === "ALL" ? "全部破招" : c}
+  </button>
+))}
+
+
+
+
         </div>
       </div>
 
