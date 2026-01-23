@@ -74,7 +74,7 @@ export default function AbilityAnalyzePage() {
         <Dropdown
           label="打击类型"
           value={damageFilter === "ALL" ? "全部打击" : damageFilter}
-          options={["全部打击", "打耐", "精神打击"]}
+          options={["全部打击", "打耐", "打精"]}
           onChange={(v) =>
             setDamageFilter(v === "全部打击" ? "ALL" : v)
           }

@@ -486,3 +486,14 @@
     line-height: 1.6;
   }
 }
+/* ✅ Number highlight (works in BOTH base desc + special section) */
+/* IMPORTANT: must be scoped under a local class to satisfy CSS Modules “pure selector” rule */
+
+.desc :global(.num),
+.specialList :global(.num) {
+  color: #c62828;
+  font-weight: 700;
+  background: rgba(198, 40, 40, 0.08);
+  border-radius: 4px;
+  padding: 0 3px;
+}
