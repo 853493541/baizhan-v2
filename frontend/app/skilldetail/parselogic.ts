@@ -8,8 +8,8 @@
    - NOT cost, NOT damage element
 ========================================= */
 
-export type ResourceTag = "消耗精神" | "消耗耐力";
-export type DamageTag = "耐力打击" | "精神打击";
+export type ResourceTag = "耗精" | "耗耐";
+export type DamageTag = "打耐" | "打精";
 
 export interface ParsedSkill {
   name: string;
@@ -75,8 +75,8 @@ function detectResourceTags(html: string): ResourceTag[] {
     }
     const clause = html.slice(start, end);
 
-    if (clause.includes("点精神")) tags.add("消耗精神");
-    if (clause.includes("点耐力")) tags.add("消耗耐力");
+    if (clause.includes("点精神")) tags.add("耗精");
+    if (clause.includes("点耐力")) tags.add("耗耐");
   }
 
   return Array.from(tags);
@@ -85,14 +85,14 @@ function detectResourceTags(html: string): ResourceTag[] {
 /**
  * Detect DAMAGE TYPE (打击类型)
  * Rule:
- * - ONLY look for literal "耐力打击" / "精神打击"
+ * - ONLY look for literal "打耐" / "精神打击"
  * - Count anywhere in base description
  */
 function detectDamageTags(html: string): DamageTag[] {
   const tags = new Set<DamageTag>();
 
-  if (html.includes("耐力打击")) tags.add("耐力打击");
-  if (html.includes("精神打击")) tags.add("精神打击");
+  if (html.includes("耐力打击")) tags.add("打耐");
+  if (html.includes("精神打击")) tags.add("打精");
 
   return Array.from(tags);
 }

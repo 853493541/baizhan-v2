@@ -55,7 +55,6 @@ export default function AbilityAnalyzePage() {
       />
 
       <div className={styles.controls}>
-        {/* Level */}
         <Dropdown
           label="重数"
           value={`${level} 重`}
@@ -63,27 +62,24 @@ export default function AbilityAnalyzePage() {
           onChange={(v) => setLevel(Number(v.replace(" 重", "")))}
         />
 
-        {/* Usage */}
         <Dropdown
           label="消耗类型"
           value={usageFilter === "ALL" ? "全部消耗" : usageFilter}
-          options={["全部消耗", "消耗精神", "消耗耐力"]}
+          options={["全部消耗", "耗精", "耗耐"]}
           onChange={(v) =>
             setUsageFilter(v === "全部消耗" ? "ALL" : v)
           }
         />
 
-        {/* Damage */}
         <Dropdown
           label="打击类型"
           value={damageFilter === "ALL" ? "全部打击" : damageFilter}
-          options={["全部打击", "耐力打击", "精神打击"]}
+          options={["全部打击", "打耐", "精神打击"]}
           onChange={(v) =>
             setDamageFilter(v === "全部打击" ? "ALL" : v)
           }
         />
 
-        {/* Cooldown */}
         <Dropdown
           label="冷却时间"
           value={cooldownFilter === "ALL" ? "全部CD" : cooldownFilter}
@@ -95,7 +91,6 @@ export default function AbilityAnalyzePage() {
           }
         />
 
-        {/* Break Color */}
         <Dropdown
           label="破绽颜色"
           value={breakColorFilter === "ALL" ? "全部颜色" : breakColorFilter}
@@ -107,7 +102,6 @@ export default function AbilityAnalyzePage() {
           }
         />
 
-        {/* Reset */}
         <button className={styles.filterBtn} onClick={resetFilters}>
           重置筛选
         </button>
@@ -117,7 +111,12 @@ export default function AbilityAnalyzePage() {
         {filtered.map((s) => (
           <div key={s.name} className={styles.card}>
             <div className={styles.cardHeader}>
-              <div className={styles.iconWrap}>
+              {/* ICON with break-color BORDER */}
+              <div
+                className={`${styles.iconWrap} ${
+                  styles[`iconBreak_${s.breakColorTag}`] || ""
+                }`}
+              >
                 <Image
                   src={getSkillIcon(s.name)}
                   alt={s.name}
@@ -134,23 +133,15 @@ export default function AbilityAnalyzePage() {
 
               <span className={styles.skillName}>{s.name}</span>
 
-              {s.cooldownTag && (
-                <span className={styles.cooldownTag}>{s.cooldownTag}</span>
-              )}
+          
 
-              <span
-                className={`${styles.breakTag} ${
-                  styles[`break_${s.breakColorTag}`]
-                }`}
-              >
-                {s.breakColorTag}
-              </span>
+              {/* ❌ breakTag REMOVED from card */}
 
               {s.resourceTags.map((t) => (
                 <span
                   key={t}
                   className={`${styles.tag} ${
-                    t === "消耗精神"
+                    t === "耗精"
                       ? styles.useSpirit
                       : styles.useStamina
                   }`}
@@ -163,7 +154,7 @@ export default function AbilityAnalyzePage() {
                 <span
                   key={t}
                   className={`${styles.tag} ${
-                    t === "耐力打击"
+                    t === "打耐"
                       ? styles.hitStamina
                       : styles.hitSpirit
                   }`}
@@ -171,6 +162,10 @@ export default function AbilityAnalyzePage() {
                   {t}
                 </span>
               ))}
+
+                  {s.cooldownTag && (
+                <span className={styles.cooldownTag}>{s.cooldownTag}</span>
+              )}
             </div>
 
             <div

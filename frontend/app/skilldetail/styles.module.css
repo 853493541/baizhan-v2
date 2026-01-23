@@ -400,3 +400,89 @@
 .filterBtn:active {
   background: rgba(198, 40, 40, 0.25);
 }
+/* ===============================
+   Break-color ICON BORDER
+=============================== */
+
+.iconWrap {
+  border: 2px solid #e5e5e5; /* default */
+}
+
+/* 蓝 */
+.iconBreak_蓝 {
+  border-color: #4078ff;
+}
+
+/* 红 */
+.iconBreak_红 {
+  border-color: #dc3c3c;
+}
+
+/* 黄 */
+.iconBreak_黄 {
+  border-color: #c9a100;
+}
+
+/* 紫 */
+.iconBreak_紫 {
+  border-color: #9b5cff;
+}
+
+/* 绿 */
+.iconBreak_绿 {
+  border-color: #3fa46b;
+}
+
+/* 黑 */
+.iconBreak_黑 {
+  border-color: #333;
+}
+
+/* 无颜色 / fallback */
+.iconBreak_无颜色 {
+  border-color: #aaa;
+}
+/* ===============================
+   Phone card density fix
+=============================== */
+@media (max-width: 600px) {
+  /* tighter grid spacing */
+  .list {
+    gap: 12px;
+  }
+
+  /* reduce card padding */
+  .card {
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  /* allow header to wrap nicely */
+  .cardHeader {
+    gap: 4px;
+  }
+
+  /* slightly smaller icon */
+  .iconWrap {
+    width: 26px;
+    height: 26px;
+  }
+
+  /* skill name scales down */
+  .skillName {
+    font-size: 14px;
+  }
+
+  /* tags don’t force new rows */
+  .tag,
+  .cooldownTag {
+    font-size: 11px;
+    padding: 2px 6px;
+  }
+
+  /* description tighter */
+  .desc {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+}
