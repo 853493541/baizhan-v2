@@ -70,6 +70,7 @@ export function useAbilityAnalyze() {
   const parsed = useMemo(() => {
     return skillData.map((s: any) => ({
       ...parseSkill(s, level),
+        desc: s.desc, // 👈 ADD THIS
       cooldownTag: normalizeCooldown(s.cooldown),
       breakColorTag: normalizeBreakColor(s.breakColor),
     }));
@@ -85,14 +86,26 @@ export function useAbilityAnalyze() {
   const filtered = useMemo(() => {
     let list = parsed;
 
-    if (query.trim()) {
-      const matchedNames = pinyinFilter(
-        list.map((s) => s.name),
-        pinyinMap,
-        query
-      );
-      list = list.filter((s) => matchedNames.includes(s.name));
-    }
+if (query.trim()) {
+  const q = query.trim();
+
+  // ① name / pinyin match (existing)
+  const matchedNames = pinyinFilter(
+    list.map((s) => s.name),
+    pinyinMap,
+    q
+  );
+
+  list = list.filter((s) => {
+    // name / pinyin hit
+    if (matchedNames.includes(s.name)) return true;
+
+    // ② desc text hit (plain includes)
+    if (s.desc && s.desc.includes(q)) return true;
+
+    return false;
+  });
+}
 
     return list.filter((s) => {
       if (usageFilter !== "ALL" && !s.resourceTags.includes(usageFilter))
