@@ -26,22 +26,23 @@
 }
 
 /* ===============================
-   Controls
+   Controls (BASE)
 =============================== */
 .controls {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  align-items: center;
   margin-bottom: 18px;
 }
 
-.levelGroup,
-.filterGroup {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
+.controls button {
+  height: 34px;
 }
 
+/* ===============================
+   Buttons
+=============================== */
 .levelBtn {
   padding: 6px 12px;
   border-radius: 8px;
@@ -57,49 +58,59 @@
 }
 
 .filterBtn {
-  padding: 6px 14px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 4px;
+  border: 1px solid #c62828;
+  background: rgba(198, 40, 40, 0.12);
+  color: #c62828;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.filterBtn:hover {
+  background: rgba(198, 40, 40, 0.18);
+}
+
+/* ===============================
+   Dropdown
+=============================== */
+.dropdown {
+  position: relative;
+}
+
+.dropdownBtn {
+  height: 34px;
+  padding: 0 14px;
   border-radius: 999px;
   border: 1px solid #ddd;
   background: #f4f4f4;
   font-size: 13px;
+  cursor: pointer;
 }
 
-.filterActive {
-  border-color: #333;
-  font-weight: 600;
+.dropdownList {
+  position: absolute;
+  top: 38px;
+  left: 0;
+  min-width: 120px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.12);
+  z-index: 20;
+  padding: 6px 0;
 }
 
-/* ===============================
-   Tag base
-=============================== */
-.tag {
-  font-size: 12px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-weight: 600;
-  white-space: nowrap;
+.dropdownItem {
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
 }
 
-/* Usage */
-.useSpirit {
-  color: #1f3fbf;
-  background: rgba(31, 63, 191, 0.15);
-}
-
-.useStamina {
-  color: #8b0000;
-  background: rgba(139, 0, 0, 0.15);
-}
-
-/* Damage */
-.hitSpirit {
-  color: #7b3fe4;
-  background: rgba(123, 63, 228, 0.15);
-}
-
-.hitStamina {
-  color: #f08a24;
-  background: rgba(240, 138, 36, 0.18);
+.dropdownItem:hover {
+  background: #f2f2f2;
 }
 
 /* ===============================
@@ -119,7 +130,7 @@
 }
 
 /* ===============================
-   Card header
+   Card Header
 =============================== */
 .cardHeader {
   display: flex;
@@ -135,7 +146,7 @@
 }
 
 /* ===============================
-   Icon
+   Icon + Break Border
 =============================== */
 .iconWrap {
   width: 28px;
@@ -143,7 +154,7 @@
   border-radius: 8px;
   overflow: hidden;
   background: #f6f6f6;
-  border: 1px solid #e5e5e5;
+  border: 2px solid #e5e5e5;
 }
 
 .icon {
@@ -152,10 +163,35 @@
   object-fit: contain;
 }
 
+.iconBreak_蓝 { border-color: #4078ff; }
+.iconBreak_红 { border-color: #dc3c3c; }
+.iconBreak_黄 { border-color: #c9a100; }
+.iconBreak_紫 { border-color: #9b5cff; }
+.iconBreak_绿 { border-color: #3fa46b; }
+.iconBreak_黑 { border-color: #333; }
+.iconBreak_无颜色 { border-color: #aaa; }
+
 /* ===============================
-   Cooldown / Break
+   Tags
+=============================== */
+.tag {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.useSpirit { color:#1f3fbf; background:rgba(31,63,191,.15); }
+.useStamina { color:#8b0000; background:rgba(139,0,0,.15); }
+.hitSpirit { color:#7b3fe4; background:rgba(123,63,228,.15); }
+.hitStamina { color:#f08a24; background:rgba(240,138,36,.18); }
+
+/* ===============================
+   Cooldown
 =============================== */
 .cooldownTag {
+  margin-left: auto;
   font-size: 12px;
   padding: 2px 8px;
   border-radius: 999px;
@@ -163,24 +199,8 @@
   font-weight: 600;
 }
 
-.breakTag {
-  font-size: 12px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-weight: 700;
-}
-
-/* Break colors */
-.break_蓝 { color: #4078ff; background: rgba(64,120,255,0.15); }
-.break_红 { color: #dc3c3c; background: rgba(220,60,60,0.15); }
-.break_黄 { color: #c9a100; background: rgba(240,190,60,0.2); }
-.break_紫 { color: #9b5cff; background: rgba(160,90,255,0.18); }
-.break_绿 { color: #3fa46b; background: rgba(70,180,120,0.18); }
-.break_黑 { color: #333; background: rgba(60,60,60,0.2); }
-.break_无颜色 { color: #666; background: #eee; }
-
 /* ===============================
-   Description text
+   Description + Numbers
 =============================== */
 .desc {
   font-size: 14px;
@@ -189,19 +209,17 @@
   margin-top: 6px;
 }
 
-/* ===============================
-   Number highlight (parseSkill)
-=============================== */
-.desc :global(.num) {
+.desc :global(.num),
+.specialList :global(.num) {
   color: #c62828;
   font-weight: 700;
-  background: rgba(198, 40, 40, 0.08);
+  background: rgba(198,40,40,.08);
   border-radius: 4px;
   padding: 0 3px;
 }
 
 /* ===============================
-   Subsection
+   Special Section
 =============================== */
 .divider {
   margin: 12px 0 8px;
@@ -212,292 +230,56 @@
   font-size: 13px;
   font-weight: 700;
   color: #444;
-  margin-bottom: 6px;
 }
 
 .specialList {
   padding-left: 18px;
-  margin: 0;
   font-size: 13px;
   line-height: 1.6;
 }
 
-.specialList li {
-  margin-bottom: 4px;
-}
-
 /* ===============================
-   Mobile
+   📱 Mobile FIX (IMPORTANT)
 =============================== */
 @media (max-width: 600px) {
+  /* ❌ DO NOT use column */
   .controls {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* ❌ remove full-width forcing */
+  .dropdownBtn {
+    width: auto;
   }
 
   .list {
     grid-template-columns: 1fr;
-  }
-}
-/* ===============================
-   Break-color FILTER buttons
-=============================== */
-
-/* 蓝 */
-.filterGroup button[data-break="蓝"] {
-  color: #4078ff;
-  background: rgba(64, 120, 255, 0.15);
-}
-
-/* 红 */
-.filterGroup button[data-break="红"] {
-  color: #dc3c3c;
-  background: rgba(220, 60, 60, 0.15);
-}
-
-/* 黄 */
-.filterGroup button[data-break="黄"] {
-  color: #c9a100;
-  background: rgba(240, 190, 60, 0.2);
-}
-
-/* 紫 */
-.filterGroup button[data-break="紫"] {
-  color: #9b5cff;
-  background: rgba(160, 90, 255, 0.18);
-}
-
-/* 绿 */
-.filterGroup button[data-break="绿"] {
-  color: #3fa46b;
-  background: rgba(70, 180, 120, 0.18);
-}
-
-/* 黑 */
-.filterGroup button[data-break="黑"] {
-  color: #333;
-  background: rgba(60, 60, 60, 0.2);
-}
-
-/* 无颜色 */
-.filterGroup button[data-break="无颜色"] {
-  color: #666;
-  background: #eee;
-}
-/* ===============================
-   Dropdown layout inside filters
-=============================== */
-.controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-}
-
-/* Reuse existing filterBtn look for reset */
-.controls button {
-  height: 34px;
-}
-
-/* ===============================
-   Dropdown sizing (match buttons)
-=============================== */
-.dropdown {
-  position: relative;
-}
-
-.dropdownBtn {
-  height: 34px;
-  padding: 0 14px;
-  border-radius: 999px;
-  border: 1px solid #ddd;
-  background: #f4f4f4;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-/* ===============================
-   Dropdown list
-=============================== */
-.dropdownList {
-  position: absolute;
-  top: 38px;
-  left: 0;
-  min-width: 120px;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
-  z-index: 20;
-  padding: 6px 0;
-}
-
-.dropdownItem {
-  padding: 6px 12px;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.dropdownItem:hover {
-  background: #f2f2f2;
-}
-
-/* ===============================
-   Break color preview in dropdown
-=============================== */
-.dropdownItem[data-break="蓝"] {
-  color: #4078ff;
-}
-.dropdownItem[data-break="红"] {
-  color: #dc3c3c;
-}
-.dropdownItem[data-break="黄"] {
-  color: #c9a100;
-}
-.dropdownItem[data-break="紫"] {
-  color: #9b5cff;
-}
-.dropdownItem[data-break="绿"] {
-  color: #3fa46b;
-}
-.dropdownItem[data-break="黑"] {
-  color: #333;
-}
-.dropdownItem[data-break="无颜色"] {
-  color: #666;
-}
-
-/* ===============================
-   Mobile
-=============================== */
-@media (max-width: 600px) {
-  .controls {
-    gap: 8px;
-  }
-
-  .dropdownBtn {
-    width: 100%;
-  }
-}
-/* ===============================
-   Reset filter button (RED)
-=============================== */
-.filterBtn {
-  height: 34px;
-  padding: 0 14px;
-  border-radius: 999px;
-  border: 1px solid #c62828;
-  background: rgba(198, 40, 40, 0.12);
-  color: #c62828;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.filterBtn:hover {
-  background: rgba(198, 40, 40, 0.18);
-}
-
-.filterBtn:active {
-  background: rgba(198, 40, 40, 0.25);
-}
-/* ===============================
-   Break-color ICON BORDER
-=============================== */
-
-.iconWrap {
-  border: 2px solid #e5e5e5; /* default */
-}
-
-/* 蓝 */
-.iconBreak_蓝 {
-  border-color: #4078ff;
-}
-
-/* 红 */
-.iconBreak_红 {
-  border-color: #dc3c3c;
-}
-
-/* 黄 */
-.iconBreak_黄 {
-  border-color: #c9a100;
-}
-
-/* 紫 */
-.iconBreak_紫 {
-  border-color: #9b5cff;
-}
-
-/* 绿 */
-.iconBreak_绿 {
-  border-color: #3fa46b;
-}
-
-/* 黑 */
-.iconBreak_黑 {
-  border-color: #333;
-}
-
-/* 无颜色 / fallback */
-.iconBreak_无颜色 {
-  border-color: #aaa;
-}
-/* ===============================
-   Phone card density fix
-=============================== */
-@media (max-width: 600px) {
-  /* tighter grid spacing */
-  .list {
     gap: 12px;
   }
 
-  /* reduce card padding */
   .card {
     padding: 12px;
-    border-radius: 12px;
   }
 
-  /* allow header to wrap nicely */
-  .cardHeader {
-    gap: 4px;
-  }
-
-  /* slightly smaller icon */
   .iconWrap {
     width: 26px;
     height: 26px;
   }
 
-  /* skill name scales down */
   .skillName {
     font-size: 14px;
   }
 
-  /* tags don’t force new rows */
   .tag,
   .cooldownTag {
     font-size: 11px;
     padding: 2px 6px;
   }
 
-  /* description tighter */
   .desc {
     font-size: 13px;
     line-height: 1.6;
   }
-}
-/* ✅ Number highlight (works in BOTH base desc + special section) */
-/* IMPORTANT: must be scoped under a local class to satisfy CSS Modules “pure selector” rule */
-
-.desc :global(.num),
-.specialList :global(.num) {
-  color: #c62828;
-  font-weight: 700;
-  background: rgba(198, 40, 40, 0.08);
-  border-radius: 4px;
-  padding: 0 3px;
-}
-/* push cooldown bubble to end of header row */
-.cooldownTag {
-  margin-left: auto;
 }

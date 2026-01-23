@@ -49,7 +49,7 @@ export default function AbilityAnalyzePage() {
 
       <input
         className={styles.search}
-        placeholder="搜索技能名 / 拼音 / 首字母"
+        placeholder="搜索技能名"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
@@ -103,7 +103,7 @@ export default function AbilityAnalyzePage() {
         />
 
         <button className={styles.filterBtn} onClick={resetFilters}>
-          重置筛选
+          重置
         </button>
       </div>
 
