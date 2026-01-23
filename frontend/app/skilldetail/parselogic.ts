@@ -6,10 +6,15 @@
        "耐力打击"
        "精神打击"
    - NOT cost, NOT damage element
+   - Detect UNCATALOG TAGS (临时未归类标签)
+       当前包含：
+       - 打断
+       - 驱友（恢复/回复 + 驱散/卸除）
 ========================================= */
 
 export type ResourceTag = "耗精" | "耗耐";
 export type DamageTag = "打耐" | "打精";
+export type UncatalogTag = "打断" | "驱友";
 
 // ✅ Merge unit into existing <span class="num">
 function highlightNumberWithUnit(html: string): string {
@@ -25,6 +30,7 @@ export interface ParsedSkill {
   specialBlocks: string[];
   resourceTags: ResourceTag[];
   damageTags: DamageTag[];
+  uncatalogTags: UncatalogTag[];
 }
 
 /** OG rule: <a/b/c> → level 8 / 9 / 10 */
@@ -43,13 +49,7 @@ function isSpecialCondition(sentence: string): boolean {
     sentence.includes("招式达到") ||
     sentence.includes("完成度到达") ||
 
-
     // sentence.includes("该招式使用者为") ||
-    sentence.includes("完成度到达") ||
-    sentence.includes("完成度到达") ||
-    sentence.includes("完成度到达") ||
-
-
     sentence.includes("当门派") ||
     sentence.includes("门派为") ||
     sentence.includes("心法为") ||
@@ -74,30 +74,31 @@ function detectResourceTags(html: string): ResourceTag[] {
   }
 
   const separators = ["，", "。", "；", "\n"];
-for (const start of starts) {
-  let end = html.length;
-  for (const sep of separators) {
-    const j = html.indexOf(sep, start);
-    if (j !== -1 && j < end) end = j;
-  }
-  const clause = html.slice(start, end);
 
-  // ✅ 耗精神：必须包含“点精神”，但不能是“点精神打击”
-  if (
-    clause.includes("点精神") &&
-    !clause.includes("点精神打击")
-  ) {
-    tags.add("耗精");
-  }
+  for (const start of starts) {
+    let end = html.length;
+    for (const sep of separators) {
+      const j = html.indexOf(sep, start);
+      if (j !== -1 && j < end) end = j;
+    }
+    const clause = html.slice(start, end);
 
-  // ✅ 耗耐力：必须包含“点耐力”，但不能是“点耐力打击”
-  if (
-    clause.includes("点耐力") &&
-    !clause.includes("点耐力打击")
-  ) {
-    tags.add("耗耐");
+    // ✅ 耗精神：必须包含“点精神”，但不能是“点精神打击”
+    if (
+      clause.includes("点精神") &&
+      !clause.includes("点精神打击")
+    ) {
+      tags.add("耗精");
+    }
+
+    // ✅ 耗耐力：必须包含“点耐力”，但不能是“点耐力打击”
+    if (
+      clause.includes("点耐力") &&
+      !clause.includes("点耐力打击")
+    ) {
+      tags.add("耗耐");
+    }
   }
-}
 
   return Array.from(tags);
 }
@@ -105,7 +106,7 @@ for (const start of starts) {
 /**
  * Detect DAMAGE TYPE (打击类型)
  * Rule:
- * - ONLY look for literal "打耐" / "精神打击"
+ * - ONLY look for literal "耐力打击" / "精神打击"
  * - Count anywhere in base description
  */
 function detectDamageTags(html: string): DamageTag[] {
@@ -113,6 +114,33 @@ function detectDamageTags(html: string): DamageTag[] {
 
   if (html.includes("耐力打击")) tags.add("打耐");
   if (html.includes("精神打击")) tags.add("打精");
+
+  return Array.from(tags);
+}
+
+/**
+ * Detect UNCATALOG TAGS (临时未分类机制)
+ * Rule:
+ * - Literal text detection only
+ * - No semantic inference
+ */
+function detectUncatalogTags(html: string): UncatalogTag[] {
+  const tags = new Set<UncatalogTag>();
+
+  // ✅ 打断机制
+  if (html.includes("打断")) {
+    tags.add("打断");
+  }
+
+  // ✅ 驱友：同时具备“恢复/回复” + “驱散/卸除”
+  const hasRestore =
+    html.includes("恢复") || html.includes("回复");
+  const hasDispel =
+    html.includes("驱散") || html.includes("卸除");
+
+  if (hasRestore && hasDispel) {
+    tags.add("驱友");
+  }
 
   return Array.from(tags);
 }
@@ -125,13 +153,13 @@ export function parseSkill(
 
   const tripletRegex = /<\s*([\d]+)\s*\/\s*([\d]+)\s*\/\s*([\d]+)\s*>/g;
 
-let resolved = skill.desc.replace(tripletRegex, (_, a, b, c) => {
-  const value = [a, b, c][idx];
-  return `<span class="num">${value}</span>`;
-});
+  let resolved = skill.desc.replace(tripletRegex, (_, a, b, c) => {
+    const value = [a, b, c][idx];
+    return `<span class="num">${value}</span>`;
+  });
 
-// ✅ ADD THIS LINE (IMPORTANT)
-resolved = highlightNumberWithUnit(resolved);
+  // ✅ merge 万 / 亿 into number span
+  resolved = highlightNumberWithUnit(resolved);
 
   const sentences = resolved
     .split(/(?<=。)/)
@@ -157,5 +185,6 @@ resolved = highlightNumberWithUnit(resolved);
     specialBlocks: special,
     resourceTags: detectResourceTags(baseHtml),
     damageTags: detectDamageTags(baseHtml),
+    uncatalogTags: detectUncatalogTags(baseHtml),
   };
 }

@@ -166,6 +166,16 @@ export default function AbilityAnalyzePage() {
                   {s.cooldownTag && (
                 <span className={styles.cooldownTag}>{s.cooldownTag}</span>
               )}
+
+              {s.uncatalogTags.length > 0 && (
+  <div className={styles.uncatalogWrap}>
+    {s.uncatalogTags.map((t) => (
+      <span key={t} className={styles.uncatalogTag}>
+        {t}
+      </span>
+    ))}
+  </div>
+)}
             </div>
 
             <div

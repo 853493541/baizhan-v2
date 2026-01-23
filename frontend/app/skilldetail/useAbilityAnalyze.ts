@@ -85,6 +85,8 @@ export function useAbilityAnalyze() {
   /* ---------- Filter ---------- */
   const filtered = useMemo(() => {
     let list = parsed;
+
+
 if (query.trim()) {
   const q = query.trim();
 
@@ -96,15 +98,24 @@ if (query.trim()) {
   );
 
   list = list.filter((s) => {
-    // name / pinyin hit
+    // name / pinyin
     if (matchedNames.includes(s.name)) return true;
 
-    // desc text hit
+    // desc text
     if (s.desc && s.desc.includes(q)) return true;
 
-    // ③ tag hit (resource + damage)
+    // 🔥 NEW: resource tags
     if (s.resourceTags?.some((t) => t.includes(q))) return true;
+
+    // 🔥 NEW: damage tags
     if (s.damageTags?.some((t) => t.includes(q))) return true;
+
+    // 🔥 NEW: uncatalog tags
+    if (s.uncatalogTags?.some((t) => t.includes(q))) return true;
+
+    // 🔥 OPTIONAL: cooldown / color
+    if (s.cooldownTag && s.cooldownTag.includes(q)) return true;
+    if (s.breakColorTag && s.breakColorTag.includes(q)) return true;
 
     return false;
   });
