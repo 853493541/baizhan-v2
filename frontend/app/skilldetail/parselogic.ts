@@ -11,6 +11,14 @@
 export type ResourceTag = "耗精" | "耗耐";
 export type DamageTag = "打耐" | "打精";
 
+// ✅ Merge unit into existing <span class="num">
+function highlightNumberWithUnit(html: string): string {
+  return html.replace(
+    /<span class="num">(\d+(?:\.\d+)?)<\/span>(万|亿)/g,
+    `<span class="num">$1$2</span>`
+  );
+}
+
 export interface ParsedSkill {
   name: string;
   baseHtml: string;
@@ -117,11 +125,13 @@ export function parseSkill(
 
   const tripletRegex = /<\s*([\d]+)\s*\/\s*([\d]+)\s*\/\s*([\d]+)\s*>/g;
 
-  // resolve <a/b/c>
-  const resolved = skill.desc.replace(tripletRegex, (_, a, b, c) => {
-    const value = [a, b, c][idx];
-    return `<span class="num">${value}</span>`;
-  });
+let resolved = skill.desc.replace(tripletRegex, (_, a, b, c) => {
+  const value = [a, b, c][idx];
+  return `<span class="num">${value}</span>`;
+});
+
+// ✅ ADD THIS LINE (IMPORTANT)
+resolved = highlightNumberWithUnit(resolved);
 
   const sentences = resolved
     .split(/(?<=。)/)
