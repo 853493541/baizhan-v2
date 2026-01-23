@@ -283,3 +283,120 @@
   color: #666;
   background: #eee;
 }
+/* ===============================
+   Dropdown layout inside filters
+=============================== */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Reuse existing filterBtn look for reset */
+.controls button {
+  height: 34px;
+}
+
+/* ===============================
+   Dropdown sizing (match buttons)
+=============================== */
+.dropdown {
+  position: relative;
+}
+
+.dropdownBtn {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid #ddd;
+  background: #f4f4f4;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* ===============================
+   Dropdown list
+=============================== */
+.dropdownList {
+  position: absolute;
+  top: 38px;
+  left: 0;
+  min-width: 120px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  z-index: 20;
+  padding: 6px 0;
+}
+
+.dropdownItem {
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.dropdownItem:hover {
+  background: #f2f2f2;
+}
+
+/* ===============================
+   Break color preview in dropdown
+=============================== */
+.dropdownItem[data-break="蓝"] {
+  color: #4078ff;
+}
+.dropdownItem[data-break="红"] {
+  color: #dc3c3c;
+}
+.dropdownItem[data-break="黄"] {
+  color: #c9a100;
+}
+.dropdownItem[data-break="紫"] {
+  color: #9b5cff;
+}
+.dropdownItem[data-break="绿"] {
+  color: #3fa46b;
+}
+.dropdownItem[data-break="黑"] {
+  color: #333;
+}
+.dropdownItem[data-break="无颜色"] {
+  color: #666;
+}
+
+/* ===============================
+   Mobile
+=============================== */
+@media (max-width: 600px) {
+  .controls {
+    gap: 8px;
+  }
+
+  .dropdownBtn {
+    width: 100%;
+  }
+}
+/* ===============================
+   Reset filter button (RED)
+=============================== */
+.filterBtn {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid #c62828;
+  background: rgba(198, 40, 40, 0.12);
+  color: #c62828;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.filterBtn:hover {
+  background: rgba(198, 40, 40, 0.18);
+}
+
+.filterBtn:active {
+  background: rgba(198, 40, 40, 0.25);
+}

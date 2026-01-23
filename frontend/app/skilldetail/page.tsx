@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import styles from "./styles.module.css";
+import Dropdown from "@/app/components/layout/dropdown";
 import {
   useAbilityAnalyze,
   CooldownFilter,
@@ -33,6 +34,15 @@ export default function AbilityAnalyzePage() {
     setBreakColorFilter,
   } = useAbilityAnalyze();
 
+  const resetFilters = () => {
+    setLevel(10);
+    setUsageFilter("ALL");
+    setDamageFilter("ALL");
+    setCooldownFilter("ALL");
+    setBreakColorFilter("ALL");
+    setQuery("");
+  };
+
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>技能解析</h1>
@@ -46,117 +56,61 @@ export default function AbilityAnalyzePage() {
 
       <div className={styles.controls}>
         {/* Level */}
-        <div className={styles.levelGroup}>
-          {[8, 9, 10].map((lv) => (
-            <button
-              key={lv}
-              className={`${styles.levelBtn} ${
-                level === lv ? styles.active : ""
-              }`}
-              onClick={() => setLevel(lv)}
-            >
-              {lv} 重
-            </button>
-          ))}
-        </div>
+        <Dropdown
+          label="重数"
+          value={`${level} 重`}
+          options={["8 重", "9 重", "10 重"]}
+          onChange={(v) => setLevel(Number(v.replace(" 重", "")))}
+        />
 
         {/* Usage */}
-        <div className={styles.filterGroup}>
-          <button
-            className={`${styles.filterBtn} ${
-              usageFilter === "ALL" ? styles.filterActive : ""
-            }`}
-            onClick={() => setUsageFilter("ALL")}
-          >
-            全部消耗
-          </button>
-          <button
-            className={`${styles.filterBtn} ${styles.useSpirit} ${
-              usageFilter === "消耗精神" ? styles.filterActive : ""
-            }`}
-            onClick={() => setUsageFilter("消耗精神")}
-          >
-            消耗精神
-          </button>
-          <button
-            className={`${styles.filterBtn} ${styles.useStamina} ${
-              usageFilter === "消耗耐力" ? styles.filterActive : ""
-            }`}
-            onClick={() => setUsageFilter("消耗耐力")}
-          >
-            消耗耐力
-          </button>
-        </div>
+        <Dropdown
+          label="消耗类型"
+          value={usageFilter === "ALL" ? "全部消耗" : usageFilter}
+          options={["全部消耗", "消耗精神", "消耗耐力"]}
+          onChange={(v) =>
+            setUsageFilter(v === "全部消耗" ? "ALL" : v)
+          }
+        />
 
         {/* Damage */}
-        <div className={styles.filterGroup}>
-          <button
-            className={`${styles.filterBtn} ${
-              damageFilter === "ALL" ? styles.filterActive : ""
-            }`}
-            onClick={() => setDamageFilter("ALL")}
-          >
-            全部打击
-          </button>
-          <button
-            className={`${styles.filterBtn} ${styles.hitStamina} ${
-              damageFilter === "耐力打击" ? styles.filterActive : ""
-            }`}
-            onClick={() => setDamageFilter("耐力打击")}
-          >
-            耐力打击
-          </button>
-          <button
-            className={`${styles.filterBtn} ${styles.hitSpirit} ${
-              damageFilter === "精神打击" ? styles.filterActive : ""
-            }`}
-            onClick={() => setDamageFilter("精神打击")}
-          >
-            精神打击
-          </button>
-        </div>
+        <Dropdown
+          label="打击类型"
+          value={damageFilter === "ALL" ? "全部打击" : damageFilter}
+          options={["全部打击", "耐力打击", "精神打击"]}
+          onChange={(v) =>
+            setDamageFilter(v === "全部打击" ? "ALL" : v)
+          }
+        />
 
         {/* Cooldown */}
-        <div className={styles.filterGroup}>
-          {(["ALL", "10秒", "30秒", "1分钟"] as CooldownFilter[]).map(
-            (cd) => (
-              <button
-                key={cd}
-                className={`${styles.filterBtn} ${
-                  cooldownFilter === cd ? styles.filterActive : ""
-                }`}
-                onClick={() => setCooldownFilter(cd)}
-              >
-                {cd === "ALL" ? "全部CD" : cd}
-              </button>
+        <Dropdown
+          label="冷却时间"
+          value={cooldownFilter === "ALL" ? "全部CD" : cooldownFilter}
+          options={["全部CD", "10秒", "30秒", "1分钟"]}
+          onChange={(v) =>
+            setCooldownFilter(
+              v === "全部CD" ? "ALL" : (v as CooldownFilter)
             )
-          )}
-        </div>
+          }
+        />
 
         {/* Break Color */}
-        <div className={styles.filterGroup}>
+        <Dropdown
+          label="破绽颜色"
+          value={breakColorFilter === "ALL" ? "全部颜色" : breakColorFilter}
+          options={["全部颜色", "蓝", "红", "黄", "紫", "绿", "黑", "无颜色"]}
+          onChange={(v) =>
+            setBreakColorFilter(
+              v === "全部颜色" ? "ALL" : (v as BreakColorFilter)
+            )
+          }
+        />
 
-
-
-{(
-  ["ALL", "蓝", "红", "黄", "紫", "绿", "黑", "无颜色"] as BreakColorFilter[]
-).map((c) => (
-  <button
-    key={c}
-    data-break={c !== "ALL" ? c : undefined}
-    className={`${styles.filterBtn} ${
-      breakColorFilter === c ? styles.filterActive : ""
-    }`}
-    onClick={() => setBreakColorFilter(c)}
-  >
-    {c === "ALL" ? "全部破招" : c}
-  </button>
-))}
-
-
-
-
-        </div>
+        {/* Reset */}
+        <button className={styles.filterBtn} onClick={resetFilters}>
+          重置筛选
+        </button>
       </div>
 
       <div className={styles.list}>
@@ -219,7 +173,6 @@ export default function AbilityAnalyzePage() {
               ))}
             </div>
 
-            {/* baseHtml already contains ONLY the <span class="num"> from parseSkill */}
             <div
               className={styles.desc}
               dangerouslySetInnerHTML={{
