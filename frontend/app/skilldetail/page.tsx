@@ -1,120 +1,37 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import skillData from "@/app/data/skill_data.json";
-import {
-  parseSkill,
-  ParsedSkill,
-  ResourceTag,
-  DamageTag,
-} from "./parselogic";
 import styles from "./styles.module.css";
-import { createPinyinMap, pinyinFilter } from "@/utils/pinyinSearch";
-
-type UsageFilter = "ALL" | ResourceTag;
-type DamageFilter = "ALL" | DamageTag;
-type CooldownFilter = "ALL" | "10秒" | "30秒" | "1分钟";
-type BreakColorFilter =
-  | "ALL"
-  | "蓝"
-  | "红"
-  | "黄"
-  | "紫"
-  | "绿"
-  | "黑"
-  | "无颜色";
+import {
+  useAbilityAnalyze,
+  CooldownFilter,
+  BreakColorFilter,
+} from "./useAbilityAnalyze";
 
 /* ===============================
-   Helpers
+   UI Helpers
 =============================== */
 function getSkillIcon(name: string) {
   return `/icons/${name}.png`;
 }
 
-function normalizeCooldown(cd?: string): CooldownFilter {
-  if (!cd) return "ALL";
-  if (cd.includes("10")) return "10秒";
-  if (cd.includes("30")) return "30秒";
-  if (cd.includes("60") || cd.includes("1分钟")) return "1分钟";
-  return "ALL";
-}
-
-function normalizeBreakColor(c?: string): BreakColorFilter {
-  if (!c) return "无颜色";
-  if (c.includes("蓝")) return "蓝";
-  if (c.includes("红")) return "红";
-  if (c.includes("黄")) return "黄";
-  if (c.includes("紫")) return "紫";
-  if (c.includes("绿")) return "绿";
-  if (c.includes("黑")) return "黑";
-  return "无颜色";
-}
-
 export default function AbilityAnalyzePage() {
-  const [level, setLevel] = useState(10);
-  const [usageFilter, setUsageFilter] = useState<UsageFilter>("ALL");
-  const [damageFilter, setDamageFilter] = useState<DamageFilter>("ALL");
-  const [cooldownFilter, setCooldownFilter] =
-    useState<CooldownFilter>("ALL");
-  const [breakColorFilter, setBreakColorFilter] =
-    useState<BreakColorFilter>("ALL");
-
-  const [query, setQuery] = useState("");
-  const [pinyinMap, setPinyinMap] = useState<
-    Record<string, { full: string; short: string }>
-  >({});
-
-  const parsed = useMemo(() => {
-    return skillData.map((s: any) => ({
-      ...parseSkill(s, level),
-      cooldownTag: normalizeCooldown(s.cooldown),
-      breakColorTag: normalizeBreakColor(s.breakColor),
-    }));
-  }, [level]);
-
-  useEffect(() => {
-    createPinyinMap(parsed.map((s) => s.name)).then(setPinyinMap);
-  }, [parsed]);
-
-  const filtered = useMemo(() => {
-    let list = parsed;
-
-    if (query.trim()) {
-      const matched = pinyinFilter(
-        list.map((s) => s.name),
-        pinyinMap,
-        query
-      );
-      list = list.filter((s) => matched.includes(s.name));
-    }
-
-    return list.filter((s) => {
-      if (usageFilter !== "ALL" && !s.resourceTags.includes(usageFilter))
-        return false;
-      if (damageFilter !== "ALL" && !s.damageTags.includes(damageFilter))
-        return false;
-      if (
-        cooldownFilter !== "ALL" &&
-        s.cooldownTag !== cooldownFilter
-      )
-        return false;
-      if (
-        breakColorFilter !== "ALL" &&
-        s.breakColorTag !== breakColorFilter
-      )
-        return false;
-      return true;
-    });
-  }, [
-    parsed,
+  const {
+    filtered,
+    level,
+    query,
     usageFilter,
     damageFilter,
     cooldownFilter,
     breakColorFilter,
-    query,
-    pinyinMap,
-  ]);
+
+    setLevel,
+    setQuery,
+    setUsageFilter,
+    setDamageFilter,
+    setCooldownFilter,
+    setBreakColorFilter,
+  } = useAbilityAnalyze();
 
   return (
     <div className={styles.container}>
@@ -128,7 +45,7 @@ export default function AbilityAnalyzePage() {
       />
 
       <div className={styles.controls}>
-        {/* 等级 */}
+        {/* Level */}
         <div className={styles.levelGroup}>
           {[8, 9, 10].map((lv) => (
             <button
@@ -143,7 +60,7 @@ export default function AbilityAnalyzePage() {
           ))}
         </div>
 
-        {/* 消耗 */}
+        {/* Usage */}
         <div className={styles.filterGroup}>
           <button
             className={`${styles.filterBtn} ${
@@ -171,7 +88,7 @@ export default function AbilityAnalyzePage() {
           </button>
         </div>
 
-        {/* 打击 */}
+        {/* Damage */}
         <div className={styles.filterGroup}>
           <button
             className={`${styles.filterBtn} ${
@@ -199,7 +116,7 @@ export default function AbilityAnalyzePage() {
           </button>
         </div>
 
-        {/* 冷却 */}
+        {/* Cooldown */}
         <div className={styles.filterGroup}>
           {(["ALL", "10秒", "30秒", "1分钟"] as CooldownFilter[]).map(
             (cd) => (
@@ -216,14 +133,13 @@ export default function AbilityAnalyzePage() {
           )}
         </div>
 
-        {/* 破招颜色（✅ FIXED） */}
+        {/* Break Color */}
         <div className={styles.filterGroup}>
           {(
             ["ALL", "蓝", "红", "黄", "紫", "绿", "黑", "无颜色"] as BreakColorFilter[]
           ).map((c) => (
             <button
               key={c}
-              data-break={c}
               className={`${styles.filterBtn} ${
                 breakColorFilter === c ? styles.filterActive : ""
               }`}
@@ -247,15 +163,17 @@ export default function AbilityAnalyzePage() {
                   height={36}
                   className={styles.icon}
                   unoptimized
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src =
+                      "/icons/no_drop.svg";
+                  }}
                 />
               </div>
 
               <span className={styles.skillName}>{s.name}</span>
 
-              {s.cooldownTag !== "ALL" && (
-                <span className={styles.cooldownTag}>
-                  {s.cooldownTag}
-                </span>
+              {s.cooldownTag && (
+                <span className={styles.cooldownTag}>{s.cooldownTag}</span>
               )}
 
               <span
@@ -265,14 +183,56 @@ export default function AbilityAnalyzePage() {
               >
                 {s.breakColorTag}
               </span>
+
+              {s.resourceTags.map((t) => (
+                <span
+                  key={t}
+                  className={`${styles.tag} ${
+                    t === "消耗精神"
+                      ? styles.useSpirit
+                      : styles.useStamina
+                  }`}
+                >
+                  {t}
+                </span>
+              ))}
+
+              {s.damageTags.map((t) => (
+                <span
+                  key={t}
+                  className={`${styles.tag} ${
+                    t === "耐力打击"
+                      ? styles.hitStamina
+                      : styles.hitSpirit
+                  }`}
+                >
+                  {t}
+                </span>
+              ))}
             </div>
 
+            {/* baseHtml already contains ONLY the <span class="num"> from parseSkill */}
             <div
               className={styles.desc}
               dangerouslySetInnerHTML={{
                 __html: s.baseHtml.replace(/\n/g, "<br />"),
               }}
             />
+
+            {s.specialBlocks.length > 0 && (
+              <>
+                <div className={styles.divider} />
+                <div className={styles.specialTitle}>特殊条件效果</div>
+                <ul className={styles.specialList}>
+                  {s.specialBlocks.map((line, i) => (
+                    <li
+                      key={i}
+                      dangerouslySetInnerHTML={{ __html: line }}
+                    />
+                  ))}
+                </ul>
+              </>
+            )}
           </div>
         ))}
       </div>

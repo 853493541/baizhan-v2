@@ -1,3 +1,6 @@
+/* ===============================
+   Layout
+=============================== */
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -10,7 +13,9 @@
   margin-bottom: 12px;
 }
 
-/* Search */
+/* ===============================
+   Search
+=============================== */
 .search {
   width: 100%;
   padding: 10px 12px;
@@ -20,12 +25,14 @@
   margin-bottom: 14px;
 }
 
-/* Controls */
+/* ===============================
+   Controls
+=============================== */
 .controls {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .levelGroup,
@@ -37,9 +44,10 @@
 
 .levelBtn {
   padding: 6px 12px;
-  border-radius: 6px;
+  border-radius: 8px;
   border: 1px solid #ccc;
   background: #f6f6f6;
+  font-size: 13px;
 }
 
 .active {
@@ -49,19 +57,30 @@
 }
 
 .filterBtn {
-  padding: 6px 12px;
+  padding: 6px 14px;
   border-radius: 999px;
-  border: 1px solid transparent;
-  background: #f2f2f2;
+  border: 1px solid #ddd;
+  background: #f4f4f4;
   font-size: 13px;
 }
 
 .filterActive {
-  border-color: #666;
+  border-color: #333;
   font-weight: 600;
 }
 
-/* Usage / Damage colors */
+/* ===============================
+   Tag base
+=============================== */
+.tag {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Usage */
 .useSpirit {
   color: #1f3fbf;
   background: rgba(31, 63, 191, 0.15);
@@ -72,6 +91,7 @@
   background: rgba(139, 0, 0, 0.15);
 }
 
+/* Damage */
 .hitSpirit {
   color: #7b3fe4;
   background: rgba(123, 63, 228, 0.15);
@@ -82,41 +102,45 @@
   background: rgba(240, 138, 36, 0.18);
 }
 
-/* List */
+/* ===============================
+   List / Card
+=============================== */
 .list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
 }
 
 .card {
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 14px;
+  padding: 14px;
   background: #fff;
 }
 
+/* ===============================
+   Card header
+=============================== */
 .cardHeader {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   align-items: center;
+  margin-bottom: 8px;
 }
 
 .skillName {
   font-weight: 700;
+  font-size: 15px;
 }
 
-.desc {
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-/* Icon */
+/* ===============================
+   Icon
+=============================== */
 .iconWrap {
   width: 28px;
   height: 28px;
-  border-radius: 10px;
+  border-radius: 8px;
   overflow: hidden;
   background: #f6f6f6;
   border: 1px solid #e5e5e5;
@@ -128,7 +152,9 @@
   object-fit: contain;
 }
 
-/* Cooldown / Break */
+/* ===============================
+   Cooldown / Break
+=============================== */
 .cooldownTag {
   font-size: 12px;
   padding: 2px 8px;
@@ -141,8 +167,7 @@
   font-size: 12px;
   padding: 2px 8px;
   border-radius: 999px;
-  background: #f2f2f2;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* Break colors */
@@ -154,97 +179,62 @@
 .break_黑 { color: #333; background: rgba(60,60,60,0.2); }
 .break_无颜色 { color: #666; background: #eee; }
 
-/* Mobile */
+/* ===============================
+   Description text
+=============================== */
+.desc {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #222;
+  margin-top: 6px;
+}
+
+/* ===============================
+   Number highlight (parseSkill)
+=============================== */
+.desc :global(.num) {
+  color: #c62828;
+  font-weight: 700;
+  background: rgba(198, 40, 40, 0.08);
+  border-radius: 4px;
+  padding: 0 3px;
+}
+
+/* ===============================
+   Subsection
+=============================== */
+.divider {
+  margin: 12px 0 8px;
+  border-top: 1px dashed #e0e0e0;
+}
+
+.specialTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: #444;
+  margin-bottom: 6px;
+}
+
+.specialList {
+  padding-left: 18px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.specialList li {
+  margin-bottom: 4px;
+}
+
+/* ===============================
+   Mobile
+=============================== */
 @media (max-width: 600px) {
   .controls {
     flex-direction: column;
   }
+
   .list {
     grid-template-columns: 1fr;
   }
-}
-/* ===============================
-   Break-color FILTER buttons
-   (visual only, logic untouched)
-=============================== */
-
-/* 蓝 */
-.filterGroup button:has-text("蓝") {
-  color: #4078ff;
-  background: rgba(64, 120, 255, 0.15);
-}
-
-/* 红 */
-.filterGroup button:has-text("红") {
-  color: #dc3c3c;
-  background: rgba(220, 60, 60, 0.15);
-}
-
-/* 黄 */
-.filterGroup button:has-text("黄") {
-  color: #c9a100;
-  background: rgba(240, 190, 60, 0.2);
-}
-
-/* 紫 */
-.filterGroup button:has-text("紫") {
-  color: #9b5cff;
-  background: rgba(160, 90, 255, 0.18);
-}
-
-/* 绿 */
-.filterGroup button:has-text("绿") {
-  color: #3fa46b;
-  background: rgba(70, 180, 120, 0.18);
-}
-
-/* 黑 */
-.filterGroup button:has-text("黑") {
-  color: #333;
-  background: rgba(60, 60, 60, 0.2);
-}
-
-/* 无颜色 */
-.filterGroup button:has-text("无颜色") {
-  color: #666;
-  background: #eee;
-}
-/* ===============================
-   Break-color FILTER buttons
-   (visual only, no logic)
-=============================== */
-
-.filterGroup button[data-break="蓝"] {
-  color: #4078ff;
-  background: rgba(64, 120, 255, 0.15);
-}
-
-.filterGroup button[data-break="红"] {
-  color: #dc3c3c;
-  background: rgba(220, 60, 60, 0.15);
-}
-
-.filterGroup button[data-break="黄"] {
-  color: #c9a100;
-  background: rgba(240, 190, 60, 0.2);
-}
-
-.filterGroup button[data-break="紫"] {
-  color: #9b5cff;
-  background: rgba(160, 90, 255, 0.18);
-}
-
-.filterGroup button[data-break="绿"] {
-  color: #3fa46b;
-  background: rgba(70, 180, 120, 0.18);
-}
-
-.filterGroup button[data-break="黑"] {
-  color: #333;
-  background: rgba(60, 60, 60, 0.2);
-}
-
-.filterGroup button[data-break="无颜色"] {
-  color: #666;
-  background: #eee;
 }
