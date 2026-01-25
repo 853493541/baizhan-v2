@@ -14,7 +14,7 @@ export const metadata = {
   title: "百战",
   description: "百战统计排表工具",
   icons: {
-    icon: "/icons/app_icon_no_background.png",        // browser tab
+    icon: "/icons/app_icon_no_background.webp",        // browser tab
     apple: "/icons/app_icon_no_background.png",       // iOS fallback
   },
 };
