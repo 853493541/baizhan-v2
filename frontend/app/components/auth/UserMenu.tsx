@@ -12,8 +12,8 @@ interface Props {
 }
 
 /* ===============================
-   🩹 Band-aid display name mapping
-   =============================== */
+   Display name mapping
+=============================== */
 const DISPLAY_NAME_MAP: Record<string, string> = {
   admin: "管理员",
   wuxi: "五溪",
@@ -28,36 +28,51 @@ function getDisplayName(username: string) {
   return DISPLAY_NAME_MAP[username] ?? username;
 }
 
-function getAvatarLetter(displayName: string) {
-  // Chinese: first char; English: uppercase first letter
-  return displayName.charAt(0).toUpperCase();
+function getAvatarLetter(name: string) {
+  return name.charAt(0).toUpperCase();
 }
 
 /* ===============================
-   🔐 Frontend-only visibility rule
-   =============================== */
+   Permissions
+=============================== */
 const ACTIVITY_PAGE_ALLOWED_USERS = new Set(["admin", "catcake"]);
 
 export default function UserMenu({ username }: Props) {
   const router = useRouter();
+
   const [open, setOpen] = useState(false);
   const [showChange, setShowChange] = useState(false);
+
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
   const displayName = getDisplayName(username);
   const avatarLetter = getAvatarLetter(displayName);
+  const canViewActivityPage = ACTIVITY_PAGE_ALLOWED_USERS.has(username);
 
-  // ✅ IMPORTANT: use RAW username for permission
-  const canViewActivityPage =
-    ACTIVITY_PAGE_ALLOWED_USERS.has(username);
+  /* =====================================================
+     🔥 GLYPH WARM-UP (CRITICAL FIX)
+     ===================================================== */
+  useEffect(() => {
+    const span = document.createElement("span");
+    span.className = "material-symbols-outlined";
+    span.textContent = "admin_panel_settings key logout";
+    span.style.position = "absolute";
+    span.style.visibility = "hidden";
+    span.style.pointerEvents = "none";
+    document.body.appendChild(span);
 
-  /* ===============================
-     Click-away + ESC (Google behavior)
-     =============================== */
+    return () => {
+      document.body.removeChild(span);
+    };
+  }, []);
+
+  /* =====================================================
+     Click-away + ESC
+     ===================================================== */
   useEffect(() => {
     if (!open) return;
 
-    function handleClickOutside(e: MouseEvent) {
+    function handleClick(e: MouseEvent) {
       if (
         wrapperRef.current &&
         !wrapperRef.current.contains(e.target as Node)
@@ -67,69 +82,61 @@ export default function UserMenu({ username }: Props) {
     }
 
     function handleKey(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        setOpen(false);
-      }
+      if (e.key === "Escape") setOpen(false);
     }
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handleClick);
     document.addEventListener("keydown", handleKey);
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("mousedown", handleClick);
       document.removeEventListener("keydown", handleKey);
     };
   }, [open]);
 
-  /* ===============================
+  /* =====================================================
      Logout
-     =============================== */
+     ===================================================== */
   async function logout() {
     try {
       await fetch(`${API_BASE}/api/auth/logout`, {
         method: "POST",
         credentials: "include",
       });
-    } catch {
-      /* ignore */
-    }
+    } catch {}
 
     setOpen(false);
     setShowChange(false);
     router.replace("/login");
   }
 
+  /* =====================================================
+     Render
+     ===================================================== */
   return (
     <div className={styles.wrap} ref={wrapperRef}>
-      {/* Avatar trigger */}
+      {/* Avatar */}
       <button
         className={styles.avatarBtn}
         onClick={() => setOpen((v) => !v)}
         aria-label="账户菜单"
       >
-        <div className={styles.avatarCircle}>
-          {avatarLetter}
-        </div>
+        <div className={styles.avatarCircle}>{avatarLetter}</div>
       </button>
 
+      {/* Menu */}
       {open && (
         <div className={styles.menu} role="menu">
-          {/* Profile header */}
           <div className={styles.profile}>
-            <div className={styles.profileAvatar}>
-              {avatarLetter}
-            </div>
+            <div className={styles.profileAvatar}>{avatarLetter}</div>
             <div className={styles.profileInfo}>
-              <div className={styles.profileName}>
-                {displayName}
-              </div>
+              <div className={styles.profileName}>{displayName}</div>
               <div className={styles.profileHint}>已登录</div>
             </div>
           </div>
 
           <div className={styles.divider} />
 
-          {/* 🔐 Admin-only entry (frontend UX only) */}
           {canViewActivityPage && (
             <button
               className={styles.menuItem}
@@ -145,7 +152,6 @@ export default function UserMenu({ username }: Props) {
             </button>
           )}
 
-          {/* Change password */}
           <button
             className={styles.menuItem}
             onClick={() => {

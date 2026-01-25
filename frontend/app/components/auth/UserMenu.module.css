@@ -135,3 +135,15 @@
   font-size: 18px;             /* ⬆ balanced */
   opacity: 0.9;
 }
+/* ===============================
+   📱 Mobile overrides
+   =============================== */
+@media (max-width: 600px) {
+
+
+  /* Dropdown menu */
+  .menu {
+    width: 180px;                 /* ⬇ narrower */
+
+  }
+}
