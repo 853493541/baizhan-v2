@@ -1,9 +1,7 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 export default function AuthGate({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -12,12 +10,18 @@ export default function AuthGate({ children }: { children: ReactNode }) {
   const [checking, setChecking] = useState(true);
   const [authed, setAuthed] = useState(false);
 
+  // ✅ guarantees ONE /me call per page load
+  const ranRef = useRef(false);
+
   useEffect(() => {
+    if (ranRef.current) return;
+    ranRef.current = true;
+
     let cancelled = false;
 
-    async function checkAuth() {
+    (async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/auth/me`, {
+        const res = await fetch("/api/auth/me", {
           credentials: "include",
         });
 
@@ -25,49 +29,43 @@ export default function AuthGate({ children }: { children: ReactNode }) {
           if (!cancelled) {
             setAuthed(false);
             setChecking(false);
-
-            if (pathname !== "/login") {
-              router.replace("/login");
-            }
+            if (pathname !== "/login") router.replace("/login");
           }
           return;
         }
+
+        const data = await res.json();
 
         if (!cancelled) {
           setAuthed(true);
           setChecking(false);
 
-          if (pathname === "/login") {
-            router.replace("/");
+          // ✅ expose username ONCE for layout/topbar
+          if (data?.user?.username) {
+            (window as any).__AUTH_USERNAME__ = data.user.username;
           }
+
+          if (pathname === "/login") router.replace("/");
         }
       } catch {
         if (!cancelled) {
           setAuthed(false);
           setChecking(false);
-          if (pathname !== "/login") {
-            router.replace("/login");
-          }
+          if (pathname !== "/login") router.replace("/login");
         }
       }
-    }
+    })();
 
-    checkAuth();
     return () => {
       cancelled = true;
     };
-  }, [pathname, router]);
+  }, []); // ⛔ DO NOT add deps
 
-  // ⛔ prevent flicker
+  // ⛔ block render until auth known
   if (checking) return null;
 
-  // ⛔ not logged in → only allow /login
+  // ⛔ unauth users only see login
   if (!authed && pathname !== "/login") return null;
-
-  // 🔓 login page should NOT use LayoutShell
-  if (pathname === "/login") {
-    return <>{children}</>;
-  }
 
   return <>{children}</>;
 }
