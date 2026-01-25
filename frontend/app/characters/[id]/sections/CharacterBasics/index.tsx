@@ -89,7 +89,7 @@ export default function CharacterBasics({
         {/* ===== Server / Owner / Active ===== */}
         <div className={styles.lineMuted}>
           {character.server} · {character.owner} ·{" "}
-          {character.active ? "在役" : "暂离"}
+          {character.active ? "在用" : "暂离"}
         </div>
 
         {/* ===== Stats ===== */}
