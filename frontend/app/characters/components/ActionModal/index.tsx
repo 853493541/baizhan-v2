@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styles from "./styles.module.css";
 import { toastError, toastSuccess } from "@/app/components/toast/toast";
 
@@ -37,12 +37,9 @@ const numToChinese = (num: number): string => {
 };
 
 const normalize = (s: string) => (s || "").trim().replace(/\u200B/g, "");
-
-/* ✅ EXACT character limit (CJK-safe) */
 const limitChars = (text: string, max = 4) =>
   text ? [...text].slice(0, max).join("") : "";
 
-// ⚠️ Reserved for future special rules
 const FORCE_LV10_ABILITIES = new Set<string>();
 
 export default function ActionModal({
@@ -56,7 +53,13 @@ export default function ActionModal({
   const [copiedSet, setCopiedSet] = useState<Set<string>>(new Set());
 
   /* =========================
-     🔒 Defensive refresh wrapper
+     🔒 HARD HEIGHT LOCK
+  ========================= */
+  const modalRef = useRef<HTMLDivElement>(null);
+  const [lockedHeight, setLockedHeight] = useState<number | null>(null);
+
+  /* =========================
+     Safe refresh
   ========================= */
   const safeRefreshPage = async () => {
     if (typeof onRefreshPage === "function") {
@@ -65,7 +68,7 @@ export default function ActionModal({
   };
 
   /* =========================
-     Load tradables on open
+     Load tradables
   ========================= */
   const loadTradables = async () => {
     try {
@@ -86,14 +89,20 @@ export default function ActionModal({
     }
   };
 
+  /* initial load */
   useEffect(() => {
     loadTradables();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* =========================
-     Auto-close if nothing left
-  ========================= */
+  /* 🔒 lock height ONCE, after first paint */
+  useEffect(() => {
+    if (!loading && modalRef.current && lockedHeight === null) {
+      setLockedHeight(modalRef.current.offsetHeight);
+    }
+  }, [loading, lockedHeight]);
+
+  /* auto-close when empty */
   useEffect(() => {
     if (!loading && tradables.length === 0) {
       onClose("empty");
@@ -102,9 +111,7 @@ export default function ActionModal({
   }, [loading, tradables]);
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
-      onClose("manual");
-    }
+    if (e.target === e.currentTarget) onClose("manual");
   };
 
   /* =========================
@@ -113,7 +120,7 @@ export default function ActionModal({
   const handleUse = async (ability: string, level: number) => {
     const name = normalize(ability);
     const finalLevel = FORCE_LV10_ABILITIES.has(name) ? 10 : level;
-    const chineseLevel = numToChinese(finalLevel); // ✅ display only
+    const chineseLevel = numToChinese(finalLevel);
 
     try {
       const res = await fetch(
@@ -129,7 +136,7 @@ export default function ActionModal({
 
       toastSuccess(`已使用 ${name} · ${chineseLevel}重`);
 
-      // 🔁 refresh modal + page
+      // 🔁 inner refresh ONLY
       await loadTradables();
       await safeRefreshPage();
     } catch {
@@ -142,8 +149,7 @@ export default function ActionModal({
   ========================= */
   const handleCopy = async (ability: string, requiredLevel: number) => {
     const name = normalize(ability);
-    const safeLevel = Math.min(requiredLevel, 10);
-    const chineseLevel = numToChinese(safeLevel);
+    const chineseLevel = numToChinese(Math.min(requiredLevel, 10));
     const text = `《${name}》招式要诀·${chineseLevel}重`;
 
     try {
@@ -163,43 +169,40 @@ export default function ActionModal({
   const tradablesLv9 = tradables.filter((t) => t.requiredLevel === 9);
   const tradablesLv10 = tradables.filter((t) => t.requiredLevel === 10);
 
-  /* =========================
-     行渲染
-  ========================= */
   const renderRow = (t: TradableAbility) => {
-    const { ability, requiredLevel, currentLevel } = t;
-    const isCopied = copiedSet.has(normalize(ability));
+    const isCopied = copiedSet.has(normalize(t.ability));
 
     return (
-      <div key={`tradable-${ability}`} className={styles.itemRow}>
+      <div key={`tradable-${t.ability}`} className={styles.itemRow}>
         <div className={styles.itemLeft}>
           <img
-            src={getAbilityIcon(ability)}
-            alt={ability}
+            src={getAbilityIcon(t.ability)}
+            alt={t.ability}
             className={styles.abilityIcon}
             onError={(e) =>
               ((e.currentTarget as HTMLImageElement).style.display = "none")
             }
           />
           <span className={styles.abilityName}>
-            {numToChinese(requiredLevel)}重 · {limitChars(ability, 4)}
+            {numToChinese(t.requiredLevel)}重 · {limitChars(t.ability, 4)}
           </span>
         </div>
 
         <div className={styles.currentBadge}>
-          当前：{numToChinese(currentLevel)}重
+          当前：{numToChinese(t.currentLevel)}重
         </div>
 
         <div className={styles.buttons}>
           <button
-            onClick={() => handleUse(ability, requiredLevel)}
+            onClick={() => handleUse(t.ability, t.requiredLevel)}
             className={`${styles.btn} ${styles.useBtn}`}
+            disabled={loading}
           >
             使用
           </button>
 
           <button
-            onClick={() => handleCopy(ability, requiredLevel)}
+            onClick={() => handleCopy(t.ability, t.requiredLevel)}
             className={`${styles.btn} ${
               isCopied ? styles.copiedBtn : styles.copyBtn
             }`}
@@ -212,25 +215,22 @@ export default function ActionModal({
   };
 
   /* =========================
-     Render
+     Render (NO RESIZE)
   ========================= */
-  if (loading) {
-    return (
-      <div className={styles.modalOverlay}>
-        <div className={styles.modal}>
-          <div className={styles.loading}>加载中…</div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className={styles.modalOverlay} onClick={handleOverlayClick}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <div
+        ref={modalRef}
+        className={styles.modal}
+        style={lockedHeight ? { height: lockedHeight } : undefined}
+        onClick={(e) => e.stopPropagation()}
+      >
         <h3 className={styles.modalTitle}>可读书籍</h3>
 
         <section className={styles.section}>
-          {tradablesLv9.length > 0 && (
+          {loading && <div className={styles.innerLoading}>处理中…</div>}
+
+          {!loading && tradablesLv9.length > 0 && (
             <>
               <div className={`${styles.sectionBadge} ${styles.purple9}`}>
                 九重紫书
@@ -239,7 +239,7 @@ export default function ActionModal({
             </>
           )}
 
-          {tradablesLv10.length > 0 && (
+          {!loading && tradablesLv10.length > 0 && (
             <>
               <div
                 className={`${styles.sectionBadge} ${styles.purple10} ${styles.sectionGap}`}
@@ -255,6 +255,7 @@ export default function ActionModal({
           <button
             onClick={() => onClose("manual")}
             className={styles.closeButton}
+            disabled={loading}
           >
             关闭
           </button>
