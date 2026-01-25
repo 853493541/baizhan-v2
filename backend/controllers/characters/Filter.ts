@@ -1,3 +1,5 @@
+// backend/controllers/characterPageController.ts
+
 import { Request, Response } from "express";
 import Character from "../../models/Character";
 import { getTradables } from "../../utils/tradables";
@@ -18,7 +20,9 @@ import {
  * - tradable: 紫书可读（getTradables().length > 0）
  *
  * Returns:
- * - lightweight characters (NO abilities, NO storage, NO gender)
+ * - lightweight characters
+ *   (NO abilities, NO storage, NO gender)
+ * - includes derived field: hasActions
  */
 export const filterCharactersPage = async (
   req: Request,
@@ -57,7 +61,7 @@ export const filterCharactersPage = async (
     if (server) baseQuery.server = String(server).trim();
     if (role) baseQuery.role = role;
 
-    // ✅ FIX: default active = true if undefined
+    // default active = true
     const normalizedActive =
       typeof active === "boolean" ? active : true;
 
@@ -65,7 +69,7 @@ export const filterCharactersPage = async (
 
     /* =========================
        2️⃣ Fetch candidates
-       - abilities & gender needed for tradable calc
+       - abilities & gender needed
        ========================= */
     const candidates = await Character.find(
       baseQuery,
@@ -106,7 +110,6 @@ export const filterCharactersPage = async (
         .filter(Boolean) as string[];
 
       const pinyinMap = await createPinyinMap(names);
-
       const matchedNames = new Set(
         pinyinFilter(names, pinyinMap, name)
       );
@@ -117,21 +120,29 @@ export const filterCharactersPage = async (
     }
 
     /* =========================
-       5️⃣ Tradable (紫书可读) filter
+       5️⃣ Compute tradable summary
        ========================= */
-    const tradableMatched =
-      tradable
-        ? nameMatched.filter((char) => {
-            const tradables = getTradables({
-              abilities: char.abilities,
-              gender: char.gender,
-            });
-            return tradables.length > 0;
-          })
-        : nameMatched;
+    const withTradableInfo = nameMatched.map((char) => {
+      const tradables = getTradables({
+        abilities: char.abilities,
+        gender: char.gender,
+      });
+
+      return {
+        ...char,
+        hasActions: tradables.length > 0,
+      };
+    });
 
     /* =========================
-       6️⃣ Strip internal fields
+       6️⃣ Apply tradable filter
+       ========================= */
+    const tradableMatched = tradable
+      ? withTradableInfo.filter((c) => c.hasActions)
+      : withTradableInfo;
+
+    /* =========================
+       7️⃣ Strip internal fields
        ========================= */
     const result = tradableMatched.map(
       ({ abilities, gender, ...rest }) => rest

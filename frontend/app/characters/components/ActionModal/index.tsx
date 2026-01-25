@@ -14,10 +14,11 @@ export interface TradableAbility {
 }
 
 export interface ActionModalProps {
-  tradables: TradableAbility[];
   API_URL: string;
   charId: string;
-  onRefresh: () => Promise<void>;
+
+  // 🔁 page-level refresh (recalc hasActions)
+  onRefreshPage: () => Promise<void>;
   onClose: () => void;
 }
 
@@ -36,27 +37,68 @@ const numToChinese = (num: number): string => {
 const normalize = (s: string) => (s || "").trim().replace(/\u200B/g, "");
 
 /* ✅ EXACT character limit (CJK-safe) */
-const limitChars = (text: string, max = 4) => {
-  if (!text) return "";
-  return [...text].slice(0, max).join("");
-};
+const limitChars = (text: string, max = 4) =>
+  text ? [...text].slice(0, max).join("") : "";
 
 // ⚠️ Reserved for future special rules
 const FORCE_LV10_ABILITIES = new Set<string>();
 
 export default function ActionModal({
-  tradables,
   API_URL,
   charId,
-  onRefresh,
+  onRefreshPage,
   onClose,
 }: ActionModalProps) {
+  const [tradables, setTradables] = useState<TradableAbility[]>([]);
+  const [loading, setLoading] = useState(true);
   const [copiedSet, setCopiedSet] = useState<Set<string>>(new Set());
 
-  /* auto-close if nothing to show */
+  /* =========================
+     🔒 Defensive refresh wrapper
+     (prevents "r is not a function")
+  ========================= */
+  const safeRefreshPage = async () => {
+    if (typeof onRefreshPage === "function") {
+      await onRefreshPage();
+    }
+  };
+
+  /* =========================
+     Load tradables on open
+  ========================= */
+  const loadTradables = async () => {
+    try {
+      setLoading(true);
+
+      const res = await fetch(
+        `${API_URL}/api/characters/${charId}/tradables`
+      );
+      if (!res.ok) throw new Error();
+
+      const data = await res.json();
+      setTradables(data.tradables || []);
+    } catch {
+      toastError("加载可读书籍失败");
+      onClose();
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    if (tradables.length === 0) onClose();
-  }, [tradables, onClose]);
+    loadTradables();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /* =========================
+     Auto-close if nothing left
+  ========================= */
+  useEffect(() => {
+    if (!loading && tradables.length === 0) {
+      onClose();
+      safeRefreshPage();
+    }
+  }, [loading, tradables, onClose]);
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) onClose();
@@ -67,9 +109,7 @@ export default function ActionModal({
   ========================= */
   const handleUse = async (ability: string, level: number) => {
     const name = normalize(ability);
-    let finalLevel = level;
-
-    if (FORCE_LV10_ABILITIES.has(name)) finalLevel = 10;
+    let finalLevel = FORCE_LV10_ABILITIES.has(name) ? 10 : level;
 
     try {
       const res = await fetch(
@@ -84,7 +124,10 @@ export default function ActionModal({
       if (!res.ok) throw new Error();
 
       toastSuccess(`已使用 ${name} · ${finalLevel}重`);
-      await onRefresh();
+
+      // 🔁 refresh modal + page
+      await loadTradables();
+      await safeRefreshPage();
     } catch {
       toastError("使用失败，请稍后再试");
     }
@@ -134,7 +177,6 @@ export default function ActionModal({
               ((e.currentTarget as HTMLImageElement).style.display = "none")
             }
           />
-
           <span className={styles.abilityName}>
             {numToChinese(requiredLevel)}重 · {limitChars(ability, 4)}
           </span>
@@ -164,6 +206,19 @@ export default function ActionModal({
       </div>
     );
   };
+
+  /* =========================
+     Render
+  ========================= */
+  if (loading) {
+    return (
+      <div className={styles.modalOverlay}>
+        <div className={styles.modal}>
+          <div className={styles.loading}>加载中…</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.modalOverlay} onClick={handleOverlayClick}>

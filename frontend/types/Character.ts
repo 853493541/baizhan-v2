@@ -9,4 +9,5 @@ export interface Character {
   active: boolean;
   abilities: Record<string, number>;
   owner: string; // 🔹 NEW
+  hasActions?: boolean;
 }
