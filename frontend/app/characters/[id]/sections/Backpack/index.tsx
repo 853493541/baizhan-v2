@@ -132,15 +132,21 @@ export default function Backpack({
       </div>
 
       {/* === Action Modal === */}
-      {showModal && (
-        <ActionModal
-          tradables={tradables}
-          API_URL={API_URL}
-          charId={currentChar._id}
-          onRefresh={refreshCharacterLocal}
-          onClose={() => setShowModal(false)}
-        />
-      )}
+{showModal && (
+  <ActionModal
+    API_URL={API_URL}
+    charId={currentChar._id}
+    onRefresh={async () => {
+      await refreshCharacterLocal();
+      await fetchTradables(); // 🔥 this was missing
+    }}
+    onClose={() => {
+      setShowModal(false);
+      fetchTradables(); // 🔥 sync hasActions after auto-close
+    }}
+  />
+)}
+
 
       {/* === Manager === */}
       {showManager && (

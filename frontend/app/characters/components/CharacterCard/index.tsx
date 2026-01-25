@@ -160,17 +160,21 @@ export default function CharacterCard({
       </div>
 
       {/* === Action Modal === */}
-      {showModal && (
-        <ActionModal
-          API_URL={API_URL}
-          charId={char._id}
-          onRefreshPage={refreshPage}
-          onClose={() => {
-            setShowModal(false);
-            setHasActionsLocal(false); // ✅ optimistic hide
-          }}
-        />
-      )}
+{showModal && (
+  <ActionModal
+    API_URL={API_URL}
+    charId={char._id}
+    onRefreshPage={refreshPage}
+    onClose={(reason) => {
+      setShowModal(false);
+
+      // ✅ ONLY hide when modal tells us it's empty
+      if (reason === "empty") {
+        setHasActionsLocal(false);
+      }
+    }}
+  />
+)}
 
       {/* === Manager === */}
       {showManager && (

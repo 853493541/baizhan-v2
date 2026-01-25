@@ -19,7 +19,9 @@ export interface ActionModalProps {
 
   // 🔁 page-level refresh (recalc hasActions)
   onRefreshPage: () => Promise<void>;
-  onClose: () => void;
+
+  // ✅ close reason
+  onClose: (reason?: "manual" | "empty") => void;
 }
 
 const getAbilityIcon = (name: string) => `/icons/${name}.png`;
@@ -55,7 +57,6 @@ export default function ActionModal({
 
   /* =========================
      🔒 Defensive refresh wrapper
-     (prevents "r is not a function")
   ========================= */
   const safeRefreshPage = async () => {
     if (typeof onRefreshPage === "function") {
@@ -79,7 +80,7 @@ export default function ActionModal({
       setTradables(data.tradables || []);
     } catch {
       toastError("加载可读书籍失败");
-      onClose();
+      onClose("manual");
     } finally {
       setLoading(false);
     }
@@ -95,13 +96,15 @@ export default function ActionModal({
   ========================= */
   useEffect(() => {
     if (!loading && tradables.length === 0) {
-      onClose();
+      onClose("empty");
       safeRefreshPage();
     }
-  }, [loading, tradables, onClose]);
+  }, [loading, tradables]);
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) onClose();
+    if (e.target === e.currentTarget) {
+      onClose("manual");
+    }
   };
 
   /* =========================
@@ -109,7 +112,8 @@ export default function ActionModal({
   ========================= */
   const handleUse = async (ability: string, level: number) => {
     const name = normalize(ability);
-    let finalLevel = FORCE_LV10_ABILITIES.has(name) ? 10 : level;
+    const finalLevel = FORCE_LV10_ABILITIES.has(name) ? 10 : level;
+    const chineseLevel = numToChinese(finalLevel); // ✅ display only
 
     try {
       const res = await fetch(
@@ -123,7 +127,7 @@ export default function ActionModal({
 
       if (!res.ok) throw new Error();
 
-      toastSuccess(`已使用 ${name} · ${finalLevel}重`);
+      toastSuccess(`已使用 ${name} · ${chineseLevel}重`);
 
       // 🔁 refresh modal + page
       await loadTradables();
@@ -248,7 +252,10 @@ export default function ActionModal({
         </section>
 
         <div className={styles.modalFooter}>
-          <button onClick={onClose} className={styles.closeButton}>
+          <button
+            onClick={() => onClose("manual")}
+            className={styles.closeButton}
+          >
             关闭
           </button>
         </div>
