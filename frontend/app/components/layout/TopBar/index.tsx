@@ -29,7 +29,7 @@ export default function TopBar({ onMenuClick, username }: TopBarProps) {
       {/* Logo + Title */}
       <Link href="/" className={styles.titleWrap}>
         <Image
-          src="/icons/app_icon.png"
+          src="/icons/app_icon_no_background.webp"
           alt="logo"
           width={22}
           height={22}
