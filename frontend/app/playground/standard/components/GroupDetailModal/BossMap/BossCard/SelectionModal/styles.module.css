@@ -252,3 +252,77 @@
 
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
+/* ===============================
+   📱 Phone Responsive
+================================= */
+@media (max-width: 640px) {
+  /* Overlay padding so modal never touches edges */
+  .overlay {
+    padding: 12px;
+  }
+
+  /* Modal becomes full-width card */
+  .modal {
+    width: 100%;
+    max-width: none;
+    max-height: 85vh;
+    border-radius: 12px;
+  }
+
+  /* Header spacing */
+  .header {
+    padding: 12px 14px;
+  }
+
+  .headerTitle {
+    font-size: 16px;
+  }
+
+  .closeBtn {
+    font-size: 20px;
+    right: 10px;
+  }
+
+  /* Member bar tighter */
+  .memberBar {
+    padding: 6px 12px;
+  }
+
+  /* Member buttons easier to tap */
+  .memberButtons {
+    gap: 6px;
+  }
+
+  .memberButtons button {
+    min-width: 72px;
+    height: 36px;
+    font-size: 14px;
+  }
+
+  /* Boss grid: fewer columns */
+  .bossGrid {
+    padding: 10px 12px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  /* Boss card sizing */
+  .bossCard {
+    max-width: none;
+    min-height: 110px;
+    padding: 8px;
+    font-size: 12px;
+  }
+
+  .bossTitle {
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+
+  /* Checkmark slightly smaller */
+  .checkmark {
+    width: 20px;
+    height: 20px;
+    font-size: 13px;
+  }
+}
