@@ -19,6 +19,11 @@ import mapRoutes from "./routes/mapRoutes";
 import standardScheduleRoutes from "./routes/standardScheduleRoutes";
 import targetedPlanRoutes from "./routes/targetedPlanRoutes";
 import adminRoutes from "./routes/admin";
+// GAME
+import gameRoutes from "./game/routes/game.routes";
+
+
+
 const app = express();
 
 /* =====================================================
@@ -46,6 +51,8 @@ app.use(
   })
 );
 
+
+
 /* =====================================================
    🔧 Core middleware
 ===================================================== */
@@ -53,6 +60,14 @@ app.use(
 app.use(express.json({ limit: "2mb" }));
 app.use(cookieParser());
 app.use(compression());
+
+
+
+app.use("/game", gameRoutes);
+
+
+
+
 
 /* =====================================================
    🗄️ Database
