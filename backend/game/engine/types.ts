@@ -39,7 +39,6 @@ export interface Status {
   value?: number;
   expiresAtTurn: number;
   repeatTurns?: number;
-
   appliedAtTurn: number;
 }
 

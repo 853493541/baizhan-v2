@@ -1,103 +1,89 @@
 #!/bin/bash
 
-BASE_URL="http://localhost:5000"
+API="http://localhost:5000"
+COOKIE="-b cookies_catcake.txt"
 
-# ===== Accounts =====
-P1_USER="catcake"
-P1_PASS="binkp01709"
-
-P2_USER="guest"
-P2_PASS="guest@guest"
-
-# ===== Cookies =====
-P1_COOKIE="cookies_catcake.txt"
-P2_COOKIE="cookies_guest.txt"
-
-sleep_short() { sleep 0.4; }
-
-login_if_needed () {
-  USERNAME=$1
-  PASSWORD=$2
-  COOKIE=$3
-  LABEL=$4
-
-  if [ -s "$COOKIE" ]; then
-    return
-  fi
-
-  curl -s -X POST "$BASE_URL/api/auth/login" \
-    -H "Content-Type: application/json" \
-    -c "$COOKIE" \
-    -d "{\"username\":\"$USERNAME\",\"password\":\"$PASSWORD\"}" > /dev/null
-}
-
-# ===== LOGIN =====
-login_if_needed "$P1_USER" "$P1_PASS" "$P1_COOKIE" "P1"
-login_if_needed "$P2_USER" "$P2_PASS" "$P2_COOKIE" "P2"
-
-# ===== USER IDS =====
-P1_ID=$(curl -s "$BASE_URL/api/auth/me" -b "$P1_COOKIE" | sed -n 's/.*"uid":"\([^"]*\)".*/\1/p')
-P2_ID=$(curl -s "$BASE_URL/api/auth/me" -b "$P2_COOKIE" | sed -n 's/.*"uid":"\([^"]*\)".*/\1/p')
-
-# ===== CREATE GAME =====
-GAME_ID=$(curl -s -X POST "$BASE_URL/game/create" \
+echo "=== CREATE GAME ==="
+CREATE=$(curl -s -X POST "$API/game/create" \
   -H "Content-Type: application/json" \
-  -b "$P1_COOKIE" \
-  -d "{ \"opponentUserId\": \"$P2_ID\" }" \
-  | sed -n 's/.*"_id":"\([^"]*\)".*/\1/p')
+  $COOKIE \
+  -d '{"opponentUserId":"6970ac81f900736d8df15819"}')
 
+echo "$CREATE"
+
+GAME_ID=$(echo "$CREATE" | sed -n 's/.*"_id":"\([^"]*\)".*/\1/p')
 echo "GAME_ID=$GAME_ID"
-echo "== START GAME =="
+echo "----------------------------------------"
 
-# ===== MAIN LOOP =====
+TURN=0
+
 while true; do
-  STATE=$(curl -s "$BASE_URL/game/$GAME_ID" -b "$P1_COOKIE")
+  echo
+  echo "=== FETCH STATE (TURN $TURN) ==="
+  STATE=$(curl -s "$API/game/$GAME_ID" $COOKIE)
+  echo "$STATE"
 
-  TURN=$(echo "$STATE" | sed -n 's/.*"turn":\([0-9]*\).*/\1/p')
-  ACTIVE=$(echo "$STATE" | sed -n 's/.*"activePlayerIndex":\([0-9]*\).*/\1/p')
-  GAMEOVER=$(echo "$STATE" | sed -n 's/.*"gameOver":\(true\|false\).*/\1/p')
-
-  # HP (best-effort, not critical)
-  HP0=$(echo "$STATE" | sed -n 's/.*"hp":\([0-9]*\).*"hp":.*/\1/p')
-  HP1=$(echo "$STATE" | sed -n 's/.*"hp":[0-9]*.*"hp":\([0-9]*\).*/\1/p')
-
-  echo "TURN=$TURN ACTIVE=$ACTIVE HP0=$HP0 HP1=$HP1 GAMEOVER=$GAMEOVER"
-
-  if [ "$GAMEOVER" = "true" ]; then
-    echo "== GAME OVER =="
+  # Check gameOver
+  echo "$STATE" | grep '"gameOver":true' >/dev/null
+  if [ $? -eq 0 ]; then
+    echo
+    echo "=== GAME OVER ==="
     break
   fi
 
-  if [ "$ACTIVE" = "0" ]; then
-    COOKIE="$P1_COOKIE"
-    TARGET="$P2_ID"
-    LABEL="P1"
-    HAND=$(echo "$STATE" | sed -n 's/.*"players":\[{"[^"]*","hp":[0-9]*,"hand":\[\([^]]*\)\].*/\1/p')
+  # Who is active
+  ACTIVE_INDEX=$(echo "$STATE" | sed -n 's/.*"activePlayerIndex":\([0-9]\).*/\1/p')
+  echo "ActivePlayerIndex=$ACTIVE_INDEX"
+
+  # Extract active player's first card
+  CARD=$(echo "$STATE" \
+    | sed -n "s/.*\"players\":\[.*\"hand\":\[\([^]]*\)\].*/\1/p" \
+    | sed 's/"//g' \
+    | cut -d',' -f1)
+
+  if [ -z "$CARD" ]; then
+    echo "No cards in hand, PASS"
   else
-    COOKIE="$P2_COOKIE"
-    TARGET="$P1_ID"
-    LABEL="P2"
-    HAND=$(echo "$STATE" | sed -n 's/.*"players":\[.*{"[^"]*","hp":[0-9]*,"hand":\[\([^]]*\)\].*/\1/p')
+    # Target = the other player
+    if [ "$ACTIVE_INDEX" = "0" ]; then
+      TARGET=$(echo "$STATE" | sed -n 's/.*"players":\[{"userId":"\([^"]*\)".*},{"userId":"\([^"]*\)".*/\2/p')
+    else
+      TARGET=$(echo "$STATE" | sed -n 's/.*"players":\[{"userId":"\([^"]*\)".*},{"userId":"\([^"]*\)".*/\1/p')
+    fi
+
+    echo
+    echo "--- PLAY CARD: $CARD → $TARGET ---"
+    PLAY=$(curl -s -X POST "$API/game/play" \
+      -H "Content-Type: application/json" \
+      $COOKIE \
+      -d "{
+        \"gameId\":\"$GAME_ID\",
+        \"cardId\":\"$CARD\",
+        \"targetUserId\":\"$TARGET\"
+      }")
+
+    echo "$PLAY"
+
+    echo "$PLAY" | grep '"error"' >/dev/null
+    if [ $? -eq 0 ]; then
+      echo "Play failed, skipping to PASS"
+    fi
   fi
 
-  # No cards → skip (test-only)
-  if [ -z "$HAND" ]; then
-    echo "$LABEL has no cards — skipping turn (test mode)"
-    sleep_short
-    continue
-  fi
-
-  CARD=$(echo "$HAND" | sed -n 's/"\([^"]*\)".*/\1/p')
-
-  RESULT=$(curl -s -X POST "$BASE_URL/game/play" \
+  echo
+  echo "--- PASS TURN ---"
+  PASS=$(curl -s -X POST "$API/game/pass" \
     -H "Content-Type: application/json" \
-    -b "$COOKIE" \
-    -d "{\"gameId\":\"$GAME_ID\",\"cardId\":\"$CARD\",\"targetUserId\":\"$TARGET\"}")
+    $COOKIE \
+    -d "{\"gameId\":\"$GAME_ID\"}")
 
-  if echo "$RESULT" | grep -q '"error"'; then
-    echo "$LABEL ERROR: $RESULT"
-    break
-  fi
+  echo "$PASS"
 
-  sleep_short
+  TURN=$((TURN+1))
 done
+
+echo
+echo "=== FINAL STATE ==="
+curl -s "$API/game/$GAME_ID" $COOKIE
+echo
+echo "=== DONE ==="

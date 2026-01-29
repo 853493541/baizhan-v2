@@ -1,6 +1,16 @@
 import { GameState } from "./types";
 
+/**
+ * Ends the current turn.
+ * - Ticks delayed damage
+ * - Expires statuses
+ * - Checks death
+ * - Advances turn + active player
+ */
 export function resolveTurnEnd(state: GameState) {
+  if (state.gameOver) return;
+
+  // Apply end-of-turn status effects
   for (const player of state.players) {
     player.statuses = player.statuses.filter(status => {
       if (
@@ -17,12 +27,17 @@ export function resolveTurnEnd(state: GameState) {
     });
   }
 
-  // End game check
-  if (state.players.some(p => p.hp <= 0)) {
-    state.gameOver = true;
-    return;
+  // Death check
+  for (const player of state.players) {
+    if (player.hp <= 0) {
+      state.gameOver = true;
+      const winner = state.players.find(p => p.userId !== player.userId);
+      state.winnerUserId = winner?.userId;
+      return;
+    }
   }
 
+  // Advance turn
   state.turn += 1;
   state.activePlayerIndex =
     (state.activePlayerIndex + 1) % state.players.length;

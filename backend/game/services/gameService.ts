@@ -7,12 +7,6 @@ import { GameState } from "../engine/types";
 
 /* =========================================================
    Deck composition (Total 36)
-   - strike: 10
-   - heal_dr: 6
-   - disengage: 5
-   - channel: 5
-   - power_surge: 5
-   - silence: 5
 ========================================================= */
 function buildDeck(): string[] {
   const deck: string[] = [];
@@ -47,22 +41,21 @@ function draw(state: GameState, playerIndex: number, n: number) {
   }
 }
 
-export async function createGame(
-  userId: string,
-  opponentUserId: string
-) {
-  if (!userId || !opponentUserId) {
-    throw new Error("Missing players");
-  }
-  if (userId === opponentUserId) {
-    throw new Error("Cannot play against yourself");
-  }
+function autoDrawAtTurnStart(state: GameState) {
+  if (state.gameOver) return;
 
-  // Ensure all referenced cards exist
-  for (const id of Object.keys(CARDS)) {
-    if (!CARDS[id]) throw new Error(`Missing card def: ${id}`);
-  }
+  const p = state.players[state.activePlayerIndex];
+  if (p.hand.length > 0) return;
+  if (p.hand.length >= 10) return;
+  if (state.deck.length === 0) return;
 
+  draw(state, state.activePlayerIndex, 1);
+}
+
+/* =========================================================
+   CREATE GAME
+========================================================= */
+export async function createGame(userId: string, opponentUserId: string) {
   const deck = shuffle(buildDeck());
 
   const state: GameState = {
@@ -74,33 +67,29 @@ export async function createGame(
     winnerUserId: undefined,
     players: [
       { userId, hp: 100, hand: [], statuses: [] },
-      { userId: opponentUserId, hp: 100, hand: [], statuses: [] }
-    ]
+      { userId: opponentUserId, hp: 100, hand: [], statuses: [] },
+    ],
   };
 
-  // Starting hand = 6 each
   draw(state, 0, 6);
   draw(state, 1, 6);
 
-  const game = await GameSession.create({
+  return GameSession.create({
     players: [userId, opponentUserId],
-    state
+    state,
   });
-
-  return game;
 }
 
 export async function getGame(gameId: string, userId: string) {
   const game = await GameSession.findById(gameId);
   if (!game) throw new Error("Game not found");
-
-  if (!game.players.includes(userId)) {
-    throw new Error("Not your game");
-  }
-
+  if (!game.players.includes(userId)) throw new Error("Not your game");
   return game;
 }
 
+/* =========================================================
+   PLAY CARD (DOES NOT END TURN)
+========================================================= */
 export async function playCard(
   gameId: string,
   userId: string,
@@ -110,51 +99,63 @@ export async function playCard(
   const game = await GameSession.findById(gameId);
   if (!game) throw new Error("Game not found");
 
-  if (!game.players.includes(userId)) {
-    throw new Error("Not your game");
-  }
-
   const state = game.state as GameState;
-
-  if (state.gameOver) {
-    throw new Error("Game has already ended");
-  }
+  if (state.gameOver) throw new Error("Game over");
 
   const playerIndex = state.players.findIndex(p => p.userId === userId);
   const targetIndex = state.players.findIndex(p => p.userId === targetUserId);
 
-  if (playerIndex === -1 || targetIndex === -1) {
-    throw new Error("Invalid player");
+  if (state.activePlayerIndex !== playerIndex) {
+    throw new Error("Not your turn");
   }
 
   const card = CARDS[cardId];
   if (!card) throw new Error("Invalid card");
 
   validatePlayCard(state, playerIndex, targetIndex, cardId);
-
-  // Apply effects (may immediately end game)
   applyEffects(state, card, playerIndex, targetIndex);
 
-  // Remove card from hand → discard
-  state.players[playerIndex].hand =
-    state.players[playerIndex].hand.filter(c => c !== cardId);
+  const idx = state.players[playerIndex].hand.indexOf(cardId);
+  if (idx === -1) throw new Error("Card not in hand");
+
+  state.players[playerIndex].hand.splice(idx, 1);
   state.discard.push(cardId);
 
-  // Resolve end-of-turn effects (may also end game)
-  resolveTurnEnd(state);
-
-  // Draw rule: draw 1 at start of active player's turn (only if game continues)
-  if (!state.gameOver) {
-    const nextPlayer = state.players[state.activePlayerIndex];
-    if (nextPlayer.hand.length < 10) {
-      const top = state.deck.shift();
-      if (top) nextPlayer.hand.push(top);
-    }
+  const dead = state.players.find(p => p.hp <= 0);
+  if (dead) {
+    state.gameOver = true;
+    state.winnerUserId =
+      state.players.find(p => p.userId !== dead.userId)?.userId;
   }
 
-  // Persist state
   game.state = state;
+  game.markModified("state");
   await game.save();
 
-  return state;
+  return game.state;
+}
+
+/* =========================================================
+   PASS TURN (ENDS TURN)
+========================================================= */
+export async function passTurn(gameId: string, userId: string) {
+  const game = await GameSession.findById(gameId);
+  if (!game) throw new Error("Game not found");
+
+  const state = game.state as GameState;
+  if (state.gameOver) throw new Error("Game over");
+
+  const playerIndex = state.players.findIndex(p => p.userId === userId);
+  if (state.activePlayerIndex !== playerIndex) {
+    throw new Error("Not your turn");
+  }
+
+  resolveTurnEnd(state);
+  autoDrawAtTurnStart(state);
+
+  game.state = state;
+  game.markModified("state");
+  await game.save();
+
+  return game.state;
 }
