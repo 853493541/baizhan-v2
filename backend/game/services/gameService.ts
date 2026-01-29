@@ -3,15 +3,22 @@ import { CARDS } from "../cards/cards";
 import { applyEffects } from "../engine/applyEffects";
 import { resolveTurnEnd } from "../engine/turnResolver";
 import { validatePlayCard } from "../engine/validateAction";
-import { GameState } from "../engine/types";
+import { GameState, CardInstance } from "../engine/types";
+import { randomUUID } from "crypto";
 
 /* =========================================================
-   Deck composition (Total 36)
+   Deck composition
 ========================================================= */
-function buildDeck(): string[] {
-  const deck: string[] = [];
-  const pushN = (id: string, n: number) => {
-    for (let i = 0; i < n; i++) deck.push(id);
+function buildDeck(): CardInstance[] {
+  const deck: CardInstance[] = [];
+
+  const pushN = (cardId: string, n: number) => {
+    for (let i = 0; i < n; i++) {
+      deck.push({
+        instanceId: randomUUID(),
+        cardId
+      });
+    }
   };
 
   pushN("strike", 10);
@@ -88,12 +95,12 @@ export async function getGame(gameId: string, userId: string) {
 }
 
 /* =========================================================
-   PLAY CARD (DOES NOT END TURN)
+   PLAY CARD
 ========================================================= */
 export async function playCard(
   gameId: string,
   userId: string,
-  cardId: string,
+  cardInstanceId: string,
   targetUserId: string
 ) {
   const game = await GameSession.findById(gameId);
@@ -105,28 +112,20 @@ export async function playCard(
   const playerIndex = state.players.findIndex(p => p.userId === userId);
   const targetIndex = state.players.findIndex(p => p.userId === targetUserId);
 
-  if (state.activePlayerIndex !== playerIndex) {
-    throw new Error("Not your turn");
-  }
+  validatePlayCard(state, playerIndex, targetIndex, cardInstanceId);
 
-  const card = CARDS[cardId];
-  if (!card) throw new Error("Invalid card");
-
-  validatePlayCard(state, playerIndex, targetIndex, cardId);
-  applyEffects(state, card, playerIndex, targetIndex);
-
-  const idx = state.players[playerIndex].hand.indexOf(cardId);
+  const player = state.players[playerIndex];
+  const idx = player.hand.findIndex(
+    c => c.instanceId === cardInstanceId
+  );
   if (idx === -1) throw new Error("Card not in hand");
 
-  state.players[playerIndex].hand.splice(idx, 1);
-  state.discard.push(cardId);
+  const [played] = player.hand.splice(idx, 1);
+  const card = CARDS[played.cardId];
 
-  const dead = state.players.find(p => p.hp <= 0);
-  if (dead) {
-    state.gameOver = true;
-    state.winnerUserId =
-      state.players.find(p => p.userId !== dead.userId)?.userId;
-  }
+  applyEffects(state, card, playerIndex, targetIndex);
+
+  state.discard.push(played);
 
   game.state = state;
   game.markModified("state");
@@ -136,7 +135,7 @@ export async function playCard(
 }
 
 /* =========================================================
-   PASS TURN (ENDS TURN)
+   PASS TURN
 ========================================================= */
 export async function passTurn(gameId: string, userId: string) {
   const game = await GameSession.findById(gameId);

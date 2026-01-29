@@ -27,11 +27,17 @@ export interface CardEffect {
 }
 
 export interface Card {
-  id: string;
+  id: string;          // card template id (e.g. "strike")
   name: string;
   type: CardType;
   target: TargetType;
   effects: CardEffect[];
+}
+
+/** ✅ Card instance in play */
+export interface CardInstance {
+  instanceId: string;  // unique per card
+  cardId: string;      // reference to CARDS key
 }
 
 export interface Status {
@@ -45,18 +51,17 @@ export interface Status {
 export interface PlayerState {
   userId: PlayerID;
   hp: number;
-  hand: string[];
+  hand: CardInstance[];
   statuses: Status[];
 }
 
 export interface GameState {
   players: PlayerState[];
-  deck: string[];
-  discard: string[];
+  deck: CardInstance[];
+  discard: CardInstance[];
   turn: number;
   activePlayerIndex: number;
 
-  /** ✅ Endgame */
   gameOver: boolean;
   winnerUserId?: PlayerID;
 }

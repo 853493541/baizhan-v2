@@ -25,8 +25,7 @@ router.post("/create", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const userId = getUserIdFromCookie(req);
-    const gameId = req.params.id;
-    const game = await getGame(gameId, userId);
+    const game = await getGame(req.params.id, userId);
     res.json(game);
   } catch (err: any) {
     res.status(400).json({ error: err.message });
@@ -36,18 +35,19 @@ router.get("/:id", async (req, res) => {
 router.post("/play", async (req, res) => {
   try {
     const userId = getUserIdFromCookie(req);
-    const { gameId, cardId, targetUserId } = req.body;
-    const state = await playCard(gameId, userId, cardId, targetUserId);
+    const { gameId, cardInstanceId, targetUserId } = req.body;
+    const state = await playCard(
+      gameId,
+      userId,
+      cardInstanceId,
+      targetUserId
+    );
     res.json(state);
   } catch (err: any) {
     res.status(400).json({ error: err.message });
   }
 });
 
-/**
- * ✅ POST /game/pass
- * body: { gameId }
- */
 router.post("/pass", async (req, res) => {
   try {
     const userId = getUserIdFromCookie(req);
