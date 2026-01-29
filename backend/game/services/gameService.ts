@@ -1,4 +1,3 @@
-// backend/game/services/gameService.ts
 import GameSession from "../models/GameSession";
 import { CARDS } from "../cards/cards";
 import { applyEffects } from "../engine/applyEffects";
@@ -71,6 +70,8 @@ export async function createGame(
     activePlayerIndex: 0,
     deck,
     discard: [],
+    gameOver: false,
+    winnerUserId: undefined,
     players: [
       { userId, hp: 100, hand: [], statuses: [] },
       { userId: opponentUserId, hp: 100, hand: [], statuses: [] }
@@ -115,6 +116,10 @@ export async function playCard(
 
   const state = game.state as GameState;
 
+  if (state.gameOver) {
+    throw new Error("Game has already ended");
+  }
+
   const playerIndex = state.players.findIndex(p => p.userId === userId);
   const targetIndex = state.players.findIndex(p => p.userId === targetUserId);
 
@@ -127,25 +132,27 @@ export async function playCard(
 
   validatePlayCard(state, playerIndex, targetIndex, cardId);
 
-  // Apply effects
+  // Apply effects (may immediately end game)
   applyEffects(state, card, playerIndex, targetIndex);
 
-  // Move card to discard (remove from hand first)
+  // Remove card from hand → discard
   state.players[playerIndex].hand =
     state.players[playerIndex].hand.filter(c => c !== cardId);
   state.discard.push(cardId);
 
-  // End turn
+  // Resolve end-of-turn effects (may also end game)
   resolveTurnEnd(state);
 
-  // Draw rule: draw 1 at start of active player's turn, max hand 10
-  const nextPlayer = state.players[state.activePlayerIndex];
-  if (nextPlayer.hand.length < 10) {
-    const top = state.deck.shift();
-    if (top) nextPlayer.hand.push(top);
+  // Draw rule: draw 1 at start of active player's turn (only if game continues)
+  if (!state.gameOver) {
+    const nextPlayer = state.players[state.activePlayerIndex];
+    if (nextPlayer.hand.length < 10) {
+      const top = state.deck.shift();
+      if (top) nextPlayer.hand.push(top);
+    }
   }
 
-  // Persist
+  // Persist state
   game.state = state;
   await game.save();
 

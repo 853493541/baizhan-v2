@@ -1,10 +1,8 @@
-// backend/game/engine/turnResolver.ts
 import { GameState } from "./types";
 
 export function resolveTurnEnd(state: GameState) {
   for (const player of state.players) {
     player.statuses = player.statuses.filter(status => {
-      // Delayed damage ticks only if status existed before this turn
       if (
         status.type === "DELAYED_DAMAGE" &&
         status.repeatTurns &&
@@ -17,6 +15,12 @@ export function resolveTurnEnd(state: GameState) {
 
       return state.turn < status.expiresAtTurn;
     });
+  }
+
+  // End game check
+  if (state.players.some(p => p.hp <= 0)) {
+    state.gameOver = true;
+    return;
   }
 
   state.turn += 1;

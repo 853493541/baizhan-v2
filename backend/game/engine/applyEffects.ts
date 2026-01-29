@@ -1,4 +1,3 @@
-// backend/game/engine/applyEffects.ts
 import { GameState, Card, Status } from "./types";
 
 export function applyEffects(
@@ -7,6 +6,8 @@ export function applyEffects(
   playerIndex: number,
   targetIndex: number
 ) {
+  if (state.gameOver) return;
+
   const source = state.players[playerIndex];
   const target = state.players[targetIndex];
 
@@ -63,6 +64,19 @@ export function applyEffects(
           statusTarget.statuses.push(status);
         }
       }
+    }
+  }
+
+  checkEndGame(state);
+}
+
+function checkEndGame(state: GameState) {
+  for (const player of state.players) {
+    if (player.hp <= 0) {
+      state.gameOver = true;
+      const winner = state.players.find(p => p.userId !== player.userId);
+      state.winnerUserId = winner?.userId;
+      return;
     }
   }
 }

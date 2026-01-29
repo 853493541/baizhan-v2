@@ -1,5 +1,3 @@
-// backend/game/engine/types.ts
-
 export type PlayerID = string;
 
 export type CardType =
@@ -42,7 +40,6 @@ export interface Status {
   expiresAtTurn: number;
   repeatTurns?: number;
 
-  /** Turn index when this status was applied */
   appliedAtTurn: number;
 }
 
@@ -59,4 +56,8 @@ export interface GameState {
   discard: string[];
   turn: number;
   activePlayerIndex: number;
+
+  /** ✅ Endgame */
+  gameOver: boolean;
+  winnerUserId?: PlayerID;
 }
