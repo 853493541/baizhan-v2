@@ -226,7 +226,6 @@ export const CARDS: Record<string, Card> = {
     effects: [
       { type: "DAMAGE_MULTIPLIER", value: 2, durationTurns: 1 },
       { type: "DAMAGE_REDUCTION", value: 0.5, durationTurns: 1 },
-      { type: "ATTACK_LOCK", durationTurns: 2 },
     ],
   },
 };
