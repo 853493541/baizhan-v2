@@ -1,0 +1,102 @@
+.card {
+  width: 160px;
+  min-height: 220px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  padding: 10px;
+  border-radius: 12px;
+
+  background: linear-gradient(180deg, #0f172a, #020617);
+  border: 1px solid #334155;
+  color: white;
+
+  cursor: pointer;
+  user-select: none;
+
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+/* ================= PLAYABLE FEEL ================= */
+.card:not(.disabled) {
+  border-color: #475569;
+}
+
+.card:hover:not(.disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.45);
+}
+
+/* ================= DISABLED ================= */
+.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ================= TOP BAR (future cost/type) ================= */
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 18px;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+/* ================= ICON ================= */
+.icon {
+  font-size: 28px;
+  text-align: center;
+  line-height: 1;
+}
+
+/* ================= NAME ================= */
+.name {
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* ================= DESC ================= */
+.desc {
+  font-size: 12px;
+  line-height: 1.45;
+  opacity: 0.9;
+
+  /* text safety */
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* ================= KEYWORD HIGHLIGHTS ================= */
+.desc :global(.kw-control) {
+  color: #f87171; /* red */
+  font-weight: 600;
+}
+
+.desc :global(.kw-silence) {
+  color: #c084fc; /* purple */
+  font-weight: 600;
+}
+
+.desc :global(.kw-untargetable) {
+  color: #60a5fa; /* blue */
+  font-weight: 600;
+}
+
+/* ================= MOBILE ================= */
+@media (max-width: 768px) {
+  .card {
+    width: 140px;
+    min-height: 200px;
+  }
+
+  .desc {
+    font-size: 11px;
+  }
+}

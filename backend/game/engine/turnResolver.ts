@@ -1,38 +1,30 @@
+// backend/game/engine/turnResolver.ts
 import { GameState } from "./types";
 
-/**
- * Ends the current turn.
- * - Ticks delayed damage
- * - Expires statuses
- * - Checks death
- * - Advances turn + active player
- */
 export function resolveTurnEnd(state: GameState) {
   if (state.gameOver) return;
 
-  /* ===============================
-     Apply end-of-turn effects
-  =============================== */
   for (const player of state.players) {
     player.statuses = player.statuses.filter(status => {
-      // Delayed / repeating damage
-      if (
-        status.type === "DELAYED_DAMAGE" &&
-        status.repeatTurns &&
-        status.repeatTurns > 0
-      ) {
+      // END TURN DAMAGE
+      if (status.type === "DELAYED_DAMAGE" && status.repeatTurns! > 0) {
         player.hp = Math.max(0, player.hp - (status.value ?? 0));
-        status.repeatTurns -= 1;
+        status.repeatTurns!--;
       }
 
-      // Keep status if not expired
+      // START TURN DAMAGE / HEAL
+      if (status.type === "START_TURN_DAMAGE") {
+        player.hp = Math.max(0, player.hp - (status.value ?? 0));
+      }
+
+      if (status.type === "START_TURN_HEAL") {
+        player.hp = Math.min(100, player.hp + (status.value ?? 0));
+      }
+
       return state.turn < status.expiresAtTurn;
     });
   }
 
-  /* ===============================
-     Death check (IMMEDIATE)
-  =============================== */
   for (const player of state.players) {
     if (player.hp <= 0) {
       state.gameOver = true;
@@ -40,13 +32,10 @@ export function resolveTurnEnd(state: GameState) {
         p => p.userId !== player.userId
       );
       state.winnerUserId = winner?.userId;
-      return; // ⛔ stop everything
+      return;
     }
   }
 
-  /* ===============================
-     Advance turn
-  =============================== */
   state.turn += 1;
   state.activePlayerIndex =
     (state.activePlayerIndex + 1) % state.players.length;

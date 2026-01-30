@@ -1,3 +1,5 @@
+// backend/game/services/gameService.ts
+
 import GameSession from "../models/GameSession";
 import { CARDS } from "../cards/cards";
 import { applyEffects } from "../engine/applyEffects";
@@ -13,6 +15,10 @@ function buildDeck(): CardInstance[] {
   const deck: CardInstance[] = [];
 
   const pushN = (cardId: string, n: number) => {
+    if (!CARDS[cardId]) {
+      throw new Error(`Unknown card id in deck: ${cardId}`);
+    }
+
     for (let i = 0; i < n; i++) {
       deck.push({
         instanceId: randomUUID(),
@@ -21,12 +27,38 @@ function buildDeck(): CardInstance[] {
     }
   };
 
-  pushN("strike", 10);
-  pushN("heal_dr", 6);
-  pushN("disengage", 5);
-  pushN("channel", 5);
-  pushN("power_surge", 5);
-  pushN("silence", 5);
+  /* ===============================
+     New 15-card deck
+  =============================== */
+
+  // 基础攻击
+  pushN("jianpo_xukong", 6);
+  pushN("sanhuan_taoyue", 6);
+
+  // 控制 / 压制
+  pushN("mohe_wuliang", 4);
+  pushN("shengsi_jie", 4);
+  pushN("chan_xiao", 4);
+
+  // 解控 / 防御
+  pushN("jiru_feng", 4);
+  pushN("sanliu_xia", 4);
+  pushN("que_ta_zhi", 3);
+
+  // 生存 / 回复
+  pushN("fengxiu_diang", 4);
+  pushN("qiandie_turui", 3);
+
+  // 受控可用
+  pushN("anchen_misan", 3);
+
+  // 持续伤害 / 节奏
+  pushN("fenglai_wushan", 3);
+  pushN("wu_jianyu", 2);
+  pushN("baizu", 3);
+
+  // 强化 / 爆发
+  pushN("nuwa_butian", 2);
 
   return deck;
 }
@@ -77,7 +109,7 @@ export async function createGame(userId: string) {
   draw(state, 0, 6);
 
   return GameSession.create({
-    players: [userId],   // host only
+    players: [userId],
     state,
     started: false,
   });
@@ -158,7 +190,7 @@ export async function playCard(
   gameId: string,
   userId: string,
   cardInstanceId: string,
-  targetUserId: string
+  _targetUserId: string // ignored now
 ) {
   const game = await GameSession.findById(gameId);
   if (!game) throw new Error("Game not found");
@@ -168,9 +200,10 @@ export async function playCard(
   if (state.gameOver) throw new Error("Game over");
 
   const playerIndex = state.players.findIndex(p => p.userId === userId);
-  const targetIndex = state.players.findIndex(p => p.userId === targetUserId);
+  if (playerIndex === -1) throw new Error("Player not in game");
 
-  validatePlayCard(state, playerIndex, targetIndex, cardInstanceId);
+  // ✅ validate WITHOUT target
+  validatePlayCard(state, playerIndex, cardInstanceId);
 
   const player = state.players[playerIndex];
   const idx = player.hand.findIndex(c => c.instanceId === cardInstanceId);
@@ -178,6 +211,15 @@ export async function playCard(
 
   const [played] = player.hand.splice(idx, 1);
   const card = CARDS[played.cardId];
+  if (!card) throw new Error("Card definition missing");
+
+  // ✅ TARGET RESOLUTION HAPPENS HERE (AUTHORITATIVE)
+  const targetIndex =
+    card.target === "SELF"
+      ? playerIndex
+      : playerIndex === 0
+      ? 1
+      : 0;
 
   applyEffects(state, card, playerIndex, targetIndex);
   state.discard.push(played);
