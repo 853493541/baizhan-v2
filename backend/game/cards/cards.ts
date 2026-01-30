@@ -34,7 +34,7 @@ export const CARDS: Record<string, Card> = {
     target: "OPPONENT",
     effects: [
       { type: "DAMAGE", value: 20 },
-      { type: "SILENCE", durationTurns: 1 },
+      { type: "CONTROL", durationTurns: 1 },
     ],
   },
 
@@ -45,7 +45,7 @@ export const CARDS: Record<string, Card> = {
     target: "OPPONENT",
     effects: [
       { type: "DAMAGE", value: 2 },
-      { type: "SILENCE", durationTurns: 1 },
+      { type: "CONTROL", durationTurns: 1 },
       { type: "HEAL_REDUCTION", value: 0.5, durationTurns: 3 },
     ],
   },

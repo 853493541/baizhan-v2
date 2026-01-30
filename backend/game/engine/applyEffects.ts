@@ -55,7 +55,7 @@ export function applyEffects(
       case "CLEANSE":
         source.statuses = source.statuses.filter(
           s =>
-            !["SILENCE", "ATTACK_LOCK", "DELAYED_DAMAGE"].includes(s.type)
+            !["CONTROL"].includes(s.type)
         );
         break;
 

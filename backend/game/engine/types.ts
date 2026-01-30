@@ -20,6 +20,7 @@ export type EffectType =
   | "HEAL_REDUCTION"
   | "UNTARGETABLE"
   | "ATTACK_LOCK"
+  | "CONTROL"
   | "SILENCE"
   | "CONTROL_IMMUNE"
   | "DODGE_NEXT"

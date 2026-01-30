@@ -28,6 +28,9 @@ export const EFFECT_CATEGORY_MAP: Record<EffectType, EffectCategory> = {
   SILENCE: "DEBUFF",
   DELAYED_DAMAGE: "DEBUFF",
   START_TURN_DAMAGE: "DEBUFF",
+  CONTROL: "DEBUFF",
+
+  
 };
 
 export function getEffectCategory(type: EffectType): EffectCategory {

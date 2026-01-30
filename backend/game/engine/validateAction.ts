@@ -25,16 +25,22 @@ export function validatePlayCard(
   const card = CARDS[instance.cardId];
   if (!card) throw new Error("Card does not exist");
 
-  const controlled = player.statuses.some(
-    s => s.type === "SILENCE" || s.type === "ATTACK_LOCK"
-  );
+const isSilenced = player.statuses.some(s => s.type === "SILENCE");
+if (isSilenced) {
+  throw new Error("You are silenced");
+}
 
-  const allowsOverride = card.effects.some(
-    e => (e as any).allowWhileControlled
-  );
+const isControlled = player.statuses.some(
+  s => s.type === "CONTROL" || s.type === "ATTACK_LOCK"
+);
 
-  if (controlled && !allowsOverride)
-    throw new Error("You are controlled");
+const allowsOverride = card.effects.some(
+  e => e.allowWhileControlled
+);
+
+if (isControlled && !allowsOverride) {
+  throw new Error("You are controlled");
+}
 
   // ❌ NO TARGET VALIDATION HERE ANYMORE
 }
