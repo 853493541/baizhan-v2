@@ -2,6 +2,22 @@
 
 import "./game-board.css";
 
+/* ===============================
+   临时前端中文卡名映射（Band-aid）
+   ⚠️ 仅用于显示，不影响后端/规则
+=============================== */
+const CARD_NAME_MAP: Record<string, string> = {
+  strike: "剑破",
+  heal_dr: "风袖",
+  disengage: "暗尘",
+  power_surge: "女娲",
+  silence: "蝉啸",
+  channel: "风来吴山",
+};
+
+/* ===============================
+   Types
+=============================== */
 type CardInstance = {
   instanceId: string;
   cardId: string;
@@ -21,6 +37,9 @@ type Props = {
   onEndTurn: () => void;
 };
 
+/* ===============================
+   Component
+=============================== */
 export default function GameBoard({
   me,
   opponent,
@@ -30,21 +49,21 @@ export default function GameBoard({
 }: Props) {
   return (
     <div className="board-root">
-      {/* ================= Opponent ================= */}
+      {/* ================= 对手 ================= */}
       <div className="opponent-zone">
         <div className="hp-badge opponent-hp">
           ❤️ {opponent.hp}
         </div>
       </div>
 
-      {/* ================= Board ================= */}
+      {/* ================= 中央 ================= */}
       <div className="center-board">
         <div className="turn-indicator">
-          {isMyTurn ? "🟢 Your Turn" : "🔵 Opponent Turn"}
+          {isMyTurn ? "🟢 你的回合" : "🔵 对手回合"}
         </div>
       </div>
 
-      {/* ================= Player ================= */}
+      {/* ================= 玩家 ================= */}
       <div className="player-zone">
         <div className="player-top">
           <div className="hp-badge player-hp">
@@ -56,7 +75,7 @@ export default function GameBoard({
             disabled={!isMyTurn}
             onClick={onEndTurn}
           >
-            End Turn
+            结束回合
           </button>
         </div>
 
@@ -68,7 +87,7 @@ export default function GameBoard({
               disabled={!isMyTurn}
               onClick={() => onPlayCard(card)}
             >
-              {card.cardId}
+              {CARD_NAME_MAP[card.cardId] ?? card.cardId}
             </button>
           ))}
         </div>
