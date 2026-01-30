@@ -109,3 +109,71 @@ max-width:1280px;
     font-size: 12px;
   }
 }
+/* ================= GAME OVER ================= */
+.gameover-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.gameover-modal {
+  background: #020617;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 28px 24px;
+  width: 320px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+}
+
+.gameover-modal h1 {
+  margin-bottom: 12px;
+}
+
+.gameover-hp {
+  opacity: 0.8;
+  margin-bottom: 20px;
+}
+
+.exit-btn {
+  width: 100%;
+  padding: 10px 0;
+  border-radius: 6px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.exit-btn:hover {
+  background: #2563eb;
+}
+.game-over-overlay {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: radial-gradient(circle, #020617, #000);
+  color: white;
+  gap: 20px;
+}
+
+.game-over-overlay h1 {
+  font-size: 36px;
+}
+
+.return-btn {
+  padding: 12px 24px;
+  font-size: 16px;
+  border-radius: 8px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  cursor: pointer;
+}

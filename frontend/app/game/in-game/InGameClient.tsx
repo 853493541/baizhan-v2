@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import GameBoard from "./GameBoard";
 
-/* =========================================================
-   Types
-========================================================= */
 type CardInstance = {
   instanceId: string;
   cardId: string;
@@ -23,6 +21,7 @@ type GameState = {
   activePlayerIndex: number;
   turn: number;
   gameOver: boolean;
+  winnerUserId?: string;
 };
 
 type Props = {
@@ -31,9 +30,7 @@ type Props = {
   selfUsername: string;
 };
 
-/* =========================================================
-   CARD TARGET MAP (frontend mirror of backend)
-========================================================= */
+/* ================= CARD TARGET MAP ================= */
 const CARD_TARGET: Record<string, "SELF" | "OPPONENT"> = {
   strike: "OPPONENT",
   silence: "OPPONENT",
@@ -47,15 +44,14 @@ const CARD_TARGET: Record<string, "SELF" | "OPPONENT"> = {
 export default function InGameClient({
   gameId,
   selfUserId,
-  selfUsername,
 }: Props) {
+  const router = useRouter();
+
   const [game, setGame] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [playing, setPlaying] = useState(false);
 
-  /* =========================================================
-     Fetch game state (polling)
-  ========================================================= */
+  /* ================= FETCH GAME ================= */
   const fetchGame = async () => {
     const res = await fetch(`/api/game/${gameId}`, {
       credentials: "include",
@@ -76,9 +72,6 @@ export default function InGameClient({
 
   if (loading || !game) return <div>Loading game…</div>;
 
-  /* =========================================================
-     Derived state
-  ========================================================= */
   const state: GameState = game.state;
   const players = state.players;
 
@@ -89,19 +82,13 @@ export default function InGameClient({
   const opponent = players[opponentIndex];
 
   const isMyTurn = state.activePlayerIndex === meIndex;
+  const isWinner = state.winnerUserId === selfUserId;
 
-  /* =========================================================
-     Play card (AUTO TARGET)
-  ========================================================= */
+  /* ================= PLAY CARD ================= */
   const playCard = async (card: CardInstance) => {
-    if (!isMyTurn || playing) return;
+    if (!isMyTurn || playing || state.gameOver) return;
 
     const targetType = CARD_TARGET[card.cardId];
-    if (!targetType) {
-      alert("Unknown card target");
-      return;
-    }
-
     const targetUserId =
       targetType === "SELF" ? selfUserId : opponent.userId;
 
@@ -129,11 +116,9 @@ export default function InGameClient({
     }
   };
 
-  /* =========================================================
-     End turn
-  ========================================================= */
+  /* ================= END TURN ================= */
   const endTurn = async () => {
-    if (!isMyTurn || playing) return;
+    if (!isMyTurn || playing || state.gameOver) return;
 
     setPlaying(true);
     try {
@@ -155,9 +140,23 @@ export default function InGameClient({
     }
   };
 
-  /* =========================================================
-     UI — GAME BOARD
-  ========================================================= */
+  /* ================= GAME OVER UI ================= */
+  if (state.gameOver) {
+    return (
+      <div className="game-over-overlay">
+        <h1>{isWinner ? "🎉 You Win!" : "💀 You Lose"}</h1>
+
+        <button
+          className="return-btn"
+          onClick={() => router.push("/game")}
+        >
+          Return to Lobby
+        </button>
+      </div>
+    );
+  }
+
+  /* ================= BOARD ================= */
   return (
     <GameBoard
       me={me}
