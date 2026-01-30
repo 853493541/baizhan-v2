@@ -28,6 +28,9 @@ export type EffectType =
   | "START_TURN_HEAL"
   | "CLEANSE";
 
+/** For frontend display only (BUFF/DEBUFF styling) */
+export type EffectCategory = "BUFF" | "DEBUFF";
+
 export interface CardEffect {
   type: EffectType;
   value?: number;
@@ -55,6 +58,15 @@ export interface CardInstance {
 export interface Status {
   type: EffectType;
   value?: number;
+
+  /** who created this status (for name/icon in frontend) */
+   /** Which card applied this status */
+  sourceCardId?: string;
+  sourceCardName?: string;
+
+  /** BUFF / DEBUFF tag for frontend rendering */
+  category?: EffectCategory;
+
   appliedAtTurn: number;
   expiresAtTurn: number;
   repeatTurns?: number;

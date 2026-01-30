@@ -4,16 +4,32 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import GameBoard from "./GameBoard";
 
+/* ================= TYPES (ALIGNED WITH BACKEND) ================= */
+
 type CardInstance = {
   instanceId: string;
   cardId: string;
+};
+
+type EffectCategory = "BUFF" | "DEBUFF";
+
+type Status = {
+  type: string;
+  value?: number;
+  sourceCardId?: string;
+  category?: EffectCategory;
+  appliedAtTurn: number;
+  expiresAtTurn: number;
+  repeatTurns?: number;
+  chance?: number;
+  breakOnPlay?: boolean;
 };
 
 type PlayerState = {
   userId: string;
   hp: number;
   hand: CardInstance[];
-  statuses: any[];
+  statuses: Status[];
 };
 
 type GameState = {
@@ -31,6 +47,7 @@ type Props = {
 };
 
 /* ================= CARD TARGET MAP ================= */
+/* (Legacy map kept untouched — even if unused) */
 const CARD_TARGET: Record<string, "SELF" | "OPPONENT"> = {
   strike: "OPPONENT",
   silence: "OPPONENT",
@@ -152,7 +169,6 @@ export default function InGameClient({
         >
           Return to Lobby
         </button>
-        
       </div>
     );
   }
@@ -164,6 +180,7 @@ export default function InGameClient({
       opponent={opponent}
       isMyTurn={isMyTurn}
       onPlayCard={playCard}
+      currentTurn={state.turn}
       onEndTurn={endTurn}
     />
   );

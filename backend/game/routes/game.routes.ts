@@ -1,3 +1,4 @@
+// backend/game/routes/game.routes.ts
 import express from "express";
 import jwt from "jsonwebtoken";
 import {
@@ -85,7 +86,6 @@ router.get("/waiting", async (_req, res) => {
   }
 });
 
-
 /* =========================================================
    GET GAME
 ========================================================= */
@@ -100,12 +100,16 @@ router.get("/:id", async (req, res) => {
       return res.status(404).json({ error: "Game not found" });
     }
 
+    // NOTE:
+    // statuses now include optional fields:
+    // - sourceCardId (for frontend display: show ability/card name)
+    // - category (BUFF/DEBUFF)
+    // No change required here; returning full doc preserves them.
     res.json(game);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 /* =========================================================
    PLAY CARD
@@ -142,8 +146,8 @@ router.post("/pass", async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 });
-// List games waiting for player 2
 
+// List games waiting for player 2
 router.post("/rematch/:id", async (req, res) => {
   try {
     const userId = getUserIdFromCookie(req);

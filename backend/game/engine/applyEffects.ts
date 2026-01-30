@@ -1,4 +1,3 @@
-// backend/game/engine/applyEffects.ts
 import { GameState, Card, Status } from "./types";
 
 export function applyEffects(
@@ -13,7 +12,7 @@ export function applyEffects(
   const target = state.players[targetIndex];
   const statusTarget = card.target === "SELF" ? source : target;
 
-  // 🔥 Break statuses that end when playing a card
+  // Break statuses that end when playing a card
   source.statuses = source.statuses.filter(s => !s.breakOnPlay);
   target.statuses = target.statuses.filter(s => !s.breakOnPlay);
 
@@ -32,14 +31,6 @@ export function applyEffects(
         );
         if (dr) damage *= 1 - (dr.value ?? 0);
 
-        const dodge = target.statuses.find(
-          s => s.type === "DODGE_NEXT"
-        );
-        if (dodge && Math.random() < (dodge.chance ?? 0)) {
-          target.statuses = target.statuses.filter(s => s !== dodge);
-          break;
-        }
-
         target.hp = Math.max(0, target.hp - Math.floor(damage));
         break;
       }
@@ -56,8 +47,8 @@ export function applyEffects(
 
       case "DRAW":
         for (let i = 0; i < (effect.value ?? 0); i++) {
-          const card = state.deck.shift();
-          if (card) source.hand.push(card);
+          const cardDrawn = state.deck.shift();
+          if (cardDrawn) source.hand.push(cardDrawn);
         }
         break;
 
@@ -79,6 +70,10 @@ export function applyEffects(
           repeatTurns: effect.repeatTurns,
           chance: effect.chance,
           breakOnPlay: effect.breakOnPlay,
+
+          sourceCardId: card.id,
+  sourceCardName: card.name,
+
         };
 
         statusTarget.statuses.push(status);

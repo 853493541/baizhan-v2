@@ -1,32 +1,59 @@
 "use client";
 
 import styles from "./styles.module.css";
-import { EFFECT_DISPLAY } from "./effectDisplay";
+import { resolveBuff } from "./resolveBuff";
 
-type RuntimeEffect = {
+/* ================= TYPES (MATCH BACKEND) ================= */
+
+type Status = {
   type: string;
   value?: number;
   chance?: number;
-  remainingTurns?: number;
   repeatTurns?: number;
+  sourceCardId?: string;
+  appliedAtTurn: number;
+  expiresAtTurn: number;
 };
 
 type Props = {
-  statuses?: RuntimeEffect[];
+  statuses?: Status[];
+  currentTurn?: number;
 };
 
-export default function StatusBar({ statuses }: Props) {
+export default function StatusBar({
+  statuses,
+  currentTurn = 0,
+}: Props) {
   if (!statuses || statuses.length === 0) return null;
 
   return (
     <div className={styles.statusBar}>
       {statuses.map((s, i) => {
-        const render = EFFECT_DISPLAY[s.type];
-        if (!render) return null;
+        const remainingTurns = Math.max(
+          0,
+          s.expiresAtTurn - currentTurn
+        );
+
+        const buff = resolveBuff({
+          sourceCardId: s.sourceCardId,
+          type: s.type,
+          value: s.value,
+          chance: s.chance,
+          repeatTurns: s.repeatTurns,
+          remainingTurns,
+        });
 
         return (
-          <div key={i} className={styles.statusPill}>
-            {render(s)}
+          <div
+            key={i}
+            className={`${styles.statusPill} ${
+              buff.category === "BUFF"
+                ? styles.buff
+                : styles.debuff
+            }`}
+            title={buff.description}
+          >
+            {buff.name}
           </div>
         );
       })}

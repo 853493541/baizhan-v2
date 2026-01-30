@@ -22,3 +22,35 @@
   color: white;
   white-space: nowrap;
 }
+.statusBar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+  justify-content: center;
+  align-items: center;
+}
+
+.statusPill {
+  padding: 4px 10px;
+  font-size: 12px;
+  line-height: 1;
+  border-radius: 999px;
+  white-space: nowrap;
+  cursor: help;
+  border: 1px solid transparent;
+}
+
+/* ================= BUFF ================= */
+.buff {
+  background: rgba(34, 197, 94, 0.2);
+  color: #86efac;
+  border-color: rgba(34, 197, 94, 0.4);
+}
+
+/* ================= DEBUFF ================= */
+.debuff {
+  background: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.45);
+}
