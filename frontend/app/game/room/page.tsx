@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import styles from "./styles.module.css";
 
 type Me = {
   uid: string;
@@ -19,7 +20,7 @@ export default function RoomPage() {
   const [loadingGame, setLoadingGame] = useState(true);
 
   /* =========================================================
-     Fetch current user
+     获取当前用户
   ========================================================= */
   const fetchMe = async () => {
     const res = await fetch("/api/auth/me", {
@@ -33,7 +34,7 @@ export default function RoomPage() {
   };
 
   /* =========================================================
-     Fetch game (polling)
+     获取房间信息（轮询）
   ========================================================= */
   const fetchGame = async () => {
     if (!gameId) return;
@@ -62,7 +63,7 @@ export default function RoomPage() {
   }, [gameId]);
 
   /* =========================================================
-     🔥 REDIRECT GUEST WHEN GAME STARTS
+     非房主：游戏开始后自动跳转
   ========================================================= */
   useEffect(() => {
     if (!gameId || !game || !me) return;
@@ -79,7 +80,7 @@ export default function RoomPage() {
   }, [game, me, gameId, router]);
 
   /* =========================================================
-     Join game
+     加入房间
   ========================================================= */
   const joinGame = async () => {
     const res = await fetch(`/api/game/join/${gameId}`, {
@@ -96,7 +97,7 @@ export default function RoomPage() {
   };
 
   /* =========================================================
-     Start game (HOST)
+     开始游戏（房主）
   ========================================================= */
   const startGame = async () => {
     setStarting(true);
@@ -110,7 +111,6 @@ export default function RoomPage() {
 
       if (!res.ok) throw new Error(await res.text());
 
-      // Host redirects immediately
       router.push(`/game/in-game?gameId=${gameId}`);
     } finally {
       setStarting(false);
@@ -118,7 +118,7 @@ export default function RoomPage() {
   };
 
   /* =========================================================
-     Derived state
+     派生状态
   ========================================================= */
   const playerIds: string[] = Array.isArray(game?.players)
     ? game.players
@@ -134,56 +134,77 @@ export default function RoomPage() {
   const canJoin =
     !!me && !isInGame && playersJoined < 2 && !loadingGame;
 
-  const shareLink =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/game/room?gameId=${gameId}`
-      : "";
-
   /* =========================================================
      UI
   ========================================================= */
   if (!gameId) {
-    return <div style={{ padding: 32 }}>Missing gameId</div>;
+    return <div className={styles.page}>缺少房间信息</div>;
   }
 
   return (
-    <div style={{ padding: 32 }}>
-      <h1>Game Room</h1>
+    <div className={styles.page}>
+      <h1 className={styles.title}>房间等待中</h1>
 
-      {me && (
-        <p>
-          👤 Logged in as <strong>{me.username}</strong>
-        </p>
+      <div className={styles.info}>
+        <div>房间号：#{gameId.slice(-3)}</div>
+        <div>当前人数：{playersJoined} / 2</div>
+      </div>
+
+      {/* 玩家列表 */}
+      <div className={styles.playerList}>
+        {[0, 1].map((slot) => {
+          const uid = playerIds[slot];
+          const isMe = uid && uid === myId;
+
+          return (
+            <div key={slot} className={styles.playerSlot}>
+              {uid ? (
+                <>
+                  <span>
+                    {slot === 0 ? "👑 房主" : "👤 玩家"}{" "}
+                    {isMe ? "（你）" : ""}
+                  </span>
+                </>
+              ) : (
+                <span className={styles.emptySlot}>
+                  ⭕ 等待玩家加入
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* 状态提示 */}
+      {isHost && (
+        <p className={styles.host}>🟢 你是房主</p>
       )}
 
-      <div>Game ID: {gameId}</div>
-      <div>Players joined: {playersJoined} / 2</div>
-
-      {isHost && <p style={{ color: "#16a34a" }}>🟢 You are the host</p>}
       {!isHost && isInGame && (
-        <p style={{ color: "#2563eb" }}>🔵 You joined this game</p>
+        <p className={styles.joined}>🔵 你已加入房间</p>
       )}
 
+      {/* 操作按钮 */}
       {canJoin && (
-        <>
-          <p>Waiting for opponent…</p>
-          <input
-            readOnly
-            value={shareLink}
-            style={{ width: "100%", marginBottom: 12 }}
-          />
-          <button onClick={joinGame}>Join Game</button>
-        </>
+        <button className={styles.primaryBtn} onClick={joinGame}>
+          加入房间
+        </button>
       )}
 
       {ready && isHost && (
-        <button onClick={startGame} disabled={starting}>
-          {starting ? "Starting..." : "Start Game"}
+        <button
+          className={styles.primaryBtn}
+          onClick={startGame}
+          disabled={starting}
+        >
+          {starting ? "启动中…" : "开始游戏"}
         </button>
       )}
 
       {ready && !isHost && (
-        <p>Waiting for host to start the game…</p>
+        <p className={styles.waiting}>
+          等待房主开始游戏…
+        </p>
       )}
     </div>
   );

@@ -1,18 +1,21 @@
+/* =========================================================
+   Page Layout
+========================================================= */
+
 .page {
   padding: 32px;
-  max-width: 960px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
 .title {
   font-size: 32px;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
-.user {
-  margin-bottom: 16px;
-  opacity: 0.9;
-}
+/* =========================================================
+   Create Button
+========================================================= */
 
 .createBtn {
   padding: 10px 16px;
@@ -29,36 +32,120 @@
   cursor: not-allowed;
 }
 
-.sectionTitle {
-  margin-top: 32px;
-  margin-bottom: 12px;
-  font-size: 20px;
+/* =========================================================
+   Grid List (Rooms)
+========================================================= */
+
+.list {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 18px;
 }
+
+/* =========================================================
+   Empty State
+========================================================= */
 
 .empty {
   opacity: 0.6;
   font-style: italic;
 }
 
+/* =========================================================
+   Room Card Base
+========================================================= */
+
 .card {
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 10px;
-  cursor: pointer;
-  transition: background 0.15s ease;
+  position: relative;               /* for bottom-right time */
+  border-radius: 12px;
+  padding: 18px 18px 44px;           /* space for time */
+  min-height: 150px;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
 }
 
-.card:hover {
-  background: #f8fafc;
+/* subtle lift on hover (desktop only) */
+@media (hover: hover) {
+  .waiting:hover {
+    transform: translateY(-2px);
+  }
 }
 
 .cardTitle {
-  font-weight: 600;
-  margin-bottom: 4px;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 10px;
 }
 
+/* =========================================================
+   Card Content
+========================================================= */
+
+.playerCount {
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.status {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* time bottom-right (minute only) */
+.time {
+  position: absolute;
+  right: 14px;
+  bottom: 12px;
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+/* =========================================================
+   Room States
+========================================================= */
+
+/* Normal waiting room */
+.waiting {
+  background: #ecfdf5;
+  border: 1px solid #6ee7b7;
+  cursor: pointer;
+}
+
+.waiting:hover {
+  background: #d1fae5;
+}
+
+/* =========================================================
+   My Room (yellow highlight)
+========================================================= */
+
 .mine {
-  background: #f0f9ff;
-  border-color: #93c5fd;
+  background: #fff7ed;              /* light yellow */
+  border: 1px solid #facc15;        /* warm yellow border */
+  box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.35);
+}
+
+.mine:hover {
+  background: #ffedd5;
+}
+
+/* =========================================================
+   Responsive Rules
+========================================================= */
+
+/* Phone: 1 card per row */
+@media (max-width: 640px) {
+  .list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Tablet: exactly 4 cards per row */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .list {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }

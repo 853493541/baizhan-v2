@@ -8,12 +8,28 @@ export default function GamePage() {
   const router = useRouter();
 
   const [waitingGames, setWaitingGames] = useState<any[]>([]);
-  const [ongoingGames, setOngoingGames] = useState<any[]>([]);
   const [me, setMe] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
   /* =========================================================
-     Fetch current user
+     Utils：时间显示（仅显示“多少分钟前 / 刚刚”）
+     - 不显示秒
+     - 不显示小时
+     - 房间 10 分钟后删除，够用
+  ========================================================= */
+  const timeAgo = (date: string) => {
+    const diff = Date.now() - new Date(date).getTime();
+    const min = Math.floor(diff / 60000);
+
+    if (min <= 0) return "刚刚";
+    return `${min} 分钟前`;
+  };
+
+  /* 房间号缩短显示：#123 */
+  const shortId = (id: string) => id.slice(-3);
+
+  /* =========================================================
+     获取当前用户（仅用于判断是否是自己的房间）
   ========================================================= */
   const fetchMe = async () => {
     const res = await fetch("/api/auth/me", { credentials: "include" });
@@ -24,7 +40,7 @@ export default function GamePage() {
   };
 
   /* =========================================================
-     Fetch waiting rooms
+     仅获取等待中的房间
   ========================================================= */
   const fetchWaitingGames = async () => {
     const res = await fetch("/api/game/waiting", {
@@ -36,34 +52,16 @@ export default function GamePage() {
     }
   };
 
-  /* =========================================================
-     Fetch ongoing games (joined + started)
-  ========================================================= */
-  const fetchOngoingGames = async () => {
-    const res = await fetch("/api/game/ongoing", {
-      credentials: "include",
-    });
-
-    if (res.ok) {
-      setOngoingGames(await res.json());
-    }
-  };
-
   useEffect(() => {
     fetchMe();
     fetchWaitingGames();
-    fetchOngoingGames();
 
-    const t = setInterval(() => {
-      fetchWaitingGames();
-      fetchOngoingGames();
-    }, 3000);
-
+    const t = setInterval(fetchWaitingGames, 3000);
     return () => clearInterval(t);
   }, []);
 
   /* =========================================================
-     Create game
+     创建房间
   ========================================================= */
   const createGame = async () => {
     setLoading(true);
@@ -87,71 +85,55 @@ export default function GamePage() {
   ========================================================= */
   return (
     <div className={styles.page}>
-      <h1 className={styles.title}>Game Lobby</h1>
-
-      {me && (
-        <p className={styles.user}>
-          👤 Logged in as <strong>{me.username}</strong>
-        </p>
-      )}
+      <h1 className={styles.title}>对战大厅</h1>
 
       <button
         className={styles.createBtn}
         onClick={createGame}
         disabled={loading}
       >
-        {loading ? "Creating..." : "Create Game"}
+        {loading ? "创建中…" : "创建房间"}
       </button>
 
-      {/* ================= ONGOING ================= */}
-      <h2 className={styles.sectionTitle}>🟢 Ongoing Matches</h2>
+      <div className={styles.list}>
+        {waitingGames.length === 0 && (
+          <p className={styles.empty}>暂无可加入的房间</p>
+        )}
 
-      {ongoingGames.length === 0 && (
-        <p className={styles.empty}>No ongoing matches</p>
-      )}
+        {waitingGames.map((g) => {
+          const isMine = me && g.players?.[0] === me.uid;
 
-      {ongoingGames.map((g) => (
-        <div
-          key={g._id}
-          className={styles.card}
-          onClick={() =>
-            router.push(`/game/in-game?gameId=${g._id}`)
-          }
-        >
-          <div className={styles.cardTitle}>
-            Match #{g._id.slice(-6)}
-          </div>
-          <div>Players: {g.players.length} / 2</div>
-        </div>
-      ))}
+          return (
+            <div
+              key={g._id}
+              className={`${styles.card} ${styles.waiting} ${
+                isMine ? styles.mine : ""
+              }`}
+              onClick={() =>
+                router.push(`/game/room?gameId=${g._id}`)
+              }
+            >
+              {/* 标题 */}
+              <div className={styles.cardTitle}>
+                {isMine ? "我的房间" : "开放房间"} #{shortId(g._id)}
+              </div>
 
-      {/* ================= WAITING ================= */}
-      <h2 className={styles.sectionTitle}>🟡 Waiting Rooms</h2>
+              {/* 人数 */}
+              <div className={styles.playerCount}>
+                当前人数：{g.players.length} / 2
+              </div>
 
-      {waitingGames.length === 0 && (
-        <p className={styles.empty}>No rooms waiting</p>
-      )}
+              {/* 状态 */}
+              <div className={styles.status}>🟢 等待加入</div>
 
-      {waitingGames.map((g) => {
-        const isMine = me && g.players?.[0] === me.uid;
-
-        return (
-          <div
-            key={g._id}
-            className={`${styles.card} ${
-              isMine ? styles.mine : ""
-            }`}
-            onClick={() =>
-              router.push(`/game/room?gameId=${g._id}`)
-            }
-          >
-            <div className={styles.cardTitle}>
-              {isMine ? "Your Room" : "Open Room"} #{g._id.slice(-6)}
+              {/* 时间（右下角，仅分钟级） */}
+              <div className={styles.time}>
+                {g.createdAt ? timeAgo(g.createdAt) : ""}
+              </div>
             </div>
-            <div>Players: {g.players.length} / 2</div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }
