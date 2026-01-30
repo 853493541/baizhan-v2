@@ -8,36 +8,28 @@ interface Props {
   selfUsername: string;
 }
 
-export default function InGame({
+export default function InGameClient({
   gameId,
   selfUserId,
   selfUsername,
 }: Props) {
   const [game, setGame] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   /* =========================================================
-     Fetch game state (authoritative)
+     Fetch game state (polling)
   ========================================================= */
   const fetchGame = async () => {
-    try {
-      const res = await fetch(`/api/game/${gameId}`, {
-        credentials: "include",
-      });
+    const res = await fetch(`/api/game/${gameId}`, {
+      credentials: "include",
+      cache: "no-store",
+    });
 
-      if (!res.ok) {
-        throw new Error(await res.text());
-      }
-
-      const data = await res.json();
-      setGame(data);
-      setError(null);
-    } catch (err: any) {
-      setError(err.message || "Failed to load game");
-    } finally {
-      setLoading(false);
+    if (res.ok) {
+      setGame(await res.json());
     }
+
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -46,40 +38,72 @@ export default function InGame({
     return () => clearInterval(t);
   }, [gameId]);
 
+  if (loading || !game?.state) {
+    return <div style={{ padding: 32 }}>Loading game…</div>;
+  }
+
   /* =========================================================
      Derived state
   ========================================================= */
-  const playerIds: string[] = Array.isArray(game?.players)
-    ? game.players
-    : [];
+  const state = game.state;
 
-  const myIndex = playerIds.indexOf(selfUserId);
-  const isPlayer = myIndex !== -1;
-  const isMyTurn = game?.state?.activePlayerIndex === myIndex;
+  const myIndex = state.players.findIndex(
+    (p: any) => p.userId === selfUserId
+  );
+
+  const opponentIndex = myIndex === 0 ? 1 : 0;
+
+  const isMyTurn = state.activePlayerIndex === myIndex;
+
+  const me = state.players[myIndex];
+  const opponent = state.players[opponentIndex];
+
+  /* =========================================================
+     Actions
+  ========================================================= */
+  const playCard = async (cardInstanceId: string) => {
+    if (!isMyTurn) return;
+
+    const res = await fetch("/api/game/play", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        gameId,
+        cardInstanceId,
+        targetUserId: opponent.userId,
+      }),
+    });
+
+    if (!res.ok) {
+      alert(await res.text());
+      return;
+    }
+
+    fetchGame();
+  };
+
+  const endTurn = async () => {
+    if (!isMyTurn) return;
+
+    const res = await fetch("/api/game/pass", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ gameId }),
+    });
+
+    if (!res.ok) {
+      alert(await res.text());
+      return;
+    }
+
+    fetchGame();
+  };
 
   /* =========================================================
      UI
   ========================================================= */
-  if (loading) {
-    return <div style={{ padding: 32 }}>Loading game…</div>;
-  }
-
-  if (error) {
-    return (
-      <div style={{ padding: 32, color: "red" }}>
-        Error: {error}
-      </div>
-    );
-  }
-
-  if (!isPlayer) {
-    return (
-      <div style={{ padding: 32 }}>
-        You are not a player in this game.
-      </div>
-    );
-  }
-
   return (
     <div style={{ padding: 32 }}>
       <h1>In Game</h1>
@@ -88,13 +112,8 @@ export default function InGame({
         👤 You are <strong>{selfUsername}</strong>
       </p>
 
-      <p>
-        Game ID: <code>{gameId}</code>
-      </p>
-
-      <p>
-        Players: {playerIds.length} / 2
-      </p>
+      <div>Game ID: {gameId}</div>
+      <div>Players: 2 / 2</div>
 
       <hr />
 
@@ -108,31 +127,58 @@ export default function InGame({
       <hr />
 
       <h2>Your Hand</h2>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        {game?.state?.players?.[myIndex]?.hand?.map((card: any) => (
-          <div
+      <div style={{ display: "flex", gap: 8 }}>
+        {me.hand.map((card: any) => (
+          <button
             key={card.instanceId}
+            onClick={() => playCard(card.instanceId)}
+            disabled={!isMyTurn}
             style={{
-              border: "1px solid #ccc",
-              padding: 8,
-              borderRadius: 4,
-              minWidth: 80,
-              textAlign: "center",
+              padding: "8px 12px",
+              opacity: isMyTurn ? 1 : 0.5,
+              cursor: isMyTurn ? "pointer" : "not-allowed",
             }}
           >
             {card.cardId}
-          </div>
+          </button>
         ))}
       </div>
 
       <hr />
 
+      <button
+        onClick={endTurn}
+        disabled={!isMyTurn}
+        style={{
+          marginTop: 16,
+          padding: "10px 16px",
+          fontSize: 16,
+          opacity: isMyTurn ? 1 : 0.5,
+        }}
+      >
+        End Turn
+      </button>
+
+      <hr />
+
       <h2>Status</h2>
-      <pre style={{ background: "#f8f8f8", padding: 12 }}>
+      <pre style={{ background: "#f5f5f5", padding: 12 }}>
         {JSON.stringify(
           {
-            hp: game?.state?.players?.[myIndex]?.hp,
-            statuses: game?.state?.players?.[myIndex]?.statuses,
+            hp: me.hp,
+            statuses: me.statuses,
+          },
+          null,
+          2
+        )}
+      </pre>
+
+      <h2>Opponent</h2>
+      <pre style={{ background: "#f5f5f5", padding: 12 }}>
+        {JSON.stringify(
+          {
+            hp: opponent.hp,
+            statuses: opponent.statuses,
           },
           null,
           2
