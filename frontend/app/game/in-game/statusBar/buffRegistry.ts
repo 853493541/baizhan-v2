@@ -31,7 +31,7 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
      生死劫
   ========================================================= */
   "shengsi_jie:CONTROL": {
-    name: "控制",
+    name: "受控",
     category: "DEBUFF",
     description: ({ remainingTurns }) =>
       `无法使用部分卡牌，剩余 ${remainingTurns ?? 0} 回合`,
@@ -50,7 +50,7 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
      摩诃无量
   ========================================================= */
   "mohe_wuliang:CONTROL": {
-    name: "控制",
+    name: "受控",
     category: "DEBUFF",
     description: ({ remainingTurns }) =>
       `无法使用部分卡牌，剩余 ${remainingTurns ?? 0} 回合`,

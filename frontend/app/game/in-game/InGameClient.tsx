@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import GameBoard from "./GameBoard";
+import GameOverModal from "./GameOverModal";
 
 /* ================= TYPES (ALIGNED WITH BACKEND) ================= */
 
@@ -87,12 +88,16 @@ export default function InGameClient({
     return () => clearInterval(t);
   }, [gameId]);
 
-  if (loading || !game) return <div>Loading game…</div>;
+  if (loading || !game) {
+    return <div>Loading game…</div>;
+  }
 
   const state: GameState = game.state;
   const players = state.players;
 
-  const meIndex = players.findIndex(p => p.userId === selfUserId);
+  const meIndex = players.findIndex(
+    p => p.userId === selfUserId
+  );
   const opponentIndex = meIndex === 0 ? 1 : 0;
 
   const me = players[meIndex];
@@ -107,7 +112,9 @@ export default function InGameClient({
 
     const targetType = CARD_TARGET[card.cardId];
     const targetUserId =
-      targetType === "SELF" ? selfUserId : opponent.userId;
+      targetType === "SELF"
+        ? selfUserId
+        : opponent.userId;
 
     setPlaying(true);
     try {
@@ -157,31 +164,24 @@ export default function InGameClient({
     }
   };
 
-  /* ================= GAME OVER UI ================= */
-  if (state.gameOver) {
-    return (
-      <div className="game-over-overlay">
-        <h1>{isWinner ? "🎉 You Win!" : "💀 You Lose"}</h1>
-
-        <button
-          className="return-btn"
-          onClick={() => router.push("/game")}
-        >
-          Return to Lobby
-        </button>
-      </div>
-    );
-  }
-
-  /* ================= BOARD ================= */
+  /* ================= BOARD + GAME OVER MODAL ================= */
   return (
-    <GameBoard
-      me={me}
-      opponent={opponent}
-      isMyTurn={isMyTurn}
-      onPlayCard={playCard}
-      currentTurn={state.turn}
-      onEndTurn={endTurn}
-    />
+    <>
+      <GameBoard
+        me={me}
+        opponent={opponent}
+        isMyTurn={isMyTurn}
+        onPlayCard={playCard}
+        currentTurn={state.turn}
+        onEndTurn={endTurn}
+      />
+
+      {state.gameOver && (
+        <GameOverModal
+          isWinner={isWinner}
+          onExit={() => router.push("/game")}
+        />
+      )}
+    </>
   );
 }

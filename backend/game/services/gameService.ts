@@ -221,6 +221,28 @@ export async function playCard(
       ? 1
       : 0;
 
+
+
+
+ const source = state.players[playerIndex];
+  const target = state.players[targetIndex];
+
+  // ===============================
+  // UNTARGETABLE CHECK
+  // ===============================
+  const isSelfTarget = playerIndex === targetIndex;
+
+  const targetUntargetable = target.statuses.some(
+    s => s.type === "UNTARGETABLE"
+  );
+
+  if (targetUntargetable && !isSelfTarget) {
+    throw new Error("Target is untargetable");
+  }
+
+
+
+  
   applyEffects(state, card, playerIndex, targetIndex);
   state.discard.push(played);
 

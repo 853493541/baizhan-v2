@@ -10,7 +10,7 @@ export const CARDS: Record<string, Card> = {
     name: "剑破虚空",
     type: "ATTACK",
     target: "OPPONENT",
-    effects: [{ type: "DAMAGE", value: 20 }],
+    effects: [{ type: "DAMAGE", value: 10 }],
   },
 
   sanhuan_taoyue: {
@@ -33,7 +33,7 @@ export const CARDS: Record<string, Card> = {
     type: "CONTROL",
     target: "OPPONENT",
     effects: [
-      { type: "DAMAGE", value: 20 },
+      { type: "DAMAGE", value: 10 },
       { type: "CONTROL", durationTurns: 1 },
     ],
   },
@@ -58,7 +58,7 @@ export const CARDS: Record<string, Card> = {
     effects: [
       { type: "DAMAGE", value: 10 },
       { type: "SILENCE", durationTurns: 1 },
-      { type: "START_TURN_DAMAGE", value: 5, durationTurns: 3 },
+      { type: "START_TURN_DAMAGE", value: 1, durationTurns: 3 },
     ],
   },
 
@@ -124,7 +124,7 @@ export const CARDS: Record<string, Card> = {
     type: "SUPPORT",
     target: "SELF",
     effects: [
-      { type: "HEAL", value: 40 },
+      { type: "HEAL", value: 60 },
       { type: "DAMAGE_REDUCTION", value: 0.4, durationTurns: 3 },
     ],
   },
@@ -209,9 +209,9 @@ export const CARDS: Record<string, Card> = {
     type: "ATTACK",
     target: "OPPONENT",
     effects: [
-      { type: "DAMAGE", value: 10 },
-      { type: "START_TURN_DAMAGE", value: 5, durationTurns: 5 },
-      { type: "START_TURN_DAMAGE", value: 10, durationTurns: 1 },
+      { type: "DAMAGE", value: 5 },
+      { type: "START_TURN_DAMAGE", value: 3, durationTurns: 3 },
+      { type: "START_TURN_DAMAGE", value: 5, durationTurns: 1 },
     ],
   },
 

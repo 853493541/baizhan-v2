@@ -3,7 +3,7 @@
 import styles from "./styles.module.css";
 import { resolveBuff } from "./resolveBuff";
 
-/* ================= TYPES (MATCH BACKEND) ================= */
+/* ================= TYPES ================= */
 
 type Status = {
   type: string;
@@ -26,37 +26,59 @@ export default function StatusBar({
 }: Props) {
   if (!statuses || statuses.length === 0) return null;
 
+  const resolved = statuses.map((s) => {
+    const remainingTurns = Math.max(
+      0,
+      s.expiresAtTurn - currentTurn
+    );
+
+    const buff = resolveBuff({
+      sourceCardId: s.sourceCardId,
+      type: s.type,
+      value: s.value,
+      chance: s.chance,
+      repeatTurns: s.repeatTurns,
+      remainingTurns,
+    });
+
+    return {
+      ...buff,
+      category: buff.category,
+    };
+  });
+
+  const buffs = resolved.filter(b => b.category === "BUFF");
+  const debuffs = resolved.filter(b => b.category !== "BUFF");
+
   return (
     <div className={styles.statusBar}>
-      {statuses.map((s, i) => {
-        const remainingTurns = Math.max(
-          0,
-          s.expiresAtTurn - currentTurn
-        );
+      {buffs.length > 0 && (
+        <div className={styles.statusRow}>
+          {buffs.slice(0, 6).map((b, i) => (
+            <div
+              key={`buff-${i}`}
+              className={`${styles.statusPill} ${styles.buff}`}
+              title={b.description}
+            >
+              {b.name}
+            </div>
+          ))}
+        </div>
+      )}
 
-        const buff = resolveBuff({
-          sourceCardId: s.sourceCardId,
-          type: s.type,
-          value: s.value,
-          chance: s.chance,
-          repeatTurns: s.repeatTurns,
-          remainingTurns,
-        });
-
-        return (
-          <div
-            key={i}
-            className={`${styles.statusPill} ${
-              buff.category === "BUFF"
-                ? styles.buff
-                : styles.debuff
-            }`}
-            title={buff.description}
-          >
-            {buff.name}
-          </div>
-        );
-      })}
+      {debuffs.length > 0 && (
+        <div className={styles.statusRow}>
+          {debuffs.slice(0, 6).map((b, i) => (
+            <div
+              key={`debuff-${i}`}
+              className={`${styles.statusPill} ${styles.debuff}`}
+              title={b.description}
+            >
+              {b.name}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
