@@ -64,8 +64,19 @@ router.post("/start", async (req, res) => {
 
 router.get("/waiting", async (_req, res) => {
   try {
+    const TEN_MINUTES = 10 * 60 * 1000;
+    const cutoff = new Date(Date.now() - TEN_MINUTES);
+
+    // 🔥 Lazy delete expired rooms (not started)
+    await GameSession.deleteMany({
+      started: false,
+      createdAt: { $lt: cutoff },
+    });
+
+    // ✅ Fetch current waiting rooms
     const games = await GameSession.find({
-      players: { $size: 1 }
+      started: false,
+      players: { $size: 1 },
     }).sort({ createdAt: -1 });
 
     res.json(games);
@@ -73,6 +84,7 @@ router.get("/waiting", async (_req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 /* =========================================================
    GET GAME

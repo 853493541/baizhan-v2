@@ -2,30 +2,29 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import styles from "./styles.module.css";
 
 export default function GamePage() {
   const router = useRouter();
 
   const [waitingGames, setWaitingGames] = useState<any[]>([]);
+  const [ongoingGames, setOngoingGames] = useState<any[]>([]);
   const [me, setMe] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
   /* =========================================================
-     Fetch current user (identity)
+     Fetch current user
   ========================================================= */
   const fetchMe = async () => {
-    const res = await fetch("/api/auth/me", {
-      credentials: "include",
-    });
-
+    const res = await fetch("/api/auth/me", { credentials: "include" });
     if (res.ok) {
       const data = await res.json();
-      setMe(data.user); // { uid, username }
+      setMe(data.user);
     }
   };
 
   /* =========================================================
-     Fetch waiting games
+     Fetch waiting rooms
   ========================================================= */
   const fetchWaitingGames = async () => {
     const res = await fetch("/api/game/waiting", {
@@ -37,11 +36,29 @@ export default function GamePage() {
     }
   };
 
+  /* =========================================================
+     Fetch ongoing games (joined + started)
+  ========================================================= */
+  const fetchOngoingGames = async () => {
+    const res = await fetch("/api/game/ongoing", {
+      credentials: "include",
+    });
+
+    if (res.ok) {
+      setOngoingGames(await res.json());
+    }
+  };
+
   useEffect(() => {
     fetchMe();
     fetchWaitingGames();
+    fetchOngoingGames();
 
-    const t = setInterval(fetchWaitingGames, 3000);
+    const t = setInterval(() => {
+      fetchWaitingGames();
+      fetchOngoingGames();
+    }, 3000);
+
     return () => clearInterval(t);
   }, []);
 
@@ -69,22 +86,51 @@ export default function GamePage() {
      UI
   ========================================================= */
   return (
-    <div style={{ padding: 32 }}>
-      <h1>Game Lobby</h1>
+    <div className={styles.page}>
+      <h1 className={styles.title}>Game Lobby</h1>
 
       {me && (
-        <p style={{ marginBottom: 12 }}>
+        <p className={styles.user}>
           👤 Logged in as <strong>{me.username}</strong>
         </p>
       )}
 
-      <button onClick={createGame} disabled={loading}>
+      <button
+        className={styles.createBtn}
+        onClick={createGame}
+        disabled={loading}
+      >
         {loading ? "Creating..." : "Create Game"}
       </button>
 
-      <h2 style={{ marginTop: 24 }}>Waiting Rooms</h2>
+      {/* ================= ONGOING ================= */}
+      <h2 className={styles.sectionTitle}>🟢 Ongoing Matches</h2>
 
-      {waitingGames.length === 0 && <p>No games waiting</p>}
+      {ongoingGames.length === 0 && (
+        <p className={styles.empty}>No ongoing matches</p>
+      )}
+
+      {ongoingGames.map((g) => (
+        <div
+          key={g._id}
+          className={styles.card}
+          onClick={() =>
+            router.push(`/game/in-game?gameId=${g._id}`)
+          }
+        >
+          <div className={styles.cardTitle}>
+            Match #{g._id.slice(-6)}
+          </div>
+          <div>Players: {g.players.length} / 2</div>
+        </div>
+      ))}
+
+      {/* ================= WAITING ================= */}
+      <h2 className={styles.sectionTitle}>🟡 Waiting Rooms</h2>
+
+      {waitingGames.length === 0 && (
+        <p className={styles.empty}>No rooms waiting</p>
+      )}
 
       {waitingGames.map((g) => {
         const isMine = me && g.players?.[0] === me.uid;
@@ -92,22 +138,17 @@ export default function GamePage() {
         return (
           <div
             key={g._id}
-            style={{
-              border: "1px solid #ddd",
-              padding: 12,
-              marginBottom: 8,
-              cursor: "pointer",
-              background: isMine ? "#f0f9ff" : "white",
-            }}
-            onClick={() => router.push(`/game/room?gameId=${g._id}`)}
+            className={`${styles.card} ${
+              isMine ? styles.mine : ""
+            }`}
+            onClick={() =>
+              router.push(`/game/room?gameId=${g._id}`)
+            }
           >
-            <div>
-              <strong>Game ID:</strong> {g._id}
+            <div className={styles.cardTitle}>
+              {isMine ? "Your Room" : "Open Room"} #{g._id.slice(-6)}
             </div>
-            <div>
-              Players: {g.players.length} / 2
-            </div>
-            {isMine && <div style={{ color: "#2563eb" }}>🟢 Your game</div>}
+            <div>Players: {g.players.length} / 2</div>
           </div>
         );
       })}

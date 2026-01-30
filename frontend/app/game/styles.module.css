@@ -1,0 +1,64 @@
+.page {
+  padding: 32px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.user {
+  margin-bottom: 16px;
+  opacity: 0.9;
+}
+
+.createBtn {
+  padding: 10px 16px;
+  border-radius: 6px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.createBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sectionTitle {
+  margin-top: 32px;
+  margin-bottom: 12px;
+  font-size: 20px;
+}
+
+.empty {
+  opacity: 0.6;
+  font-style: italic;
+}
+
+.card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.card:hover {
+  background: #f8fafc;
+}
+
+.cardTitle {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.mine {
+  background: #f0f9ff;
+  border-color: #93c5fd;
+}

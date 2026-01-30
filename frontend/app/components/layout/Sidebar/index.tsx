@@ -27,7 +27,7 @@ export default function Sidebar() {
         <NavLink href="/playground/history">📈 往期排表</NavLink>
         <NavLink href="/map/history">🗺 历史地图</NavLink>
         <NavLink href="/history">🕒 技能更新记录</NavLink>
-         <NavLink href="/game">🎮 真传</NavLink>
+         <NavLink href="/game">🎮 卡牌真传</NavLink>
       </nav>
     </div>
   );
