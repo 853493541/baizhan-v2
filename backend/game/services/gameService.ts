@@ -60,9 +60,9 @@ function autoDrawAtTurnStart(state: GameState) {
 }
 
 /* =========================================================
-   CREATE GAME
+   CREATE GAME (LOBBY ONLY)
 ========================================================= */
-export async function createGame(userId: string, opponentUserId: string) {
+export async function createGame(userId: string) {
   const deck = shuffle(buildDeck());
 
   const state: GameState = {
@@ -73,20 +73,86 @@ export async function createGame(userId: string, opponentUserId: string) {
     gameOver: false,
     winnerUserId: undefined,
     players: [
-      { userId, hp: 100, hand: [], statuses: [] },
-      { userId: opponentUserId, hp: 100, hand: [], statuses: [] },
+      { userId, hp: 100, hand: [], statuses: [] }
     ],
+  };
+
+  draw(state, 0, 6);
+
+  return GameSession.create({
+    players: [userId],   // ✅ ONLY creator
+    state,               // ✅ REQUIRED
+  });
+}
+
+/* =========================================================
+   JOIN GAME
+========================================================= */
+export async function joinGame(gameId: string, userId: string) {
+  const game = await GameSession.findById(gameId);
+  if (!game) throw new Error("Game not found");
+
+  if (game.players.includes(userId)) return game;
+  if (game.players.length >= 2) throw new Error("Game already full");
+
+  game.players.push(userId);
+  await game.save();
+
+  return game;
+}
+
+/* =========================================================
+   START GAME (INITIALIZE STATE)
+========================================================= */
+export async function startGame(gameId: string, userId: string) {
+  const game = await GameSession.findById(gameId);
+ if (!game) throw new Error("Game not found");
+
+// Allow viewing if:
+// - user is already a player
+// - OR game is waiting for a second player
+if (
+  !game.players.includes(userId) &&
+  game.players.length >= 2
+) {
+  throw new Error("Not your game");
+}
+
+  if (game.players.length !== 2) {
+    throw new Error("Game not ready");
+  }
+
+  // already started
+  if (game.state) return game;
+
+  const deck = shuffle(buildDeck());
+
+  const state: GameState = {
+    turn: 0,
+    activePlayerIndex: 0,
+    deck,
+    discard: [],
+    gameOver: false,
+    winnerUserId: undefined,
+    players: [
+      { userId: game.players[0], hp: 100, hand: [], statuses: [] },
+      { userId: game.players[1], hp: 100, hand: [], statuses: [] }
+    ]
   };
 
   draw(state, 0, 6);
   draw(state, 1, 6);
 
-  return GameSession.create({
-    players: [userId, opponentUserId],
-    state,
-  });
+  game.state = state;
+  game.markModified("state");
+  await game.save();
+
+  return game;
 }
 
+/* =========================================================
+   GET GAME
+========================================================= */
 export async function getGame(gameId: string, userId: string) {
   const game = await GameSession.findById(gameId);
   if (!game) throw new Error("Game not found");
@@ -105,6 +171,7 @@ export async function playCard(
 ) {
   const game = await GameSession.findById(gameId);
   if (!game) throw new Error("Game not found");
+  if (!game.state) throw new Error("Game not started");
 
   const state = game.state as GameState;
   if (state.gameOver) throw new Error("Game over");
@@ -115,16 +182,13 @@ export async function playCard(
   validatePlayCard(state, playerIndex, targetIndex, cardInstanceId);
 
   const player = state.players[playerIndex];
-  const idx = player.hand.findIndex(
-    c => c.instanceId === cardInstanceId
-  );
+  const idx = player.hand.findIndex(c => c.instanceId === cardInstanceId);
   if (idx === -1) throw new Error("Card not in hand");
 
   const [played] = player.hand.splice(idx, 1);
   const card = CARDS[played.cardId];
 
   applyEffects(state, card, playerIndex, targetIndex);
-
   state.discard.push(played);
 
   game.state = state;
@@ -140,6 +204,7 @@ export async function playCard(
 export async function passTurn(gameId: string, userId: string) {
   const game = await GameSession.findById(gameId);
   if (!game) throw new Error("Game not found");
+  if (!game.state) throw new Error("Game not started");
 
   const state = game.state as GameState;
   if (state.gameOver) throw new Error("Game over");

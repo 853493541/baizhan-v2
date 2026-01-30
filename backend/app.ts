@@ -63,7 +63,7 @@ app.use(compression());
 
 
 
-app.use("/game", gameRoutes);
+app.use("/api/game", gameRoutes);
 
 
 
