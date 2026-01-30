@@ -1,7 +1,7 @@
 /* ================= ROOT ================= */
 .board-root {
   /* full usable viewport on iPad / mobile Safari */
-  height: 100dvh;
+  height: 80dvh;
 
   width: 100%;
   max-width: min(1280px, 100vw);

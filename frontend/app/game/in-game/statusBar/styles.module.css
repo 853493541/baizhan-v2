@@ -1,0 +1,24 @@
+.statusBar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+
+  margin-top: 6px;
+
+  justify-content: center;
+  align-items: center;
+}
+
+.statusPill {
+  padding: 4px 8px;
+  font-size: 12px;
+  line-height: 1;
+
+  border-radius: 999px;
+
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+
+  color: white;
+  white-space: nowrap;
+}

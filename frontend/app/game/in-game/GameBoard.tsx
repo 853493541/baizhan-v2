@@ -2,6 +2,7 @@
 
 import "./game-board.css";
 import Card from "./card";
+import StatusBar from "./statusBar";
 
 /* ===============================
    Types
@@ -15,6 +16,7 @@ type PlayerState = {
   userId: string;
   hp: number;
   hand: CardInstance[];
+  statuses?: any[];
 };
 
 type Props = {
@@ -40,6 +42,7 @@ export default function GameBoard({
       {/* ================= 对手 ================= */}
       <div className="opponent-zone">
         <div className="hp-badge opponent-hp">❤️ {opponent.hp}</div>
+        <StatusBar statuses={opponent.statuses} />
       </div>
 
       {/* ================= 中央 ================= */}
@@ -52,7 +55,10 @@ export default function GameBoard({
       {/* ================= 玩家 ================= */}
       <div className="player-zone">
         <div className="player-top">
-          <div className="hp-badge player-hp">❤️ {me.hp}</div>
+          <div>
+            <div className="hp-badge player-hp">❤️ {me.hp}</div>
+            <StatusBar statuses={me.statuses} />
+          </div>
 
           <button
             className="end-turn-btn"
