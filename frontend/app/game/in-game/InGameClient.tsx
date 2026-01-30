@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import GameBoard from "./GameBoard";
 import GameOverModal from "./GameOverModal";
+import { toastError } from "@/app/components/toast/toast";
 
 /* ================= TYPES (ALIGNED WITH BACKEND) ================= */
 
@@ -58,6 +59,44 @@ const CARD_TARGET: Record<string, "SELF" | "OPPONENT"> = {
   disengage: "SELF",
   power_surge: "SELF",
 };
+
+/* ================= ERROR CODE → TOAST TEXT ================= */
+function showGameError(rawCode: string) {
+  const code = rawCode?.trim();
+
+  switch (code) {
+    case "ERR_NOT_YOUR_TURN":
+      toastError("还没轮到你");
+      break;
+
+    case "ERR_SILENCED":
+      toastError("你被沉默，无法出牌");
+      break;
+
+    case "ERR_CONTROLLED":
+      toastError("你被控制，无法出牌");
+      break;
+
+    case "ERR_TARGET_UNTARGETABLE":
+      toastError("目标无法选中");
+      break;
+
+    case "ERR_CARD_NOT_IN_HAND":
+      toastError("这张牌不在你的手牌中");
+      break;
+
+    case "ERR_GAME_OVER":
+      toastError("对局已经结束");
+      break;
+
+    case "ERR_NOT_AUTHENTICATED":
+      toastError("登录状态失效，请重新进入");
+      break;
+
+    default:
+      toastError("操作无法执行");
+  }
+}
 
 export default function InGameClient({
   gameId,
@@ -130,7 +169,8 @@ export default function InGameClient({
       });
 
       if (!res.ok) {
-        alert(await res.text());
+        const code = await res.text();
+        showGameError(code);
         return;
       }
 
@@ -154,7 +194,8 @@ export default function InGameClient({
       });
 
       if (!res.ok) {
-        alert(await res.text());
+        const code = await res.text();
+        showGameError(code);
         return;
       }
 

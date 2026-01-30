@@ -197,23 +197,29 @@ export async function playCard(
   if (!game.state) throw new Error("Game not started");
 
   const state = game.state as GameState;
-  if (state.gameOver) throw new Error("Game over");
+  if (state.gameOver) throw new Error("ERR_GAME_OVER");
 
-  const playerIndex = state.players.findIndex(p => p.userId === userId);
-  if (playerIndex === -1) throw new Error("Player not in game");
+  const playerIndex = state.players.findIndex(
+    p => p.userId === userId
+  );
+  if (playerIndex === -1) throw new Error("ERR_PLAYER_NOT_IN_GAME");
 
   // ✅ validate WITHOUT target
   validatePlayCard(state, playerIndex, cardInstanceId);
 
   const player = state.players[playerIndex];
-  const idx = player.hand.findIndex(c => c.instanceId === cardInstanceId);
-  if (idx === -1) throw new Error("Card not in hand");
+  const idx = player.hand.findIndex(
+    c => c.instanceId === cardInstanceId
+  );
+  if (idx === -1) throw new Error("ERR_CARD_NOT_IN_HAND");
 
   const [played] = player.hand.splice(idx, 1);
   const card = CARDS[played.cardId];
-  if (!card) throw new Error("Card definition missing");
+  if (!card) throw new Error("ERR_CARD_NOT_FOUND");
 
-  // ✅ TARGET RESOLUTION HAPPENS HERE (AUTHORITATIVE)
+  // ===============================
+  // TARGET RESOLUTION (AUTHORITATIVE)
+  // ===============================
   const targetIndex =
     card.target === "SELF"
       ? playerIndex
@@ -221,10 +227,7 @@ export async function playCard(
       ? 1
       : 0;
 
-
-
-
- const source = state.players[playerIndex];
+  const source = state.players[playerIndex];
   const target = state.players[targetIndex];
 
   // ===============================
@@ -237,13 +240,14 @@ export async function playCard(
   );
 
   if (targetUntargetable && !isSelfTarget) {
-    throw new Error("Target is untargetable");
+    throw new Error("ERR_TARGET_UNTARGETABLE");
   }
 
-
-
-  
+  // ===============================
+  // APPLY EFFECTS
+  // ===============================
   applyEffects(state, card, playerIndex, targetIndex);
+
   state.discard.push(played);
 
   game.state = state;
@@ -262,11 +266,13 @@ export async function passTurn(gameId: string, userId: string) {
   if (!game.state) throw new Error("Game not started");
 
   const state = game.state as GameState;
-  if (state.gameOver) throw new Error("Game over");
+  if (state.gameOver) throw new Error("ERR_GAME_OVER");
 
-  const playerIndex = state.players.findIndex(p => p.userId === userId);
+  const playerIndex = state.players.findIndex(
+    p => p.userId === userId
+  );
   if (state.activePlayerIndex !== playerIndex) {
-    throw new Error("Not your turn");
+    throw new Error("ERR_NOT_YOUR_TURN");
   }
 
   resolveTurnEnd(state);
