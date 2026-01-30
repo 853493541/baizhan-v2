@@ -101,6 +101,18 @@ export default function GameBoard({
             statuses={opponent.statuses}
             currentTurn={currentTurn}
           />
+
+          {/* ===== Opponent hand count ===== */}
+          <div className="opponent-hand">
+            <div className="card-back">
+              <span className="card-count">
+                {opponent.hand.length}
+              </span>
+            </div>
+            <div className="opponent-hand-label">
+              对手手牌
+            </div>
+          </div>
         </div>
 
         {/* ================= TURN BAR ================= */}
