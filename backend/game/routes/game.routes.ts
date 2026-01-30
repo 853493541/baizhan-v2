@@ -132,5 +132,28 @@ router.post("/pass", async (req, res) => {
 });
 // List games waiting for player 2
 
+router.post("/rematch/:id", async (req, res) => {
+  try {
+    const userId = getUserIdFromCookie(req);
+    const oldGame = await GameSession.findById(req.params.id);
+    if (!oldGame) throw new Error("Game not found");
+
+    if (!oldGame.players.includes(userId)) {
+      throw new Error("Not your game");
+    }
+
+    if (oldGame.players.length !== 2) {
+      throw new Error("Invalid game");
+    }
+
+    const newGame = await createGame(oldGame.players[0]);
+    newGame.players.push(oldGame.players[1]);
+    await newGame.save();
+
+    res.json({ gameId: newGame._id });
+  } catch (e: any) {
+    res.status(400).json({ error: e.message });
+  }
+});
 
 export default router;

@@ -152,6 +152,7 @@ export default function InGameClient({
         >
           Return to Lobby
         </button>
+        
       </div>
     );
   }
