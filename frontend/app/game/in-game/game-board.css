@@ -1,0 +1,111 @@
+/* ================= ROOT ================= */
+.board-root {
+max-width:1280px;
+  display: grid;
+  grid-template-rows: 1fr 2fr 1.2fr;
+  height: 80vh;
+  background: radial-gradient(circle at center, #1e293b, #020617);
+  color: white;
+  padding: 12px;
+}
+
+/* ================= OPPONENT ================= */
+.opponent-zone {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.opponent-hp {
+  background: #7f1d1d;
+}
+
+/* ================= CENTER ================= */
+.center-board {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.turn-indicator {
+  font-size: 18px;
+  opacity: 0.85;
+}
+
+/* ================= PLAYER ================= */
+.player-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.player-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.player-hp {
+  background: #14532d;
+}
+
+/* ================= COMMON ================= */
+.hp-badge {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.end-turn-btn {
+  padding: 8px 14px;
+  border-radius: 6px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.end-turn-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ================= HAND ================= */
+.hand-zone {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.card {
+  min-width: 90px;
+  height: 120px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+}
+
+.card:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ================= MOBILE ================= */
+@media (max-width: 768px) {
+  .board-root {
+    grid-template-rows: auto 1fr auto;
+  }
+
+  .hand-zone {
+    gap: 6px;
+  }
+
+  .card {
+    min-width: 72px;
+    height: 100px;
+    font-size: 12px;
+  }
+}

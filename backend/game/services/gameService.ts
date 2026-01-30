@@ -16,7 +16,7 @@ function buildDeck(): CardInstance[] {
     for (let i = 0; i < n; i++) {
       deck.push({
         instanceId: randomUUID(),
-        cardId
+        cardId,
       });
     }
   };
@@ -52,7 +52,6 @@ function autoDrawAtTurnStart(state: GameState) {
   if (state.gameOver) return;
 
   const p = state.players[state.activePlayerIndex];
-  if (p.hand.length > 0) return;
   if (p.hand.length >= 10) return;
   if (state.deck.length === 0) return;
 
@@ -72,16 +71,15 @@ export async function createGame(userId: string) {
     discard: [],
     gameOver: false,
     winnerUserId: undefined,
-    players: [
-      { userId, hp: 100, hand: [], statuses: [] }
-    ],
+    players: [{ userId, hp: 100, hand: [], statuses: [] }],
   };
 
   draw(state, 0, 6);
 
   return GameSession.create({
-    players: [userId],   // ✅ ONLY creator
-    state,               // ✅ REQUIRED
+    players: [userId],   // host only
+    state,
+    started: false,
   });
 }
 
@@ -102,23 +100,20 @@ export async function joinGame(gameId: string, userId: string) {
 }
 
 /* =========================================================
-   START GAME (INITIALIZE STATE)
+   START GAME (HOST ONLY)
 ========================================================= */
 export async function startGame(gameId: string, userId: string) {
   const game = await GameSession.findById(gameId);
   if (!game) throw new Error("Game not found");
 
-  // ❌ Only host can start
   if (game.players[0] !== userId) {
     throw new Error("Only host can start the game");
   }
 
-  // ❌ Must have exactly 2 players
   if (game.players.length !== 2) {
     throw new Error("Game not ready");
   }
 
-  // ✅ Already started → return as-is
   if (game.started) return game;
 
   const deck = shuffle(buildDeck());
@@ -139,7 +134,6 @@ export async function startGame(gameId: string, userId: string) {
   draw(state, 0, 6);
   draw(state, 1, 6);
 
-  // ✅ THESE TWO LINES FIX THE REDIRECT
   game.state = state;
   game.started = true;
 
