@@ -106,24 +106,20 @@ export async function joinGame(gameId: string, userId: string) {
 ========================================================= */
 export async function startGame(gameId: string, userId: string) {
   const game = await GameSession.findById(gameId);
- if (!game) throw new Error("Game not found");
+  if (!game) throw new Error("Game not found");
 
-// Allow viewing if:
-// - user is already a player
-// - OR game is waiting for a second player
-if (
-  !game.players.includes(userId) &&
-  game.players.length >= 2
-) {
-  throw new Error("Not your game");
-}
+  // ❌ Only host can start
+  if (game.players[0] !== userId) {
+    throw new Error("Only host can start the game");
+  }
 
+  // ❌ Must have exactly 2 players
   if (game.players.length !== 2) {
     throw new Error("Game not ready");
   }
 
-  // already started
-  if (game.state) return game;
+  // ✅ Already started → return as-is
+  if (game.started) return game;
 
   const deck = shuffle(buildDeck());
 
@@ -136,17 +132,18 @@ if (
     winnerUserId: undefined,
     players: [
       { userId: game.players[0], hp: 100, hand: [], statuses: [] },
-      { userId: game.players[1], hp: 100, hand: [], statuses: [] }
-    ]
+      { userId: game.players[1], hp: 100, hand: [], statuses: [] },
+    ],
   };
 
   draw(state, 0, 6);
   draw(state, 1, 6);
 
+  // ✅ THESE TWO LINES FIX THE REDIRECT
   game.state = state;
-  game.markModified("state");
-  await game.save();
+  game.started = true;
 
+  await game.save();
   return game;
 }
 
