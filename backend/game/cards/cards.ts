@@ -52,13 +52,13 @@ export const CARDS: Record<string, Card> = {
 
   chan_xiao: {
     id: "chan_xiao",
-    name: "蝉啸",
+    name: "蟾啸",
     type: "CONTROL",
     target: "OPPONENT",
     effects: [
       { type: "DAMAGE", value: 10 },
       { type: "SILENCE", durationTurns: 1 },
-      { type: "START_TURN_DAMAGE", value: 1, durationTurns: 3 },
+    //   { type: "START_TURN_DAMAGE", value: 1, durationTurns: 3 },
     ],
   },
 
@@ -210,8 +210,8 @@ export const CARDS: Record<string, Card> = {
     target: "OPPONENT",
     effects: [
       { type: "DAMAGE", value: 5 },
-      { type: "START_TURN_DAMAGE", value: 3, durationTurns: 3 },
-      { type: "START_TURN_DAMAGE", value: 5, durationTurns: 1 },
+      { type: "START_TURN_DAMAGE", value: 5, durationTurns: 5 },
+      // { type: "START_TURN_DAMAGE", value: 5, durationTurns: 1 },
     ],
   },
 

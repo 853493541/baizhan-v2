@@ -1,13 +1,16 @@
+/* ================= CARD ROOT ================= */
 .card {
-  width: 160px;
-  min-height: 220px;
- align-items: center;
+  /* 🔻 REDUCED SIZE */
+  width: 110px;
+  min-height: 150px;
+
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  align-items: center;
+  gap: 4px;
 
-  padding: 10px;
-  border-radius: 12px;
+  padding: 8px;
+  border-radius: 10px;
 
   background: linear-gradient(180deg, #0f172a, #020617);
   border: 1px solid #334155;
@@ -16,7 +19,10 @@
   cursor: pointer;
   user-select: none;
 
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
 }
 
 /* ================= PLAYABLE FEEL ================= */
@@ -26,7 +32,7 @@
 
 .card:hover:not(.disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.45);
 }
 
 /* ================= DISABLED ================= */
@@ -37,50 +43,55 @@
   box-shadow: none;
 }
 
-/* ================= TOP BAR ================= */
-.topBar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  min-height: 18px;
-  font-size: 12px;
-  opacity: 0.85;
-}
-
 /* ================= ICON ================= */
 .icon {
-  width: 40px;
-  height: 40px;
+  width: 28px;
+  height: 28px;
 
   display: flex;
   align-items: center;
   justify-content: center;
+
   border-radius: 5px;
 }
+
 .icon img {
   width: 100%;
   height: 100%;
   object-fit: contain;
   display: block;
-  border-radius:5px;
+  border-radius: 5px;
 }
 
 /* ================= NAME ================= */
 .name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   text-align: center;
-  line-height: 1.2;
+  line-height: 1.1;
 }
 
 /* ================= DESC ================= */
 .desc {
   font-size: 12px;
-  line-height: 1.45;
+  line-height: 1.4;
   opacity: 0.9;
+
+  text-align: center;
+  white-space: pre-line;
+
+  max-height: 64px;              /* 🔑 fixed visual height */
+  overflow-y: auto;              /* 🔑 scroll instead of resize */
+  overscroll-behavior: contain;
 
   word-break: break-word;
   overflow-wrap: anywhere;
+}
+
+/* hide scrollbar but keep scroll */
+.desc::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 /* ================= KEYWORD HIGHLIGHTS ================= */
@@ -100,10 +111,9 @@
 }
 
 /* =====================================================
-   📱 MOBILE (REDUCED SIZE + SCROLLABLE DESC)
+   📱 MOBILE
    ===================================================== */
 @media (max-width: 768px) {
-
   .card {
     width: 80px;
     min-height: 120px;
@@ -115,33 +125,22 @@
   }
 
   .icon {
-    width:22px;
-    height:22px;
+    width: 22px;
+    height: 22px;
   }
 
   .name {
     font-size: 11px;
   }
 
-  /* 🔑 allow full text, scroll instead of truncation */
   .desc {
     font-size: 11px;
     line-height: 1.35;
 
-    max-height: 68px;
+    max-height: 48px;
     overflow-y: auto;
-    overscroll-behavior: contain;
-
-    padding-right: 2px; /* space for scrollbar */
   }
 
-  /* hide scrollbar but keep scroll */
-  .desc::-webkit-scrollbar {
-    width: 0;
-    height: 0;
-  }
-
-  /* clearer disabled feel on touch */
   .disabled {
     filter: grayscale(0.7);
   }

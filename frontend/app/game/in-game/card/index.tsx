@@ -67,23 +67,15 @@ export default function Card({ cardId, disabled, onClick }: Props) {
       className={`${styles.card} ${disabled ? styles.disabled : ""}`}
       onClick={!disabled ? onClick : undefined}
     >
-      {/* Icon */}
       <div className={styles.icon}>
         {iconSrc ? (
-          <img
-            src={iconSrc}
-            alt={name}
-            draggable={false}
-          />
+          <img src={iconSrc} alt={name} draggable={false} />
         ) : (
           <span>🀄</span>
         )}
       </div>
 
-      {/* Name */}
       <div className={styles.name}>{name}</div>
-
-      {/* Description */}
       <div className={styles.desc}>{desc}</div>
     </div>
   );

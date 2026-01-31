@@ -21,11 +21,9 @@ type Props = {
 };
 
 export default function StatusBar({
-  statuses,
+  statuses = [],
   currentTurn = 0,
 }: Props) {
-  if (!statuses || statuses.length === 0) return null;
-
   const resolved = statuses.map((s) => {
     const remainingTurns = Math.max(
       0,
@@ -51,34 +49,40 @@ export default function StatusBar({
   const debuffs = resolved.filter(b => b.category !== "BUFF");
 
   return (
-    <div className={styles.statusBar}>
-      {buffs.length > 0 && (
-        <div className={styles.statusRow}>
-          {buffs.slice(0, 6).map((b, i) => (
-            <div
-              key={`buff-${i}`}
-              className={`${styles.statusPill} ${styles.buff}`}
-              title={b.description}
-            >
-              {b.name}
-            </div>
-          ))}
-        </div>
-      )}
+    <div className={styles.statusBar} data-label="StatusBar">
 
-      {debuffs.length > 0 && (
-        <div className={styles.statusRow}>
-          {debuffs.slice(0, 6).map((b, i) => (
-            <div
-              key={`debuff-${i}`}
-              className={`${styles.statusPill} ${styles.debuff}`}
-              title={b.description}
-            >
-              {b.name}
-            </div>
-          ))}
-        </div>
-      )}
+      {/* Buff Row (always rendered) */}
+      <div
+        className={styles.statusRow}
+        data-label="Buff Row"
+      >
+        {buffs.slice(0, 6).map((b, i) => (
+          <div
+            key={`buff-${i}`}
+            className={`${styles.statusPill} ${styles.buff}`}
+            title={b.description}
+          >
+            {b.name}
+          </div>
+        ))}
+      </div>
+
+      {/* Debuff Row (always rendered) */}
+      <div
+        className={styles.statusRow}
+        data-label="Debuff Row"
+      >
+        {debuffs.slice(0, 6).map((b, i) => (
+          <div
+            key={`debuff-${i}`}
+            className={`${styles.statusPill} ${styles.debuff}`}
+            title={b.description}
+          >
+            {b.name}
+          </div>
+        ))}
+      </div>
+
     </div>
   );
 }

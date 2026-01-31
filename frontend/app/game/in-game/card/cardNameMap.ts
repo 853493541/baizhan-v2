@@ -11,7 +11,7 @@ export const CARD_NAME_MAP: Record<string, string> = {
   // 控制 / 压制
   mohe_wuliang: "摩诃无量",
   shengsi_jie: "生死劫",
-  chan_xiao: "蝉啸",
+  chan_xiao: "蟾啸",
 
   // 解控 / 防御
   jiru_feng: "疾如风",

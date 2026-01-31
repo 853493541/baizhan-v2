@@ -4,15 +4,26 @@
   flex-direction: column;
   gap: 4px;
 
-  align-items: flex-start; /* ⬅️ key */
+  align-items: flex-start;
+
+  /* 🟢 DEBUG */
+  /* border: 2px solid #22c55e; */
 }
-/* each row = max 6 */
+
+/* ================= STATUS ROW ================= */
+/* Each row always exists, even if empty */
 .statusRow {
   display: grid;
   grid-template-columns: repeat(6, auto);
   gap: 6px;
 
-  justify-content: start;   /* ⬅️ key */
+  justify-content: start;
+  align-items: center;
+
+  min-height: 24px; /* 🔒 reserve vertical space */
+
+  /* 🟢 DEBUG */
+  /* border: 2px dashed #22c55e; */
 }
 
 /* ================= PILL ================= */
@@ -21,7 +32,7 @@
   font-size: 12px;
   line-height: 1;
 
-  border-radius: 999px;
+  border-radius: 5px;
   white-space: nowrap;
 
   cursor: help;
