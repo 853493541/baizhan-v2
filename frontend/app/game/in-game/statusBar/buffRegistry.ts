@@ -124,12 +124,38 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
   },
 
   /* =========================================================
-     暗尘弥散
+     暗尘弥散（Stealth，不是 Untargetable）
   ========================================================= */
-  "anchen_misan:UNTARGETABLE": {
+  "anchen_misan:STEALTH": {
     name: "隐身",
     category: "BUFF",
-    description: () => `不可被选中`,
+    description: () => `看不见，喵喵喵`,
+  },
+
+  /* =========================================================
+     风来吴山（CHANNEL）
+  ========================================================= */
+  "fenglai_wushan:FENGLAI_CHANNEL": {
+    name: "风车",
+    category: "BUFF",
+    description: () =>
+      `持续运功对敌方造成伤害`,
+  },
+
+  "fenglai_wushan:CONTROL_IMMUNE": {
+    name: "免控",
+    category: "BUFF",
+    description: () => `运功期间免疫控制效果`,
+  },
+
+  /* =========================================================
+     无间狱（CHANNEL）
+  ========================================================= */
+  "wu_jianyu:WUJIAN_CHANNEL": {
+    name: "无间狱",
+    category: "BUFF",
+    description: () =>
+      `修罗附体：造成4次伤害并且吸血`,
   },
 
   /* =========================================================
@@ -139,7 +165,7 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
     name: "女娲",
     category: "BUFF",
     description: ({ value }) =>
-      `造成伤害提高至 ${value ?? 1} 倍`,
+      `造成伤害提高100%`,
   },
 
   "nuwa_butian:DAMAGE_REDUCTION": {
