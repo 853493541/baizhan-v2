@@ -1,38 +1,79 @@
-.wrap {
-  margin: 6px auto;
-  padding: 10px 16px;
+/* ================= ARENA ================= */
 
-  width: fit-content;
-  min-width: 180px;
+.arena {
+  /* 🔑 module-safe variable */
+  --card-shift: 135px;
 
-  background: linear-gradient(180deg, #0f172a, #020617);
-  border: 1px solid #334155;
-  border-radius: 12px;
+  position: relative;
+  width: 100%;
+  height: 350px;
 
-  text-align: center;
-  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-  animation: pop 0.2s ease-out;
+  overflow: hidden;
+  /* border:red 2px solid; */
 }
 
-.label {
-  font-size: 12px;
-  opacity: 0.75;
-  margin-bottom: 4px;
+/* ================= CARD WRAPPER ================= */
+
+.cardWrap {
+  position: absolute;
+
+  transition:
+    transform 220ms ease-out,
+    opacity 220ms ease-out,
+    filter 220ms ease-out;
+
+  will-change: transform, opacity;
 }
 
-.card {
-  font-size: 16px;
-  font-weight: 700;
+/* ================= OWNER GLOW ================= */
+
+.me {
+  filter: drop-shadow(0 0 10px rgba(34, 197, 94, 0.45));
 }
 
-@keyframes pop {
+.enemy {
+  filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.45));
+}
+
+/* ================= ENTRY ANIMATIONS ================= */
+
+.enterFromBottom {
+  animation: slideUp 220ms ease-out;
+}
+
+.enterFromTop {
+  animation: slideDown 220ms ease-out;
+}
+
+@keyframes slideUp {
   from {
-    transform: scale(0.92);
+    transform: translateY(48px);
     opacity: 0;
   }
   to {
-    transform: scale(1);
+    transform: translateY(0);
     opacity: 1;
   }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-48px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ================= FADE OUT (4th CARD) ================= */
+
+.fadeOut {
+  opacity: 0.35;
+  transform: scale(0.92);
 }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import styles from "./styles.module.css";
 import type { GameEvent } from "@/app/game/in-game/types";
+import Card from "../card";
 
 /* ================= PROPS ================= */
 
@@ -17,35 +18,54 @@ export default function CurrentAction({
   events,
   myUserId,
 }: Props) {
-  const [current, setCurrent] = useState<GameEvent | null>(null);
+  const [cards, setCards] = useState<GameEvent[]>([]);
+
+  /* ================= UPDATE LOGIC ================= */
 
   useEffect(() => {
-    if (!Array.isArray(events)) {
-      setCurrent(null);
-      return;
-    }
+    if (!Array.isArray(events)) return;
 
-    // ✅ find latest PLAY_CARD only
-    const lastPlay = [...events]
-      .reverse()
-      .find((e) => e.type === "PLAY_CARD");
+    const last = events
+      .filter((e) => e.type === "PLAY_CARD")
+      .at(-1);
 
-    setCurrent(lastPlay ?? null);
+    if (!last) return;
+
+    setCards((prev) => {
+      if (prev[0]?.id === last.id) return prev;
+      return [last, ...prev].slice(0, 4);
+    });
   }, [events]);
 
-  if (!current) return null;
-
-  const isMe = current.actorUserId === myUserId;
-  const actor = isMe ? "你" : "对手";
+  /* ================= RENDER ================= */
 
   return (
-    <div className={styles.wrap}>
-      <span className={styles.turn}>
-        T{current.turn}
-      </span>
-      <span className={styles.text}>
-        {actor} 使用了【{current.cardName ?? current.cardId}】
-      </span>
+    <div className={styles.arena}>
+      {cards.map((e, idx) => {
+        const isMe = e.actorUserId === myUserId;
+
+        return (
+          <div
+            key={e.id}
+            className={[
+              styles.cardWrap,
+              isMe ? styles.me : styles.enemy,
+              idx === 0 &&
+                (isMe
+                  ? styles.enterFromBottom
+                  : styles.enterFromTop),
+              idx === 3 && styles.fadeOut,
+            ]
+              .filter(Boolean)
+              .join(" ")}
+            style={{
+              transform: `translateX(calc(-1 * ${idx} * var(--card-shift)))`,
+            }}
+          >
+            <Card cardId={e.cardId} variant="arena" />
+          </div>
+        );
+      })}
     </div>
   );
 }
