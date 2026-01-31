@@ -25,7 +25,7 @@
   -webkit-overflow-scrolling: touch;
   touch-action: pan-x;
   overscroll-behavior-x: contain;
-  border:red solid 2px;
+  /* border:red solid 2px; */
 }
 
 .handZone > * {

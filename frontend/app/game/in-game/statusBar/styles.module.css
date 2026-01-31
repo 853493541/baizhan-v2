@@ -5,25 +5,20 @@
   gap: 4px;
 
   align-items: flex-start;
-
-  /* 🟢 DEBUG */
-  /* border: 2px solid #22c55e; */
+  /* border:red 2px solid; */
 }
 
 /* ================= STATUS ROW ================= */
-/* Each row always exists, even if empty */
+/* Fixed slot grid, left-anchored */
 .statusRow {
   display: grid;
-  grid-template-columns: repeat(6, auto);
+  grid-template-columns: repeat(6, 65px); /* 🔒 fixed slot width */
   gap: 6px;
 
   justify-content: start;
   align-items: center;
 
-  min-height: 24px; /* 🔒 reserve vertical space */
-
-  /* 🟢 DEBUG */
-  /* border: 2px dashed #22c55e; */
+  min-height: 24px; /* reserve vertical space */
 }
 
 /* ================= PILL ================= */
@@ -34,9 +29,13 @@
 
   border-radius: 5px;
   white-space: nowrap;
+  text-align: center;
 
   cursor: help;
   border: 1px solid transparent;
+
+  width: 100%; /* 🔒 fill grid slot */
+  box-sizing: border-box;
 }
 
 /* ================= BUFF ================= */

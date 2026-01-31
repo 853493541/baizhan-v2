@@ -49,13 +49,10 @@ export default function StatusBar({
   const debuffs = resolved.filter(b => b.category !== "BUFF");
 
   return (
-    <div className={styles.statusBar} data-label="StatusBar">
+    <div className={styles.statusBar}>
 
-      {/* Buff Row (always rendered) */}
-      <div
-        className={styles.statusRow}
-        data-label="Buff Row"
-      >
+      {/* Buff Row – always rendered */}
+      <div className={styles.statusRow}>
         {buffs.slice(0, 6).map((b, i) => (
           <div
             key={`buff-${i}`}
@@ -67,11 +64,8 @@ export default function StatusBar({
         ))}
       </div>
 
-      {/* Debuff Row (always rendered) */}
-      <div
-        className={styles.statusRow}
-        data-label="Debuff Row"
-      >
+      {/* Debuff Row – always rendered */}
+      <div className={styles.statusRow}>
         {debuffs.slice(0, 6).map((b, i) => (
           <div
             key={`debuff-${i}`}
