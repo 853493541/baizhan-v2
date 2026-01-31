@@ -97,3 +97,63 @@ export interface GameResponse {
   players: string[];
   state: GameState;
 }
+/* =========================================================
+   Public Game Events (Action History)
+========================================================= */
+
+export type GameEventType =
+  | "PLAY_CARD"
+  | "DAMAGE"
+  | "HEAL"
+  | "STATUS_APPLIED"
+  | "END_TURN";
+
+/**
+ * Public, authoritative game event.
+ * Must NOT contain hidden information (e.g. opponent hand).
+ */
+export interface GameEvent {
+  id: string;
+
+  /** Turn when this event happened */
+  turn: number;
+
+  /** Event semantic type */
+  type: GameEventType;
+
+  /** Who caused the event */
+  actorUserId: string;
+
+  /** Who received the effect (if applicable) */
+  targetUserId?: string;
+
+  /** Card info (only for visible actions) */
+  cardId?: string;
+  cardName?: string;
+
+  /** Numeric value (damage / heal) */
+  value?: number;
+
+  /** Status applied (if any) */
+  statusType?: string;
+
+  /** For ordering / animation */
+  timestamp: number;
+}
+export interface GameState {
+  /** Global turn counter */
+  turn: number;
+
+  /** Whose turn it is */
+  activePlayerIndex: number;
+
+  deck: CardInstance[];
+  discard: CardInstance[];
+
+  gameOver: boolean;
+
+  players: PlayerState[];
+
+  /** ✅ Public action history */
+  events: GameEvent[];
+}

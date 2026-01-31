@@ -1,4 +1,13 @@
-import { GameState, Card, Status } from "./types";
+import { randomUUID } from "crypto";
+import { GameState, Card, Status, GameEvent } from "./types";
+
+function pushEvent(state: GameState, e: Omit<GameEvent, "id" | "timestamp">) {
+  state.events.push({
+    id: randomUUID(),
+    timestamp: Date.now(),
+    ...e,
+  });
+}
 
 export function applyEffects(
   state: GameState,
@@ -13,8 +22,8 @@ export function applyEffects(
   const statusTarget = card.target === "SELF" ? source : target;
 
   // Break statuses that end when playing a card
-  source.statuses = source.statuses.filter(s => !s.breakOnPlay);
-  target.statuses = target.statuses.filter(s => !s.breakOnPlay);
+  source.statuses = source.statuses.filter((s) => !s.breakOnPlay);
+  target.statuses = target.statuses.filter((s) => !s.breakOnPlay);
 
   for (const effect of card.effects) {
     switch (effect.type) {
@@ -22,26 +31,56 @@ export function applyEffects(
         let damage = effect.value ?? 0;
 
         const dmgBoost = source.statuses.find(
-          s => s.type === "DAMAGE_MULTIPLIER"
+          (s) => s.type === "DAMAGE_MULTIPLIER"
         );
         if (dmgBoost) damage *= dmgBoost.value ?? 1;
 
-        const dr = target.statuses.find(
-          s => s.type === "DAMAGE_REDUCTION"
-        );
+        const dr = target.statuses.find((s) => s.type === "DAMAGE_REDUCTION");
         if (dr) damage *= 1 - (dr.value ?? 0);
 
-        target.hp = Math.max(0, target.hp - Math.floor(damage));
+        const finalDamage = Math.floor(damage);
+        target.hp = Math.max(0, target.hp - finalDamage);
+
+        // ✅ public event: damage happened
+        if (finalDamage !== 0) {
+          pushEvent(state, {
+            turn: state.turn,
+            type: "DAMAGE",
+            actorUserId: source.userId,
+            targetUserId: target.userId,
+            cardId: card.id,
+            cardName: card.name,
+            effectType: "DAMAGE",
+            value: finalDamage,
+          });
+        }
         break;
       }
 
       case "HEAL": {
         let heal = effect.value ?? 0;
-        const hr = source.statuses.find(
-          s => s.type === "HEAL_REDUCTION"
-        );
+
+        const hr = source.statuses.find((s) => s.type === "HEAL_REDUCTION");
         if (hr) heal *= 1 - (hr.value ?? 0);
-        source.hp = Math.min(100, source.hp + Math.floor(heal));
+
+        const finalHeal = Math.floor(heal);
+        const before = source.hp;
+        source.hp = Math.min(100, source.hp + finalHeal);
+        const appliedHeal = Math.max(0, source.hp - before);
+
+        // ✅ public event: heal happened
+        if (appliedHeal !== 0) {
+          pushEvent(state, {
+            turn: state.turn,
+            type: "HEAL",
+            actorUserId: source.userId,
+            targetUserId: source.userId,
+            cardId: card.id,
+            cardName: card.name,
+            effectType: "HEAL",
+            value: appliedHeal,
+          });
+        }
         break;
       }
 
@@ -50,13 +89,12 @@ export function applyEffects(
           const cardDrawn = state.deck.shift();
           if (cardDrawn) source.hand.push(cardDrawn);
         }
+        // ❌ NO EVENT: draw is private information
         break;
 
       case "CLEANSE":
-        source.statuses = source.statuses.filter(
-          s =>
-            !["CONTROL"].includes(s.type)
-        );
+        source.statuses = source.statuses.filter((s) => !["CONTROL"].includes(s.type));
+        // (optional) cleanse event can be added later if you want
         break;
 
       default: {
@@ -72,11 +110,25 @@ export function applyEffects(
           breakOnPlay: effect.breakOnPlay,
 
           sourceCardId: card.id,
-  sourceCardName: card.name,
-
+          sourceCardName: card.name,
         };
 
         statusTarget.statuses.push(status);
+
+        // ✅ public event: status applied (publicly observable)
+        pushEvent(state, {
+          turn: state.turn,
+          type: "STATUS_APPLIED",
+          actorUserId: source.userId,
+          targetUserId: statusTarget.userId,
+          cardId: card.id,
+          cardName: card.name,
+          statusType: status.type,
+          effectType: status.type,
+          value: status.value,
+          appliedAtTurn: status.appliedAtTurn,
+          expiresAtTurn: status.expiresAtTurn,
+        });
       }
     }
   }
@@ -88,9 +140,7 @@ function checkEndGame(state: GameState) {
   for (const player of state.players) {
     if (player.hp <= 0) {
       state.gameOver = true;
-      const winner = state.players.find(
-        p => p.userId !== player.userId
-      );
+      const winner = state.players.find((p) => p.userId !== player.userId);
       state.winnerUserId = winner?.userId;
       return;
     }

@@ -5,7 +5,7 @@ import { CARDS } from "../cards/cards";
 import { applyEffects } from "../engine/applyEffects";
 import { resolveTurnEnd } from "../engine/turnResolver";
 import { validatePlayCard } from "../engine/validateAction";
-import { GameState, CardInstance } from "../engine/types";
+import { GameState, CardInstance, GameEvent } from "../engine/types";
 import { randomUUID } from "crypto";
 
 /* =========================================================
@@ -88,6 +88,16 @@ function autoDrawAtTurnStart(state: GameState) {
   if (state.deck.length === 0) return;
 
   draw(state, state.activePlayerIndex, 1);
+
+  // ❌ NO EVENT: draw is private information
+}
+
+function pushEvent(state: GameState, e: Omit<GameEvent, "id" | "timestamp">) {
+  state.events.push({
+    id: randomUUID(),
+    timestamp: Date.now(),
+    ...e,
+  });
 }
 
 /* =========================================================
@@ -104,6 +114,9 @@ export async function createGame(userId: string) {
     gameOver: false,
     winnerUserId: undefined,
     players: [{ userId, hp: 100, hand: [], statuses: [] }],
+
+    // ✅ public history log
+    events: [],
   };
 
   draw(state, 0, 6);
@@ -161,6 +174,9 @@ export async function startGame(gameId: string, userId: string) {
       { userId: game.players[0], hp: 100, hand: [], statuses: [] },
       { userId: game.players[1], hp: 100, hand: [], statuses: [] },
     ],
+
+    // ✅ public history log
+    events: [],
   };
 
   draw(state, 0, 6);
@@ -197,20 +213,20 @@ export async function playCard(
   if (!game.state) throw new Error("Game not started");
 
   const state = game.state as GameState;
+
+  // ✅ Backward safety: if older games existed without events
+  if (!state.events) state.events = [];
+
   if (state.gameOver) throw new Error("ERR_GAME_OVER");
 
-  const playerIndex = state.players.findIndex(
-    p => p.userId === userId
-  );
+  const playerIndex = state.players.findIndex((p) => p.userId === userId);
   if (playerIndex === -1) throw new Error("ERR_PLAYER_NOT_IN_GAME");
 
   // ✅ validate WITHOUT target
   validatePlayCard(state, playerIndex, cardInstanceId);
 
   const player = state.players[playerIndex];
-  const idx = player.hand.findIndex(
-    c => c.instanceId === cardInstanceId
-  );
+  const idx = player.hand.findIndex((c) => c.instanceId === cardInstanceId);
   if (idx === -1) throw new Error("ERR_CARD_NOT_IN_HAND");
 
   const [played] = player.hand.splice(idx, 1);
@@ -221,11 +237,7 @@ export async function playCard(
   // TARGET RESOLUTION (AUTHORITATIVE)
   // ===============================
   const targetIndex =
-    card.target === "SELF"
-      ? playerIndex
-      : playerIndex === 0
-      ? 1
-      : 0;
+    card.target === "SELF" ? playerIndex : playerIndex === 0 ? 1 : 0;
 
   const source = state.players[playerIndex];
   const target = state.players[targetIndex];
@@ -235,13 +247,21 @@ export async function playCard(
   // ===============================
   const isSelfTarget = playerIndex === targetIndex;
 
-  const targetUntargetable = target.statuses.some(
-    s => s.type === "UNTARGETABLE"
-  );
+  const targetUntargetable = target.statuses.some((s) => s.type === "UNTARGETABLE");
 
   if (targetUntargetable && !isSelfTarget) {
     throw new Error("ERR_TARGET_UNTARGETABLE");
   }
+
+  // ✅ public event: card played (opponent should see which card was played)
+  pushEvent(state, {
+    turn: state.turn,
+    type: "PLAY_CARD",
+    actorUserId: source.userId,
+    targetUserId: target.userId,
+    cardId: card.id,
+    cardName: card.name,
+  });
 
   // ===============================
   // APPLY EFFECTS
@@ -266,14 +286,23 @@ export async function passTurn(gameId: string, userId: string) {
   if (!game.state) throw new Error("Game not started");
 
   const state = game.state as GameState;
+
+  // ✅ Backward safety: if older games existed without events
+  if (!state.events) state.events = [];
+
   if (state.gameOver) throw new Error("ERR_GAME_OVER");
 
-  const playerIndex = state.players.findIndex(
-    p => p.userId === userId
-  );
+  const playerIndex = state.players.findIndex((p) => p.userId === userId);
   if (state.activePlayerIndex !== playerIndex) {
     throw new Error("ERR_NOT_YOUR_TURN");
   }
+
+  // ✅ public event: end turn
+  pushEvent(state, {
+    turn: state.turn,
+    type: "END_TURN",
+    actorUserId: userId,
+  });
 
   resolveTurnEnd(state);
   autoDrawAtTurnStart(state);

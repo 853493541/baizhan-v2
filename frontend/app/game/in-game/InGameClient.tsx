@@ -34,12 +34,33 @@ type PlayerState = {
   statuses: Status[];
 };
 
+type GameEvent = {
+  id: string;
+  turn: number;
+  type:
+    | "PLAY_CARD"
+    | "DAMAGE"
+    | "HEAL"
+    | "STATUS_APPLIED"
+    | "END_TURN";
+  actorUserId: string;
+  targetUserId?: string;
+  cardId?: string;
+  cardName?: string;
+  value?: number;
+  statusType?: string;
+  timestamp: number;
+};
+
 type GameState = {
   players: PlayerState[];
   activePlayerIndex: number;
   turn: number;
   gameOver: boolean;
   winnerUserId?: string;
+
+  /** ✅ FIX: include events */
+  events: GameEvent[];
 };
 
 type Props = {
@@ -68,31 +89,24 @@ function showGameError(rawCode: string) {
     case "ERR_NOT_YOUR_TURN":
       toastError("还没轮到你");
       break;
-
     case "ERR_SILENCED":
       toastError("你被沉默，无法出牌");
       break;
-
     case "ERR_CONTROLLED":
       toastError("你被控制，无法出牌");
       break;
-
     case "ERR_TARGET_UNTARGETABLE":
       toastError("目标无法选中");
       break;
-
     case "ERR_CARD_NOT_IN_HAND":
       toastError("这张牌不在你的手牌中");
       break;
-
     case "ERR_GAME_OVER":
       toastError("对局已经结束");
       break;
-
     case "ERR_NOT_AUTHENTICATED":
       toastError("登录状态失效，请重新进入");
       break;
-
     default:
       toastError("操作无法执行");
   }
@@ -135,7 +149,7 @@ export default function InGameClient({
   const players = state.players;
 
   const meIndex = players.findIndex(
-    p => p.userId === selfUserId
+    (p) => p.userId === selfUserId
   );
   const opponentIndex = meIndex === 0 ? 1 : 0;
 
@@ -211,6 +225,7 @@ export default function InGameClient({
       <GameBoard
         me={me}
         opponent={opponent}
+        events={state.events}   
         isMyTurn={isMyTurn}
         onPlayCard={playCard}
         currentTurn={state.turn}

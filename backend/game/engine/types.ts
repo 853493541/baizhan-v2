@@ -56,12 +56,57 @@ export interface CardInstance {
   cardId: string;
 }
 
+/** ===============================
+ *  Public game event (history log)
+ *  - Must NOT leak hidden info (e.g. opponent hand)
+ *  - OK to show: played card, damage/heal, status applied
+ * =============================== */
+export type GameEventType =
+  | "PLAY_CARD"
+  | "END_TURN"
+  | "DAMAGE"
+  | "HEAL"
+  | "STATUS_APPLIED";
+
+export interface GameEvent {
+  /** unique event id */
+  id: string;
+
+  /** turn number when event occurred */
+  turn: number;
+
+  /** event type */
+  type: GameEventType;
+
+  /** who caused the event (public) */
+  actorUserId: PlayerID;
+
+  /** who received the effect / target (public if applicable) */
+  targetUserId?: PlayerID;
+
+  /** card info (public only when played / source of status) */
+  cardId?: string;
+  cardName?: string;
+
+  /** effect info */
+  effectType?: EffectType;
+  value?: number;
+
+  /** status info */
+  statusType?: EffectType;
+  appliedAtTurn?: number;
+  expiresAtTurn?: number;
+
+  /** timestamp for UI ordering */
+  timestamp: number;
+}
+
 export interface Status {
   type: EffectType;
   value?: number;
 
   /** who created this status (for name/icon in frontend) */
-   /** Which card applied this status */
+  /** Which card applied this status */
   sourceCardId?: string;
   sourceCardName?: string;
 
@@ -90,4 +135,7 @@ export interface GameState {
   activePlayerIndex: number;
   gameOver: boolean;
   winnerUserId?: PlayerID;
+
+  /** ✅ public action history */
+  events: GameEvent[];
 }

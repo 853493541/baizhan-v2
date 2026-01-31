@@ -5,33 +5,25 @@ import "./game-board.css";
 import Card from "./card";
 import StatusBar from "./statusBar";
 
-/* ================= TYPES ================= */
+import CurrentAction from "./CurrentAction";
+import ActionHistory from "./ActionHistory";
 
-type CardInstance = {
-  instanceId: string;
-  cardId: string;
-};
+/* ✅ USE SHARED TYPES — NO LOCAL DUPLICATES */
+import type {
+  CardInstance,
+  PlayerState,
+  GameEvent,
+} from "@/app/game/in-game/types";
 
-type Status = {
-  type: string;
-  value?: number;
-  chance?: number;
-  repeatTurns?: number;
-  sourceCardId?: string;
-  appliedAtTurn: number;
-  expiresAtTurn: number;
-};
-
-type PlayerState = {
-  userId: string;
-  hp: number;
-  hand: CardInstance[];
-  statuses: Status[];
-};
+/* ================= PROPS ================= */
 
 type Props = {
   me: PlayerState;
   opponent: PlayerState;
+
+  /** ✅ MUST be the shared GameEvent[] */
+  events: GameEvent[];
+
   isMyTurn: boolean;
   onPlayCard: (card: CardInstance) => void;
   onEndTurn: () => void;
@@ -45,6 +37,7 @@ const MAX_HP = 100;
 export default function GameBoard({
   me,
   opponent,
+  events,
   isMyTurn,
   onPlayCard,
   onEndTurn,
@@ -55,6 +48,8 @@ export default function GameBoard({
 
   const [myDelta, setMyDelta] = useState<number | null>(null);
   const [enemyDelta, setEnemyDelta] = useState<number | null>(null);
+
+  /* ================= HP CHANGE ANIMATION ================= */
 
   useEffect(() => {
     const diff = me.hp - prevMyHp.current;
@@ -91,7 +86,11 @@ export default function GameBoard({
             <span className="hp-text">{opponent.hp}</span>
 
             {enemyDelta !== null && (
-              <span className={`hp-delta ${enemyDelta > 0 ? "heal" : "damage"}`}>
+              <span
+                className={`hp-delta ${
+                  enemyDelta > 0 ? "heal" : "damage"
+                }`}
+              >
                 {enemyDelta > 0 ? `+${enemyDelta}` : enemyDelta}
               </span>
             )}
@@ -115,6 +114,12 @@ export default function GameBoard({
           </div>
         </div>
 
+        {/* ================= CURRENT ACTION ================= */}
+        <CurrentAction
+          events={events}
+          myUserId={me.userId}
+        />
+
         {/* ================= TURN BAR ================= */}
         <div className="turn-bar">
           <span className="turn-text">
@@ -129,6 +134,12 @@ export default function GameBoard({
             结束回合
           </button>
         </div>
+
+        {/* ================= ACTION HISTORY ================= */}
+        <ActionHistory
+          events={events}
+          myUserId={me.userId}
+        />
 
         {/* ================= PLAYER HALF ================= */}
         <div className="half player-half">
@@ -148,14 +159,18 @@ export default function GameBoard({
             <span className="hp-text">{me.hp}</span>
 
             {myDelta !== null && (
-              <span className={`hp-delta ${myDelta > 0 ? "heal" : "damage"}`}>
+              <span
+                className={`hp-delta ${
+                  myDelta > 0 ? "heal" : "damage"
+                }`}
+              >
                 {myDelta > 0 ? `+${myDelta}` : myDelta}
               </span>
             )}
           </div>
 
           <div className="hand-zone">
-            {me.hand.map(card => (
+            {me.hand.map((card) => (
               <Card
                 key={card.instanceId}
                 cardId={card.cardId}
