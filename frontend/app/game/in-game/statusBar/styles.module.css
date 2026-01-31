@@ -172,3 +172,66 @@
     opacity: 1;
   }
 }
+/* ================= 📱 PHONE STATUS BAR ================= */
+@media (max-width: 768px) {
+
+  .statusBar {
+    gap: 3px;
+  }
+
+  .statusRow {
+    grid-template-columns: repeat(5, 56px); /* tighter slots */
+    gap: 4px;
+    min-height: 22px;
+  }
+
+  .statusPill {
+    padding: 3px 6px;
+    font-size: 11px;
+    border-radius: 4px;
+  }
+
+  .turnBadge {
+    top: -5px;
+    right: -5px;
+
+    min-width: 14px;
+    height: 14px;
+    line-height: 14px;
+    font-size: 9px;
+  }
+}
+
+/* ================= 📱 VERY SMALL PHONE ================= */
+@media (max-width: 420px) {
+
+  .statusRow {
+    grid-template-columns: repeat(4, 54px); /* prevent overflow */
+  }
+
+  .statusPill {
+    font-size: 10px;
+  }
+}
+/* ================= 📱 PHONE — SLOWER END-OF-TURN PULSE ================= */
+@media (max-width: 768px) {
+  .lastTurn {
+    animation: endTurnSoftPulse 3.6s ease-in-out infinite;
+  }
+
+  .lastTurn .turnBadge {
+    animation: endTurnSoftPulse 3.6s ease-in-out infinite;
+  }
+
+  @keyframes endTurnSoftPulse {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.82; /* ultra subtle on phone */
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+}

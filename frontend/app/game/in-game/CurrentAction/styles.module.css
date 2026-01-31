@@ -77,3 +77,56 @@
   opacity: 0.35;
   transform: scale(0.92);
 }
+/* ================= 📱 PHONE — ARENA TUNING ================= */
+@media (max-width: 768px) {
+
+  .arena {
+    height: 260px;           /* less vertical dominance on phone */
+    --card-shift: 105px;     /* tighter horizontal spacing */
+  }
+
+  .cardWrap {
+    transition:
+      transform 200ms ease-out,
+      opacity 200ms ease-out,
+      filter 200ms ease-out;
+  }
+
+  /* soften glow on small screens */
+  .me {
+    filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.35));
+  }
+
+  .enemy {
+    filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.35));
+  }
+
+  /* shorter vertical travel to avoid jumpy feel */
+  @keyframes slideUp {
+    from {
+      transform: translateY(32px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideDown {
+    from {
+      transform: translateY(-32px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  /* 4th card even more subtle on phone */
+  .fadeOut {
+    opacity: 0.28;
+    transform: scale(0.9);
+  }
+}

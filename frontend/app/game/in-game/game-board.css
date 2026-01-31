@@ -104,3 +104,24 @@
     width: 160px;
   }
 }
+@media (max-width: 768px) {
+  .hand {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 8px 12px;
+
+    scroll-snap-type: x mandatory;
+  }
+
+  .card {
+    scroll-snap-align: center;
+    min-width: 90px; /* slightly bigger than desktop */
+  }
+
+  .endturn-overlay {
+ right: 3px;
+  top: 50%;
+
+}
+}
