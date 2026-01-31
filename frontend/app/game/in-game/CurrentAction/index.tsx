@@ -41,7 +41,7 @@ export default function CurrentAction({
       if (prev[0]?.id === last.id) return prev;
 
       // desktop keeps 4, phone keeps only 1
-      const limit = isPhone ? 1 : 4;
+      const limit = isPhone ? 1 : 3;
       return [last, ...prev].slice(0, limit);
     });
   }, [events, isPhone]);
@@ -63,7 +63,7 @@ export default function CurrentAction({
                 (isMe
                   ? styles.enterFromBottom
                   : styles.enterFromTop),
-              !isPhone && idx === 3 && styles.fadeOut,
+              !isPhone && idx === 2 && styles.fadeOut,
             ]
               .filter(Boolean)
               .join(" ")}

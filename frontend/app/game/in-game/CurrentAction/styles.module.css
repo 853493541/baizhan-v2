@@ -2,7 +2,7 @@
 
 .arena {
   /* 🔑 module-safe variable */
-  --card-shift: 135px;
+  --card-shift: 155px;
 
   position: relative;
   width: 100%;

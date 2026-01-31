@@ -13,12 +13,24 @@ export default function HealthBar({ hp, maxHp, side }: Props) {
   const prevHp = useRef(hp);
   const [delta, setDelta] = useState<number | null>(null);
 
+  /* ================= HYBRID DELTA LOGIC =================
+     - Shows delta immediately on HP change
+     - Replaces old delta if another change happens
+     - Auto-clears after timeout if no further change
+  ======================================================= */
+
   useEffect(() => {
     const diff = hp - prevHp.current;
     if (diff !== 0) {
       setDelta(diff);
-      setTimeout(() => setDelta(null), 800);
+
+      const timer = setTimeout(() => {
+        setDelta(null);
+      }, 1400); // ⏱️ hybrid persistence window
+
       prevHp.current = hp;
+
+      return () => clearTimeout(timer);
     }
   }, [hp]);
 

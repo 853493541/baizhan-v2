@@ -83,7 +83,8 @@ export default function Card({
       ]
         .filter(Boolean)
         .join(" ")}
-      onClick={isClickable ? onClick : undefined}
+      // ✅ capture phase click so desc scroll area can't swallow it
+      onClickCapture={isClickable ? onClick : undefined}
     >
       <div className={styles.icon}>
         {iconSrc ? (

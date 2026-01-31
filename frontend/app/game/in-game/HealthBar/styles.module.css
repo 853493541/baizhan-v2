@@ -53,7 +53,7 @@
   top: -10px;
   font-weight: 700;
   font-size: 14px;
-  animation: floatUp 0.8s ease-out forwards;
+  animation: floatUp 1.4s ease-out forwards;
 }
 
 .heal {
@@ -70,59 +70,19 @@
   100% { opacity: 0; transform: translateY(-14px); }
 }
 
-/* mobile */
+/* ================= MOBILE ================= */
+
 @media (max-width: 768px) {
   .hpBar {
     width: 280px;
     font-size: 13px;
+    gap: 6px;
   }
 
   .hpText {
     text-shadow: 0 1px 2px rgba(0,0,0,0.6);
   }
 
-  .hpDelta {
-    font-size: 13px;
-    right: 4px;
-    top: -8px;
-  }
-}
-/* ================= 📱 PHONE TUNING ================= */
-@media (max-width: 768px) {
-
-  .enemyHalf {
-    padding-top: 6px;      /* tighter top anchor */
-    gap: 4px;
-  }
-
-  .section {
-    transform: scale(0.9); /* shrink HP + status together */
-    transform-origin: top center;
-  }
-
-  .opponentHand {
-    transform: scale(0.85);
-    margin-top: 2px;
-    opacity: 0.85;
-  }
-
-}
-/* ================= 📱 PHONE HP BAR TUNING ================= */
-@media (max-width: 768px) {
-
-  /* tighter vertical rhythm */
-  .hpBar {
-    width: 280px;          /* keep math-safe width */
-    gap: 6px;
-    font-size: 13px;
-  }
-
-  /* thinner bar for compact feel */
-  .hpTrack {
-    height: 8px;
-  }
-
-  /* delta less intrusive */
   .hpDelta {
     font-size: 12px;
     opacity: 0.85;
@@ -130,13 +90,13 @@
     top: -8px;
   }
 
-  /* subtle shadow for readability */
-  .hpText {
-    text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  .hpTrack {
+    height: 8px;
   }
 }
 
-/* ================= 📱 VERY SMALL PHONE ================= */
+/* ================= VERY SMALL PHONE ================= */
+
 @media (max-width: 420px) {
   .hpBar {
     width: 250px;

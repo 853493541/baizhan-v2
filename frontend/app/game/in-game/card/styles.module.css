@@ -26,8 +26,8 @@
 
 /* Medium — arena / current action */
 .arena {
-  width: 130px;
-  min-height: 170px;
+  width: 150px;
+  min-height: 200px;
 }
 
 /* Large — history hover / pinned */
@@ -113,17 +113,21 @@
   white-space: pre-line;
   word-break: break-word;
 
-  max-height: 64px;
-  min-height: 64px;
+  max-height: 80px;
+  min-height: 80px;
 
   display: flex;
-  align-items: center;      /* vertical centering */
+  align-items: center;
   justify-content: center;
 
-  overflow: hidden;         /* scrolling handled by inner */
+  overflow: hidden;
+
+  /* 🔑 allow click-through */
+  pointer-events: none;
+  /* border:red 2px solid; */
 }
 
-/* ================= DESC (INNER — SCROLLABLE) ================= */
+/* ================= DESC (INNER — SCROLLABLE TEXT ONLY) ================= */
 
 .descInner {
   max-height: 100%;
@@ -131,6 +135,9 @@
   overscroll-behavior: contain;
 
   padding: 2px 2px;
+
+  /* 🔑 scrolling allowed without blocking card click */
+  pointer-events: auto;
 }
 
 .preview .desc {
@@ -176,8 +183,8 @@
   }
 
   .arena {
-    width: 100px;
-    min-height: 140px;
+    width: 120px;
+    min-height: 160px;
   }
 
   .preview {
@@ -191,7 +198,7 @@
 
   .desc {
     font-size: 11px;
-    max-height: 48px;
-    min-height: 48px;
+    max-height: 80px;
+    min-height: 80px;
   }
 }
