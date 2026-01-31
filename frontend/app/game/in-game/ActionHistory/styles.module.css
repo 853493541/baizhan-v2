@@ -1,10 +1,17 @@
-/* ================= ROOT ================= */
+/* ================= CONTAINER ================= */
+
+.historyContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* ================= HISTORY BAR ================= */
 
 .wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
 
   width: 60px;
   height: calc(10 * 42px + 9 * 6px);
@@ -28,16 +35,16 @@
 .row {
   width: 40px;
   height: 40px;
-
   padding: 2px;
-  border-radius: 7px;
 
+  border-radius: 7px;
   background: rgba(255, 255, 255, 0.03);
 
   display: flex;
   align-items: center;
   justify-content: center;
 
+  cursor: default;
   will-change: transform, opacity;
 }
 
@@ -74,9 +81,33 @@
   background: rgba(255, 255, 255, 0.02);
 }
 
+/* ================= PREVIEW ================= */
+
+.preview {
+  position: absolute;
+  left: 72px; /* right side of history bar */
+  top: 50%;
+  transform: translateY(-50%);
+
+  pointer-events: none; /* hover stays on history */
+  z-index: 50;
+
+  animation: previewFadeIn 120ms ease-out;
+}
+
+@keyframes previewFadeIn {
+  from {
+    opacity: 0;
+    transform: translate(6px, -50%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, -50%);
+  }
+}
+
 /* ================= ANIMATIONS ================= */
 
-/* NEW icon slides in from RIGHT */
 .newItem {
   animation: slideInFromRight 220ms ease-out;
 }

@@ -3,9 +3,8 @@
 import styles from "./styles.module.css";
 import { CARD_DESC_MAP } from "./cardDescriptions";
 
-/* ===============================
-   Card Name Map (display only)
-=============================== */
+/* ================= CARD NAME MAP ================= */
+
 const CARD_NAME_MAP: Record<string, string> = {
   jianpo_xukong: "剑破虚空",
   sanhuan_taoyue: "三环套月",
@@ -24,9 +23,8 @@ const CARD_NAME_MAP: Record<string, string> = {
   nuwa_butian: "女娲补天",
 };
 
-/* ===============================
-   Card Icon Map
-=============================== */
+/* ================= ICON MAP ================= */
+
 const CARD_ICON_MAP: Record<string, string> = {
   jianpo_xukong: "剑破虚空.png",
   sanhuan_taoyue: "三环套月.png",
@@ -51,21 +49,41 @@ function getCardIcon(cardId: string) {
   return `/game/icons/Skills/${file}`;
 }
 
+/* ================= TYPES ================= */
+
+type CardVariant = "hand" | "arena" | "preview" | "disabled";
+
 type Props = {
   cardId: string;
-  disabled?: boolean;
+  variant?: CardVariant;
   onClick?: () => void;
 };
 
-export default function Card({ cardId, disabled, onClick }: Props) {
+/* ================= COMPONENT ================= */
+
+export default function Card({
+  cardId,
+  variant = "hand",
+  onClick,
+}: Props) {
   const name = CARD_NAME_MAP[cardId] ?? cardId;
   const desc = CARD_DESC_MAP[cardId] ?? "暂无描述";
   const iconSrc = getCardIcon(cardId);
 
+  const isClickable = variant === "hand";
+  const isDisabled = variant === "disabled";
+
   return (
     <div
-      className={`${styles.card} ${disabled ? styles.disabled : ""}`}
-      onClick={!disabled ? onClick : undefined}
+      className={[
+        styles.card,
+        styles[variant],
+        isClickable && styles.clickable,
+        isDisabled && styles.disabled,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      onClick={isClickable ? onClick : undefined}
     >
       <div className={styles.icon}>
         {iconSrc ? (
