@@ -1,6 +1,7 @@
 "use client";
 
-import styles from "../styles.module.css";
+import { useLayoutEffect, useRef, useState } from "react";
+import styles from "./styles.module.css";
 
 type Props = {
   name: string;
@@ -18,42 +19,56 @@ export default function StatusHint({
   sourceCardName,
 }: Props) {
   /* =========================================================
-     POSITIONING RULES
-     - Prefer TOP-RIGHT of the hovered pill
-     - Keep on screen (clamp)
+     RE-ANCHOR STRATEGY (NO MAGIC NUMBERS)
+     - Measure actual hint size after render
+     - Prefer TOP-RIGHT of pill
+     - Flip / clamp if needed
   ========================================================= */
 
-  const GAP = 8;                 // space from pill
-  const EST_WIDTH = 260;         // hint width (phone-safe estimate)
-  const EST_HEIGHT = 160;        // hint height estimate
+  const hintRef = useRef<HTMLDivElement | null>(null);
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
 
-  let top = anchorRect.top - EST_HEIGHT - GAP;
-  let left = anchorRect.right + GAP;
+  useLayoutEffect(() => {
+    if (!hintRef.current) return;
 
-  /* If not enough space above → place below */
-  if (top < 8) {
-    top = anchorRect.bottom + GAP;
-  }
+    const rect = hintRef.current.getBoundingClientRect();
+    const GAP = 8;
 
-  /* Clamp horizontally */
-  const maxLeft = window.innerWidth - EST_WIDTH - 8;
-  left = Math.min(Math.max(8, left), maxLeft);
+    let top = anchorRect.top - rect.height - GAP;
+    let left = anchorRect.right + GAP;
 
-  /* Clamp vertically */
-  const maxTop = window.innerHeight - EST_HEIGHT - 8;
-  top = Math.min(Math.max(8, top), maxTop);
+    /* not enough space above → place below */
+    if (top < GAP) {
+      top = anchorRect.bottom + GAP;
+    }
+
+    /* clamp horizontally */
+    const maxLeft = window.innerWidth - rect.width - GAP;
+    left = Math.min(Math.max(GAP, left), maxLeft);
+
+    /* clamp vertically */
+    const maxTop = window.innerHeight - rect.height - GAP;
+    top = Math.min(Math.max(GAP, top), maxTop);
+
+    setPos({ top, left });
+  }, [anchorRect, name, remainingTurns, sourceCardName, description]);
 
   return (
     <div
+      ref={hintRef}
       key={`${name}-${remainingTurns}-${anchorRect.top}-${anchorRect.left}`}
       className={styles.statusHint}
-      style={{ top, left }}
+      style={pos ? { top: pos.top, left: pos.left } : { visibility: "hidden" }}
     >
+      {/* HEADER: NAME + SOURCE */}
       <div className={styles.hintHeader}>
         <div className={styles.hintName}>{name}</div>
-        <div className={styles.hintTurnsPlain}>
-          剩余回合：{Math.max(1, remainingTurns)}
-        </div>
+
+        {sourceCardName && (
+          <div className={styles.hintSourceInline}>
+            来源：{sourceCardName}
+          </div>
+        )}
       </div>
 
       <div className={styles.hintDivider} />
@@ -64,11 +79,10 @@ export default function StatusHint({
 
       <div className={styles.hintDivider} />
 
-      {sourceCardName && (
-        <div className={styles.hintSource}>
-          来源：{sourceCardName}
-        </div>
-      )}
+      {/* FOOTER: REMAINING TURNS */}
+      <div className={styles.hintTurnsFooter}>
+        剩余回合：{Math.max(1, remainingTurns)}
+      </div>
     </div>
   );
 }

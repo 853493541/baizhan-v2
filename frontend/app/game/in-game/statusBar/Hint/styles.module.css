@@ -1,13 +1,15 @@
-/* ================= STATUS HINT ================= */
+/* =========================================================
+   STATUS HINT (DESKTOP DEFAULT)
+========================================================= */
 .statusHint {
   position: fixed;
   z-index: 999;
 
-  width: 360px;
+  width: 300px;
   max-width: 380px;
-  min-height: 180px;
+  min-height: 150px;
 
-  padding: 20px 22px;
+  padding: 16px 22px 14px;
   border-radius: 18px;
 
   background: linear-gradient(180deg, #020617, #030712);
@@ -19,7 +21,7 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
 
   font-size: 14px;
-  line-height: 1.6;
+  line-height: 1.45;
 
   pointer-events: none;
 
@@ -27,37 +29,36 @@
   transform-origin: top left;
 }
 
-/* ================= HEADER ================= */
+/* =========================================================
+   HEADER
+========================================================= */
 .hintHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 6px;
 }
 
-/* title */
 .hintName {
   font-size: 19px;
   font-weight: 900;
   letter-spacing: 0.4px;
 }
 
-/* ✅ PLAIN TEXT — replaces pill */
-.hintTurnsPlain {
-  font-size: 13px;
-  font-weight: 700;
-  opacity: 0.85;
-
-  background: none;
-  border: none;
-  padding: 0;
-  border-radius: 0;
+/* SOURCE (top-right) */
+.hintSourceInline {
+  font-size: 12px;
+  opacity: 0.75;
+  white-space: nowrap;
+  text-align: right;
 }
 
-/* ================= DIVIDER ================= */
+/* =========================================================
+   DIVIDER
+========================================================= */
 .hintDivider {
   height: 1px;
-  margin: 16px 0;
-
+  margin: 10px 0;
   background: linear-gradient(
     to right,
     transparent,
@@ -66,22 +67,32 @@
   );
 }
 
-/* ================= DESCRIPTION ================= */
+/* =========================================================
+   DESCRIPTION
+========================================================= */
 .hintDesc {
   font-size: 15px;
   opacity: 0.96;
+  line-height: 1.45;
 }
 
-/* ================= SOURCE ================= */
-.hintSource {
+/* =========================================================
+   FOOTER — REMAINING TURNS
+========================================================= */
+.hintTurnsFooter {
+  margin-top: 6px;
   width: 100%;
   text-align: right;
-  font-size: 12px;
-  opacity: 0.75;
-  margin-top: 12px;
+  align-self: flex-end;
+
+  font-size: 13px;
+  font-weight: 700;
+  opacity: 0.85;
 }
 
-/* ================= ANIMATION ================= */
+/* =========================================================
+   ANIMATION
+========================================================= */
 @keyframes statusHintSlideIn {
   from {
     opacity: 0;
@@ -93,14 +104,15 @@
   }
 }
 
-/* ================= 📱 STATUS HINT — COMPACT PHONE SIZE ================= */
+/* =========================================================
+   📱 PHONE (≤ 768px)
+========================================================= */
 @media (max-width: 768px) {
   .statusHint {
-    width: 100px;
-    /* max-width: calc(100vw - 20px); */
+    width: 180px;
     min-height: 60px;
 
-    padding: 10px 12px;
+    padding: 8px 12px;
     border-radius: 12px;
 
     font-size: 11px;
@@ -111,21 +123,21 @@
     font-size: 14px;
   }
 
-  .hintTurnsPlain {
+  .hintSourceInline {
     font-size: 10px;
   }
 
   .hintDivider {
-    margin: 8px 0;
+    margin: 6px 0;
   }
 
   .hintDesc {
     font-size: 11px;
+    line-height: 1.35;
   }
 
-  .hintSource {
+  .hintTurnsFooter {
+    margin-top: 4px;
     font-size: 10px;
-    margin-top: 6px;
   }
 }
-

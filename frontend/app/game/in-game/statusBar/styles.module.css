@@ -1,6 +1,4 @@
-/* =========================================================
-   STATUS BAR
-========================================================= */
+/* ================= STATUS BAR ================= */
 .statusBar {
   display: flex;
   flex-direction: column;
@@ -8,25 +6,21 @@
   align-items: flex-start;
 }
 
-/* =========================================================
-   STATUS ROW
-========================================================= */
+/* ================= STATUS ROW ================= */
 .statusRow {
   display: grid;
-  grid-template-columns: repeat(5, 70px);
+  grid-template-columns: repeat(5, 70px); /* fixed slots */
   gap: 6px;
+
   justify-content: start;
   align-items: center;
+
   min-height: 24px;
 }
 
-/* =========================================================
-   STATUS PILL
-========================================================= */
+/* ================= PILL ================= */
 .statusPill {
   position: relative;
-  width: 100%;
-  box-sizing: border-box;
 
   padding: 4px 10px;
   font-size: 12px;
@@ -36,12 +30,14 @@
   white-space: nowrap;
   text-align: center;
 
+  /* cursor: help; */
   border: 1px solid transparent;
+
+  width: 100%;
+  box-sizing: border-box;
 }
 
-/* =========================================================
-   TURN BADGE
-========================================================= */
+/* ================= TURN NUMBER ================= */
 .turnBadge {
   position: absolute;
   top: -6px;
@@ -58,31 +54,105 @@
 
   border-radius: 999px;
 
-  background: #020617;
+  /* 🔑 inherit pill visuals */
+  background: inherit;
   color: inherit;
-  border: 1px solid currentColor;
+  border: inherit;
 
   pointer-events: none;
 }
 
-/* =========================================================
-   BUFF / DEBUFF
-========================================================= */
+/* ================= BUFF ================= */
 .buff {
   background: rgba(34, 197, 94, 0.2);
   color: #86efac;
   border-color: rgba(34, 197, 94, 0.4);
 }
 
+/* ================= DEBUFF ================= */
 .debuff {
   background: rgba(239, 68, 68, 0.25);
   color: #fca5a5;
   border-color: rgba(239, 68, 68, 0.45);
 }
 
-/* =========================================================
-   LAST TURN PULSE
-========================================================= */
+/* ================= END-OF-TURN FADE ================= */
+.lastTurn {
+  animation: endTurnPulse 1.2s ease-in-out infinite;
+}
+
+/* applies to entire pill INCLUDING number */
+.lastTurn .turnBadge {
+  animation: endTurnPulse 1.2s ease-in-out infinite;
+}
+
+/* ================= ANIMATION ================= */
+@keyframes endTurnPulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+/* ================= TURN NUMBER ================= */
+.turnBadge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+
+  border-radius: 999px;
+
+  /* contrast without new color meaning */
+  background: #020617; /* neutral dark */
+  color: inherit;
+
+  border: 1px solid currentColor;
+
+  pointer-events: none;
+}
+
+/* ================= BUFF ================= */
+.buff {
+  background: rgba(34, 197, 94, 0.2);
+  color: #86efac;
+  border-color: rgba(34, 197, 94, 0.4);
+}
+
+/* ================= DEBUFF ================= */
+.debuff {
+  background: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.45);
+}
+
+/* ================= END-OF-TURN FADE ================= */
+.lastTurn {
+  animation: endTurnPulse 1.2s ease-in-out infinite;
+}
+
+.lastTurn .turnBadge {
+  animation: endTurnPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes endTurnPulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.45; }
+  100% { opacity: 1; }
+}
+/* ================= END-OF-TURN FADE (SUBTLE) ================= */
 .lastTurn {
   animation: endTurnSoftPulse 2.2s ease-in-out infinite;
 }
@@ -92,104 +162,17 @@
 }
 
 @keyframes endTurnSoftPulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.75; }
-  100% { opacity: 1; }
-}
-
-/* =========================================================
-   STATUS HINT (MODAL)
-========================================================= */
-.statusHint {
-  position: fixed;
-  z-index: 999;
-
-  width: 360px;
-  max-width: 380px;
-  min-height: 180px;
-
-  padding: 20px 22px;
-  border-radius: 18px;
-
-  background: linear-gradient(180deg, #020617, #030712);
-  color: #e5e7eb;
-
-  border: 1px solid #334155;
-  box-shadow:
-    0 26px 52px rgba(0, 0, 0, 0.7),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-
-  font-size: 14px;
-  line-height: 1.6;
-
-  pointer-events: none;
-
-  animation: statusHintSlideIn 0.22s cubic-bezier(0.22, 1, 0.36, 1);
-  transform-origin: top left;
-}
-
-/* =========================================================
-   HINT STRUCTURE
-========================================================= */
-.hintHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.hintName {
-  font-size: 19px;
-  font-weight: 900;
-  letter-spacing: 0.4px;
-}
-
-.hintTurnsPlain {
-  font-size: 13px;
-  font-weight: 700;
-  opacity: 0.85;
-}
-
-.hintDivider {
-  height: 1px;
-  margin: 16px 0;
-  background: linear-gradient(
-    to right,
-    transparent,
-    #334155,
-    transparent
-  );
-}
-
-.hintDesc {
-  font-size: 15px;
-  opacity: 0.96;
-}
-
-.hintSource {
-  width: 100%;
-  text-align: right;
-  font-size: 12px;
-  opacity: 0.75;
-  margin-top: 12px;
-}
-
-/* =========================================================
-   HINT ANIMATION
-========================================================= */
-@keyframes statusHintSlideIn {
-  from {
-    opacity: 0;
-    transform: translate(-12px, -16px) scale(0.96);
-  }
-  to {
+  0% {
     opacity: 1;
-    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    opacity: 0.75; /* 🔑 much gentler */
+  }
+  100% {
+    opacity: 1;
   }
 }
-
-/* =========================================================
-   📱 PHONE (≤ 768px)
-========================================================= */
+/* ================= 📱 PHONE STATUS BAR ================= */
 @media (max-width: 768px) {
 
   .statusBar {
@@ -197,7 +180,7 @@
   }
 
   .statusRow {
-    grid-template-columns: repeat(5, 56px);
+    grid-template-columns: repeat(5, 56px); /* tighter slots */
     gap: 4px;
     min-height: 22px;
   }
@@ -211,12 +194,27 @@
   .turnBadge {
     top: -5px;
     right: -5px;
-    width: 12px;
+
+    width: 10px;
     height: 12px;
-    line-height: 12px;
+    line-height: 10px;
     font-size: 8px;
   }
+}
 
+/* ================= 📱 VERY SMALL PHONE ================= */
+@media (max-width: 420px) {
+
+  .statusRow {
+    grid-template-columns: repeat(4, 40px); /* prevent overflow */
+  }
+
+  .statusPill {
+    font-size: 10px;
+  }
+}
+/* ================= 📱 PHONE — SLOWER END-OF-TURN PULSE ================= */
+@media (max-width: 768px) {
   .lastTurn {
     animation: endTurnSoftPulse 3.6s ease-in-out infinite;
   }
@@ -225,49 +223,88 @@
     animation: endTurnSoftPulse 3.6s ease-in-out infinite;
   }
 
-  .statusHint {
-    width: 250px;
-    min-height: 110px;
-    padding: 18px 20px;
-    font-size: 13px;
-  }
-
-  .hintName {
-    font-size: 16px;
-  }
-
-  .hintTurnsPlain {
-    font-size: 12px;
+  @keyframes endTurnSoftPulse {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.82; /* ultra subtle on phone */
+    }
+    100% {
+      opacity: 1;
+    }
   }
 }
+/* ================= STATUS HINT ================= */
+.statusHint {
+  position: fixed;
+  z-index: 999;
+
+  min-width: 180px;
+  max-width: 240px;
+
+  padding: 8px 10px;
+  border-radius: 10px;
+
+  background: #020617;
+  color: #e5e7eb;
+
+  border: 1px solid #334155;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.55);
+
+  font-size: 12px;
+  line-height: 1.35;
 
 
-/* ================= 📱 STATUS HINT — REDUCE HEIGHT (GAP TUNING) ================= */
+  pointer-events: none; /* 🔑 hover-only, no interaction */
+}
+
+/* ================= HINT HEADER ================= */
+.hintHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+/* ================= TITLE ================= */
+.hintTitle {
+  font-weight: 700;
+}
+
+/* ================= TURN BADGE (TOP RIGHT) ================= */
+.hintTurns {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
+
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+
+  border-radius: 999px;
+
+  background: #020617;
+  border: 1px solid #64748b;
+  color: #e5e7eb;
+}
+
+/* ================= DESCRIPTION ================= */
+.hintDesc {
+  opacity: 0.9;
+}
+
+/* ================= 📱 PHONE ================= */
 @media (max-width: 768px) {
-
-  /* tighten overall padding */
   .statusHint {
-    padding: 14px 16px;
-    line-height: 1.35;
+    max-width: 220px;
+    font-size: 11px;
   }
 
-  /* reduce header spacing */
-  .hintHeader {
-    margin-bottom: 6px;
-  }
-
-  /* reduce divider spacing */
-  .hintDivider {
-    margin: 8px 0;
-  }
-
-  /* slightly tighter description */
-  .hintDesc {
-    line-height: 1.3;
-  }
-
-  /* source closer to content */
-  .hintSource {
-    margin-top: 6px;
+  .hintTurns {
+    font-size: 10px;
+    height: 16px;
+    line-height: 16px;
   }
 }

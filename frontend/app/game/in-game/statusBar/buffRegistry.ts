@@ -33,17 +33,14 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
   "shengsi_jie:CONTROL": {
     name: "受控",
     category: "DEBUFF",
-    description: ({ remainingTurns }) =>
-      `无法使用部分卡牌，剩余 ${remainingTurns ?? 0} 回合`,
+    description: () => `眩晕。`,
   },
 
   "shengsi_jie:HEAL_REDUCTION": {
     name: "减疗",
     category: "DEBUFF",
-    description: ({ value, remainingTurns }) =>
-      `受到治疗降低 ${Math.round((value ?? 0) * 100)}%，剩余 ${
-        remainingTurns ?? 0
-      } 回合`,
+    description: ({ value }) =>
+      `受到治疗降低 ${Math.round((value ?? 0) * 100)}%`,
   },
 
   /* =========================================================
@@ -52,8 +49,7 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
   "mohe_wuliang:CONTROL": {
     name: "受控",
     category: "DEBUFF",
-    description: ({ remainingTurns }) =>
-      `无法使用部分卡牌，剩余 ${remainingTurns ?? 0} 回合`,
+    description: () => `倒地。`,
   },
 
   /* =========================================================
@@ -62,15 +58,14 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
   "chan_xiao:SILENCE": {
     name: "沉默",
     category: "DEBUFF",
-    description: ({ remainingTurns }) =>
-      `无法使用任何卡牌，剩余 ${remainingTurns ?? 0} 回合`,
+    description: () => `沉默`,
   },
 
   "chan_xiao:START_TURN_DAMAGE": {
     name: "持续伤害",
     category: "DEBUFF",
-    description: ({ value, remainingTurns }) =>
-      `回合开始受到 ${value ?? 0} 点伤害，剩余 ${remainingTurns ?? 0} 回合`,
+    description: ({ value }) =>
+      `回合开始受到 ${value ?? 0} 点伤害`,
   },
 
   /* =========================================================
@@ -79,8 +74,8 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
   "baizu:START_TURN_DAMAGE": {
     name: "持续伤害",
     category: "DEBUFF",
-    description: ({ value, remainingTurns }) =>
-      `回合开始受到 ${value ?? 0} 点伤害，剩余 ${remainingTurns ?? 0} 回合`,
+    description: ({ value }) =>
+      `回合开始受到 ${value ?? 0} 点伤害`,
   },
 
   /* =========================================================
@@ -89,10 +84,8 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
   "fengxiu_diang:DAMAGE_REDUCTION": {
     name: "减伤",
     category: "BUFF",
-    description: ({ value, remainingTurns }) =>
-      `受到伤害降低 ${Math.round((value ?? 0) * 100)}%，剩余 ${
-        remainingTurns ?? 0
-      } 回合`,
+    description: ({ value }) =>
+      `受到伤害降低 ${Math.round((value ?? 0) * 100)}%`,
   },
 
   /* =========================================================
@@ -101,8 +94,8 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
   "qiandie_turui:START_TURN_HEAL": {
     name: "千蝶",
     category: "BUFF",
-    description: ({ value, remainingTurns }) =>
-      `回合开始回复 ${value ?? 0} 点生命，剩余 ${remainingTurns ?? 0} 回合`,
+    description: ({ value }) =>
+      `回合开始回复 ${value ?? 0} 点生命`,
   },
 
   /* =========================================================
@@ -111,8 +104,7 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
   "sanliu_xia:UNTARGETABLE": {
     name: "不可选中",
     category: "BUFF",
-    description: ({ remainingTurns }) =>
-      `不可被选中，剩余 ${remainingTurns ?? 0} 回合`,
+    description: () => `不可被选中`,
   },
 
   /* =========================================================
@@ -121,8 +113,7 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
   "que_ta_zhi:CONTROL_IMMUNE": {
     name: "免控",
     category: "BUFF",
-    description: ({ remainingTurns }) =>
-      `免疫控制效果，剩余 ${remainingTurns ?? 0} 回合`,
+    description: () => `免疫控制效果`,
   },
 
   "que_ta_zhi:DODGE_NEXT": {
@@ -138,8 +129,7 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
   "anchen_misan:UNTARGETABLE": {
     name: "隐身",
     category: "BUFF",
-    description: ({ remainingTurns }) =>
-      `不可被选中，剩余 ${remainingTurns ?? 0} 回合`,
+    description: () => `不可被选中`,
   },
 
   /* =========================================================
@@ -148,16 +138,14 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
   "nuwa_butian:DAMAGE_MULTIPLIER": {
     name: "爆发",
     category: "BUFF",
-    description: ({ value, remainingTurns }) =>
-      `造成伤害提高至 ${value ?? 1} 倍，剩余 ${remainingTurns ?? 0} 回合`,
+    description: ({ value }) =>
+      `造成伤害提高至 ${value ?? 1} 倍`,
   },
 
   "nuwa_butian:DAMAGE_REDUCTION": {
     name: "女娲",
     category: "BUFF",
-    description: ({ value, remainingTurns }) =>
-      `受到伤害降低 ${Math.round((value ?? 0) * 100)}%，剩余 ${
-        remainingTurns ?? 0
-      } 回合`,
+    description: ({ value }) =>
+      `受到伤害降低 ${Math.round((value ?? 0) * 100)}%`,
   },
 };
