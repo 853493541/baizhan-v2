@@ -1,71 +1,94 @@
 "use client";
 
+import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./styles.module.css";
-
-/* ✅ USE SHARED FRONTEND TYPES */
-import type { GameEvent } from "../types";
+import type { GameEvent } from "@/app/game/in-game/types";
 
 /* ================= PROPS ================= */
 
 type Props = {
-  events: GameEvent[];
+  events: GameEvent[] | undefined | null;
   myUserId: string;
 };
 
 /* ================= HELPERS ================= */
 
-function renderLine(e: GameEvent, myUserId: string) {
-  const isMe = e.actorUserId === myUserId;
-  const actor = isMe ? "你" : "对手";
-  const target =
-    e.targetUserId === myUserId ? "你" : "对手";
-
-  switch (e.type) {
-    case "PLAY_CARD":
-      return `${actor}使用了【${e.cardName ?? e.cardId}】`;
-
-    case "DAMAGE":
-      return `${target}受到 ${e.value} 点伤害`;
-
-    case "HEAL":
-      return `${target}回复 ${e.value} 点生命`;
-
-    case "STATUS_APPLIED":
-      return `${target}获得【${e.statusType}】`;
-
-    case "END_TURN":
-      return `${actor}结束了回合`;
-
-    default:
-      return "";
-  }
+function getCardIcon(cardName?: string, cardId?: string) {
+  const file = cardName ?? cardId;
+  if (!file) return "";
+  return `/game/icons/Skills/${file}.png`;
 }
 
 /* ================= COMPONENT ================= */
 
-export default function ActionHistory({
-  events,
-  myUserId,
-}: Props) {
-  if (!events || events.length === 0) {
-    return (
-      <div className={styles.empty}>
-        暂无战斗记录
-      </div>
-    );
-  }
+export default function ActionHistory({ events, myUserId }: Props) {
+  // ✅ ONLY card usage, newest first, max 10
+  const playEvents = useMemo(() => {
+    if (!Array.isArray(events)) return [];
+    return events
+      .filter((e) => e.type === "PLAY_CARD")
+      .slice()
+      .reverse()
+      .slice(0, 10);
+  }, [events]);
+
+  // ✅ fixed 10-slot layout: fill rest with empties
+  const emptyCount = Math.max(0, 10 - playEvents.length);
+
+  // ✅ animation trigger when newest event changes
+  const prevTopIdRef = useRef<string | null>(null);
+  const [animateKey, setAnimateKey] = useState(0);
+
+  useEffect(() => {
+    const topId = playEvents[0]?.id ?? null;
+
+    // first render: just set baseline (no animation spam)
+    if (prevTopIdRef.current === null) {
+      prevTopIdRef.current = topId;
+      return;
+    }
+
+    // new event arrived at top
+    if (topId && topId !== prevTopIdRef.current) {
+      prevTopIdRef.current = topId;
+      setAnimateKey((k) => k + 1);
+    }
+  }, [playEvents]);
 
   return (
-    <div className={styles.wrap}>
-      {events.map((e) => (
-        <div key={e.id} className={styles.line}>
-          <span className={styles.turn}>
-            T{e.turn}
-          </span>
-          <span className={styles.text}>
-            {renderLine(e, myUserId)}
-          </span>
-        </div>
+    <div className={styles.wrap} key={animateKey}>
+      {playEvents.map((e, idx) => {
+        const isMe = e.actorUserId === myUserId;
+        const icon = getCardIcon(e.cardName, e.cardId);
+
+        // newest item slides in, older ones "push down"
+        const animClass =
+          animateKey > 0
+            ? idx === 0
+              ? styles.newItem
+              : styles.shiftDown
+            : "";
+
+        return (
+          <div
+            key={e.id}
+            className={`${styles.row} ${isMe ? styles.me : styles.enemy} ${animClass}`}
+          >
+            {icon && (
+              <img
+                src={icon}
+                className={styles.icon}
+                draggable={false}
+                alt=""
+              />
+            )}
+          </div>
+        );
+      })}
+
+      {/* fill to 10 slots (no scroll, fixed space) */}
+      {Array.from({ length: emptyCount }).map((_, i) => (
+        <div key={`empty-${i}`} className={styles.emptyRow} />
       ))}
     </div>
   );
