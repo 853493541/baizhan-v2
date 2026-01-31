@@ -35,13 +35,14 @@ export function applyEffects(
         );
         if (dmgBoost) damage *= dmgBoost.value ?? 1;
 
-        const dr = target.statuses.find((s) => s.type === "DAMAGE_REDUCTION");
+        const dr = target.statuses.find(
+          (s) => s.type === "DAMAGE_REDUCTION"
+        );
         if (dr) damage *= 1 - (dr.value ?? 0);
 
         const finalDamage = Math.floor(damage);
         target.hp = Math.max(0, target.hp - finalDamage);
 
-        // ✅ public event: damage happened
         if (finalDamage !== 0) {
           pushEvent(state, {
             turn: state.turn,
@@ -60,7 +61,9 @@ export function applyEffects(
       case "HEAL": {
         let heal = effect.value ?? 0;
 
-        const hr = source.statuses.find((s) => s.type === "HEAL_REDUCTION");
+        const hr = source.statuses.find(
+          (s) => s.type === "HEAL_REDUCTION"
+        );
         if (hr) heal *= 1 - (hr.value ?? 0);
 
         const finalHeal = Math.floor(heal);
@@ -68,7 +71,6 @@ export function applyEffects(
         source.hp = Math.min(100, source.hp + finalHeal);
         const appliedHeal = Math.max(0, source.hp - before);
 
-        // ✅ public event: heal happened
         if (appliedHeal !== 0) {
           pushEvent(state, {
             turn: state.turn,
@@ -84,21 +86,28 @@ export function applyEffects(
         break;
       }
 
-      case "DRAW":
+      case "DRAW": {
         for (let i = 0; i < (effect.value ?? 0); i++) {
           const cardDrawn = state.deck.shift();
           if (cardDrawn) source.hand.push(cardDrawn);
         }
-        // ❌ NO EVENT: draw is private information
         break;
+      }
 
-      case "CLEANSE":
-        source.statuses = source.statuses.filter((s) => !["CONTROL"].includes(s.type));
-        // (optional) cleanse event can be added later if you want
+      case "CLEANSE": {
+        source.statuses = source.statuses.filter(
+          (s) => s.type !== "CONTROL"
+        );
         break;
+      }
 
       default: {
         if (!effect.durationTurns) break;
+
+        // 🔁 REFRESH LOGIC: remove existing same-type status
+        statusTarget.statuses = statusTarget.statuses.filter(
+          (s) => s.type !== effect.type
+        );
 
         const status: Status = {
           type: effect.type,
@@ -108,14 +117,12 @@ export function applyEffects(
           repeatTurns: effect.repeatTurns,
           chance: effect.chance,
           breakOnPlay: effect.breakOnPlay,
-
           sourceCardId: card.id,
           sourceCardName: card.name,
         };
 
         statusTarget.statuses.push(status);
 
-        // ✅ public event: status applied (publicly observable)
         pushEvent(state, {
           turn: state.turn,
           type: "STATUS_APPLIED",
@@ -140,7 +147,9 @@ function checkEndGame(state: GameState) {
   for (const player of state.players) {
     if (player.hp <= 0) {
       state.gameOver = true;
-      const winner = state.players.find((p) => p.userId !== player.userId);
+      const winner = state.players.find(
+        (p) => p.userId !== player.userId
+      );
       state.winnerUserId = winner?.userId;
       return;
     }
