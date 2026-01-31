@@ -69,15 +69,15 @@ router.post("/start", async (req, res) => {
 ========================================================= */
 router.get("/waiting", async (_req, res) => {
   try {
-    const TEN_MINUTES = 10 * 60 * 1000;
-    const cutoff = new Date(Date.now() - TEN_MINUTES);
+    const TWO_HOURS = 2 * 60 * 60 * 1000;
+    const cutoff = new Date(Date.now() - TWO_HOURS);
 
-    // Lazy cleanup
+    // 🔥 Global lazy cleanup: delete ANY stale session
     await GameSession.deleteMany({
-      started: false,
-      createdAt: { $lt: cutoff },
+      updatedAt: { $lt: cutoff },
     });
 
+    // Only return joinable waiting rooms
     const games = await GameSession.find({
       started: false,
       players: { $size: 1 },
