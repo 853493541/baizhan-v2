@@ -3,26 +3,25 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-
   align-items: flex-start;
-  /* border:red 2px solid; */
 }
 
 /* ================= STATUS ROW ================= */
-/* Fixed slot grid, left-anchored */
 .statusRow {
   display: grid;
-  grid-template-columns: repeat(6, 65px); /* 🔒 fixed slot width */
+  grid-template-columns: repeat(5, 70px); /* fixed slots */
   gap: 6px;
 
   justify-content: start;
   align-items: center;
 
-  min-height: 24px; /* reserve vertical space */
+  min-height: 24px;
 }
 
 /* ================= PILL ================= */
 .statusPill {
+  position: relative;
+
   padding: 4px 10px;
   font-size: 12px;
   line-height: 1;
@@ -34,8 +33,33 @@
   cursor: help;
   border: 1px solid transparent;
 
-  width: 100%; /* 🔒 fill grid slot */
+  width: 100%;
   box-sizing: border-box;
+}
+
+/* ================= TURN NUMBER ================= */
+.turnBadge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+
+  border-radius: 999px;
+
+  /* 🔑 inherit pill visuals */
+  background: inherit;
+  color: inherit;
+  border: inherit;
+
+  pointer-events: none;
 }
 
 /* ================= BUFF ================= */
@@ -50,4 +74,101 @@
   background: rgba(239, 68, 68, 0.25);
   color: #fca5a5;
   border-color: rgba(239, 68, 68, 0.45);
+}
+
+/* ================= END-OF-TURN FADE ================= */
+.lastTurn {
+  animation: endTurnPulse 1.2s ease-in-out infinite;
+}
+
+/* applies to entire pill INCLUDING number */
+.lastTurn .turnBadge {
+  animation: endTurnPulse 1.2s ease-in-out infinite;
+}
+
+/* ================= ANIMATION ================= */
+@keyframes endTurnPulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+/* ================= TURN NUMBER ================= */
+.turnBadge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+
+  border-radius: 999px;
+
+  /* contrast without new color meaning */
+  background: #020617; /* neutral dark */
+  color: inherit;
+
+  border: 1px solid currentColor;
+
+  pointer-events: none;
+}
+
+/* ================= BUFF ================= */
+.buff {
+  background: rgba(34, 197, 94, 0.2);
+  color: #86efac;
+  border-color: rgba(34, 197, 94, 0.4);
+}
+
+/* ================= DEBUFF ================= */
+.debuff {
+  background: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.45);
+}
+
+/* ================= END-OF-TURN FADE ================= */
+.lastTurn {
+  animation: endTurnPulse 1.2s ease-in-out infinite;
+}
+
+.lastTurn .turnBadge {
+  animation: endTurnPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes endTurnPulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.45; }
+  100% { opacity: 1; }
+}
+/* ================= END-OF-TURN FADE (SUBTLE) ================= */
+.lastTurn {
+  animation: endTurnSoftPulse 2.2s ease-in-out infinite;
+}
+
+.lastTurn .turnBadge {
+  animation: endTurnSoftPulse 2.2s ease-in-out infinite;
+}
+
+@keyframes endTurnSoftPulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.75; /* 🔑 much gentler */
+  }
+  100% {
+    opacity: 1;
+  }
 }

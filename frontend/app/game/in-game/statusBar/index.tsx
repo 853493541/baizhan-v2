@@ -42,6 +42,8 @@ export default function StatusBar({
     return {
       ...buff,
       category: buff.category,
+      remainingTurns,
+      isLastTurn: remainingTurns === 0, // 🔑 key flag
     };
   });
 
@@ -51,7 +53,7 @@ export default function StatusBar({
   return (
     <div className={styles.statusBar}>
 
-      {/* Buff Row – always rendered */}
+      {/* Buff Row */}
       <div className={styles.statusRow}>
         {buffs.slice(0, 6).map((b, i) => (
           <div
@@ -60,11 +62,19 @@ export default function StatusBar({
             title={b.description}
           >
             {b.name}
+
+            <span
+              className={`${styles.turnBadge} ${
+                b.isLastTurn ? styles.lastTurn : ""
+              }`}
+            >
+              {Math.max(1, b.remainingTurns)}
+            </span>
           </div>
         ))}
       </div>
 
-      {/* Debuff Row – always rendered */}
+      {/* Debuff Row */}
       <div className={styles.statusRow}>
         {debuffs.slice(0, 6).map((b, i) => (
           <div
@@ -73,6 +83,14 @@ export default function StatusBar({
             title={b.description}
           >
             {b.name}
+
+            <span
+              className={`${styles.turnBadge} ${
+                b.isLastTurn ? styles.lastTurn : ""
+              }`}
+            >
+              {Math.max(1, b.remainingTurns)}
+            </span>
           </div>
         ))}
       </div>
