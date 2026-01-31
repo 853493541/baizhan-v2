@@ -1,4 +1,5 @@
 // backend/game/cards/cards.ts
+
 import { Card } from "../engine/types";
 
 export const CARDS: Record<string, Card> = {
@@ -58,7 +59,7 @@ export const CARDS: Record<string, Card> = {
     effects: [
       { type: "DAMAGE", value: 10 },
       { type: "SILENCE", durationTurns: 1 },
-    //   { type: "START_TURN_DAMAGE", value: 1, durationTurns: 3 },
+      // { type: "START_TURN_DAMAGE", value: 1, durationTurns: 3 },
     ],
   },
 
@@ -147,6 +148,7 @@ export const CARDS: Record<string, Card> = {
 
   /* =========================================================
      特殊（可在受控状态下使用）
+     ✅ Stealth (target-avoid only), NOT Untargetable
   ========================================================= */
   anchen_misan: {
     id: "anchen_misan",
@@ -156,7 +158,7 @@ export const CARDS: Record<string, Card> = {
     effects: [
       { type: "DRAW", value: 2, allowWhileControlled: true },
       {
-        type: "UNTARGETABLE",
+        type: "STEALTH",
         durationTurns: 1,
         breakOnPlay: true,
         allowWhileControlled: true,
@@ -166,41 +168,39 @@ export const CARDS: Record<string, Card> = {
 
   /* =========================================================
      持续伤害 / 节奏压制
+     ✅ Reworked to CHANNEL (self-cast buff that actively deals damage)
   ========================================================= */
+
+  // 风来吴山：持续运功期间免疫控制
+  // 立刻造成10伤害
+  // 回合结束造成10伤害
+  // 对手回合开始造成10伤害
+  // 对手回合结束造成10伤害
+  // 效果在下个回合开始时结束（breakOnPlay）
   fenglai_wushan: {
     id: "fenglai_wushan",
     name: "风来吴山",
-    type: "ATTACK",
-    target: "OPPONENT",
+    type: "CHANNEL",
+    target: "SELF",
     effects: [
-      { type: "DAMAGE", value: 10 },
-      {
-        type: "START_TURN_DAMAGE",
-        value: 10,
-        durationTurns: 1,
-        breakOnPlay: true,
-      },
-      {
-        type: "DELAYED_DAMAGE",
-        value: 10,
-        repeatTurns: 1,
-        breakOnPlay: true,
-      },
+      // channel marker + immediate dmg handled in applyEffects
+      { type: "FENGLAI_CHANNEL", durationTurns: 1, breakOnPlay: true },
+      // immune control during channel window (covers opponent turn, ends at next turn start)
+      { type: "CONTROL_IMMUNE", durationTurns: 1, breakOnPlay: true },
     ],
   },
 
+  // 无间狱：修罗附体
+  // 立刻造成10伤害 + 恢复3
+  // 回合结束造成10伤害 + 恢复3
+  // 对手回合开始造成20伤害 + 恢复6
+  // 然后效果结束（breakOnPlay）
   wu_jianyu: {
     id: "wu_jianyu",
     name: "无间狱",
-    type: "ATTACK",
-    target: "OPPONENT",
-    effects: [
-      { type: "DELAYED_DAMAGE", value: 10, repeatTurns: 1 },
-      { type: "START_TURN_DAMAGE", value: 15, durationTurns: 1 },
-      { type: "START_TURN_HEAL", value: 5, durationTurns: 1 },
-      { type: "DELAYED_DAMAGE", value: 15, repeatTurns: 1 },
-      { type: "START_TURN_HEAL", value: 5, durationTurns: 1 },
-    ],
+    type: "CHANNEL",
+    target: "SELF",
+    effects: [{ type: "WUJIAN_CHANNEL", durationTurns: 1, breakOnPlay: true }],
   },
 
   baizu: {

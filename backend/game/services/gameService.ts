@@ -243,14 +243,28 @@ export async function playCard(
   const target = state.players[targetIndex];
 
   // ===============================
-  // UNTARGETABLE CHECK
+  // TARGETING CHECKS
   // ===============================
   const isSelfTarget = playerIndex === targetIndex;
 
-  const targetUntargetable = target.statuses.some((s) => s.type === "UNTARGETABLE");
+  // Untargetable: absolute cannot be hit by targeted cards
+  const targetUntargetable = target.statuses.some(
+    (s) => s.type === "UNTARGETABLE"
+  );
 
-  if (targetUntargetable && !isSelfTarget) {
-    throw new Error("ERR_TARGET_UNTARGETABLE");
+  // Stealth: cannot be chosen as target by targeted cards (but still takes non-targeted / scheduled/channel damage)
+  const targetStealthed = target.statuses.some((s) => s.type === "STEALTH");
+
+  if (!isSelfTarget) {
+    if (targetUntargetable) {
+      throw new Error("ERR_TARGET_UNTARGETABLE");
+    }
+
+    // ✅ Only blocks when the card is actually targeting OPPONENT
+    // Channel damage is NOT here; it's scheduled in turnResolver.
+    if (targetStealthed && card.target === "OPPONENT") {
+      throw new Error("ERR_TARGET_STEALTH");
+    }
   }
 
   // ✅ public event: card played (opponent should see which card was played)
