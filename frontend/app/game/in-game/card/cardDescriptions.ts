@@ -8,7 +8,7 @@ export const CARD_DESC_MAP: Record<string, string> = {
   mohe_wuliang: "造成10点伤害\n【控制】目标1个回合",
 
   shengsi_jie:
-    "造成2点伤害，控制目标1个回合，目标3个回合内【减疗】50%",
+    "造成2点伤害\n眩晕1个回合\n【减疗】3个回合",
 
   jiru_feng: "解控\n抽两张牌",
 

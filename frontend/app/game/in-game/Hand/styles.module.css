@@ -7,23 +7,24 @@
 
   padding: 8px 6px;
 
-  overflow-x: auto;
-  overflow-y: hidden;
-
-  scrollbar-width: none;
+  overflow: hidden; /* IMPORTANT: scrolling handled by handZone */
+  flex-wrap: nowrap;
 }
 
-.hand::-webkit-scrollbar {
-  display: none;
-}
-
-/* ================= SLOT ================= */
+/* ================= SLOT (OWNS SIZE) ================= */
 
 .slot {
   flex: 0 0 auto;
+  width: 110px;        /* desktop card width */
+  min-height: 150px;   /* desktop card height */
+max-height:95%;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
+
+  will-change: transform;
+  /* border:red 2px solid; */
+
 }
 
 /* ================= DRAW ANIMATION ================= */
@@ -46,6 +47,11 @@
 /* ================= MOBILE ================= */
 
 @media (max-width: 768px) {
+  .slot {
+    width: 80px;
+    min-height: 120px;
+  }
+
   .hand {
     gap: 6px;
     padding: 6px 4px;
