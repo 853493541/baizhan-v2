@@ -72,7 +72,7 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
      百足
   ========================================================= */
   "baizu:START_TURN_DAMAGE": {
-    name: "DOT",
+    name: "百足",
     category: "DEBUFF",
     description: ({ value }) =>
       `回合开始受到 ${value ?? 0} 点伤害`,

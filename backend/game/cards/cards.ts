@@ -125,7 +125,7 @@ export const CARDS: Record<string, Card> = {
     target: "SELF",
     effects: [
       { type: "HEAL", value: 60 },
-      { type: "DAMAGE_REDUCTION", value: 0.4, durationTurns: 3 },
+      { type: "DAMAGE_REDUCTION", value: 0.5, durationTurns: 2 },
     ],
   },
 
