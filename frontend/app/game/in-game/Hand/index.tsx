@@ -9,17 +9,18 @@ import type { CardInstance } from "@/app/game/in-game/types";
 type Props = {
   cards: CardInstance[];
   onPlayCard: (card: CardInstance) => void;
+  isMyTurn: boolean;
 };
 
-export default function Hand({ cards, onPlayCard }: Props) {
+export default function Hand({ cards, onPlayCard, isMyTurn }: Props) {
   return (
     <div className={styles.hand}>
       {cards.map((card) => (
         <AnimatedHandSlot key={card.instanceId}>
           <Card
             cardId={card.cardId}
-            variant="hand"
-            onClick={() => onPlayCard(card)}
+            variant={isMyTurn ? "hand" : "disabled"}
+            onClick={isMyTurn ? () => onPlayCard(card) : undefined}
           />
         </AnimatedHandSlot>
       ))}
