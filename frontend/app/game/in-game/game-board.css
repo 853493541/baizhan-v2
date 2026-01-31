@@ -79,7 +79,7 @@
 .endturn-overlay {
   position: absolute;
   right: 12px;
-  top: 40%;
+  top: 45%;
   transform: translateY(-50%);
 
   z-index: 30;
@@ -121,7 +121,7 @@
 
   .endturn-overlay {
  right: 3px;
-  top: 50%;
+  top: 45%;
 
 }
 }

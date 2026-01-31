@@ -20,6 +20,12 @@ export default function CurrentAction({
 }: Props) {
   const [cards, setCards] = useState<GameEvent[]>([]);
 
+  /* ================= DEVICE DETECTION ================= */
+
+  const isPhone =
+    typeof window !== "undefined" &&
+    window.matchMedia("(max-width: 768px)").matches;
+
   /* ================= UPDATE LOGIC ================= */
 
   useEffect(() => {
@@ -33,9 +39,12 @@ export default function CurrentAction({
 
     setCards((prev) => {
       if (prev[0]?.id === last.id) return prev;
-      return [last, ...prev].slice(0, 4);
+
+      // desktop keeps 4, phone keeps only 1
+      const limit = isPhone ? 1 : 4;
+      return [last, ...prev].slice(0, limit);
     });
-  }, [events]);
+  }, [events, isPhone]);
 
   /* ================= RENDER ================= */
 
@@ -54,12 +63,14 @@ export default function CurrentAction({
                 (isMe
                   ? styles.enterFromBottom
                   : styles.enterFromTop),
-              idx === 3 && styles.fadeOut,
+              !isPhone && idx === 3 && styles.fadeOut,
             ]
               .filter(Boolean)
               .join(" ")}
             style={{
-              transform: `translateX(calc(-1 * ${idx} * var(--card-shift)))`,
+              transform: isPhone
+                ? "translateY(0)"
+                : `translateX(calc(-1 * ${idx} * var(--card-shift)))`,
             }}
           >
             <Card cardId={e.cardId} variant="arena" />

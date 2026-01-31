@@ -102,7 +102,7 @@
   font-size: 15px;
 }
 
-/* ================= DESC ================= */
+/* ================= DESC (OUTER) ================= */
 
 .desc {
   font-size: 12px;
@@ -111,20 +111,39 @@
 
   text-align: center;
   white-space: pre-line;
+  word-break: break-word;
 
   max-height: 64px;
+  min-height: 64px;
+
+  display: flex;
+  align-items: center;      /* vertical centering */
+  justify-content: center;
+
+  overflow: hidden;         /* scrolling handled by inner */
+}
+
+/* ================= DESC (INNER — SCROLLABLE) ================= */
+
+.descInner {
+  max-height: 100%;
   overflow-y: auto;
   overscroll-behavior: contain;
 
-  word-break: break-word;
+  padding: 2px 2px;
 }
 
 .preview .desc {
   font-size: 13px;
   max-height: 110px;
+  min-height: 110px;
 }
 
-.desc::-webkit-scrollbar {
+.preview .descInner {
+  max-height: 110px;
+}
+
+.descInner::-webkit-scrollbar {
   width: 0;
   height: 0;
 }
@@ -173,5 +192,6 @@
   .desc {
     font-size: 11px;
     max-height: 48px;
+    min-height: 48px;
   }
 }

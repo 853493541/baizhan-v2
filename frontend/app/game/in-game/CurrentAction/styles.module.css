@@ -13,7 +13,6 @@
   justify-content: center;
 
   overflow: hidden;
-  /* border:red 2px solid; */
 }
 
 /* ================= CARD WRAPPER ================= */
@@ -71,18 +70,20 @@
   }
 }
 
-/* ================= FADE OUT (4th CARD) ================= */
+/* ================= FADE OUT (4th CARD — DESKTOP ONLY) ================= */
 
 .fadeOut {
   opacity: 0.35;
   transform: scale(0.92);
 }
-/* ================= 📱 PHONE — ARENA TUNING ================= */
+
+/* ================= 📱 PHONE — SINGLE CARD MODE ================= */
+
 @media (max-width: 768px) {
 
   .arena {
-    height: 260px;           /* less vertical dominance on phone */
-    --card-shift: 105px;     /* tighter horizontal spacing */
+    height: 260px;
+    --card-shift: 105px;
   }
 
   .cardWrap {
@@ -90,6 +91,12 @@
       transform 200ms ease-out,
       opacity 200ms ease-out,
       filter 200ms ease-out;
+  }
+
+  /* center vertically for phone */
+  .arena{
+    top: 50%;
+    transform: translateY(-50%);
   }
 
   /* soften glow on small screens */
@@ -101,7 +108,7 @@
     filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.35));
   }
 
-  /* shorter vertical travel to avoid jumpy feel */
+  /* shorter vertical travel */
   @keyframes slideUp {
     from {
       transform: translateY(32px);
@@ -124,9 +131,9 @@
     }
   }
 
-  /* 4th card even more subtle on phone */
+  /* phone has no preview fade */
   .fadeOut {
-    opacity: 0.28;
-    transform: scale(0.9);
+    opacity: 0;
+    transform: scale(1);
   }
 }

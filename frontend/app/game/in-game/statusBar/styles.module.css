@@ -195,10 +195,10 @@
     top: -5px;
     right: -5px;
 
-    min-width: 14px;
-    height: 14px;
-    line-height: 14px;
-    font-size: 9px;
+    width: 10px;
+    height: 12px;
+    line-height: 10px;
+    font-size: 8px;
   }
 }
 
@@ -206,7 +206,7 @@
 @media (max-width: 420px) {
 
   .statusRow {
-    grid-template-columns: repeat(4, 54px); /* prevent overflow */
+    grid-template-columns: repeat(4, 40px); /* prevent overflow */
   }
 
   .statusPill {

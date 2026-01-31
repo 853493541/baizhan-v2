@@ -94,7 +94,10 @@ export default function Card({
       </div>
 
       <div className={styles.name}>{name}</div>
-      <div className={styles.desc}>{desc}</div>
+
+      <div className={styles.desc}>
+        <div className={styles.descInner}>{desc}</div>
+      </div>
     </div>
   );
 }
