@@ -1,0 +1,53 @@
+/* ================= HAND CONTAINER ================= */
+
+.hand {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+
+  padding: 8px 6px;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  scrollbar-width: none;
+}
+
+.hand::-webkit-scrollbar {
+  display: none;
+}
+
+/* ================= SLOT ================= */
+
+.slot {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ================= DRAW ANIMATION ================= */
+
+.drawIn {
+  animation: draw-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes draw-in {
+  from {
+    transform: translateX(var(--enter-x)) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* ================= MOBILE ================= */
+
+@media (max-width: 768px) {
+  .hand {
+    gap: 6px;
+    padding: 6px 4px;
+  }
+}

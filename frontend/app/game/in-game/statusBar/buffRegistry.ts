@@ -31,7 +31,7 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
      生死劫
   ========================================================= */
   "shengsi_jie:CONTROL": {
-    name: "受控",
+    name: "眩晕",
     category: "DEBUFF",
     description: () => `眩晕。`,
   },
@@ -47,9 +47,9 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
      摩诃无量
   ========================================================= */
   "mohe_wuliang:CONTROL": {
-    name: "受控",
+    name: "倒地",
     category: "DEBUFF",
-    description: () => `倒地。`,
+    description: () => `倒在地上。`,
   },
 
   /* =========================================================
@@ -62,7 +62,7 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
   },
 
   "chan_xiao:START_TURN_DAMAGE": {
-    name: "持续伤害",
+    name: "DOT",
     category: "DEBUFF",
     description: ({ value }) =>
       `回合开始受到 ${value ?? 0} 点伤害`,
@@ -72,7 +72,7 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
      百足
   ========================================================= */
   "baizu:START_TURN_DAMAGE": {
-    name: "持续伤害",
+    name: "DOT",
     category: "DEBUFF",
     description: ({ value }) =>
       `回合开始受到 ${value ?? 0} 点伤害`,
@@ -82,7 +82,7 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
      风袖低昂
   ========================================================= */
   "fengxiu_diang:DAMAGE_REDUCTION": {
-    name: "减伤",
+    name: "风袖",
     category: "BUFF",
     description: ({ value }) =>
       `受到伤害降低 ${Math.round((value ?? 0) * 100)}%`,
@@ -102,7 +102,7 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
      散流霞
   ========================================================= */
   "sanliu_xia:UNTARGETABLE": {
-    name: "不可选中",
+    name: "散",
     category: "BUFF",
     description: () => `不可被选中`,
   },
@@ -136,14 +136,14 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
      女娲补天
   ========================================================= */
   "nuwa_butian:DAMAGE_MULTIPLIER": {
-    name: "爆发",
+    name: "女娲",
     category: "BUFF",
     description: ({ value }) =>
       `造成伤害提高至 ${value ?? 1} 倍`,
   },
 
   "nuwa_butian:DAMAGE_REDUCTION": {
-    name: "女娲",
+    name: "减伤",
     category: "BUFF",
     description: ({ value }) =>
       `受到伤害降低 ${Math.round((value ?? 0) * 100)}%`,

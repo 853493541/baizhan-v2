@@ -2,7 +2,7 @@
 
 import HealthBar from "../HealthBar";
 import StatusBar from "../statusBar";
-import Card from "../card";
+import Hand from "../Hand";
 import styles from "./styles.module.css";
 
 import type {
@@ -39,14 +39,10 @@ export default function PlayerArea({
       />
 
       <div className={styles.handZone}>
-        {me.hand.map((card) => (
-          <Card
-            key={card.instanceId}
-            cardId={card.cardId}
-            disabled={!isMyTurn}
-            onClick={() => onPlayCard(card)}
-          />
-        ))}
+        <Hand
+          cards={me.hand}
+          onPlayCard={onPlayCard}
+        />
       </div>
     </div>
   );
