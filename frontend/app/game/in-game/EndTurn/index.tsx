@@ -9,12 +9,16 @@ type Props = {
 
 export default function EndTurn({ isMyTurn, onEndTurn }: Props) {
   return (
-    <button
-      className={styles.endTurnBtn}
-      disabled={!isMyTurn}
-      onClick={onEndTurn}
-    >
-      {isMyTurn ? "结束回合" : "等待中"}
-    </button>
+    <div className={styles.wrap}>
+      <button
+        className={`${styles.endTurnBtn} ${
+          isMyTurn ? styles.myTurn : styles.enemyTurn
+        }`}
+        disabled={!isMyTurn}
+        onClick={onEndTurn}
+      >
+        {isMyTurn ? "结束回合" : "对手回合"}
+      </button>
+    </div>
   );
 }
