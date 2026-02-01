@@ -3,6 +3,21 @@
 import { GameState } from "./types";
 import { randomUUID } from "crypto";
 
+/* =========================================================
+   DODGE HELPER
+   - stacks chance
+   - persistent
+   - caller must ensure "enemy-sourced" context
+========================================================= */
+function shouldDodge(target: { statuses: any[] }) {
+  const chance = target.statuses
+    .filter((s) => s.type === "DODGE_NEXT")
+    .reduce((sum, s) => sum + (s.chance ?? 0), 0);
+
+  if (chance <= 0) return false;
+  return Math.random() < chance;
+}
+
 function pushDamageEvent(
   state: GameState,
   actorUserId: string,
@@ -57,11 +72,10 @@ export function resolveTurnEnd(state: GameState) {
   const other = state.players[otherIndex];
 
   /* =========================================================
-     1) END-OF-TURN TRIGGERS
-     - happen when current player ends their turn
+     1) END-OF-TURN TRIGGERS (OWNER)
   ========================================================= */
 
-  // ✅ DELAYED_DAMAGE: ticks on the owner at end of their own turn
+  // ❌ DOT — NOT DODGEABLE
   for (const s of current.statuses) {
     if (s.type === "DELAYED_DAMAGE" && (s.repeatTurns ?? 0) > 0) {
       const dmg = s.value ?? 0;
@@ -70,21 +84,30 @@ export function resolveTurnEnd(state: GameState) {
     }
   }
 
-  // ✅ FENGLAI: end-of-your-turn deals 10 to enemy
+  // ✅ FENGLAI: end-of-your-turn → hit enemy
   for (const s of current.statuses) {
     if (s.type === "FENGLAI_CHANNEL") {
       const dmg = 10;
-      other.hp = Math.max(0, other.hp - dmg);
-      pushDamageEvent(state, current.userId, other.userId, s.sourceCardId, s.sourceCardName, dmg);
+
+      if (!shouldDodge(other)) {
+        other.hp = Math.max(0, other.hp - dmg);
+        pushDamageEvent(state, current.userId, other.userId, s.sourceCardId, s.sourceCardName, dmg);
+      } else {
+        pushDamageEvent(state, current.userId, other.userId, s.sourceCardId, s.sourceCardName, 0);
+      }
     }
 
-    // ✅ WUJIAN: end-of-your-turn deals 10 to enemy + heal 3
+    // ✅ WUJIAN: end-of-your-turn → hit enemy + heal self
     if (s.type === "WUJIAN_CHANNEL") {
       const dmg = 10;
       const heal = 3;
 
-      other.hp = Math.max(0, other.hp - dmg);
-      pushDamageEvent(state, current.userId, other.userId, s.sourceCardId, s.sourceCardName, dmg);
+      if (!shouldDodge(other)) {
+        other.hp = Math.max(0, other.hp - dmg);
+        pushDamageEvent(state, current.userId, other.userId, s.sourceCardId, s.sourceCardName, dmg);
+      } else {
+        pushDamageEvent(state, current.userId, other.userId, s.sourceCardId, s.sourceCardName, 0);
+      }
 
       const before = current.hp;
       current.hp = Math.min(100, current.hp + heal);
@@ -94,67 +117,70 @@ export function resolveTurnEnd(state: GameState) {
       }
     }
 
-    /* ================= PATCH 0.3 =================
-       ✅ 心诤：自己回合结束 → 对目标造成 5
-    ================================================= */
+    // ✅ 心诤：自己回合结束 → 对目标造成 5
     if (s.type === "XINZHENG_CHANNEL") {
       const dmg = 5;
-      other.hp = Math.max(0, other.hp - dmg);
-      pushDamageEvent(state, current.userId, other.userId, s.sourceCardId, s.sourceCardName, dmg);
+
+      if (!shouldDodge(other)) {
+        other.hp = Math.max(0, other.hp - dmg);
+        pushDamageEvent(state, current.userId, other.userId, s.sourceCardId, s.sourceCardName, dmg);
+      } else {
+        pushDamageEvent(state, current.userId, other.userId, s.sourceCardId, s.sourceCardName, 0);
+      }
     }
   }
 
-  /* ================= PATCH 0.3 =================
-     ✅ 心诤：目标回合结束 → 运功结束，对目标造成 15
-     - i.e. when CURRENT ends turn, if OTHER (the opponent) has XINZHENG_CHANNEL,
-       then CURRENT is the "target" ending their turn → take 15 and channel ends.
-  ================================================= */
+  /* =========================================================
+     2) OPPONENT CHANNEL — TARGET END TURN
+  ========================================================= */
+
   for (const s of other.statuses) {
     if (s.type === "XINZHENG_CHANNEL") {
       const dmg = 15;
-      current.hp = Math.max(0, current.hp - dmg);
-      pushDamageEvent(state, other.userId, current.userId, s.sourceCardId, s.sourceCardName, dmg);
 
-      // end channel immediately after the target ends their turn
+      if (!shouldDodge(current)) {
+        current.hp = Math.max(0, current.hp - dmg);
+        pushDamageEvent(state, other.userId, current.userId, s.sourceCardId, s.sourceCardName, dmg);
+      } else {
+        pushDamageEvent(state, other.userId, current.userId, s.sourceCardId, s.sourceCardName, 0);
+      }
+
+      // channel ends immediately
       other.statuses = other.statuses.filter((x) => x !== s);
       break;
     }
   }
 
   /* =========================================================
-     2) EXPIRE FILTER (keep your existing rule)
-     - DO NOT change: state.turn < expiresAtTurn
+     3) EXPIRE FILTER (UNCHANGED)
   ========================================================= */
   for (const p of state.players) {
     p.statuses = p.statuses.filter((status) => state.turn < status.expiresAtTurn);
   }
 
   /* =========================================================
-     3) CHECK END GAME AFTER END-OF-TURN DAMAGE
+     4) CHECK END GAME
   ========================================================= */
   for (const p of state.players) {
     if (p.hp <= 0) {
       state.gameOver = true;
-      const winner = state.players.find((x) => x.userId !== p.userId);
-      state.winnerUserId = winner?.userId;
+      state.winnerUserId = state.players.find((x) => x.userId !== p.userId)?.userId;
       return;
     }
   }
 
   /* =========================================================
-     4) ADVANCE TURN
+     5) ADVANCE TURN
   ========================================================= */
   state.turn += 1;
   state.activePlayerIndex = (state.activePlayerIndex + 1) % state.players.length;
 
-  const newIndex = state.activePlayerIndex;
-  const enemyIndex = newIndex === 0 ? 1 : 0;
-
-  const me = state.players[newIndex];        // player whose turn STARTS now
-  const enemy = state.players[enemyIndex];   // the other player
+  const me = state.players[state.activePlayerIndex];
+  const enemy = state.players[state.activePlayerIndex === 0 ? 1 : 0];
 
   /* =========================================================
-     5) START-OF-TURN TRIGGERS (owner)
+     6) START-OF-TURN TRIGGERS (OWNER)
+     ❌ DOT — NOT DODGEABLE
   ========================================================= */
   for (const s of me.statuses) {
     if (s.type === "START_TURN_DAMAGE") {
@@ -168,23 +194,30 @@ export function resolveTurnEnd(state: GameState) {
   }
 
   /* =========================================================
-     6) ENEMY-TURN-START TRIGGERS FOR CHANNEL BUFFS
-     - At the start of "me" turn:
-       - check enemy channel buffs that trigger on enemy-turn-start
+     7) ENEMY-TURN-START CHANNEL DAMAGE
   ========================================================= */
   for (const s of enemy.statuses) {
     if (s.type === "FENGLAI_CHANNEL") {
       const dmg = 10;
-      me.hp = Math.max(0, me.hp - dmg);
-      pushDamageEvent(state, enemy.userId, me.userId, s.sourceCardId, s.sourceCardName, dmg);
+
+      if (!shouldDodge(me)) {
+        me.hp = Math.max(0, me.hp - dmg);
+        pushDamageEvent(state, enemy.userId, me.userId, s.sourceCardId, s.sourceCardName, dmg);
+      } else {
+        pushDamageEvent(state, enemy.userId, me.userId, s.sourceCardId, s.sourceCardName, 0);
+      }
     }
 
     if (s.type === "WUJIAN_CHANNEL") {
       const dmg = 20;
       const heal = 6;
 
-      me.hp = Math.max(0, me.hp - dmg);
-      pushDamageEvent(state, enemy.userId, me.userId, s.sourceCardId, s.sourceCardName, dmg);
+      if (!shouldDodge(me)) {
+        me.hp = Math.max(0, me.hp - dmg);
+        pushDamageEvent(state, enemy.userId, me.userId, s.sourceCardId, s.sourceCardName, dmg);
+      } else {
+        pushDamageEvent(state, enemy.userId, me.userId, s.sourceCardId, s.sourceCardName, 0);
+      }
 
       const before = enemy.hp;
       enemy.hp = Math.min(100, enemy.hp + heal);
@@ -193,31 +226,31 @@ export function resolveTurnEnd(state: GameState) {
         pushHealEvent(state, enemy.userId, enemy.userId, s.sourceCardId, s.sourceCardName, applied);
       }
 
-      // ✅ WUJIAN ends after enemy-turn-start stage
+      // WUJIAN ends after this trigger
       enemy.statuses = enemy.statuses.filter((x) => x !== s);
       break;
     }
 
-    /* ================= PATCH 0.3 =================
-       ✅ 心诤：目标回合开始 → 对目标造成 5
-       - enemy has the channel (caster)
-       - me is the target whose turn just started
-    ================================================= */
+    // 心诤：目标回合开始 → 对目标造成 5
     if (s.type === "XINZHENG_CHANNEL") {
       const dmg = 5;
-      me.hp = Math.max(0, me.hp - dmg);
-      pushDamageEvent(state, enemy.userId, me.userId, s.sourceCardId, s.sourceCardName, dmg);
+
+      if (!shouldDodge(me)) {
+        me.hp = Math.max(0, me.hp - dmg);
+        pushDamageEvent(state, enemy.userId, me.userId, s.sourceCardId, s.sourceCardName, dmg);
+      } else {
+        pushDamageEvent(state, enemy.userId, me.userId, s.sourceCardId, s.sourceCardName, 0);
+      }
     }
   }
 
   /* =========================================================
-     7) CHECK END GAME AFTER START-OF-TURN TRIGGERS
+     8) FINAL END GAME CHECK
   ========================================================= */
   for (const p of state.players) {
     if (p.hp <= 0) {
       state.gameOver = true;
-      const winner = state.players.find((x) => x.userId !== p.userId);
-      state.winnerUserId = winner?.userId;
+      state.winnerUserId = state.players.find((x) => x.userId !== p.userId)?.userId;
       return;
     }
   }

@@ -134,15 +134,27 @@ export function applyEffects(
         if (boost) damage *= boost.value ?? 1;
 
         // dodge check on target (PATCH 0.3)
-        const dodge = effTarget.statuses.find((s) => s.type === "DODGE_NEXT");
-        if (dodge && (dodge.chance ?? 0) > 0) {
-          const roll = Math.random();
-          if (roll < (dodge.chance ?? 0)) {
-            // consume the dodge on success
-            effTarget.statuses = effTarget.statuses.filter((s) => s !== dodge);
-            break; // no damage event
-          }
-        }
+      const dodgeChance = effTarget.statuses
+  .filter((s) => s.type === "DODGE_NEXT")
+  .reduce((sum, s) => sum + (s.chance ?? 0), 0);
+
+if (dodgeChance > 0) {
+  const roll = Math.random();
+  if (roll < dodgeChance) {
+    // fully dodged — no damage, no consume
+    pushEvent(state, {
+      turn: state.turn,
+      type: "DAMAGE",
+      actorUserId: source.userId,
+      targetUserId: effTarget.userId,
+      cardId: card.id,
+      cardName: card.name,
+      effectType: "DAMAGE",
+      value: 0,
+    });
+    break;
+  }
+}
 
         // damage reduction on target
         const dr = effTarget.statuses.find((s) => s.type === "DAMAGE_REDUCTION");
@@ -177,14 +189,27 @@ export function applyEffects(
           const t = defaultTarget;
 
           // dodge applies too
-          const dodge = t.statuses.find((s) => s.type === "DODGE_NEXT");
-          if (dodge && (dodge.chance ?? 0) > 0) {
-            const roll = Math.random();
-            if (roll < (dodge.chance ?? 0)) {
-              t.statuses = t.statuses.filter((s) => s !== dodge);
-              break;
-            }
-          }
+       const dodgeChance = t.statuses
+  .filter((s) => s.type === "DODGE_NEXT")
+  .reduce((sum, s) => sum + (s.chance ?? 0), 0);
+
+if (dodgeChance > 0) {
+  const roll = Math.random();
+  if (roll < dodgeChance) {
+    pushEvent(state, {
+      turn: state.turn,
+      type: "DAMAGE",
+      actorUserId: source.userId,
+      targetUserId: t.userId,
+      cardId: card.id,
+      cardName: card.name,
+      effectType: "DAMAGE",
+      value: 0,
+    });
+    break;
+  }
+}
+
 
           let damage = bonus;
 
