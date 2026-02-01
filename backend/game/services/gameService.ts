@@ -110,11 +110,20 @@ function autoDrawAtTurnStart(state: GameState) {
   if (p.hand.length >= 10) return;
   if (state.deck.length === 0) return;
 
-  const reductions = p.statuses
-    .filter((s) => s.type === "DRAW_REDUCTION")
-    .reduce((sum, s) => sum + (s.value ?? 0), 0);
+const activeReductions = p.statuses.filter(
+  (s) =>
+    s.type === "DRAW_REDUCTION" &&
+    s.appliedAtTurn <= state.turn &&
+    state.turn < s.expiresAtTurn
+);
 
-  const n = Math.max(0, 1 - reductions);
+const totalReduction = activeReductions.reduce(
+  (sum, s) => sum + (s.value ?? 0),
+  0
+);
+
+const n = Math.max(0, 1 - totalReduction);
+
   if (n <= 0) return;
 
   draw(state, state.activePlayerIndex, n);

@@ -202,7 +202,7 @@ export const CARDS: Record<string, Card> = {
     target: "SELF",
     effects: [
       { type: "STEALTH", durationTurns: 4, breakOnPlay: true },
-      { type: "DRAW_REDUCTION", value: 1, durationTurns: 1, breakOnPlay: true },
+      { type: "DRAW_REDUCTION", value: 1, durationTurns: 4, breakOnPlay: true },
     ],
   },
 
