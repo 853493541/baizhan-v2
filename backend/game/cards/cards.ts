@@ -302,16 +302,21 @@ export const CARDS: Record<string, Card> = {
      - 对目标造成 3
      - 自己隐身 1 回合
   */
-  tiandi_wuji: {
-    id: "tiandi_wuji",
-    name: "天地无极",
-    type: "ATTACK",
-    target: "OPPONENT",
-    effects: [
-      { type: "DAMAGE", value: 3 },
-      { type: "STEALTH", durationTurns: 1, applyTo: "SELF" },
-    ],
-  },
+ tiandi_wuji: {
+  id: "tiandi_wuji",
+  name: "天地无极",
+  type: "ATTACK",
+  target: "OPPONENT",
+  effects: [
+    { type: "DAMAGE", value: 3 },
+    {
+      type: "STEALTH",
+      durationTurns: 1,
+      breakOnPlay: true,   // ✅ FIX: 与所有 Stealth 统一
+      applyTo: "SELF",
+    },
+  ],
+},
 
   /* 驱夜断愁（文本已按你要求变更为：造成5点伤害，回复3点生命值）：
      - 对目标造成 5
