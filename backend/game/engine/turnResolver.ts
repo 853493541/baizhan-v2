@@ -7,7 +7,6 @@ import { randomUUID } from "crypto";
    DODGE HELPER
    - stacks chance
    - persistent
-   - caller must ensure "enemy-sourced" context
 ========================================================= */
 function shouldDodge(target: { statuses: any[] }) {
   const chance = target.statuses
@@ -16,6 +15,37 @@ function shouldDodge(target: { statuses: any[] }) {
 
   if (chance <= 0) return false;
   return Math.random() < chance;
+}
+
+/* =========================================================
+   SCHEDULED DAMAGE RESOLVER
+   - applies 女娲 / 减伤
+   - DOT intentionally excluded
+========================================================= */
+function resolveScheduledDamage(params: {
+  source: { statuses: any[] };
+  target: { statuses: any[] };
+  base: number;
+}) {
+  let dmg = params.base;
+
+  // DAMAGE MULTIPLIER (e.g. 女娲补天)
+  const boost = params.source.statuses.find(
+    (s) => s.type === "DAMAGE_MULTIPLIER"
+  );
+  if (boost) {
+    dmg *= boost.value ?? 1;
+  }
+
+  // DAMAGE REDUCTION (e.g. 风袖低昂)
+  const dr = params.target.statuses.find(
+    (s) => s.type === "DAMAGE_REDUCTION"
+  );
+  if (dr) {
+    dmg *= 1 - (dr.value ?? 0);
+  }
+
+  return Math.max(0, Math.floor(dmg));
 }
 
 function pushDamageEvent(
@@ -75,7 +105,7 @@ export function resolveTurnEnd(state: GameState) {
      1) END-OF-TURN TRIGGERS (OWNER)
   ========================================================= */
 
-  // ❌ DOT — NOT DODGEABLE
+  // DOT — NOT DODGEABLE, NOT BLOCKED BY UNTARGETABLE
   for (const s of current.statuses) {
     if (s.type === "DELAYED_DAMAGE" && (s.repeatTurns ?? 0) > 0) {
       const dmg = s.value ?? 0;
@@ -84,12 +114,20 @@ export function resolveTurnEnd(state: GameState) {
     }
   }
 
-  // ✅ FENGLAI: end-of-your-turn → hit enemy
+  // 风来吴山
   for (const s of current.statuses) {
     if (s.type === "FENGLAI_CHANNEL") {
-      const dmg = 10;
+      if (other.statuses.some((x) => x.type === "UNTARGETABLE")) {
+        pushDamageEvent(state, current.userId, other.userId, s.sourceCardId, s.sourceCardName, 0);
+        continue;
+      }
 
       if (!shouldDodge(other)) {
+        const dmg = resolveScheduledDamage({
+          source: current,
+          target: other,
+          base: 10,
+        });
         other.hp = Math.max(0, other.hp - dmg);
         pushDamageEvent(state, current.userId, other.userId, s.sourceCardId, s.sourceCardName, dmg);
       } else {
@@ -97,12 +135,19 @@ export function resolveTurnEnd(state: GameState) {
       }
     }
 
-    // ✅ WUJIAN: end-of-your-turn → hit enemy + heal self
+    // 无间狱（回合结束）
     if (s.type === "WUJIAN_CHANNEL") {
-      const dmg = 10;
-      const heal = 3;
+      if (other.statuses.some((x) => x.type === "UNTARGETABLE")) {
+        pushDamageEvent(state, current.userId, other.userId, s.sourceCardId, s.sourceCardName, 0);
+        continue;
+      }
 
       if (!shouldDodge(other)) {
+        const dmg = resolveScheduledDamage({
+          source: current,
+          target: other,
+          base: 10,
+        });
         other.hp = Math.max(0, other.hp - dmg);
         pushDamageEvent(state, current.userId, other.userId, s.sourceCardId, s.sourceCardName, dmg);
       } else {
@@ -110,18 +155,26 @@ export function resolveTurnEnd(state: GameState) {
       }
 
       const before = current.hp;
-      current.hp = Math.min(100, current.hp + heal);
+      current.hp = Math.min(100, current.hp + 3);
       const applied = Math.max(0, current.hp - before);
       if (applied > 0) {
         pushHealEvent(state, current.userId, current.userId, s.sourceCardId, s.sourceCardName, applied);
       }
     }
 
-    // ✅ 心诤：自己回合结束 → 对目标造成 5
+    // 心诤（自己回合结束）
     if (s.type === "XINZHENG_CHANNEL") {
-      const dmg = 5;
+      if (other.statuses.some((x) => x.type === "UNTARGETABLE")) {
+        pushDamageEvent(state, current.userId, other.userId, s.sourceCardId, s.sourceCardName, 0);
+        continue;
+      }
 
       if (!shouldDodge(other)) {
+        const dmg = resolveScheduledDamage({
+          source: current,
+          target: other,
+          base: 5,
+        });
         other.hp = Math.max(0, other.hp - dmg);
         pushDamageEvent(state, current.userId, other.userId, s.sourceCardId, s.sourceCardName, dmg);
       } else {
@@ -133,26 +186,33 @@ export function resolveTurnEnd(state: GameState) {
   /* =========================================================
      2) OPPONENT CHANNEL — TARGET END TURN
   ========================================================= */
-
   for (const s of other.statuses) {
     if (s.type === "XINZHENG_CHANNEL") {
-      const dmg = 15;
+      if (current.statuses.some((x) => x.type === "UNTARGETABLE")) {
+        pushDamageEvent(state, other.userId, current.userId, s.sourceCardId, s.sourceCardName, 0);
+        other.statuses = other.statuses.filter((x) => x !== s);
+        break;
+      }
 
       if (!shouldDodge(current)) {
+        const dmg = resolveScheduledDamage({
+          source: other,
+          target: current,
+          base: 15,
+        });
         current.hp = Math.max(0, current.hp - dmg);
         pushDamageEvent(state, other.userId, current.userId, s.sourceCardId, s.sourceCardName, dmg);
       } else {
         pushDamageEvent(state, other.userId, current.userId, s.sourceCardId, s.sourceCardName, 0);
       }
 
-      // channel ends immediately
       other.statuses = other.statuses.filter((x) => x !== s);
       break;
     }
   }
 
   /* =========================================================
-     3) EXPIRE FILTER (UNCHANGED)
+     3) EXPIRE FILTER
   ========================================================= */
   for (const p of state.players) {
     p.statuses = p.statuses.filter((status) => state.turn < status.expiresAtTurn);
@@ -180,27 +240,33 @@ export function resolveTurnEnd(state: GameState) {
 
   /* =========================================================
      6) START-OF-TURN TRIGGERS (OWNER)
-     ❌ DOT — NOT DODGEABLE
+     ❌ DOT still applies
   ========================================================= */
   for (const s of me.statuses) {
     if (s.type === "START_TURN_DAMAGE") {
-      const dmg = s.value ?? 0;
-      me.hp = Math.max(0, me.hp - dmg);
+      me.hp = Math.max(0, me.hp - (s.value ?? 0));
     }
     if (s.type === "START_TURN_HEAL") {
-      const heal = s.value ?? 0;
-      me.hp = Math.min(100, me.hp + heal);
+      me.hp = Math.min(100, me.hp + (s.value ?? 0));
     }
   }
 
   /* =========================================================
-     7) ENEMY-TURN-START CHANNEL DAMAGE
+     7) ENEMY TURN START CHANNEL
   ========================================================= */
   for (const s of enemy.statuses) {
     if (s.type === "FENGLAI_CHANNEL") {
-      const dmg = 10;
+      if (me.statuses.some((x) => x.type === "UNTARGETABLE")) {
+        pushDamageEvent(state, enemy.userId, me.userId, s.sourceCardId, s.sourceCardName, 0);
+        continue;
+      }
 
       if (!shouldDodge(me)) {
+        const dmg = resolveScheduledDamage({
+          source: enemy,
+          target: me,
+          base: 10,
+        });
         me.hp = Math.max(0, me.hp - dmg);
         pushDamageEvent(state, enemy.userId, me.userId, s.sourceCardId, s.sourceCardName, dmg);
       } else {
@@ -209,10 +275,18 @@ export function resolveTurnEnd(state: GameState) {
     }
 
     if (s.type === "WUJIAN_CHANNEL") {
-      const dmg = 20;
-      const heal = 6;
+      if (me.statuses.some((x) => x.type === "UNTARGETABLE")) {
+        pushDamageEvent(state, enemy.userId, me.userId, s.sourceCardId, s.sourceCardName, 0);
+        enemy.statuses = enemy.statuses.filter((x) => x !== s);
+        break;
+      }
 
       if (!shouldDodge(me)) {
+        const dmg = resolveScheduledDamage({
+          source: enemy,
+          target: me,
+          base: 20,
+        });
         me.hp = Math.max(0, me.hp - dmg);
         pushDamageEvent(state, enemy.userId, me.userId, s.sourceCardId, s.sourceCardName, dmg);
       } else {
@@ -220,22 +294,28 @@ export function resolveTurnEnd(state: GameState) {
       }
 
       const before = enemy.hp;
-      enemy.hp = Math.min(100, enemy.hp + heal);
+      enemy.hp = Math.min(100, enemy.hp + 6);
       const applied = Math.max(0, enemy.hp - before);
       if (applied > 0) {
         pushHealEvent(state, enemy.userId, enemy.userId, s.sourceCardId, s.sourceCardName, applied);
       }
 
-      // WUJIAN ends after this trigger
       enemy.statuses = enemy.statuses.filter((x) => x !== s);
       break;
     }
 
-    // 心诤：目标回合开始 → 对目标造成 5
     if (s.type === "XINZHENG_CHANNEL") {
-      const dmg = 5;
+      if (me.statuses.some((x) => x.type === "UNTARGETABLE")) {
+        pushDamageEvent(state, enemy.userId, me.userId, s.sourceCardId, s.sourceCardName, 0);
+        continue;
+      }
 
       if (!shouldDodge(me)) {
+        const dmg = resolveScheduledDamage({
+          source: enemy,
+          target: me,
+          base: 5,
+        });
         me.hp = Math.max(0, me.hp - dmg);
         pushDamageEvent(state, enemy.userId, me.userId, s.sourceCardId, s.sourceCardName, dmg);
       } else {

@@ -305,7 +305,18 @@ if (cardDodged && isEnemyEffect) {
         });
 
         // immediate: deal 10 to enemy
-        enemy.hp = Math.max(0, enemy.hp - 10);
+        let dmg = 10;
+
+// damage multiplier (女娲)
+const boost = source.statuses.find(s => s.type === "DAMAGE_MULTIPLIER");
+if (boost) dmg *= boost.value ?? 1;
+
+// damage reduction (风袖)
+const dr = enemy.statuses.find(s => s.type === "DAMAGE_REDUCTION");
+if (dr) dmg *= 1 - (dr.value ?? 0);
+
+dmg = Math.max(0, Math.floor(dmg));
+enemy.hp = Math.max(0, enemy.hp - dmg);
 
         pushEvent(state, {
           turn: state.turn,
@@ -315,7 +326,7 @@ if (cardDodged && isEnemyEffect) {
           cardId: card.id,
           cardName: card.name,
           effectType: "DAMAGE",
-          value: 10,
+          value: dmg,
         });
         break;
       }
@@ -333,7 +344,19 @@ if (cardDodged && isEnemyEffect) {
         });
 
         // immediate: deal 10 to enemy, heal 3 to self
-        enemy.hp = Math.max(0, enemy.hp - 10);
+       let dmg = 10;
+
+// damage multiplier (女娲)
+const boost = source.statuses.find(s => s.type === "DAMAGE_MULTIPLIER");
+if (boost) dmg *= boost.value ?? 1;
+
+// damage reduction (风袖)
+const dr = enemy.statuses.find(s => s.type === "DAMAGE_REDUCTION");
+if (dr) dmg *= 1 - (dr.value ?? 0);
+
+dmg = Math.max(0, Math.floor(dmg));
+enemy.hp = Math.max(0, enemy.hp - dmg);
+
 
         const before = source.hp;
         source.hp = Math.min(100, source.hp + 3);
@@ -347,7 +370,7 @@ if (cardDodged && isEnemyEffect) {
           cardId: card.id,
           cardName: card.name,
           effectType: "DAMAGE",
-          value: 10,
+          value: dmg,
         });
 
         if (appliedHeal > 0) {
