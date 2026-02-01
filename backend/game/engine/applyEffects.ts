@@ -94,6 +94,11 @@ function addStatus(params: {
   });
 }
 
+/** helper: target is immune to NEW enemy interactions */
+function hasUntargetable(p: { statuses: Status[] }) {
+  return p.statuses.some((s) => s.type === "UNTARGETABLE");
+}
+
 export function applyEffects(
   state: GameState,
   card: Card,
@@ -116,17 +121,16 @@ export function applyEffects(
   // For bonus-damage checks we want the "opponent HP at card start"
   const opponentHpAtCardStart = defaultTarget.hp;
 
-// PATCH 0.3.1 — card-level dodge (enemy effects only)
-const cardDodged =
-  card.target === "OPPONENT" &&
-  (() => {
-    const chance = defaultTarget.statuses
-      .filter((s) => s.type === "DODGE_NEXT")
-      .reduce((sum, s) => sum + (s.chance ?? 0), 0);
+  // PATCH 0.3.1 — card-level dodge (enemy effects only)
+  const cardDodged =
+    card.target === "OPPONENT" &&
+    (() => {
+      const chance = defaultTarget.statuses
+        .filter((s) => s.type === "DODGE_NEXT")
+        .reduce((sum, s) => sum + (s.chance ?? 0), 0);
 
-    return chance > 0 && Math.random() < chance;
-  })();
-
+      return chance > 0 && Math.random() < chance;
+    })();
 
   for (const effect of card.effects) {
     const effTargetIndex = resolveEffectTargetIndex(
@@ -135,58 +139,63 @@ const cardDodged =
       effect.applyTo
     );
 
+    const effTarget = state.players[effTargetIndex];
 
+    const isChannelEffect =
+      effect.type === "FENGLAI_CHANNEL" ||
+      effect.type === "WUJIAN_CHANNEL" ||
+      effect.type === "XINZHENG_CHANNEL";
 
-const effTarget = state.players[effTargetIndex];
+    // Some effects are ALWAYS self-side in our system, regardless of card.target
+    // (e.g. 三环套月抽牌：即使卡是打对面，抽牌也属于施法者)
+    const isAlwaysSelfEffect =
+      effect.type === "DRAW" ||
+      effect.type === "CLEANSE" ||
+      isChannelEffect;
 
-// Some effects are ALWAYS self-side in our system, regardless of card.target
-// (e.g. 三环套月抽牌：即使卡是打对面，抽牌也属于施法者)
-const isAlwaysSelfEffect =
-  effect.type === "DRAW" ||
-  effect.type === "CLEANSE";
+    // Enemy effect = it actually applies to the opponent (not the caster)
+    // NOTE: For always-self effects, force it to be treated as self-side.
+    const isEnemyEffect =
+      !isAlwaysSelfEffect && effTarget.userId !== source.userId;
 
-// Enemy effect = it actually applies to the opponent (not the caster)
-// NOTE: For always-self effects, force it to be treated as self-side.
-const isEnemyEffect =
-  !isAlwaysSelfEffect && effTarget.userId !== source.userId;
-// =========================================================
-// PATCH 0.3.2 — UNTARGETABLE (AOE / enemy effects immunity)
-// Rules:
-// - If target has UNTARGETABLE
-// - AND effect is enemy-applied
-// - AND effect is NOT always-self
-// → skip effect entirely
-// =========================================================
-const isUntargetable =
-  isEnemyEffect &&
-  effTarget.statuses.some((s) => s.type === "UNTARGETABLE");
-
-if (isUntargetable) {
-  continue;
-}
-
-// =========================================================
-// PATCH 0.3.1 — dodge cancels enemy-applied effects only
-// =========================================================
-if (cardDodged && isEnemyEffect) {
-  continue;
-}
-
+    // =========================================================
+    // PATCH 0.3.1 — dodge cancels enemy-applied effects only
+    // IMPORTANT FIX:
+    // - channel effects are self-side; must NOT be cancelled by opponent dodge
+    // =========================================================
+    if (cardDodged && isEnemyEffect) {
+      continue;
+    }
 
     switch (effect.type) {
       case "DAMAGE": {
+        // ✅ UNTARGETABLE blocks enemy direct damage
+        if (isEnemyEffect && hasUntargetable(effTarget)) {
+          pushEvent(state, {
+            turn: state.turn,
+            type: "DAMAGE",
+            actorUserId: source.userId,
+            targetUserId: effTarget.userId,
+            cardId: card.id,
+            cardName: card.name,
+            effectType: "DAMAGE",
+            value: 0,
+          });
+          break;
+        }
+
         let damage = effect.value ?? 0;
 
         // damage multiplier on source
-        const boost = source.statuses.find((s) => s.type === "DAMAGE_MULTIPLIER");
+        const boost = source.statuses.find(
+          (s) => s.type === "DAMAGE_MULTIPLIER"
+        );
         if (boost) damage *= boost.value ?? 1;
 
-        // dodge check on target (PATCH 0.3)
-     
-
-
         // damage reduction on target
-        const dr = effTarget.statuses.find((s) => s.type === "DAMAGE_REDUCTION");
+        const dr = effTarget.statuses.find(
+          (s) => s.type === "DAMAGE_REDUCTION"
+        );
         if (dr) damage *= 1 - (dr.value ?? 0);
 
         const final = Math.floor(damage);
@@ -207,21 +216,32 @@ if (cardDodged && isEnemyEffect) {
       }
 
       case "BONUS_DAMAGE_IF_TARGET_HP_GT": {
-        // PATCH 0.3: intended for 追命箭
         const threshold = effect.threshold ?? 0;
         const bonus = effect.value ?? 0;
 
-        // only makes sense if card was targeting opponent (your card design)
-        // we use the default opponent HP snapshot at card start
         if (opponentHpAtCardStart > threshold && bonus > 0) {
-          // apply to the default opponent target (NOT self)
           const t = defaultTarget;
 
-
+          // ✅ UNTARGETABLE blocks enemy bonus direct damage
+          if (t.userId !== source.userId && hasUntargetable(t)) {
+            pushEvent(state, {
+              turn: state.turn,
+              type: "DAMAGE",
+              actorUserId: source.userId,
+              targetUserId: t.userId,
+              cardId: card.id,
+              cardName: card.name,
+              effectType: "DAMAGE",
+              value: 0,
+            });
+            break;
+          }
 
           let damage = bonus;
 
-          const boost = source.statuses.find((s) => s.type === "DAMAGE_MULTIPLIER");
+          const boost = source.statuses.find(
+            (s) => s.type === "DAMAGE_MULTIPLIER"
+          );
           if (boost) damage *= boost.value ?? 1;
 
           const dr = t.statuses.find((s) => s.type === "DAMAGE_REDUCTION");
@@ -274,7 +294,6 @@ if (cardDodged && isEnemyEffect) {
       }
 
       case "DRAW": {
-        // draw always goes to source (your system)
         for (let i = 0; i < (effect.value ?? 0); i++) {
           const c = state.deck.shift();
           if (c) source.hand.push(c);
@@ -283,14 +302,12 @@ if (cardDodged && isEnemyEffect) {
       }
 
       case "CLEANSE": {
-        // cleanse on source (your system)
         source.statuses = source.statuses.filter((s) => s.type !== "CONTROL");
         break;
       }
 
       /* =========================================================
          CHANNEL BUFFS (self-cast)
-         ✅ Always hit ENEMY (not self)
       ========================================================= */
       case "FENGLAI_CHANNEL": {
         addStatus({
@@ -304,19 +321,33 @@ if (cardDodged && isEnemyEffect) {
           breakOnPlay: effect.breakOnPlay,
         });
 
-        // immediate: deal 10 to enemy
+        // immediate: deal 10 to enemy (AOE-like) → UNTARGETABLE immune
+        if (hasUntargetable(enemy)) {
+          pushEvent(state, {
+            turn: state.turn,
+            type: "DAMAGE",
+            actorUserId: source.userId,
+            targetUserId: enemy.userId,
+            cardId: card.id,
+            cardName: card.name,
+            effectType: "DAMAGE",
+            value: 0,
+          });
+          break;
+        }
+
         let dmg = 10;
 
-// damage multiplier (女娲)
-const boost = source.statuses.find(s => s.type === "DAMAGE_MULTIPLIER");
-if (boost) dmg *= boost.value ?? 1;
+        const boost = source.statuses.find(
+          (s) => s.type === "DAMAGE_MULTIPLIER"
+        );
+        if (boost) dmg *= boost.value ?? 1;
 
-// damage reduction (风袖)
-const dr = enemy.statuses.find(s => s.type === "DAMAGE_REDUCTION");
-if (dr) dmg *= 1 - (dr.value ?? 0);
+        const dr = enemy.statuses.find((s) => s.type === "DAMAGE_REDUCTION");
+        if (dr) dmg *= 1 - (dr.value ?? 0);
 
-dmg = Math.max(0, Math.floor(dmg));
-enemy.hp = Math.max(0, enemy.hp - dmg);
+        dmg = Math.max(0, Math.floor(dmg));
+        enemy.hp = Math.max(0, enemy.hp - dmg);
 
         pushEvent(state, {
           turn: state.turn,
@@ -343,20 +374,33 @@ enemy.hp = Math.max(0, enemy.hp - dmg);
           breakOnPlay: effect.breakOnPlay,
         });
 
-        // immediate: deal 10 to enemy, heal 3 to self
-       let dmg = 10;
+        // immediate: deal 10 to enemy (AOE-like) → UNTARGETABLE immune
+        if (hasUntargetable(enemy)) {
+          pushEvent(state, {
+            turn: state.turn,
+            type: "DAMAGE",
+            actorUserId: source.userId,
+            targetUserId: enemy.userId,
+            cardId: card.id,
+            cardName: card.name,
+            effectType: "DAMAGE",
+            value: 0,
+          });
+          break;
+        }
 
-// damage multiplier (女娲)
-const boost = source.statuses.find(s => s.type === "DAMAGE_MULTIPLIER");
-if (boost) dmg *= boost.value ?? 1;
+        let dmg = 10;
 
-// damage reduction (风袖)
-const dr = enemy.statuses.find(s => s.type === "DAMAGE_REDUCTION");
-if (dr) dmg *= 1 - (dr.value ?? 0);
+        const boost = source.statuses.find(
+          (s) => s.type === "DAMAGE_MULTIPLIER"
+        );
+        if (boost) dmg *= boost.value ?? 1;
 
-dmg = Math.max(0, Math.floor(dmg));
-enemy.hp = Math.max(0, enemy.hp - dmg);
+        const dr = enemy.statuses.find((s) => s.type === "DAMAGE_REDUCTION");
+        if (dr) dmg *= 1 - (dr.value ?? 0);
 
+        dmg = Math.max(0, Math.floor(dmg));
+        enemy.hp = Math.max(0, enemy.hp - dmg);
 
         const before = source.hp;
         source.hp = Math.min(100, source.hp + 3);
@@ -388,7 +432,6 @@ enemy.hp = Math.max(0, enemy.hp - dmg);
         break;
       }
 
-      /* ================= PATCH 0.3 ================= */
       case "XINZHENG_CHANNEL": {
         addStatus({
           state,
@@ -408,6 +451,14 @@ enemy.hp = Math.max(0, enemy.hp - dmg);
         if (!effect.durationTurns) break;
 
         const statusTarget = effTarget;
+
+        // ✅ UNTARGETABLE blocks enemy-applied NEW status effects
+        if (
+          statusTarget.userId !== source.userId &&
+          hasUntargetable(statusTarget)
+        ) {
+          break;
+        }
 
         // CONTROL immunity check (kept)
         if (
@@ -438,7 +489,8 @@ enemy.hp = Math.max(0, enemy.hp - dmg);
   for (const p of state.players) {
     if (p.hp <= 0) {
       state.gameOver = true;
-      state.winnerUserId = state.players.find((x) => x.userId !== p.userId)?.userId;
+      state.winnerUserId = state.players.find((x) => x.userId !== p.userId)
+        ?.userId;
     }
   }
 }
