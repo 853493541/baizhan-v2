@@ -116,6 +116,18 @@ export function applyEffects(
   // For bonus-damage checks we want the "opponent HP at card start"
   const opponentHpAtCardStart = defaultTarget.hp;
 
+// PATCH 0.3.1 — card-level dodge (enemy effects only)
+const cardDodged =
+  card.target === "OPPONENT" &&
+  (() => {
+    const chance = defaultTarget.statuses
+      .filter((s) => s.type === "DODGE_NEXT")
+      .reduce((sum, s) => sum + (s.chance ?? 0), 0);
+
+    return chance > 0 && Math.random() < chance;
+  })();
+
+
   for (const effect of card.effects) {
     const effTargetIndex = resolveEffectTargetIndex(
       targetIndex,
@@ -123,7 +135,43 @@ export function applyEffects(
       effect.applyTo
     );
 
-    const effTarget = state.players[effTargetIndex];
+
+
+const effTarget = state.players[effTargetIndex];
+
+// Some effects are ALWAYS self-side in our system, regardless of card.target
+// (e.g. 三环套月抽牌：即使卡是打对面，抽牌也属于施法者)
+const isAlwaysSelfEffect =
+  effect.type === "DRAW" ||
+  effect.type === "CLEANSE";
+
+// Enemy effect = it actually applies to the opponent (not the caster)
+// NOTE: For always-self effects, force it to be treated as self-side.
+const isEnemyEffect =
+  !isAlwaysSelfEffect && effTarget.userId !== source.userId;
+// =========================================================
+// PATCH 0.3.2 — UNTARGETABLE (AOE / enemy effects immunity)
+// Rules:
+// - If target has UNTARGETABLE
+// - AND effect is enemy-applied
+// - AND effect is NOT always-self
+// → skip effect entirely
+// =========================================================
+const isUntargetable =
+  isEnemyEffect &&
+  effTarget.statuses.some((s) => s.type === "UNTARGETABLE");
+
+if (isUntargetable) {
+  continue;
+}
+
+// =========================================================
+// PATCH 0.3.1 — dodge cancels enemy-applied effects only
+// =========================================================
+if (cardDodged && isEnemyEffect) {
+  continue;
+}
+
 
     switch (effect.type) {
       case "DAMAGE": {
@@ -134,27 +182,8 @@ export function applyEffects(
         if (boost) damage *= boost.value ?? 1;
 
         // dodge check on target (PATCH 0.3)
-      const dodgeChance = effTarget.statuses
-  .filter((s) => s.type === "DODGE_NEXT")
-  .reduce((sum, s) => sum + (s.chance ?? 0), 0);
+     
 
-if (dodgeChance > 0) {
-  const roll = Math.random();
-  if (roll < dodgeChance) {
-    // fully dodged — no damage, no consume
-    pushEvent(state, {
-      turn: state.turn,
-      type: "DAMAGE",
-      actorUserId: source.userId,
-      targetUserId: effTarget.userId,
-      cardId: card.id,
-      cardName: card.name,
-      effectType: "DAMAGE",
-      value: 0,
-    });
-    break;
-  }
-}
 
         // damage reduction on target
         const dr = effTarget.statuses.find((s) => s.type === "DAMAGE_REDUCTION");
@@ -188,27 +217,6 @@ if (dodgeChance > 0) {
           // apply to the default opponent target (NOT self)
           const t = defaultTarget;
 
-          // dodge applies too
-       const dodgeChance = t.statuses
-  .filter((s) => s.type === "DODGE_NEXT")
-  .reduce((sum, s) => sum + (s.chance ?? 0), 0);
-
-if (dodgeChance > 0) {
-  const roll = Math.random();
-  if (roll < dodgeChance) {
-    pushEvent(state, {
-      turn: state.turn,
-      type: "DAMAGE",
-      actorUserId: source.userId,
-      targetUserId: t.userId,
-      cardId: card.id,
-      cardName: card.name,
-      effectType: "DAMAGE",
-      value: 0,
-    });
-    break;
-  }
-}
 
 
           let damage = bonus;
