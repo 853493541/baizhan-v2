@@ -95,7 +95,7 @@ export const CARDS: Record<string, Card> = {
     effects: [
       { type: "CLEANSE", allowWhileControlled: true },
       { type: "DRAW", value: 1, allowWhileControlled: true },
-      { type: "HEAL", value: 5, allowWhileControlled: true },
+      { type: "HEAL", value: 10, allowWhileControlled: true },
       {
         type: "UNTARGETABLE",
         durationTurns: 1,
@@ -202,7 +202,7 @@ export const CARDS: Record<string, Card> = {
     target: "SELF",
     effects: [
       { type: "STEALTH", durationTurns: 4, breakOnPlay: true },
-      { type: "DRAW_REDUCTION", value: 1, durationTurns: 4, breakOnPlay: true },
+      { type: "DRAW_REDUCTION", value: 1, durationTurns: 2, breakOnPlay: true },
     ],
   },
 
@@ -215,7 +215,7 @@ export const CARDS: Record<string, Card> = {
     type: "CONTROL",
     target: "OPPONENT",
     effects: [
-      { type: "ON_PLAY_DAMAGE", value: 5, durationTurns: 3 },
+      { type: "ON_PLAY_DAMAGE", value: 3, durationTurns: 3 },
     ],
   },
 
@@ -247,7 +247,7 @@ export const CARDS: Record<string, Card> = {
     effects: [
       { type: "DRAW", value: 2 },
       { type: "HEAL", value: 10 },
-      { type: "CONTROL_IMMUNE", durationTurns: 4 },
+      { type: "CONTROL_IMMUNE", durationTurns: 2 },
     ],
   },
 
@@ -308,7 +308,7 @@ export const CARDS: Record<string, Card> = {
   type: "ATTACK",
   target: "OPPONENT",
   effects: [
-    { type: "DAMAGE", value: 3 },
+    { type: "DAMAGE", value: 5 },
     {
       type: "STEALTH",
       durationTurns: 1,
@@ -328,8 +328,8 @@ export const CARDS: Record<string, Card> = {
     type: "ATTACK",
     target: "OPPONENT",
     effects: [
-      { type: "DAMAGE", value: 5 },
-      { type: "HEAL", value: 3, applyTo: "SELF" },
+      { type: "DAMAGE", value: 4 },
+      { type: "HEAL", value: 2, applyTo: "SELF" },
     ],
   },
 };

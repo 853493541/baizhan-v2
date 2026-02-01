@@ -1,9 +1,3 @@
-/* ===============================
-   Card Descriptions
-   ⚠️ Frontend display only
-   ⚠️ Not used for game logic
-=============================== */
-
 export const CARD_DESC_MAP: Record<string, string> = {
   /* ===============================
      基础攻击
@@ -32,7 +26,7 @@ export const CARD_DESC_MAP: Record<string, string> = {
     "【控制】目标1个回合\n下个回合目标抽卡数量-1",
 
   jiangchun_zhuxiu:
-    "给目标施加状态\n目标每次使用卡牌时受到5点伤害，持续3个回合",
+    "给目标施加状态\n目标每次使用卡牌时受到3点伤害，持续3个回合",
 
   /* ===============================
      解控 / 防御（受控可用）
@@ -53,7 +47,7 @@ export const CARD_DESC_MAP: Record<string, string> = {
     "恢复自身60点生命值\n获得50%减伤，持续2个回合",
 
   qionglong_huasheng:
-    "抽两张牌\n恢复10点生命值\n免疫控制4个回合",
+    "抽两张牌\n恢复10点生命值\n免疫控制2个回合",
 
   /* ===============================
      隐身 / 干扰
@@ -62,10 +56,10 @@ export const CARD_DESC_MAP: Record<string, string> = {
     "抽2张牌\n【隐身】一回合\n使用卡牌会解除【隐身】",
 
   fuguang_lueying:
-    "【隐身】4个回合\n下回合抽卡数量-1\n使用任何卡牌会解除【隐身】和抽卡减少效果",
+    "【隐身】4个回合\n下2个回合抽卡-1\n使用任何卡牌会解除【隐身】和抽卡减少效果",
 
   tiandi_wuji:
-    "造成3点伤害\n自身【隐身】1个回合",
+    "造成5点伤害\n自身【隐身】1个回合",
 
   /* ===============================
      持续运功 / 节奏压制
@@ -92,5 +86,5 @@ export const CARD_DESC_MAP: Record<string, string> = {
     "造成15点伤害\n若目标生命值高于70\n额外造成5点伤害",
 
   quye_duanchou:
-    "造成5点伤害\n回复3点生命值",
+    "造成4点伤害\n回复2点生命值",
 };
