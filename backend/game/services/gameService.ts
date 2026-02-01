@@ -18,7 +18,6 @@ function buildDeck(): CardInstance[] {
     if (!CARDS[cardId]) {
       throw new Error(`Unknown card id in deck: ${cardId}`);
     }
-
     for (let i = 0; i < n; i++) {
       deck.push({
         instanceId: randomUUID(),
@@ -28,7 +27,8 @@ function buildDeck(): CardInstance[] {
   };
 
   /* ===============================
-     New 15-card deck
+     New deck (PATCH 0.3)
+     - 暂时移除：千蝶吐瑞（qiandie_turui）
   =============================== */
 
   // 基础攻击
@@ -47,7 +47,6 @@ function buildDeck(): CardInstance[] {
 
   // 生存 / 回复
   pushN("fengxiu_diang", 4);
-  pushN("qiandie_turui", 3);
 
   // 受控可用
   pushN("anchen_misan", 3);
@@ -59,6 +58,24 @@ function buildDeck(): CardInstance[] {
 
   // 强化 / 爆发
   pushN("nuwa_butian", 2);
+
+  /* ===============================
+     PATCH 0.3 新卡加入
+  =============================== */
+  pushN("fuguang_lueying", 3);
+  pushN("jiangchun_zhuxiu", 3);
+  pushN("da_shizi_hou", 3);
+  pushN("qionglong_huasheng", 3);
+
+  // 注意：ID 由 taxing -> taxingxing（你要求）
+  pushN("taxingxing", 3);
+
+  pushN("zhuiming_jian", 3);
+  pushN("xinzheng", 2);
+  pushN("tiandi_wuji", 3);
+
+  // 驱夜断愁 text change 已在 cards.ts 更新
+  pushN("quye_duanchou", 3);
 
   return deck;
 }
@@ -80,6 +97,12 @@ function draw(state: GameState, playerIndex: number, n: number) {
   }
 }
 
+/* =========================================================
+   PATCH 0.3: draw amount can be reduced by statuses
+   - base is 1 per turn
+   - DRAW_REDUCTION reduces it (min 0)
+   - No draw events (private info)
+========================================================= */
 function autoDrawAtTurnStart(state: GameState) {
   if (state.gameOver) return;
 
@@ -87,9 +110,14 @@ function autoDrawAtTurnStart(state: GameState) {
   if (p.hand.length >= 10) return;
   if (state.deck.length === 0) return;
 
-  draw(state, state.activePlayerIndex, 1);
+  const reductions = p.statuses
+    .filter((s) => s.type === "DRAW_REDUCTION")
+    .reduce((sum, s) => sum + (s.value ?? 0), 0);
 
-  // ❌ NO EVENT: draw is private information
+  const n = Math.max(0, 1 - reductions);
+  if (n <= 0) return;
+
+  draw(state, state.activePlayerIndex, n);
 }
 
 function pushEvent(state: GameState, e: Omit<GameEvent, "id" | "timestamp">) {
@@ -114,7 +142,6 @@ export async function createGame(userId: string) {
     gameOver: false,
     winnerUserId: undefined,
     players: [{ userId, hp: 100, hand: [], statuses: [] }],
-
     // ✅ public history log
     events: [],
   };
@@ -140,7 +167,6 @@ export async function joinGame(gameId: string, userId: string) {
 
   game.players.push(userId);
   await game.save();
-
   return game;
 }
 
@@ -174,7 +200,6 @@ export async function startGame(gameId: string, userId: string) {
       { userId: game.players[0], hp: 100, hand: [], statuses: [] },
       { userId: game.players[1], hp: 100, hand: [], statuses: [] },
     ],
-
     // ✅ public history log
     events: [],
   };
@@ -184,7 +209,6 @@ export async function startGame(gameId: string, userId: string) {
 
   game.state = state;
   game.started = true;
-
   await game.save();
   return game;
 }
@@ -226,10 +250,12 @@ export async function playCard(
   validatePlayCard(state, playerIndex, cardInstanceId);
 
   const player = state.players[playerIndex];
+
   const idx = player.hand.findIndex((c) => c.instanceId === cardInstanceId);
   if (idx === -1) throw new Error("ERR_CARD_NOT_IN_HAND");
 
   const [played] = player.hand.splice(idx, 1);
+
   const card = CARDS[played.cardId];
   if (!card) throw new Error("ERR_CARD_NOT_FOUND");
 
@@ -248,11 +274,10 @@ export async function playCard(
   const isSelfTarget = playerIndex === targetIndex;
 
   // Untargetable: absolute cannot be hit by targeted cards
-  const targetUntargetable = target.statuses.some(
-    (s) => s.type === "UNTARGETABLE"
-  );
+  const targetUntargetable = target.statuses.some((s) => s.type === "UNTARGETABLE");
 
-  // Stealth: cannot be chosen as target by targeted cards (but still takes non-targeted / scheduled/channel damage)
+  // Stealth: cannot be chosen as target by targeted cards
+  // (but still takes non-targeted / scheduled/channel damage)
   const targetStealthed = target.statuses.some((s) => s.type === "STEALTH");
 
   if (!isSelfTarget) {
@@ -264,6 +289,32 @@ export async function playCard(
     // Channel damage is NOT here; it's scheduled in turnResolver.
     if (targetStealthed && card.target === "OPPONENT") {
       throw new Error("ERR_TARGET_STEALTH");
+    }
+  }
+
+  /* =========================================================
+     PATCH 0.3: 绛唇珠袖触发
+     - If the actor has ON_PLAY_DAMAGE status, playing ANY card triggers damage.
+     - This happens AFTER validation, before card effects (so it always triggers).
+  ========================================================= */
+  {
+    const triggers = source.statuses.filter((s) => s.type === "ON_PLAY_DAMAGE");
+    for (const t of triggers) {
+      const dmg = t.value ?? 0;
+      if (dmg > 0) {
+        source.hp = Math.max(0, source.hp - dmg);
+
+        pushEvent(state, {
+          turn: state.turn,
+          type: "DAMAGE",
+          actorUserId: source.userId,     // actor is the one who played (self damage)
+          targetUserId: source.userId,
+          cardId: t.sourceCardId,
+          cardName: t.sourceCardName,
+          effectType: "DAMAGE",
+          value: dmg,
+        });
+      }
     }
   }
 
@@ -283,6 +334,15 @@ export async function playCard(
   applyEffects(state, card, playerIndex, targetIndex);
 
   state.discard.push(played);
+
+  // end game after self-trigger or effects
+  for (const p of state.players) {
+    if (p.hp <= 0) {
+      state.gameOver = true;
+      const winner = state.players.find((x) => x.userId !== p.userId);
+      state.winnerUserId = winner?.userId;
+    }
+  }
 
   game.state = state;
   game.markModified("state");
@@ -307,6 +367,7 @@ export async function passTurn(gameId: string, userId: string) {
   if (state.gameOver) throw new Error("ERR_GAME_OVER");
 
   const playerIndex = state.players.findIndex((p) => p.userId === userId);
+
   if (state.activePlayerIndex !== playerIndex) {
     throw new Error("ERR_NOT_YOUR_TURN");
   }

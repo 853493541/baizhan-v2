@@ -1,3 +1,5 @@
+// backend/game/engine/types.ts
+
 export type PlayerID = string;
 
 export type CardType =
@@ -28,19 +30,46 @@ export type EffectType =
   | "START_TURN_HEAL"
   | "CLEANSE"
   | "FENGLAI_CHANNEL"
-  | "WUJIAN_CHANNEL";
+  | "WUJIAN_CHANNEL"
+  /* ================= PATCH 0.3 ================= */
+  | "DRAW_REDUCTION"          // next turn draw -N
+  | "ON_PLAY_DAMAGE"          // if owner plays a card, take damage
+  | "XINZHENG_CHANNEL"        // 心诤运功状态（caster buff）
+  | "BONUS_DAMAGE_IF_TARGET_HP_GT"; // 追命箭：目标血量>阈值则额外伤害
 
 /** For frontend display only */
 export type EffectCategory = "BUFF" | "DEBUFF";
 
 export interface CardEffect {
   type: EffectType;
+
+  /** Common numeric value (damage/heal/draw/dr/hr/etc) */
   value?: number;
+
+  /** Duration in turns (your existing expire rule uses +duration+1) */
   durationTurns?: number;
+
+  /** For repeating effects (e.g., DELAYED_DAMAGE repeatTurns) */
   repeatTurns?: number;
+
+  /** Chance for probabilistic effects (e.g., DODGE_NEXT) */
   chance?: number;
+
+  /** If true, the status ends when THE OWNER plays a card */
   breakOnPlay?: boolean;
+
+  /** If true, this effect allows the card to be played while CONTROLLED */
   allowWhileControlled?: boolean;
+
+  /* ================= PATCH 0.3 =================
+     Mixed targeting in a single card:
+     - If omitted, defaults to card.target
+     - If set, overrides per-effect target
+  ================================================= */
+  applyTo?: TargetType;
+
+  /** BONUS_DAMAGE_IF_TARGET_HP_GT */
+  threshold?: number;
 }
 
 export interface Card {

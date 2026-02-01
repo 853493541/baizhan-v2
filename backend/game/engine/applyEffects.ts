@@ -1,3 +1,5 @@
+// backend/game/engine/applyEffects.ts
+
 import { randomUUID } from "crypto";
 import {
   GameState,
@@ -5,6 +7,7 @@ import {
   Status,
   GameEvent,
   EffectType,
+  TargetType,
 } from "./types";
 import { getEffectCategory } from "./effectCategories";
 
@@ -18,6 +21,15 @@ function pushEvent(state: GameState, e: Omit<GameEvent, "id" | "timestamp">) {
 
 function getEnemy(state: GameState, playerIndex: number) {
   return state.players[playerIndex === 0 ? 1 : 0];
+}
+
+function resolveEffectTargetIndex(
+  cardTargetIndex: number,
+  playerIndex: number,
+  applyTo: TargetType | undefined
+) {
+  if (!applyTo) return cardTargetIndex;
+  return applyTo === "SELF" ? playerIndex : playerIndex === 0 ? 1 : 0;
 }
 
 function addStatus(params: {
@@ -51,7 +63,7 @@ function addStatus(params: {
   statusTarget.statuses = statusTarget.statuses.filter((s) => s.type !== type);
 
   // IMPORTANT:
-  // You want to keep your old expire rule:
+  // keep your old expire rule:
   // keep status if state.turn < expiresAtTurn
   // So creation must be: + durationTurns + 1
   const status: Status = {
@@ -91,20 +103,28 @@ export function applyEffects(
   if (state.gameOver) return;
 
   const source = state.players[playerIndex];
-  const target = state.players[targetIndex];
+  const defaultTarget = state.players[targetIndex];
   const enemy = getEnemy(state, playerIndex);
 
-  const statusTarget = card.target === "SELF" ? source : target;
-
   /* =========================================================
-     ✅ FIX #1: breakOnPlay MUST only affect the player who PLAYED a card.
+     ✅ FIX #1 (kept): breakOnPlay MUST only affect the player who PLAYED a card.
      - breakOnPlay is "your effect ends when YOU cast"
      - enemy casting should NOT break your statuses
   ========================================================= */
   source.statuses = source.statuses.filter((s) => !s.breakOnPlay);
-  // ❌ DO NOT TOUCH target.statuses here
+
+  // For bonus-damage checks we want the "opponent HP at card start"
+  const opponentHpAtCardStart = defaultTarget.hp;
 
   for (const effect of card.effects) {
+    const effTargetIndex = resolveEffectTargetIndex(
+      targetIndex,
+      playerIndex,
+      effect.applyTo
+    );
+
+    const effTarget = state.players[effTargetIndex];
+
     switch (effect.type) {
       case "DAMAGE": {
         let damage = effect.value ?? 0;
@@ -113,19 +133,29 @@ export function applyEffects(
         const boost = source.statuses.find((s) => s.type === "DAMAGE_MULTIPLIER");
         if (boost) damage *= boost.value ?? 1;
 
+        // dodge check on target (PATCH 0.3)
+        const dodge = effTarget.statuses.find((s) => s.type === "DODGE_NEXT");
+        if (dodge && (dodge.chance ?? 0) > 0) {
+          const roll = Math.random();
+          if (roll < (dodge.chance ?? 0)) {
+            // consume the dodge on success
+            effTarget.statuses = effTarget.statuses.filter((s) => s !== dodge);
+            break; // no damage event
+          }
+        }
+
         // damage reduction on target
-        const dr = target.statuses.find((s) => s.type === "DAMAGE_REDUCTION");
+        const dr = effTarget.statuses.find((s) => s.type === "DAMAGE_REDUCTION");
         if (dr) damage *= 1 - (dr.value ?? 0);
 
         const final = Math.floor(damage);
-        target.hp = Math.max(0, target.hp - final);
-
         if (final > 0) {
+          effTarget.hp = Math.max(0, effTarget.hp - final);
           pushEvent(state, {
             turn: state.turn,
             type: "DAMAGE",
             actorUserId: source.userId,
-            targetUserId: target.userId,
+            targetUserId: effTarget.userId,
             cardId: card.id,
             cardName: card.name,
             effectType: "DAMAGE",
@@ -135,33 +165,83 @@ export function applyEffects(
         break;
       }
 
+      case "BONUS_DAMAGE_IF_TARGET_HP_GT": {
+        // PATCH 0.3: intended for 追命箭
+        const threshold = effect.threshold ?? 0;
+        const bonus = effect.value ?? 0;
+
+        // only makes sense if card was targeting opponent (your card design)
+        // we use the default opponent HP snapshot at card start
+        if (opponentHpAtCardStart > threshold && bonus > 0) {
+          // apply to the default opponent target (NOT self)
+          const t = defaultTarget;
+
+          // dodge applies too
+          const dodge = t.statuses.find((s) => s.type === "DODGE_NEXT");
+          if (dodge && (dodge.chance ?? 0) > 0) {
+            const roll = Math.random();
+            if (roll < (dodge.chance ?? 0)) {
+              t.statuses = t.statuses.filter((s) => s !== dodge);
+              break;
+            }
+          }
+
+          let damage = bonus;
+
+          const boost = source.statuses.find((s) => s.type === "DAMAGE_MULTIPLIER");
+          if (boost) damage *= boost.value ?? 1;
+
+          const dr = t.statuses.find((s) => s.type === "DAMAGE_REDUCTION");
+          if (dr) damage *= 1 - (dr.value ?? 0);
+
+          const final = Math.floor(damage);
+          if (final > 0) {
+            t.hp = Math.max(0, t.hp - final);
+            pushEvent(state, {
+              turn: state.turn,
+              type: "DAMAGE",
+              actorUserId: source.userId,
+              targetUserId: t.userId,
+              cardId: card.id,
+              cardName: card.name,
+              effectType: "DAMAGE",
+              value: final,
+            });
+          }
+        }
+        break;
+      }
+
       case "HEAL": {
         let heal = effect.value ?? 0;
 
-        // heal reduction on source (self)
-        const hr = source.statuses.find((s) => s.type === "HEAL_REDUCTION");
+        // heal reduction must apply on the RECIPIENT (not always source)
+        const hr = effTarget.statuses.find((s) => s.type === "HEAL_REDUCTION");
         if (hr) heal *= 1 - (hr.value ?? 0);
 
         const final = Math.floor(heal);
-        const before = source.hp;
-        source.hp = Math.min(100, source.hp + final);
 
-        if (source.hp > before) {
+        const before = effTarget.hp;
+        effTarget.hp = Math.min(100, effTarget.hp + final);
+
+        const applied = Math.max(0, effTarget.hp - before);
+        if (applied > 0) {
           pushEvent(state, {
             turn: state.turn,
             type: "HEAL",
             actorUserId: source.userId,
-            targetUserId: source.userId,
+            targetUserId: effTarget.userId,
             cardId: card.id,
             cardName: card.name,
             effectType: "HEAL",
-            value: source.hp - before,
+            value: applied,
           });
         }
         break;
       }
 
       case "DRAW": {
+        // draw always goes to source (your system)
         for (let i = 0; i < (effect.value ?? 0); i++) {
           const c = state.deck.shift();
           if (c) source.hand.push(c);
@@ -170,6 +250,7 @@ export function applyEffects(
       }
 
       case "CLEANSE": {
+        // cleanse on source (your system)
         source.statuses = source.statuses.filter((s) => s.type !== "CONTROL");
         break;
       }
@@ -177,9 +258,7 @@ export function applyEffects(
       /* =========================================================
          CHANNEL BUFFS (self-cast)
          ✅ Always hit ENEMY (not self)
-         ✅ Are BUFF category via effectCategories + addStatus()
       ========================================================= */
-
       case "FENGLAI_CHANNEL": {
         addStatus({
           state,
@@ -253,10 +332,28 @@ export function applyEffects(
         break;
       }
 
+      /* ================= PATCH 0.3 ================= */
+      case "XINZHENG_CHANNEL": {
+        addStatus({
+          state,
+          sourceUserId: source.userId,
+          targetUserId: source.userId,
+          card,
+          statusTarget: source,
+          type: "XINZHENG_CHANNEL",
+          durationTurns: effect.durationTurns ?? 2,
+          breakOnPlay: effect.breakOnPlay,
+        });
+        break;
+      }
+
       default: {
+        // statuses / timed effects
         if (!effect.durationTurns) break;
 
-        // CONTROL immunity check
+        const statusTarget = effTarget;
+
+        // CONTROL immunity check (kept)
         if (
           effect.type === "CONTROL" &&
           statusTarget.statuses.some((s) => s.type === "CONTROL_IMMUNE")

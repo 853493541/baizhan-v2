@@ -1,3 +1,5 @@
+// backend/game/engine/effectCategories.ts
+
 import { EffectCategory, EffectType } from "./types";
 
 export const EFFECT_CATEGORY_MAP: Record<EffectType, EffectCategory> = {
@@ -8,6 +10,7 @@ export const EFFECT_CATEGORY_MAP: Record<EffectType, EffectCategory> = {
 
   DAMAGE_REDUCTION: "BUFF",
   DAMAGE_MULTIPLIER: "BUFF",
+
   UNTARGETABLE: "BUFF",
   STEALTH: "BUFF",
   CONTROL_IMMUNE: "BUFF",
@@ -24,6 +27,12 @@ export const EFFECT_CATEGORY_MAP: Record<EffectType, EffectCategory> = {
   // ✅ Channel buffs are BUFFs (self-cast)
   FENGLAI_CHANNEL: "BUFF",
   WUJIAN_CHANNEL: "BUFF",
+
+  /* ================= PATCH 0.3 ================= */
+  DRAW_REDUCTION: "DEBUFF",
+  ON_PLAY_DAMAGE: "DEBUFF",
+  XINZHENG_CHANNEL: "BUFF",
+  BONUS_DAMAGE_IF_TARGET_HP_GT: "DEBUFF",
 };
 
 export function getEffectCategory(type: EffectType): EffectCategory {

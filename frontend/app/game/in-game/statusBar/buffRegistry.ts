@@ -3,13 +3,8 @@
 export type BuffCategory = "BUFF" | "DEBUFF";
 
 export interface BuffDefinition {
-  /** Display name shown to user */
   name: string;
-
-  /** BUFF or DEBUFF */
   category: BuffCategory;
-
-  /** Description builder (uses runtime values) */
   description: (params: {
     value?: number;
     chance?: number;
@@ -21,10 +16,6 @@ export interface BuffDefinition {
 /**
  * Key format:
  * `${sourceCardId}:${effectType}`
- *
- * RULE:
- * - If a key exists here → use this name & description
- * - Otherwise → resolveBuff fallback handles naming
  */
 export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
   /* =========================================================
@@ -33,7 +24,7 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
   "shengsi_jie:CONTROL": {
     name: "眩晕",
     category: "DEBUFF",
-    description: () => `眩晕。`,
+    description: () => `无法行动`,
   },
 
   "shengsi_jie:HEAL_REDUCTION": {
@@ -49,7 +40,23 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
   "mohe_wuliang:CONTROL": {
     name: "倒地",
     category: "DEBUFF",
-    description: () => `倒在地上。`,
+    description: () => `倒在地上，无法行动`,
+  },
+
+  /* =========================================================
+     大狮子吼
+  ========================================================= */
+  "da_shizi_hou:CONTROL": {
+    name: "眩晕",
+    category: "DEBUFF",
+    description: () => `无法行动`,
+  },
+
+  "da_shizi_hou:DRAW_REDUCTION": {
+    name: "抽卡受限",
+    category: "DEBUFF",
+    description: ({ value }) =>
+      `下回合抽卡数量减少 ${value ?? 0}`,
   },
 
   /* =========================================================
@@ -58,14 +65,7 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
   "chan_xiao:SILENCE": {
     name: "沉默",
     category: "DEBUFF",
-    description: () => `沉默`,
-  },
-
-  "chan_xiao:START_TURN_DAMAGE": {
-    name: "DOT",
-    category: "DEBUFF",
-    description: ({ value }) =>
-      `回合开始受到 ${value ?? 0} 点伤害`,
+    description: () => `无法使用任何卡牌`,
   },
 
   /* =========================================================
@@ -75,7 +75,7 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
     name: "百足",
     category: "DEBUFF",
     description: ({ value }) =>
-      `回合开始受到 ${value ?? 0} 点伤害`,
+      `回合开始时受到 ${value ?? 0} 点伤害`,
   },
 
   /* =========================================================
@@ -89,22 +89,12 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
   },
 
   /* =========================================================
-     千蝶吐瑞
-  ========================================================= */
-  "qiandie_turui:START_TURN_HEAL": {
-    name: "千蝶",
-    category: "BUFF",
-    description: ({ value }) =>
-      `回合开始回复 ${value ?? 0} 点生命`,
-  },
-
-  /* =========================================================
      散流霞
   ========================================================= */
   "sanliu_xia:UNTARGETABLE": {
-    name: "散",
+    name: "不可选中",
     category: "BUFF",
-    description: () => `不可被选中`,
+    description: () => `无法成为卡牌目标`,
   },
 
   /* =========================================================
@@ -120,26 +110,42 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
     name: "闪避",
     category: "BUFF",
     description: ({ chance }) =>
-      `下次受到攻击有 ${Math.round((chance ?? 0) * 100)}% 概率闪避`,
+      `下次受到伤害有 ${Math.round((chance ?? 0) * 100)}% 概率闪避`,
   },
 
   /* =========================================================
-     暗尘弥散（Stealth，不是 Untargetable）
+     暗尘弥散
   ========================================================= */
   "anchen_misan:STEALTH": {
     name: "隐身",
     category: "BUFF",
-    description: () => `看不见，喵喵喵`,
+    description: () => `无法被指定为卡牌目标`,
   },
 
   /* =========================================================
-     风来吴山（CHANNEL）
+     浮光掠影 ✅ FIX
+  ========================================================= */
+  "fuguang_lueying:STEALTH": {
+    name: "隐身",
+    category: "BUFF",
+    description: () => `无法被指定为卡牌目标`,
+  },
+
+  "fuguang_lueying:DRAW_REDUCTION": {
+    name: "抽卡受限",
+    category: "DEBUFF",
+    description: ({ value }) =>
+      `下回合抽卡数量减少 ${value ?? 0}`,
+  },
+
+  /* =========================================================
+     风来吴山
   ========================================================= */
   "fenglai_wushan:FENGLAI_CHANNEL": {
-    name: "风车",
+    name: "风来吴山",
     category: "BUFF",
     description: () =>
-      `持续运功对敌方造成伤害`,
+      `持续运功：在任意玩家回合开始与结束时对敌方造成伤害`,
   },
 
   "fenglai_wushan:CONTROL_IMMUNE": {
@@ -149,13 +155,13 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
   },
 
   /* =========================================================
-     无间狱（CHANNEL）
+     无间狱
   ========================================================= */
   "wu_jianyu:WUJIAN_CHANNEL": {
     name: "无间狱",
     category: "BUFF",
     description: () =>
-      `修罗附体：造成4次伤害并且吸血`,
+      `修罗附体：多段伤害并吸取生命`,
   },
 
   /* =========================================================
@@ -164,8 +170,7 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
   "nuwa_butian:DAMAGE_MULTIPLIER": {
     name: "女娲",
     category: "BUFF",
-    description: ({ value }) =>
-      `造成伤害提高100%`,
+    description: () => `造成伤害提高100%`,
   },
 
   "nuwa_butian:DAMAGE_REDUCTION": {
@@ -173,5 +178,59 @@ export const BUFF_REGISTRY: Record<string, BuffDefinition> = {
     category: "BUFF",
     description: ({ value }) =>
       `受到伤害降低 ${Math.round((value ?? 0) * 100)}%`,
+  },
+
+  /* =========================================================
+     绛唇珠袖
+  ========================================================= */
+  "jiangchun_zhuxiu:ON_PLAY_DAMAGE": {
+    name: "绛唇",
+    category: "DEBUFF",
+    description: ({ value }) =>
+      `每次使用卡牌时受到 ${value ?? 0} 点伤害`,
+  },
+
+  /* =========================================================
+     踏星行
+  ========================================================= */
+  "taxingxing:DODGE_NEXT": {
+    name: "踏星",
+    category: "BUFF",
+    description: ({ chance }) =>
+      `受到伤害时有 ${Math.round((chance ?? 0) * 100)}% 概率闪避`,
+  },
+
+  /* =========================================================
+     穹隆化生
+  ========================================================= */
+  "qionglong_huasheng:CONTROL_IMMUNE": {
+    name: "化生",
+    category: "BUFF",
+    description: () => `免疫控制效果`,
+  },
+
+  /* =========================================================
+     心诤 ✅ FIX
+  ========================================================= */
+  "xinzheng:XINZHENG_CHANNEL": {
+    name: "心诤",
+    category: "BUFF",
+    description: () =>
+      `持续运功：在双方回合关键节点对目标造成伤害`,
+  },
+
+  "xinzheng:CONTROL_IMMUNE": {
+    name: "免控",
+    category: "BUFF",
+    description: () => `运功期间免疫控制效果`,
+  },
+
+  /* =========================================================
+     天地无极
+  ========================================================= */
+  "tiandi_wuji:STEALTH": {
+    name: "隐身",
+    category: "BUFF",
+    description: () => `无法被指定为卡牌目标`,
   },
 };
