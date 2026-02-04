@@ -17,7 +17,14 @@ export async function createGame(userId: string) {
     deck,
     discard: [],
     gameOver: false,
-    players: [{ userId, hp: 100, hand: [], statuses: [] }],
+    players: [
+      {
+        userId,
+        hp: 100,
+        hand: [],
+        buffs: [], // ✅ updated
+      },
+    ],
     events: [],
   };
 
@@ -57,8 +64,18 @@ export async function startGame(gameId: string, userId: string) {
     discard: [],
     gameOver: false,
     players: [
-      { userId: game.players[0], hp: 100, hand: [], statuses: [] },
-      { userId: game.players[1], hp: 100, hand: [], statuses: [] },
+      {
+        userId: game.players[0],
+        hp: 100,
+        hand: [],
+        buffs: [], // ✅ updated
+      },
+      {
+        userId: game.players[1],
+        hp: 100,
+        hand: [],
+        buffs: [], // ✅ updated
+      },
     ],
     events: [],
   };
