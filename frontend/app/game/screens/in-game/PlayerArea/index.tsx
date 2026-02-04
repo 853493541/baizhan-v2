@@ -8,7 +8,7 @@ import styles from "./styles.module.css";
 import type {
   PlayerState,
   CardInstance,
-} from "@/app/game/in-game/types";
+} from "@/app/game/screens/in-game/types";
 
 const MAX_HP = 100;
 

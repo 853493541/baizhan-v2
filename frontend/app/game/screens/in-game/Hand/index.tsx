@@ -4,7 +4,7 @@ import AnimatedHandSlot from "./AnimatedHandSlot";
 import Card from "../card";
 import styles from "./styles.module.css";
 
-import type { CardInstance } from "@/app/game/in-game/types";
+import type { CardInstance } from "@/app/game/screens/in-game/types";
 
 type Props = {
   cards: CardInstance[];

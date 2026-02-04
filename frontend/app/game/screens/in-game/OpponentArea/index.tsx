@@ -3,7 +3,7 @@
 import HealthBar from "../HealthBar";
 import StatusBar from "../statusBar";
 import styles from "./styles.module.css";
-import type { PlayerState } from "@/app/game/in-game/types";
+import type { PlayerState } from "@/app/game/screens/in-game/types";
 
 const MAX_HP = 100;
 

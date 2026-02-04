@@ -12,7 +12,7 @@ import type {
   CardInstance,
   PlayerState,
   GameEvent,
-} from "@/app/game/in-game/types";
+} from "@/app/game/screens/in-game/types";
 
 type Props = {
   me: PlayerState;

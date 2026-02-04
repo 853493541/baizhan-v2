@@ -1,16 +1,13 @@
 import { cookies } from "next/headers";
-import InGameClient from "@/app/game/screens/in-game/InGameClient";
+import InGameClient from "./InGameClient";
 
-type PageProps = {
+interface Props {
   searchParams: {
     gameId?: string;
   };
-};
+}
 
-export default async function Page({ searchParams }: PageProps) {
-  const gameId = searchParams.gameId;
-  if (!gameId) return <div>Missing gameId</div>;
-
+async function getMe() {
   const cookieStore = cookies();
 
   const backendUrl =
@@ -23,15 +20,19 @@ export default async function Page({ searchParams }: PageProps) {
     },
   });
 
-  if (!res.ok) {
-    return <div>Not logged in</div>;
-  }
+  if (!res.ok) return null;
 
   const data = await res.json();
-  const me = data.user as {
-    uid: string;
-    username: string;
-  };
+  return data.user as { uid: string; username: string };
+}
+
+export default async function InGamePage({ searchParams }: Props) {
+  const { gameId } = searchParams;
+
+  if (!gameId) return <div>Missing gameId</div>;
+
+  const me = await getMe();
+  if (!me) return <div>Not logged in</div>;
 
   return (
     <InGameClient
