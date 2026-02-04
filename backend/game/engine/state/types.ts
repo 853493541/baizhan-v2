@@ -73,20 +73,24 @@ export type BuffEffect = Omit<
 export type BuffCategory = "BUFF" | "DEBUFF";
 
 export interface BuffDefinition {
-  /** internal stable id */
   buffId: number;
 
-  /** display name */
+  /** Display name shown to player */
   name: string;
 
-  category: BuffCategory;
+  /** BUFF or DEBUFF – authoritative, no inference on frontend */
+  category: "BUFF" | "DEBUFF";
 
-  /** buff lifetime */
+  /** How long this buff exists */
   durationTurns: number;
 
-  /** removed when owner plays a card */
+  /** Optional: removed when a card is played */
   breakOnPlay?: boolean;
 
+  /** 🧠 AUTHORITATIVE TEXT (no frontend building) */
+  description: string;
+
+  /** Engine-only logic payload */
   effects: BuffEffect[];
 }
 

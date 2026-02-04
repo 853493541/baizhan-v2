@@ -39,6 +39,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
         name: "百足",
         category: "DEBUFF",
         durationTurns: 5,
+        description: "回合开始时受到5点伤害",
         effects: [{ type: "START_TURN_DAMAGE", value: 5 }],
       },
     ],
@@ -59,6 +60,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
         name: "倒地",
         category: "DEBUFF",
         durationTurns: 1,
+        description: "无法行动",
         effects: [{ type: "CONTROL" }],
       },
     ],
@@ -77,6 +79,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
         name: "生死劫",
         category: "DEBUFF",
         durationTurns: 3,
+        description: "无法行动\n受到治疗降低50%",
         effects: [
           { type: "CONTROL" },
           { type: "HEAL_REDUCTION", value: 0.5 },
@@ -98,6 +101,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
         name: "沉默",
         category: "DEBUFF",
         durationTurns: 1,
+        description: "无法使用卡牌",
         effects: [{ type: "SILENCE" }],
       },
     ],
@@ -109,13 +113,14 @@ export const CARDS: Record<string, Card & { description: string }> = {
     description: "【控制】目标1个回合\n下个回合目标抽卡数量-1",
     type: "CONTROL",
     target: "OPPONENT",
-    effects: [], 
+    effects: [],
     buffs: [
       {
         buffId: 1005,
         name: "大狮子吼",
         category: "DEBUFF",
         durationTurns: 1,
+        description: "无法行动\n下回合抽卡-1",
         effects: [
           { type: "CONTROL" },
           { type: "DRAW_REDUCTION", value: 1 },
@@ -127,16 +132,17 @@ export const CARDS: Record<string, Card & { description: string }> = {
   jiangchun_zhuxiu: {
     id: "jiangchun_zhuxiu",
     name: "绛唇珠袖",
-    description: "给目标施加状态\n目标每次使用卡牌时受到3点伤害，持续3个回合",
+    description: "目标每次使用卡牌时受到3点伤害，持续3个回合",
     type: "CONTROL",
     target: "OPPONENT",
-    effects: [], 
+    effects: [],
     buffs: [
       {
         buffId: 1006,
         name: "绛唇",
         category: "DEBUFF",
         durationTurns: 3,
+        description: "每次使用卡牌时受到3点伤害",
         effects: [{ type: "ON_PLAY_DAMAGE", value: 3 }],
       },
     ],
@@ -159,8 +165,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
   sanliu_xia: {
     id: "sanliu_xia",
     name: "散流霞",
-    description:
-      "解控\n抽1张牌\n恢复5点生命值\n【不可选中】一回合\n使用卡牌会解除【不可选中】",
+    description: "解控\n抽1张牌\n恢复5点生命值\n【不可选中】一回合",
     type: "SUPPORT",
     target: "SELF",
     effects: [
@@ -175,6 +180,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
         category: "BUFF",
         durationTurns: 1,
         breakOnPlay: true,
+        description: "无法成为卡牌目标",
         effects: [{ type: "UNTARGETABLE" }],
       },
     ],
@@ -183,8 +189,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
   que_ta_zhi: {
     id: "que_ta_zhi",
     name: "鹊踏枝",
-    description:
-      "解控\n免疫控制直到下个回合开始\n下次受到伤害有70%概率闪避",
+    description: "解控\n免疫控制\n下次受到伤害有70%概率闪避",
     type: "SUPPORT",
     target: "SELF",
     effects: [{ type: "CLEANSE", allowWhileControlled: true }],
@@ -194,6 +199,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
         name: "鹊踏枝",
         category: "BUFF",
         durationTurns: 1,
+        description: "免疫控制\n下次受击有70%概率闪避",
         effects: [
           { type: "CONTROL_IMMUNE" },
           { type: "DODGE_NEXT", chance: 0.7 },
@@ -207,7 +213,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
   fengxiu_diang: {
     id: "fengxiu_diang",
     name: "风袖低昂",
-    description: "恢复自身60点生命值\n获得50%减伤，持续2个回合",
+    description: "恢复60点生命值\n受到伤害降低50%，持续2回合",
     type: "SUPPORT",
     target: "SELF",
     effects: [{ type: "HEAL", value: 60 }],
@@ -217,6 +223,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
         name: "风袖",
         category: "BUFF",
         durationTurns: 2,
+        description: "受到伤害降低50%",
         effects: [{ type: "DAMAGE_REDUCTION", value: 0.5 }],
       },
     ],
@@ -225,7 +232,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
   qionglong_huasheng: {
     id: "qionglong_huasheng",
     name: "穹隆化生",
-    description: "抽两张牌\n恢复10点生命值\n免疫控制2个回合",
+    description: "抽2张牌\n恢复10点生命值\n免疫控制2回合",
     type: "SUPPORT",
     target: "SELF",
     effects: [
@@ -238,6 +245,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
         name: "化生",
         category: "BUFF",
         durationTurns: 2,
+        description: "免疫控制",
         effects: [{ type: "CONTROL_IMMUNE" }],
       },
     ],
@@ -248,7 +256,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
   anchen_misan: {
     id: "anchen_misan",
     name: "暗尘弥散",
-    description: "抽2张牌\n【隐身】一回合\n使用卡牌会解除【隐身】",
+    description: "抽2张牌\n【隐身】1回合",
     type: "SUPPORT",
     target: "SELF",
     effects: [{ type: "DRAW", value: 2, allowWhileControlled: true }],
@@ -259,6 +267,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
         category: "BUFF",
         durationTurns: 1,
         breakOnPlay: true,
+        description: "无法被指定为卡牌目标",
         effects: [{ type: "STEALTH" }],
       },
     ],
@@ -267,11 +276,10 @@ export const CARDS: Record<string, Card & { description: string }> = {
   fuguang_lueying: {
     id: "fuguang_lueying",
     name: "浮光掠影",
-    description:
-      "【隐身】4个回合\n下2个回合抽卡-1\n使用任何卡牌会解除【隐身】和抽卡减少效果",
+    description: "【隐身】4回合\n下2回合抽卡-1",
     type: "SUPPORT",
     target: "SELF",
-    effects: [], 
+    effects: [],
     buffs: [
       {
         buffId: 1012,
@@ -279,6 +287,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
         category: "BUFF",
         durationTurns: 4,
         breakOnPlay: true,
+        description: "隐身\n抽卡数量减少",
         effects: [
           { type: "STEALTH" },
           { type: "DRAW_REDUCTION", value: 1 },
@@ -290,7 +299,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
   tiandi_wuji: {
     id: "tiandi_wuji",
     name: "天地无极",
-    description: "造成5点伤害\n自身【隐身】1个回合",
+    description: "造成5点伤害\n自身【隐身】1回合",
     type: "ATTACK",
     target: "OPPONENT",
     effects: [{ type: "DAMAGE", value: 5 }],
@@ -301,6 +310,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
         category: "BUFF",
         durationTurns: 1,
         breakOnPlay: true,
+        description: "无法被指定为卡牌目标",
         effects: [{ type: "STEALTH" }],
       },
     ],
@@ -311,17 +321,17 @@ export const CARDS: Record<string, Card & { description: string }> = {
   fenglai_wushan: {
     id: "fenglai_wushan",
     name: "风来吴山",
-    description:
-      "造成10点伤害\n持续运功\n运功期间免疫控制\n任意玩家回合开始和结束时对敌方造成10点伤害\n下个回合开始时结束",
+    description: "持续运功，对敌造成周期伤害",
     type: "CHANNEL",
     target: "SELF",
-    effects: [], 
+    effects: [],
     buffs: [
       {
         buffId: 1014,
         name: "风来吴山",
         category: "BUFF",
         durationTurns: 1,
+        description: "无",
         effects: [{ type: "FENGLAI_CHANNEL" }],
       },
       {
@@ -329,6 +339,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
         name: "免控",
         category: "BUFF",
         durationTurns: 1,
+        description: "免疫控制",
         effects: [{ type: "CONTROL_IMMUNE" }],
       },
     ],
@@ -337,17 +348,17 @@ export const CARDS: Record<string, Card & { description: string }> = {
   wu_jianyu: {
     id: "wu_jianyu",
     name: "无间狱",
-    description:
-      "造成10点伤害\n自身回合结束造成10点伤害并回复3点生命值\n对手回合开始造成20点伤害并回复6点生命值",
+    description: "多段伤害并吸取生命",
     type: "CHANNEL",
     target: "SELF",
-    effects: [], 
+    effects: [],
     buffs: [
       {
         buffId: 1016,
         name: "无间狱",
         category: "BUFF",
         durationTurns: 1,
+        description: "无",
         effects: [{ type: "WUJIAN_CHANNEL" }],
       },
     ],
@@ -356,17 +367,17 @@ export const CARDS: Record<string, Card & { description: string }> = {
   xinzheng: {
     id: "xinzheng",
     name: "心诤",
-    description:
-      "持续运功，期间免疫控制\n自身回合结束对目标造成5点伤害\n目标回合开始时再造成5点伤害\n目标回合结束时运功结束并额外造成15点伤害",
+    description: "持续运功，对目标多段造成伤害",
     type: "CHANNEL",
     target: "SELF",
-    effects: [], 
+    effects: [],
     buffs: [
       {
         buffId: 1017,
         name: "心诤",
         category: "BUFF",
         durationTurns: 2,
+        description: "无",
         effects: [{ type: "XINZHENG_CHANNEL" }],
       },
       {
@@ -374,6 +385,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
         name: "免控",
         category: "BUFF",
         durationTurns: 2,
+        description: "免疫控制",
         effects: [{ type: "CONTROL_IMMUNE" }],
       },
     ],
@@ -384,17 +396,17 @@ export const CARDS: Record<string, Card & { description: string }> = {
   nuwa_butian: {
     id: "nuwa_butian",
     name: "女娲补天",
-    description:
-      "直到下个回合结束\n造成伤害提升100%\n受到伤害降低50%",
+    description: "造成伤害提升100%\n受到伤害降低50%",
     type: "STANCE",
     target: "SELF",
-    effects: [], 
+    effects: [],
     buffs: [
       {
         buffId: 1019,
         name: "女娲补天",
         category: "BUFF",
         durationTurns: 1,
+        description: "造成伤害提升100%\n受到伤害降低50%",
         effects: [
           { type: "DAMAGE_MULTIPLIER", value: 2 },
           { type: "DAMAGE_REDUCTION", value: 0.5 },
@@ -406,7 +418,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
   taxingxing: {
     id: "taxingxing",
     name: "踏星行",
-    description: "抽两张牌\n获得60%闪避，持续2个回合",
+    description: "抽2张牌\n获得60%闪避，持续2回合",
     type: "SUPPORT",
     target: "SELF",
     effects: [{ type: "DRAW", value: 2 }],
@@ -416,16 +428,18 @@ export const CARDS: Record<string, Card & { description: string }> = {
         name: "踏星",
         category: "BUFF",
         durationTurns: 2,
+        description: "受到伤害时有60%概率闪避",
         effects: [{ type: "DODGE_NEXT", chance: 0.6 }],
       },
     ],
   },
 
+  /* ================= 其他 ================= */
+
   zhuiming_jian: {
     id: "zhuiming_jian",
     name: "追命箭",
-    description:
-      "造成15点伤害\n若目标生命值高于70\n额外造成5点伤害",
+    description: "造成15点伤害\n目标生命值高于70时额外造成5点伤害",
     type: "ATTACK",
     target: "OPPONENT",
     effects: [

@@ -6,6 +6,7 @@ import { CARDS } from "./cards";
  * - Display only
  * - No engine logic
  * - O(1) lookup friendly
+ * - Backend is the single source of truth for ALL text
  */
 export function buildCardPreload() {
   const cards: any[] = [];
@@ -31,9 +32,14 @@ export function buildCardPreload() {
           category: buff.category,
           durationTurns: buff.durationTurns,
           breakOnPlay: buff.breakOnPlay ?? false,
+
+          // ✅ authoritative description
+          // if not defined yet → explicitly mark as "无"
+          description: buff.description ?? "无",
+
           effects: buff.effects ?? [],
 
-          // 🔑 UI display helpers
+          // UI helpers
           sourceCardId: card.id,
           sourceCardName: card.name,
         });
