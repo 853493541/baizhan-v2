@@ -1,6 +1,6 @@
 "use client";
 
-import "./game-board.css";
+import styles from "./styles.module.css";
 
 import OpponentArea from "./OpponentArea";
 import PlayerArea from "./PlayerArea";
@@ -34,27 +34,20 @@ export default function GameBoard({
   currentTurn,
 }: Props) {
   return (
-    <div className="board-root">
-      <div className="board">
-
-        {/* 🟥 OPPONENT AREA (TOP ANCHOR) */}
-        <div className="region" >
-          <OpponentArea
-            opponent={opponent}
-            currentTurn={currentTurn}
-          />
+    <div className={styles.boardRoot}>
+      <div className={styles.board}>
+        {/* 🟥 OPPONENT AREA */}
+        <div className={styles.region}>
+          <OpponentArea opponent={opponent} currentTurn={currentTurn} />
         </div>
 
-        {/* 🟨 ARENA / CARDS USED (FLEX SPACE) */}
-        <div className="region">
-          <CurrentAction
-            events={events}
-            myUserId={me.userId}
-          />
+        {/* 🟨 ARENA */}
+        <div className={styles.region}>
+          <CurrentAction events={events} myUserId={me.userId} />
         </div>
 
-        {/* 🟩 PLAYER AREA (BOTTOM ANCHOR) */}
-        <div className="region">
+        {/* 🟩 PLAYER AREA */}
+        <div className={styles.region}>
           <PlayerArea
             me={me}
             currentTurn={currentTurn}
@@ -63,22 +56,15 @@ export default function GameBoard({
           />
         </div>
 
-        {/* 🟦 HISTORY – LEFT MIDDLE */}
-        <div className="history-overlay">
-          <ActionHistory
-            events={events}
-            myUserId={me.userId}
-          />
+        {/* 🟦 HISTORY */}
+        <div className={styles.historyOverlay}>
+          <ActionHistory events={events} myUserId={me.userId} />
         </div>
 
-        {/* 🔘 END TURN – RIGHT MIDDLE */}
-        <div className="endturn-overlay">
-          <EndTurn
-            isMyTurn={isMyTurn}
-            onEndTurn={onEndTurn}
-          />
+        {/* 🔘 END TURN */}
+        <div className={styles.endturnOverlay}>
+          <EndTurn isMyTurn={isMyTurn} onEndTurn={onEndTurn} />
         </div>
-
       </div>
     </div>
   );

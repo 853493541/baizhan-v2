@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { GameResponse } from "./types";
+import { GameResponse } from "../types";
 
 const API_BASE = "http://localhost:5000";
 

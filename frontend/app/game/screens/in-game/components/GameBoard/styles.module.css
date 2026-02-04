@@ -1,5 +1,5 @@
 /* ================= ROOT ================= */
-.board-root {
+.boardRoot {
   width: 100%;
   height: 85dvh;
 
@@ -23,11 +23,10 @@
 
   display: grid;
 
-  /* 🔒 ONLY 3 REAL ZONES */
   grid-template-rows:
-    180px   /* OpponentArea (health + status) */
-    1fr     /* Arena / Cards Used */
-    280px;  /* PlayerArea (status + health + hand) */
+    180px
+    1fr
+    280px;
 
   padding: 12px;
   box-sizing: border-box;
@@ -36,34 +35,21 @@
   min-width: 0;
 }
 
-/* Prevent children from affecting layout */
+/* Prevent children from breaking layout */
 .board > * {
   min-height: 0;
   min-width: 0;
 }
 
-/* ================= DEBUG ================= */
+/* ================= ZONES ================= */
 .region {
   position: relative;
-  /* border: 2px solid rgba(255, 0, 0, 0.6); */
-}
-
-.region::before {
-  content: attr(data-label);
-  position: absolute;
-  top: 4px;
-  left: 8px;
-
-  font-size: 11px;
-  font-weight: 700;
-  color: #f87171;
-  opacity: 0.85;
 }
 
 /* ================= SIDE OVERLAYS ================= */
 
 /* History – left middle */
-.history-overlay {
+.historyOverlay {
   position: absolute;
   left: 8px;
   top: 40%;
@@ -76,7 +62,7 @@
 }
 
 /* End Turn – right middle */
-.endturn-overlay {
+.endturnOverlay {
   position: absolute;
   right: 12px;
   top: 45%;
@@ -87,7 +73,7 @@
 
 /* ================= MOBILE ================= */
 @media (max-width: 768px) {
-  .board-root {
+  .boardRoot {
     height: 100dvh;
   }
 
@@ -100,28 +86,12 @@
       220px;
   }
 
-  .history-overlay {
+  .historyOverlay {
     width: 160px;
   }
-}
-@media (max-width: 768px) {
-  .hand {
-    display: flex;
-    gap: 10px;
-    overflow-x: auto;
-    padding: 8px 12px;
 
-    scroll-snap-type: x mandatory;
+  .endturnOverlay {
+    right: 3px;
+    top: 45%;
   }
-
-  .card {
-    scroll-snap-align: center;
-    min-width: 90px; /* slightly bigger than desktop */
-  }
-
-  .endturn-overlay {
- right: 3px;
-  top: 45%;
-
-}
 }

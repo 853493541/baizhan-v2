@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import GameBoard from "./GameBoard";
-import GameOverModal from "./GameOverModal";
+import GameBoard from "./components/GameBoard";
+import GameOverModal from "./components/GameBoard/GameOverModal";
 import { toastError } from "@/app/components/toast/toast";
 
 /* ================= TYPES (ALIGNED WITH BACKEND) ================= */
