@@ -57,10 +57,10 @@ export const CARDS: Record<string, Card & { description: string }> = {
     buffs: [
       {
         buffId: 1002,
-        name: "倒地",
+        name: "摩诃无量",
         category: "DEBUFF",
         durationTurns: 1,
-        description: "无法行动",
+        description: "击倒",
         effects: [{ type: "CONTROL" }],
       },
     ],

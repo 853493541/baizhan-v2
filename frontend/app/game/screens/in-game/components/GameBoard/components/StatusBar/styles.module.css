@@ -1,124 +1,124 @@
-/* ================= STATUS BAR ================= */
+/* ================= ROOT ================= */
 
 .statusBar {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  align-items: flex-start;
 }
 
 /* ================= ROW ================= */
 
 .statusRow {
   display: grid;
-  grid-template-columns: repeat(5, 70px);
+
+  /* 🔑 KEY FIX: content-sized columns */
+  grid-auto-flow: column;
+  grid-auto-columns: min-content;
+
+  justify-content: start;
   gap: 6px;
-  min-height: 24px;
 }
 
-/* ================= PILL ================= */
+/* ================= BUFF ITEM ================= */
 
-.statusPill {
-  position: relative;
-  width: 100%;
-  padding: 4px 10px;
+.buffItem {
+  width: fit-content; /* 🔑 shrink cell to content */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
 
-  font-size: 12px;
+  user-select: none;
+}
+
+/* ================= NAME ================= */
+
+.buffName {
+  font-size: 11px;
+  font-weight: 700;
   line-height: 1;
   text-align: center;
-  white-space: nowrap;
+}
 
-  border-radius: 5px;
-  border: 1px solid transparent;
+/* ================= ICON ================= */
+
+.buffIcon {
+  width: 40px;
+  height: 40px;
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  border-radius: 6px;
   box-sizing: border-box;
 }
 
-/* ================= TURN BADGE ================= */
+/* ================= ICON BORDER ================= */
 
-.turnBadge {
-  position: absolute;
-  top: -6px;
-  right: -6px;
+.buffBorder {
+  border: 2px solid rgba(34, 197, 94, 0.9);
+}
 
-  min-width: 16px;
-  height: 16px;
-  padding: 0 4px;
+.debuffBorder {
+  border: 2px solid rgba(185, 28, 28, 0.95);
+}
 
-  font-size: 10px;
+/* ================= TURNS ================= */
+
+.buffTurns {
+  font-size: 11px;
   font-weight: 700;
-  line-height: 16px;
-
-  border-radius: 999px;
-  background: #020617;
-  border: 1px solid currentColor;
-
-  pointer-events: none;
+  line-height: 1;
 }
 
-/* ================= BUFF / DEBUFF ================= */
+/* ================= TEXT COLORS ================= */
 
-.buff {
-  background: rgba(34, 197, 94, 0.2);
-  color: #86efac;
-  border-color: rgba(34, 197, 94, 0.4);
+.buffText {
+  color: #22c55e;
 }
 
-.debuff {
-  background: rgba(239, 68, 68, 0.25);
-  color: #fca5a5;
-  border-color: rgba(239, 68, 68, 0.45);
+.debuffText {
+  color: #dc2626;
 }
 
 /* ================= LAST TURN ================= */
 
 .lastTurn {
-  animation: endTurnPulse 2.2s ease-in-out infinite;
+  animation: pulse 1.6s ease-in-out infinite;
 }
 
-@keyframes endTurnPulse {
+@keyframes pulse {
   0% { opacity: 1; }
-  50% { opacity: 0.75; }
+  50% { opacity: 0.6; }
   100% { opacity: 1; }
 }
 
-/* ================= 📱 PHONE ================= */
+/* ================= 📱 MOBILE ================= */
 
 @media (max-width: 768px) {
-  .statusBar {
-    gap: 3px;
+  .buffIcon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .buffName,
+  .buffTurns {
+    font-size: 10px;
   }
 
   .statusRow {
-    grid-template-columns: repeat(5, 56px);
-    gap: 4px;
-    min-height: 22px;
-  }
-
-  .statusPill {
-    padding: 3px 6px;
-    font-size: 11px;
-    border-radius: 4px;
-  }
-
-  .turnBadge {
-    top: -5px;
-    right: -5px;
-    height: 12px;
-    line-height: 12px;
-    font-size: 8px;
-  }
-
-  .lastTurn {
-    animation-duration: 3.6s;
+    gap: 5px;
   }
 }
 
 @media (max-width: 420px) {
-  .statusRow {
-    grid-template-columns: repeat(4, 40px);
+  .buffIcon {
+    width: 30px;
+    height: 30px;
   }
 
-  .statusPill {
-    font-size: 10px;
+  .statusRow {
+    gap: 4px;
   }
 }

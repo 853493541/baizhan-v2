@@ -17,8 +17,9 @@ type Props = {
 type ResolvedBuff = {
   buffId: number;
   name: string;
+  shortName: string;
   category: "BUFF" | "DEBUFF";
-  description?: string;
+  description: string;
   remainingTurns: number;
   isLastTurn: boolean;
   sourceCardName?: string;
@@ -26,7 +27,7 @@ type ResolvedBuff = {
 
 type ActiveHint = {
   name: string;
-  description?: string;
+  description: string;
   remainingTurns: number;
   rect: DOMRect;
   sourceCardName?: string;
@@ -34,7 +35,10 @@ type ActiveHint = {
 
 /* ================= COMPONENT ================= */
 
-export default function StatusBar({ buffs = [], currentTurn = 0 }: Props) {
+export default function StatusBar({
+  buffs = [],
+  currentTurn = 0,
+}: Props) {
   const preload = useGamePreload();
   const [activeHint, setActiveHint] = useState<ActiveHint | null>(null);
 
@@ -44,12 +48,14 @@ export default function StatusBar({ buffs = [], currentTurn = 0 }: Props) {
       if (!meta) return null;
 
       const remainingTurns = Math.max(0, b.expiresAtTurn - currentTurn);
+      const shortName =
+        meta.name.length > 2 ? meta.name.slice(0, 2) : meta.name;
 
       return {
         buffId: b.buffId,
         name: meta.name,
+        shortName,
         category: meta.category,
-        // ✅ USE BACKEND DESCRIPTION (preload) — DO NOT REBUILD FROM effects
         description: meta.description ?? "无",
         remainingTurns,
         isLastTurn: remainingTurns <= 1,
@@ -58,10 +64,13 @@ export default function StatusBar({ buffs = [], currentTurn = 0 }: Props) {
     })
     .filter(Boolean) as ResolvedBuff[];
 
-  const positive = resolved.filter((b) => b.category === "BUFF");
-  const negative = resolved.filter((b) => b.category !== "BUFF");
+  const buffsPos = resolved.filter((b) => b.category === "BUFF");
+  const buffsNeg = resolved.filter((b) => b.category === "DEBUFF");
 
-  function openHint(e: React.MouseEvent<HTMLDivElement>, b: ResolvedBuff) {
+  function openHint(
+    e: React.MouseEvent<HTMLDivElement>,
+    b: ResolvedBuff
+  ) {
     const rect = e.currentTarget.getBoundingClientRect();
     setActiveHint({
       name: b.name,
@@ -76,47 +85,53 @@ export default function StatusBar({ buffs = [], currentTurn = 0 }: Props) {
     setActiveHint(null);
   }
 
+  function renderBuff(b: ResolvedBuff) {
+    const colorClass =
+      b.category === "BUFF" ? styles.buffText : styles.debuffText;
+
+    return (
+      <div
+        key={b.buffId}
+        className={styles.buffItem}
+        onMouseEnter={(e) => openHint(e, b)}
+        onMouseLeave={closeHint}
+      >
+        {/* NAME */}
+        <div className={`${styles.buffName} ${colorClass}`}>
+          {b.shortName}
+        </div>
+
+        {/* ICON */}
+        <div
+          className={`${styles.buffIcon} ${
+            b.category === "BUFF" ? styles.buffBorder : styles.debuffBorder
+          }`}
+          style={{
+            backgroundImage: `url(/game/icons/Skills/${b.name}.png)`,
+          }}
+        />
+
+        {/* TURNS */}
+        <div
+          className={`${styles.buffTurns} ${colorClass} ${
+            b.isLastTurn ? styles.lastTurn : ""
+          }`}
+        >
+          {Math.max(1, b.remainingTurns)}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className={styles.statusBar}>
         <div className={styles.statusRow}>
-          {positive.slice(0, 6).map((b) => (
-            <div
-              key={`buff-${b.buffId}`}
-              className={`${styles.statusPill} ${styles.buff}`}
-              onMouseEnter={(e) => openHint(e, b)}
-              onMouseLeave={closeHint}
-            >
-              {b.name}
-              <span
-                className={`${styles.turnBadge} ${
-                  b.isLastTurn ? styles.lastTurn : ""
-                }`}
-              >
-                {Math.max(1, b.remainingTurns)}
-              </span>
-            </div>
-          ))}
+          {buffsPos.slice(0, 6).map(renderBuff)}
         </div>
 
         <div className={styles.statusRow}>
-          {negative.slice(0, 6).map((b) => (
-            <div
-              key={`debuff-${b.buffId}`}
-              className={`${styles.statusPill} ${styles.debuff}`}
-              onMouseEnter={(e) => openHint(e, b)}
-              onMouseLeave={closeHint}
-            >
-              {b.name}
-              <span
-                className={`${styles.turnBadge} ${
-                  b.isLastTurn ? styles.lastTurn : ""
-                }`}
-              >
-                {Math.max(1, b.remainingTurns)}
-              </span>
-            </div>
-          ))}
+          {buffsNeg.slice(0, 6).map(renderBuff)}
         </div>
       </div>
 
