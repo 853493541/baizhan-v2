@@ -8,24 +8,38 @@ export interface CardInstance {
 }
 
 /* =========================================================
-   Status / Buff System (ALIGNED WITH BACKEND)
+   Buff System (ALIGNED WITH BACKEND)
 ========================================================= */
 
-export type EffectCategory = "BUFF" | "DEBUFF";
+export type BuffCategory = "BUFF" | "DEBUFF";
 
-/**
- * Runtime status applied by cards
- */
-export interface Status {
+export type BuffEffect = {
   type: string;
   value?: number;
   chance?: number;
   repeatTurns?: number;
-  sourceCardId?: string;
-  category?: EffectCategory;
+  durationTurns?: number;
+  breakOnPlay?: boolean;
+};
+
+/**
+ * Runtime buff applied by cards
+ * (direct mirror of backend ActiveBuff)
+ */
+export interface ActiveBuff {
+  buffId: number;
+  name: string;
+  category: BuffCategory;
+
+  effects: BuffEffect[];
+
   appliedAtTurn: number;
   expiresAtTurn: number;
+
   breakOnPlay?: boolean;
+
+  sourceCardId?: string;
+  sourceCardName?: string;
 }
 
 /* =========================================================
@@ -36,7 +50,7 @@ export interface PlayerState {
   userId: string;
   hp: number;
   hand: CardInstance[];
-  statuses: Status[];
+  buffs: ActiveBuff[];
 }
 
 /* =========================================================
@@ -47,7 +61,8 @@ export type GameEventType =
   | "PLAY_CARD"
   | "DAMAGE"
   | "HEAL"
-  | "STATUS_APPLIED"
+  | "BUFF_APPLIED"
+  | "BUFF_EXPIRED"
   | "END_TURN";
 
 export interface GameEvent {
@@ -56,10 +71,16 @@ export interface GameEvent {
   type: GameEventType;
   actorUserId: string;
   targetUserId?: string;
+
   cardId?: string;
   cardName?: string;
+
   value?: number;
-  statusType?: string;
+
+  buffId?: number;
+  buffName?: string;
+  buffCategory?: BuffCategory;
+
   timestamp: number;
 }
 
@@ -70,10 +91,13 @@ export interface GameEvent {
 export interface GameState {
   turn: number;
   activePlayerIndex: number;
+
   deck: CardInstance[];
   discard: CardInstance[];
+
   gameOver: boolean;
   winnerUserId?: string;
+
   players: PlayerState[];
   events: GameEvent[];
 }

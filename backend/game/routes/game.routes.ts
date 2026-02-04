@@ -1,4 +1,3 @@
-// backend/game/routes/game.routes.ts
 import express from "express";
 import jwt from "jsonwebtoken";
 import {
@@ -10,6 +9,7 @@ import {
   startGame,
 } from "../services";
 import GameSession from "../models/GameSession";
+import { CARDS } from "../cards/cards";
 
 const router = express.Router();
 
@@ -24,7 +24,28 @@ function getUserIdFromCookie(req: any): string {
 }
 
 /* =========================================================
-   CREATE GAME (1 player only)
+   🔥 PRELOAD GAME DATA (MUST BE ABOVE /:id)
+========================================================= */
+
+import { buildCardPreload } from "../cards/cardPreload";
+
+router.get("/preload", (_req, res) => {
+  try {
+    // 🔑 single source of truth
+    const preload = buildCardPreload();
+
+    // MUST return preload directly
+    // NOT wrapped, NOT reshaped here
+    res.json(preload);
+  } catch (err: any) {
+    console.error("[PRELOAD] failed:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+/* =========================================================
+   CREATE GAME
 ========================================================= */
 router.post("/create", async (req, res) => {
   try {
@@ -37,7 +58,7 @@ router.post("/create", async (req, res) => {
 });
 
 /* =========================================================
-   JOIN GAME (via shared link)
+   JOIN GAME
 ========================================================= */
 router.post("/join/:id", async (req, res) => {
   try {
@@ -50,13 +71,12 @@ router.post("/join/:id", async (req, res) => {
 });
 
 /* =========================================================
-   START GAME (host only)
+   START GAME
 ========================================================= */
 router.post("/start", async (req, res) => {
   try {
     const userId = getUserIdFromCookie(req);
     const { gameId } = req.body;
-
     const game = await startGame(gameId, userId);
     res.json(game);
   } catch (err: any) {
@@ -72,12 +92,10 @@ router.get("/waiting", async (_req, res) => {
     const TWO_HOURS = 2 * 60 * 60 * 1000;
     const cutoff = new Date(Date.now() - TWO_HOURS);
 
-    // 🔥 Global lazy cleanup: delete ANY stale session
     await GameSession.deleteMany({
       updatedAt: { $lt: cutoff },
     });
 
-    // Only return joinable waiting rooms
     const games = await GameSession.find({
       started: false,
       players: { $size: 1 },
@@ -90,7 +108,7 @@ router.get("/waiting", async (_req, res) => {
 });
 
 /* =========================================================
-   GET GAME (read-only, public)
+   GET GAME (⚠️ MUST BE LAST)
 ========================================================= */
 router.get("/:id", async (req, res) => {
   try {
@@ -98,7 +116,6 @@ router.get("/:id", async (req, res) => {
     if (!game) {
       return res.status(404).json({ error: "Game not found" });
     }
-
     res.json(game);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -106,31 +123,22 @@ router.get("/:id", async (req, res) => {
 });
 
 /* =========================================================
-   PLAY CARD  🔥 GAMEPLAY ROUTE
-   → returns PLAIN TEXT error codes
+   PLAY CARD
 ========================================================= */
 router.post("/play", async (req, res) => {
   try {
     const userId = getUserIdFromCookie(req);
-    const { gameId, cardInstanceId,} = req.body;
+    const { gameId, cardInstanceId } = req.body;
 
-    const state = await playCard(
-      gameId,
-      userId,
-      cardInstanceId,
-
-    );
-
+    const state = await playCard(gameId, userId, cardInstanceId);
     res.json(state);
   } catch (err: any) {
-    // IMPORTANT: plain text for frontend toast mapping
     res.status(400).send(err.message);
   }
 });
 
 /* =========================================================
-   PASS TURN  🔥 GAMEPLAY ROUTE
-   → returns PLAIN TEXT error codes
+   PASS TURN
 ========================================================= */
 router.post("/pass", async (req, res) => {
   try {
@@ -140,35 +148,7 @@ router.post("/pass", async (req, res) => {
     const state = await passTurn(gameId, userId);
     res.json(state);
   } catch (err: any) {
-    // IMPORTANT: plain text for frontend toast mapping
     res.status(400).send(err.message);
-  }
-});
-
-/* =========================================================
-   REMATCH
-========================================================= */
-router.post("/rematch/:id", async (req, res) => {
-  try {
-    const userId = getUserIdFromCookie(req);
-    const oldGame = await GameSession.findById(req.params.id);
-    if (!oldGame) throw new Error("Game not found");
-
-    if (!oldGame.players.includes(userId)) {
-      throw new Error("Not your game");
-    }
-
-    if (oldGame.players.length !== 2) {
-      throw new Error("Invalid game");
-    }
-
-    const newGame = await createGame(oldGame.players[0]);
-    newGame.players.push(oldGame.players[1]);
-    await newGame.save();
-
-    res.json({ gameId: newGame._id });
-  } catch (err: any) {
-    res.status(400).json({ error: err.message });
   }
 });
 

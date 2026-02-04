@@ -27,8 +27,9 @@ export default function PlayerArea({
 }: Props) {
   return (
     <div className={styles.playerHalf}>
+      {/* ✅ buffs replace statuses */}
       <StatusBar
-        statuses={me.statuses}
+        buffs={me.buffs}
         currentTurn={currentTurn}
       />
 
@@ -39,12 +40,11 @@ export default function PlayerArea({
       />
 
       <div className={styles.handZone}>
-     <Hand
-  cards={me.hand}
-  onPlayCard={onPlayCard}
-  isMyTurn={isMyTurn}
-/>
-
+        <Hand
+          cards={me.hand}
+          onPlayCard={onPlayCard}
+          isMyTurn={isMyTurn}
+        />
       </div>
     </div>
   );

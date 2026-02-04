@@ -1,10 +1,15 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+
 import GameBoard from "./components/GameBoard";
 import GameOverModal from "./components/GameBoard/components/GameOverModal";
 import { toastError } from "@/app/components/toast/toast";
 import { useGameState } from "./hooks/useGameState";
+import {
+  GamePreloadProvider,
+} from "./preload/GamePreloadContext";
 
 /* ================= ERROR CODE → TOAST TEXT ================= */
 function showGameError(rawCode: string) {
@@ -37,11 +42,22 @@ function showGameError(rawCode: string) {
   }
 }
 
+/* ================= TYPES ================= */
+
+type GamePreload = {
+  cards: any[];
+  cardMap: Record<string, any>;
+  buffs: any[];
+  buffMap: Record<number, any>;
+};
+
 type Props = {
   gameId: string;
   selfUserId: string;
   selfUsername: string;
 };
+
+/* ================= COMPONENT ================= */
 
 export default function InGameClient({
   gameId,
@@ -60,24 +76,71 @@ export default function InGameClient({
     endTurn,
   } = useGameState(gameId, selfUserId);
 
-  if (loading || !state || !me || !opponent) {
+  /* ================= PRELOAD ================= */
+
+  const [preload, setPreload] = useState<GamePreload | null>(null);
+  const [preloadError, setPreloadError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadPreload() {
+      try {
+        const res = await fetch("/api/game/preload", {
+          credentials: "include",
+        });
+
+        if (!res.ok) {
+          throw new Error("preload fetch failed");
+        }
+
+        const data = await res.json();
+        if (!cancelled) {
+          setPreload(data);
+        }
+      } catch (err) {
+        console.error("[Preload] failed:", err);
+        if (!cancelled) {
+          setPreloadError(true);
+        }
+      }
+    }
+
+    loadPreload();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  /* ================= LOADING ================= */
+
+  if (
+    loading ||
+    !state ||
+    !me ||
+    !opponent ||
+    !preload ||
+    preloadError
+  ) {
     return <div>Loading game…</div>;
   }
 
+  /* ================= RENDER ================= */
+
   return (
-    <>
+    <GamePreloadProvider value={preload}>
       <GameBoard
         me={me}
         opponent={opponent}
         events={state.events}
         isMyTurn={isMyTurn}
+        currentTurn={state.turn}
         onPlayCard={async (card) => {
           const res = await playCard(card);
           if (!res.ok && res.error) {
             showGameError(res.error);
           }
         }}
-        currentTurn={state.turn}
         onEndTurn={async () => {
           const res = await endTurn();
           if (!res.ok && res.error) {
@@ -92,6 +155,6 @@ export default function InGameClient({
           onExit={() => router.push("/game")}
         />
       )}
-    </>
+    </GamePreloadProvider>
   );
 }

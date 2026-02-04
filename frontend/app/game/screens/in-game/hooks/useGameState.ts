@@ -1,22 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type {
-  CardInstance,
-  GameResponse,
-} from "../types";
-
-/* ================= CARD TARGET MAP ================= */
-
-const CARD_TARGET: Record<string, "SELF" | "OPPONENT"> = {
-  strike: "OPPONENT",
-  silence: "OPPONENT",
-  channel: "OPPONENT",
-
-  heal_dr: "SELF",
-  disengage: "SELF",
-  power_surge: "SELF",
-};
+import type { CardInstance, GameResponse } from "../types";
 
 export function useGameState(gameId: string, selfUserId: string) {
   const [game, setGame] = useState<GameResponse | null>(null);
@@ -77,10 +62,6 @@ export function useGameState(gameId: string, selfUserId: string) {
       return { ok: false };
     }
 
-    const targetType = CARD_TARGET[card.cardId];
-    const targetUserId =
-      targetType === "SELF" ? selfUserId : opponent.userId;
-
     setPlaying(true);
     try {
       const res = await fetch("/api/game/play", {
@@ -90,7 +71,7 @@ export function useGameState(gameId: string, selfUserId: string) {
         body: JSON.stringify({
           gameId,
           cardInstanceId: card.instanceId,
-          targetUserId,
+          // ✅ NO target logic here anymore
         }),
       });
 
