@@ -8,7 +8,7 @@ type Props = {
   description?: string;
   remainingTurns: number;
   anchorRect: DOMRect;
-  sourceCardName?: string;
+  arenaRect?: DOMRect;
 };
 
 export default function StatusHint({
@@ -16,72 +16,80 @@ export default function StatusHint({
   description,
   remainingTurns,
   anchorRect,
-  sourceCardName,
+  arenaRect,
 }: Props) {
-  /* =========================================================
-     RE-ANCHOR STRATEGY (NO MAGIC NUMBERS)
-     - Measure actual hint size after render
-     - Prefer TOP-RIGHT of pill
-     - Flip / clamp if needed
-  ========================================================= */
-
-  const hintRef = useRef<HTMLDivElement | null>(null);
+  const ref = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
 
   useLayoutEffect(() => {
-    if (!hintRef.current) return;
+    const el = ref.current;
+    if (!el) return;
 
-    const rect = hintRef.current.getBoundingClientRect();
-    const GAP = 8;
+    const hint = el.getBoundingClientRect();
 
-    let top = anchorRect.top - rect.height - GAP;
-    let left = anchorRect.right + GAP;
+    const GAP = 6;
+    const SAFE = 8;
+    const ABOVE_BUFFER = 20; // 🔑 THIS is the key fix
 
-    /* not enough space above → place below */
-    if (top < GAP) {
+    const bounds =
+      arenaRect ??
+      new DOMRect(0, 0, window.innerWidth, window.innerHeight);
+
+    const minX = bounds.left + SAFE;
+    const maxX = bounds.right - hint.width - SAFE;
+    const minY = bounds.top + SAFE;
+    const maxY = bounds.bottom - hint.height - SAFE;
+
+    /* =========================
+       VERTICAL
+       Prefer ABOVE, but bail early
+    ========================= */
+
+    const spaceAbove =
+      anchorRect.top - bounds.top;
+
+    let top: number;
+
+    if (spaceAbove >= hint.height + GAP + ABOVE_BUFFER) {
+      // enough comfortable space → above
+      top = anchorRect.top - hint.height - GAP;
+    } else {
+      // otherwise → below
       top = anchorRect.bottom + GAP;
     }
 
-    /* clamp horizontally */
-    const maxLeft = window.innerWidth - rect.width - GAP;
-    left = Math.min(Math.max(GAP, left), maxLeft);
+    top = Math.min(Math.max(minY, top), maxY);
 
-    /* clamp vertically */
-    const maxTop = window.innerHeight - rect.height - GAP;
-    top = Math.min(Math.max(GAP, top), maxTop);
+    /* =========================
+       HORIZONTAL
+       LEFT → RIGHT only
+    ========================= */
+
+    let left = anchorRect.right + GAP;
+
+    if (left > maxX) {
+      left = maxX;
+    }
+
+    left = Math.max(minX, left);
 
     setPos({ top, left });
-  }, [anchorRect, name, remainingTurns, sourceCardName, description]);
+  }, [name, description, remainingTurns, anchorRect, arenaRect]);
 
   return (
     <div
-      ref={hintRef}
-      key={`${name}-${remainingTurns}-${anchorRect.top}-${anchorRect.left}`}
-      className={styles.statusHint}
-      style={pos ? { top: pos.top, left: pos.left } : { visibility: "hidden" }}
+      ref={ref}
+      className={styles.hint}
+      style={
+        pos
+          ? { top: pos.top, left: pos.left }
+          : { top: -9999, left: -9999 }
+      }
     >
-      {/* HEADER: NAME + SOURCE */}
-      <div className={styles.hintHeader}>
-        <div className={styles.hintName}>{name}</div>
-
-        {sourceCardName && (
-          <div className={styles.hintSourceInline}>
-            来源：{sourceCardName}
-          </div>
-        )}
-      </div>
-
-      <div className={styles.hintDivider} />
-
-      <div className={styles.hintDesc}>
-        {description}
-      </div>
-
-      <div className={styles.hintDivider} />
-
-      {/* FOOTER: REMAINING TURNS */}
-      <div className={styles.hintTurnsFooter}>
-        剩余回合：{Math.max(1, remainingTurns)}
+      <div className={styles.title}>{name}</div>
+      <div className={styles.desc}>{description || "无"}</div>
+      <div className={styles.time}>
+        剩余时间：{Math.max(1, remainingTurns)} 回合
       </div>
     </div>
   );

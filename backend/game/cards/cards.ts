@@ -66,27 +66,33 @@ export const CARDS: Record<string, Card & { description: string }> = {
     ],
   },
 
-  shengsi_jie: {
-    id: "shengsi_jie",
-    name: "生死劫",
-    description: "造成2点伤害\n【控制】目标1个回合\n【减疗】3个回合",
-    type: "CONTROL",
-    target: "OPPONENT",
-    effects: [{ type: "DAMAGE", value: 2 }],
-    buffs: [
-      {
-        buffId: 1003,
-        name: "生死劫",
-        category: "DEBUFF",
-        durationTurns: 3,
-        description: "无法行动\n受到治疗降低50%",
-        effects: [
-          { type: "CONTROL" },
-          { type: "HEAL_REDUCTION", value: 0.5 },
-        ],
-      },
-    ],
-  },
+shengsi_jie: {
+  id: "shengsi_jie",
+  name: "生死劫",
+  description: "造成2点伤害\n【控制】目标1个回合\n【减疗】3个回合",
+  type: "CONTROL",
+  target: "OPPONENT",
+  effects: [{ type: "DAMAGE", value: 2 }],
+  buffs: [
+    {
+      buffId: 1003,
+      name: "日劫",
+      category: "DEBUFF",
+      durationTurns: 1,
+      description: "眩晕",
+      effects: [{ type: "CONTROL" }],
+    },
+
+    {
+      buffId: 1021,
+      name: "月劫",
+      category: "DEBUFF",
+      durationTurns: 3,
+      description: "受到治疗效果降低50%",
+      effects: [{ type: "HEAL_REDUCTION", value: 0.5 }],
+    },
+  ],
+},
 
   chan_xiao: {
     id: "chan_xiao",
