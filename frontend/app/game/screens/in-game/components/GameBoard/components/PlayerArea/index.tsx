@@ -2,7 +2,7 @@
 
 import HealthBar from "../HealthBar";
 import StatusBar from "../statusBar";
-import Hand from "../Hand";
+import Hand from "./Hand";
 import styles from "./styles.module.css";
 
 import type {

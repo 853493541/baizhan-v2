@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import GameBoard from "./components/GameBoard";
-import GameOverModal from "./components/GameBoard/GameOverModal";
+import GameOverModal from "./components/GameBoard/components/GameOverModal";
 import { toastError } from "@/app/components/toast/toast";
 
 /* ================= TYPES (ALIGNED WITH BACKEND) ================= */

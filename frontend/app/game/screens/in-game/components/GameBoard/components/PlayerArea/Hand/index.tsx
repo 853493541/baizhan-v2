@@ -1,7 +1,7 @@
 "use client";
 
 import AnimatedHandSlot from "./AnimatedHandSlot";
-import Card from "../../card";
+import Card from "../../../../card";
 import styles from "./styles.module.css";
 
 import type { CardInstance } from "@/app/game/screens/in-game/types";

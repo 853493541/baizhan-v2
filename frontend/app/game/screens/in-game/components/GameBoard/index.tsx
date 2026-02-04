@@ -2,11 +2,11 @@
 
 import styles from "./styles.module.css";
 
-import OpponentArea from "./OpponentArea";
-import PlayerArea from "./PlayerArea";
-import CurrentAction from "./CurrentAction";
-import ActionHistory from "./ActionHistory";
-import EndTurn from "./EndTurn";
+import OpponentArea from "./components/OpponentArea";
+import PlayerArea from "./components/PlayerArea";
+import CurrentAction from "./components/CurrentAction";
+import ActionHistory from "./components/ActionHistory";
+import EndTurn from "./components/EndTurn";
 
 import type {
   CardInstance,
