@@ -1,7 +1,7 @@
 "use client";
 
 import HealthBar from "../HealthBar";
-import StatusBar from "../statusBar";
+import StatusBar from "../StatusBar";
 import Hand from "./Hand";
 import styles from "./styles.module.css";
 

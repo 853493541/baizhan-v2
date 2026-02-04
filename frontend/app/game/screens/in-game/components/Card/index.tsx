@@ -1,7 +1,7 @@
 "use client";
 
 import styles from "./styles.module.css";
-import { CARD_DESC_MAP } from "./cardDescriptions";
+import { CARD_DESC_MAP } from "./Descriptions";
 
 /* ================= CARD NAME MAP ================= */
 

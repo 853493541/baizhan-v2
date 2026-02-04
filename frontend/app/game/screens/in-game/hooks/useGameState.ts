@@ -1,61 +1,145 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { GameResponse } from "../types";
+import type {
+  CardInstance,
+  GameResponse,
+} from "../types";
 
-const API_BASE = "http://localhost:5000";
+/* ================= CARD TARGET MAP ================= */
 
-export function useGameState(gameId: string) {
+const CARD_TARGET: Record<string, "SELF" | "OPPONENT"> = {
+  strike: "OPPONENT",
+  silence: "OPPONENT",
+  channel: "OPPONENT",
+
+  heal_dr: "SELF",
+  disengage: "SELF",
+  power_surge: "SELF",
+};
+
+export function useGameState(gameId: string, selfUserId: string) {
   const [game, setGame] = useState<GameResponse | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [playing, setPlaying] = useState(false);
 
-  const fetchState = useCallback(async () => {
-    const res = await fetch(`${API_BASE}/game/${gameId}`, {
+  /* ================= FETCH GAME ================= */
+
+  const fetchGame = useCallback(async () => {
+    const res = await fetch(`/api/game/${gameId}`, {
       credentials: "include",
     });
-    const data = await res.json();
-    setGame(data);
+
+    if (res.ok) {
+      setGame(await res.json());
+    }
+
+    setLoading(false);
   }, [gameId]);
 
   useEffect(() => {
-    fetchState();
-  }, [fetchState]);
+    fetchGame();
+    const t = setInterval(fetchGame, 2000);
+    return () => clearInterval(t);
+  }, [fetchGame]);
 
-  const playCard = async (
-    cardInstanceId: string,
-    targetUserId: string
-  ) => {
-    setLoading(true);
-    await fetch(`${API_BASE}/game/play`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({
-        gameId,
-        cardInstanceId,
-        targetUserId,
-      }),
-    });
-    await fetchState();
-    setLoading(false);
+  if (!game) {
+    return {
+      loading,
+      state: null,
+      me: null,
+      opponent: null,
+      isMyTurn: false,
+      isWinner: false,
+      playCard: async () => ({ ok: false }),
+      endTurn: async () => ({ ok: false }),
+    };
+  }
+
+  const state = game.state;
+  const players = state.players;
+
+  const meIndex = players.findIndex(
+    (p) => p.userId === selfUserId
+  );
+  const opponentIndex = meIndex === 0 ? 1 : 0;
+
+  const me = players[meIndex];
+  const opponent = players[opponentIndex];
+
+  const isMyTurn = state.activePlayerIndex === meIndex;
+  const isWinner = state.winnerUserId === selfUserId;
+
+  /* ================= PLAY CARD ================= */
+
+  const playCard = async (card: CardInstance) => {
+    if (!isMyTurn || playing || state.gameOver) {
+      return { ok: false };
+    }
+
+    const targetType = CARD_TARGET[card.cardId];
+    const targetUserId =
+      targetType === "SELF" ? selfUserId : opponent.userId;
+
+    setPlaying(true);
+    try {
+      const res = await fetch("/api/game/play", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          gameId,
+          cardInstanceId: card.instanceId,
+          targetUserId,
+        }),
+      });
+
+      if (!res.ok) {
+        return { ok: false, error: await res.text() };
+      }
+
+      await fetchGame();
+      return { ok: true };
+    } finally {
+      setPlaying(false);
+    }
   };
 
-  const passTurn = async () => {
-    setLoading(true);
-    await fetch(`${API_BASE}/game/pass`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ gameId }),
-    });
-    await fetchState();
-    setLoading(false);
+  /* ================= END TURN ================= */
+
+  const endTurn = async () => {
+    if (!isMyTurn || playing || state.gameOver) {
+      return { ok: false };
+    }
+
+    setPlaying(true);
+    try {
+      const res = await fetch("/api/game/pass", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ gameId }),
+      });
+
+      if (!res.ok) {
+        return { ok: false, error: await res.text() };
+      }
+
+      await fetchGame();
+      return { ok: true };
+    } finally {
+      setPlaying(false);
+    }
   };
 
   return {
-    game,
     loading,
+    state,
+    me,
+    opponent,
+    isMyTurn,
+    isWinner,
     playCard,
-    passTurn,
+    endTurn,
   };
 }

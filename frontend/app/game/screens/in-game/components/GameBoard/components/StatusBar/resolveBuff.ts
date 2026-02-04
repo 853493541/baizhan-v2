@@ -1,7 +1,7 @@
 // in-game/statusBar/resolveBuff.ts
 
 import { BUFF_REGISTRY } from "./buffRegistry";
-import { CARD_NAME_MAP } from "../../../card/cardNameMap";
+import { CARD_NAME_MAP } from "../../../Card/NameMap";
 
 /**
  * Resolve a status/buff for display.

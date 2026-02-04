@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./styles.module.css";
 import type { GameEvent } from "@/app/game/screens/in-game/types";
-import Card from "../../../card";
+import Card from "../../../Card";
 
 /* ================= PROPS ================= */
 
