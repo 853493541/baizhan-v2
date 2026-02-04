@@ -1,10 +1,14 @@
 // backend/game/engine/flow/turnResolver.ts
 
-import { GameState, ActiveBuff, BuffEffect } from "../state/types";
+import { GameState, ActiveBuff } from "../state/types";
 import { randomUUID } from "crypto";
-import { shouldDodge, hasUntargetable, blocksEnemyTargeting } from "../rules/guards";
+import { shouldDodge, hasUntargetable } from "../rules/guards";
 import { resolveScheduledDamage, resolveHealAmount } from "../utils/combatMath";
 import { pushBuffExpired } from "../effects/system";
+
+/* =========================================================
+   EVENT HELPERS
+========================================================= */
 
 function pushDamageEvent(
   state: GameState,
@@ -50,9 +54,9 @@ function pushHealEvent(
   });
 }
 
-function allEffectsFromBuff(buff: ActiveBuff) {
-  return buff.effects;
-}
+/* =========================================================
+   TURN RESOLVER
+========================================================= */
 
 export function resolveTurnEnd(state: GameState) {
   if (state.gameOver) return;
@@ -66,23 +70,15 @@ export function resolveTurnEnd(state: GameState) {
   /* ================= END OF TURN (OWNER) ================= */
 
   for (const buff of current.buffs) {
-    for (const e of allEffectsFromBuff(buff)) {
-      // DELAYED_DAMAGE on owner end turn
-      if (e.type === "DELAYED_DAMAGE" && (e.repeatTurns ?? 0) > 0) {
-        const dmg = Math.max(0, e.value ?? 0);
-        current.hp = Math.max(0, current.hp - dmg);
-        e.repeatTurns!--;
-        pushDamageEvent(state, current.userId, current.userId, buff.sourceCardId, buff.sourceCardName, dmg);
-      }
+    for (const e of buff.effects) {
 
-      // FENGLAI tick on owner end turn
+      // FENGLAI tick
       if (e.type === "FENGLAI_CHANNEL") {
         if (hasUntargetable(other)) {
           pushDamageEvent(state, current.userId, other.userId, buff.sourceCardId, buff.sourceCardName, 0);
           continue;
         }
 
-        // keep old behavior: dodge applies
         if (!shouldDodge(other)) {
           const dmg = resolveScheduledDamage({ source: current, target: other, base: 10 });
           other.hp = Math.max(0, other.hp - dmg);
@@ -92,7 +88,7 @@ export function resolveTurnEnd(state: GameState) {
         }
       }
 
-      // WUJIAN tick on owner end turn (10 dmg to other + heal 3)
+      // WUJIAN tick
       if (e.type === "WUJIAN_CHANNEL") {
         if (!shouldDodge(other)) {
           const dmg = resolveScheduledDamage({ source: current, target: other, base: 10 });
@@ -106,12 +102,13 @@ export function resolveTurnEnd(state: GameState) {
         const before = current.hp;
         current.hp = Math.min(100, current.hp + heal);
         const applied = Math.max(0, current.hp - before);
+
         if (applied > 0) {
           pushHealEvent(state, current.userId, current.userId, buff.sourceCardId, buff.sourceCardName, applied);
         }
       }
 
-      // XINZHENG tick on owner end turn (5 dmg)
+      // XINZHENG tick
       if (e.type === "XINZHENG_CHANNEL") {
         if (!shouldDodge(other)) {
           const dmg = resolveScheduledDamage({ source: current, target: other, base: 5 });
@@ -130,10 +127,8 @@ export function resolveTurnEnd(state: GameState) {
     const before = p.buffs.slice();
     p.buffs = p.buffs.filter((b) => state.turn < b.expiresAtTurn);
 
-    // emit expired events
     for (const old of before) {
-      const still = p.buffs.some((b) => b.buffId === old.buffId);
-      if (!still) {
+      if (!p.buffs.some((b) => b.buffId === old.buffId)) {
         pushBuffExpired(state, {
           targetUserId: p.userId,
           buffId: old.buffId,
@@ -169,6 +164,7 @@ export function resolveTurnEnd(state: GameState) {
         const before = me.hp;
         me.hp = Math.min(100, me.hp + heal);
         const applied = Math.max(0, me.hp - before);
+
         if (applied > 0) {
           pushHealEvent(state, me.userId, me.userId, buff.sourceCardId, buff.sourceCardName, applied);
         }
@@ -176,12 +172,13 @@ export function resolveTurnEnd(state: GameState) {
     }
   }
 
-  /* ================= FINAL GAME OVER ================= */
+  /* ================= GAME OVER ================= */
 
   for (const p of state.players) {
     if (p.hp <= 0) {
       state.gameOver = true;
-      state.winnerUserId = state.players.find((x) => x.userId !== p.userId)?.userId;
+      state.winnerUserId =
+        state.players.find((x) => x.userId !== p.userId)?.userId;
       return;
     }
   }

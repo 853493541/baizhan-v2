@@ -2,14 +2,22 @@
 
 import { GameState } from "../state/types";
 import { CARDS } from "../../cards/cards";
+import { blocksCardTargeting } from "./guards";
+
+/* =========================================================
+   INTERNAL HELPERS
+========================================================= */
 
 function hasEffect(player: { buffs: any[] }, type: string) {
-  return player.buffs.some((b: any) => b.effects.some((e: any) => e.type === type));
+  return player.buffs.some((b: any) =>
+    b.effects.some((e: any) => e.type === type)
+  );
 }
 
 /* =========================================================
    VALIDATE PLAY CARD
 ========================================================= */
+
 export function validatePlayCard(
   state: GameState,
   playerIndex: number,
@@ -36,18 +44,35 @@ export function validatePlayCard(
   }
 
   /* ================= SILENCE ================= */
+
   if (hasEffect(player, "SILENCE")) {
     throw new Error("ERR_SILENCED");
   }
 
   /* ================= CONTROL / ATTACK_LOCK ================= */
-  const isControlled = hasEffect(player, "CONTROL") || hasEffect(player, "ATTACK_LOCK");
+
+  const isControlled =
+    hasEffect(player, "CONTROL") || hasEffect(player, "ATTACK_LOCK");
+
   const allowsOverride =
-    card.effects.some((e) => e.allowWhileControlled === true) === true;
+    Array.isArray(card.effects) &&
+    card.effects.some((e) => e.allowWhileControlled === true);
 
   if (isControlled && !allowsOverride) {
     throw new Error("ERR_CONTROLLED");
   }
 
-  // Target legality is handled in service layer (as you already do)
+  /* ================= TARGETING (STEALTH / UNTARGETABLE) ================= */
+
+  // Only applies to opponent-targeted cards
+  if (card.target === "OPPONENT") {
+    const enemyIndex = playerIndex === 0 ? 1 : 0;
+    const enemy = state.players[enemyIndex];
+
+    if (blocksCardTargeting(enemy)) {
+      throw new Error("ERR_TARGET_UNAVAILABLE");
+    }
+  }
+
+  // ✅ All validations passed
 }

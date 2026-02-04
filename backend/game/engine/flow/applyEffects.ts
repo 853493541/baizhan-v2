@@ -1,6 +1,25 @@
 // backend/game/engine/flow/applyEffects.ts
+/**
+ * Orchestrator for card effect execution.
+ *
+ * Responsibilities:
+ * - High-level flow of applying a card
+ * - breakOnPlay cleanup (caster only)
+ * - card-level dodge computation
+ * - Iterating card.effects (immediate effects only)
+ * - Applying card.buffs (persistent buffs)
+ * - End-game check
+ *
+ * IMPORTANT:
+ * - No effect math here (delegated to handlers / utils)
+ * - No buff creation rules here (delegated to handleApplyBuffs)
+ * - Behavior should stay compatible with legacy rules:
+ *   - Dodge cancels enemy-applied stuff only
+ *   - Untargetable blocks enemy-applied NEW buffs
+ *   - Control immunity blocks CONTROL (handled by guards/handler)
+ */
 
-import { GameState, Card, CardEffect } from "../state/types";
+import { GameState, Card } from "../state/types";
 import { getEnemy, resolveEffectTargetIndex } from "../utils/targeting";
 
 import {
@@ -35,6 +54,8 @@ export function applyEffects(
 
   /* =========================================================
      breakOnPlay affects ONLY the caster
+     - your buff ends when YOU cast
+     - enemy casting does NOT break your buffs
   ========================================================= */
   source.buffs = source.buffs.filter((b) => !b.breakOnPlay);
 
@@ -43,13 +64,14 @@ export function applyEffects(
 
   /* =========================================================
      card-level dodge (enemy effects only)
-     - uses target's stacked DODGE_NEXT chance (buff effects)
+     - Only relevant when the card targets opponent
+     - Uses target's stacked DODGE_NEXT from buffs
   ========================================================= */
-  const cardDodged =
-    card.target === "OPPONENT" ? shouldDodge(defaultTarget) : false;
+  const cardDodged = card.target === "OPPONENT" ? shouldDodge(defaultTarget) : false;
 
   /* =========================================================
-     1) Apply immediate effects
+     1) Apply immediate effects (card.effects)
+     - These should be ONLY instant effects now
   ========================================================= */
   for (const effect of card.effects) {
     const effTargetIndex = resolveEffectTargetIndex(
@@ -57,24 +79,21 @@ export function applyEffects(
       playerIndex,
       effect.applyTo
     );
-
     const effTarget = state.players[effTargetIndex];
 
-    // Enemy effect = actually applies to opponent (not caster)
-    const enemyEffect = isEnemyEffect(source, effTarget, effect);
+    const enemyApplied = isEnemyEffect(source, effTarget, effect);
 
     // Dodge cancels enemy-applied effects only
-    if (shouldSkipDueToDodge(cardDodged, enemyEffect)) {
-      continue;
-    }
+    if (shouldSkipDueToDodge(cardDodged, enemyApplied)) continue;
 
     switch (effect.type) {
       case "DAMAGE": {
-        handleDamage(state, source, effTarget, enemyEffect, card, effect);
+        handleDamage(state, source, effTarget, enemyApplied, card, effect);
         break;
       }
 
       case "BONUS_DAMAGE_IF_TARGET_HP_GT": {
+        // this effect is always about the opponent target snapshot
         handleBonusDamageIfHpGt(
           state,
           source,
@@ -102,7 +121,9 @@ export function applyEffects(
       }
 
       /* =========================================================
-         CHANNEL (legacy compatible)
+         CHANNEL (legacy compatible path)
+         - Some old cards might still use these as immediate “cast” triggers
+         - Preferred design now: put CHANNEL into card.buffs
       ========================================================= */
       case "FENGLAI_CHANNEL":
       case "WUJIAN_CHANNEL":
@@ -112,54 +133,55 @@ export function applyEffects(
       }
 
       default: {
-        // If you still have durationTurns-only effects inside card.effects,
-        // they should now be moved into card.buffs.
-        // We'll keep a soft compatibility path:
-        if (!effect.durationTurns) break;
-
-        // block enemy-applied NEW buffs by untargetable
-        if (blocksNewBuffByUntargetable(source, effTarget)) break;
-
-        // control immunity blocks CONTROL
-        if (blocksControlByImmunity(effect.type, effTarget)) break;
-
-        // Legacy timed effects inside card.effects are NOT supported as statuses anymore.
-        // Move them into card.buffs.
+        // Compatibility: timed effects in card.effects are deprecated.
+        // They must be moved into card.buffs.
+        // We deliberately do nothing here to avoid “ghost statuses”.
         break;
       }
     }
   }
 
   /* =========================================================
-     2) Apply buffs defined on card (modern, intended path)
-     - target determined by card.target (or effect.applyTo if you later extend)
+     2) Apply buffs defined on card (card.buffs)
+     - Target determined by card.target (SELF / OPPONENT)
+     - Dodge cancels enemy-applied buffs
+     - Untargetable blocks enemy-applied NEW buffs
   ========================================================= */
-  {
+  if (Array.isArray(card.buffs) && card.buffs.length > 0) {
     const buffTarget = card.target === "SELF" ? source : defaultTarget;
-    const enemyEffect = buffTarget.userId !== source.userId;
+    const enemyApplied = buffTarget.userId !== source.userId;
 
-    // Dodge also cancels enemy-applied buffs
-    if (!shouldSkipDueToDodge(cardDodged, enemyEffect)) {
+    // Dodge cancels enemy-applied buffs only
+    if (!shouldSkipDueToDodge(cardDodged, enemyApplied)) {
       // Untargetable blocks new enemy buffs
       if (!blocksNewBuffByUntargetable(source, buffTarget)) {
-        handleApplyBuffs({
-          state,
-          card,
-          source,
-          target: buffTarget,
-          isEnemyEffect: enemyEffect,
-        });
+        // If buff contains CONTROL, control-immunity should block that portion.
+        // We allow the handler to apply per-effect rules, but we keep a fast guard:
+        // (handler should still enforce correctly even if this guard is removed)
+        const hasControl = card.buffs.some((b) =>
+          b.effects.some((e) => e.type === "CONTROL")
+        );
+        if (!(hasControl && blocksControlByImmunity("CONTROL", buffTarget))) {
+          handleApplyBuffs({
+            state,
+            card,
+            source,
+            target: buffTarget,
+            isEnemyEffect: enemyApplied,
+          });
+        }
       }
     }
   }
 
   /* =========================================================
-     END GAME CHECK
+     END GAME CHECK (unchanged)
   ========================================================= */
   for (const p of state.players) {
     if (p.hp <= 0) {
       state.gameOver = true;
       state.winnerUserId = state.players.find((x) => x.userId !== p.userId)?.userId;
+      return;
     }
   }
 }

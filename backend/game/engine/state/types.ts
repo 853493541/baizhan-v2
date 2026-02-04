@@ -2,6 +2,8 @@
 
 export type PlayerID = string;
 
+/* ================= Card ================= */
+
 export type CardType =
   | "ATTACK"
   | "SUPPORT"
@@ -10,6 +12,8 @@ export type CardType =
   | "CHANNEL";
 
 export type TargetType = "SELF" | "OPPONENT";
+
+/* ================= Effects ================= */
 
 export type EffectType =
   | "DAMAGE"
@@ -36,21 +40,17 @@ export type EffectType =
   | "XINZHENG_CHANNEL"
   | "BONUS_DAMAGE_IF_TARGET_HP_GT";
 
-/** For display grouping only */
-export type BuffCategory = "BUFF" | "DEBUFF";
-
+/**
+ * Immediate card effects
+ */
 export interface CardEffect {
   type: EffectType;
 
   value?: number;
-  durationTurns?: number;
-  repeatTurns?: number;
   chance?: number;
+  repeatTurns?: number;
 
-  /** If true, the buff (or effect) ends when THE OWNER plays a card */
-  breakOnPlay?: boolean;
-
-  /** If true, this effect allows the card to be played while CONTROLLED */
+  /** card can be played while controlled */
   allowWhileControlled?: boolean;
 
   /** per-effect target override */
@@ -61,29 +61,36 @@ export interface CardEffect {
 }
 
 /**
- * BuffEffect is the same runtime shape as CardEffect,
- * but stored under buffs (persistent).
+ * Buff-contained effects (no play rules, no duration)
  */
-export type BuffEffect = Omit<CardEffect, "allowWhileControlled">;
+export type BuffEffect = Omit<
+  CardEffect,
+  "allowWhileControlled"
+>;
+
+/* ================= Buffs ================= */
+
+export type BuffCategory = "BUFF" | "DEBUFF";
 
 export interface BuffDefinition {
-  /** internal stable id (number) */
+  /** internal stable id */
   buffId: number;
 
-  /** display name (Chinese) */
+  /** display name */
   name: string;
 
   category: BuffCategory;
 
-  /** how long this buff lasts */
+  /** buff lifetime */
   durationTurns: number;
 
-  /** if true, removed when OWNER plays any card */
+  /** removed when owner plays a card */
   breakOnPlay?: boolean;
 
-  /** effects carried by this buff */
   effects: BuffEffect[];
 }
+
+/* ================= Card ================= */
 
 export interface Card {
   id: string;
@@ -91,12 +98,14 @@ export interface Card {
   type: CardType;
   target: TargetType;
 
-  /** immediate effects (resolve now) */
+  /** resolve immediately */
   effects: CardEffect[];
 
-  /** buffs applied by this card (persist) */
+  /** persistent effects */
   buffs?: BuffDefinition[];
 }
+
+/* ================= Runtime ================= */
 
 export interface CardInstance {
   instanceId: string;
@@ -124,7 +133,6 @@ export interface GameEvent {
   effectType?: EffectType;
   value?: number;
 
-  /** buff payload */
   buffId?: number;
   buffName?: string;
   buffCategory?: BuffCategory;
@@ -156,7 +164,6 @@ export interface PlayerState {
   hp: number;
   hand: CardInstance[];
 
-  /** ✅ new */
   buffs: ActiveBuff[];
 }
 

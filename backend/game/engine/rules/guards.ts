@@ -26,7 +26,7 @@ function sumChances(target: { buffs: ActiveBuff[] }, type: EffectType) {
 
 /**
  * Dodge check (stacking)
- * - stacks chance from multiple DODGE_NEXT effects (across buffs)
+ * - stacks chance from multiple DODGE_NEXT effects
  * - probabilistic
  */
 export function shouldDodge(target: { buffs: ActiveBuff[] }) {
@@ -36,23 +36,38 @@ export function shouldDodge(target: { buffs: ActiveBuff[] }) {
 }
 
 /**
- * Untargetable guard (hard)
- * - blocks enemy targeted effects and new buffs
+ * Untargetable (hard immunity)
+ * - blocks enemy effects
+ * - blocks new enemy buffs
  */
 export function hasUntargetable(target: { buffs: ActiveBuff[] }) {
   return hasEffect(target, "UNTARGETABLE");
 }
 
 /**
- * Stealth guard (target-avoid only)
- * - blocks enemy targeted effects
- * - does NOT block channel ticks unless you explicitly treat them as "targeted"
+ * Stealth (targeting-only)
+ * - blocks card targeting
+ * - DOES NOT block damage ticks, channel ticks, or buffs
  */
 export function hasStealth(target: { buffs: ActiveBuff[] }) {
   return hasEffect(target, "STEALTH");
 }
 
+/**
+ * Hard block for enemy-applied EFFECTS
+ * - used during effect resolution
+ * - ONLY untargetable applies here
+ */
 export function blocksEnemyTargeting(target: { buffs: ActiveBuff[] }) {
+  return hasUntargetable(target);
+}
+
+/**
+ * Targeting block (card play validation)
+ * - used BEFORE card is played
+ * - stealth + untargetable both apply
+ */
+export function blocksCardTargeting(target: { buffs: ActiveBuff[] }) {
   return hasUntargetable(target) || hasStealth(target);
 }
 
@@ -94,7 +109,10 @@ export function isEnemyEffect(
  * Skip logic due to dodge
  * - dodge only cancels enemy-applied effects
  */
-export function shouldSkipDueToDodge(cardDodged: boolean, isEnemyEffect: boolean) {
+export function shouldSkipDueToDodge(
+  cardDodged: boolean,
+  isEnemyEffect: boolean
+) {
   return cardDodged && isEnemyEffect;
 }
 
