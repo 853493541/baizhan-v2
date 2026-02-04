@@ -34,10 +34,7 @@ type ActiveHint = {
 
 /* ================= COMPONENT ================= */
 
-export default function StatusBar({
-  buffs = [],
-  currentTurn = 0,
-}: Props) {
+export default function StatusBar({ buffs = [], currentTurn = 0 }: Props) {
   const preload = useGamePreload();
   const [activeHint, setActiveHint] = useState<ActiveHint | null>(null);
 
@@ -52,32 +49,8 @@ export default function StatusBar({
         buffId: b.buffId,
         name: meta.name,
         category: meta.category,
-        description: meta.effects
-          ?.map((e: any) => {
-            switch (e.type) {
-              case "CONTROL":
-                return "无法行动";
-              case "SILENCE":
-                return "无法使用卡牌";
-              case "DAMAGE_MULTIPLIER":
-                return `造成伤害提高 ${(e.value ?? 0) * 100}%`;
-              case "DAMAGE_REDUCTION":
-                return `受到伤害降低 ${(e.value ?? 0) * 100}%`;
-              case "HEAL_REDUCTION":
-                return `受到治疗降低 ${(e.value ?? 0) * 100}%`;
-              case "UNTARGETABLE":
-                return "无法被选中";
-              case "STEALTH":
-                return "隐身";
-              case "DODGE_NEXT":
-                return `下次闪避概率 +${Math.round(
-                  (e.chance ?? 0) * 100
-                )}%`;
-              default:
-                return e.type;
-            }
-          })
-          .join("\n"),
+        // ✅ USE BACKEND DESCRIPTION (preload) — DO NOT REBUILD FROM effects
+        description: meta.description ?? "无",
         remainingTurns,
         isLastTurn: remainingTurns <= 1,
         sourceCardName: meta.sourceCardName,
@@ -88,10 +61,7 @@ export default function StatusBar({
   const positive = resolved.filter((b) => b.category === "BUFF");
   const negative = resolved.filter((b) => b.category !== "BUFF");
 
-  function openHint(
-    e: React.MouseEvent<HTMLDivElement>,
-    b: ResolvedBuff
-  ) {
+  function openHint(e: React.MouseEvent<HTMLDivElement>, b: ResolvedBuff) {
     const rect = e.currentTarget.getBoundingClientRect();
     setActiveHint({
       name: b.name,
