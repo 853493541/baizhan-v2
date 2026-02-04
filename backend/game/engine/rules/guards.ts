@@ -1,40 +1,59 @@
-/**
- * backend/game/engine/rules/guards.ts
- *
- * Rule guards that decide whether an effect:
- * - applies
- * - is blocked
- * - is skipped
- *
- * ❗ No state mutation
- * ❗ No events
- */
+// backend/game/engine/rules/guards.ts
 
-import { Status, EffectType } from "../state/types";
+import { ActiveBuff, BuffEffect, EffectType } from "../state/types";
 
 /* =========================================================
-   BASIC STATUS GUARDS
+   BUFF HELPERS
+========================================================= */
+
+function allEffects(target: { buffs: ActiveBuff[] }): BuffEffect[] {
+  return target.buffs.flatMap((b) => b.effects);
+}
+
+function hasEffect(target: { buffs: ActiveBuff[] }, type: EffectType) {
+  return allEffects(target).some((e) => e.type === type);
+}
+
+function sumChances(target: { buffs: ActiveBuff[] }, type: EffectType) {
+  return allEffects(target)
+    .filter((e) => e.type === type)
+    .reduce((sum, e) => sum + (e.chance ?? 0), 0);
+}
+
+/* =========================================================
+   BASIC BUFF GUARDS
 ========================================================= */
 
 /**
- * Dodge check
- * - stacks chance from multiple DODGE_NEXT statuses
+ * Dodge check (stacking)
+ * - stacks chance from multiple DODGE_NEXT effects (across buffs)
  * - probabilistic
  */
-export function shouldDodge(target: { statuses: Status[] }) {
-  const chance = target.statuses
-    .filter((s) => s.type === "DODGE_NEXT")
-    .reduce((sum, s) => sum + (s.chance ?? 0), 0);
-
+export function shouldDodge(target: { buffs: ActiveBuff[] }) {
+  const chance = sumChances(target, "DODGE_NEXT");
   if (chance <= 0) return false;
   return Math.random() < chance;
 }
 
 /**
- * Untargetable guard
+ * Untargetable guard (hard)
+ * - blocks enemy targeted effects and new buffs
  */
-export function hasUntargetable(target: { statuses: Status[] }) {
-  return target.statuses.some((s) => s.type === "UNTARGETABLE");
+export function hasUntargetable(target: { buffs: ActiveBuff[] }) {
+  return hasEffect(target, "UNTARGETABLE");
+}
+
+/**
+ * Stealth guard (target-avoid only)
+ * - blocks enemy targeted effects
+ * - does NOT block channel ticks unless you explicitly treat them as "targeted"
+ */
+export function hasStealth(target: { buffs: ActiveBuff[] }) {
+  return hasEffect(target, "STEALTH");
+}
+
+export function blocksEnemyTargeting(target: { buffs: ActiveBuff[] }) {
+  return hasUntargetable(target) || hasStealth(target);
 }
 
 /* =========================================================
@@ -75,21 +94,16 @@ export function isEnemyEffect(
  * Skip logic due to dodge
  * - dodge only cancels enemy-applied effects
  */
-export function shouldSkipDueToDodge(
-  cardDodged: boolean,
-  isEnemyEffect: boolean
-) {
-  if (!cardDodged) return false;
-  if (!isEnemyEffect) return false;
-  return true;
+export function shouldSkipDueToDodge(cardDodged: boolean, isEnemyEffect: boolean) {
+  return cardDodged && isEnemyEffect;
 }
 
 /**
- * Untargetable blocks NEW enemy-applied statuses
+ * Untargetable blocks NEW enemy-applied buffs
  */
-export function blocksNewStatusByUntargetable(
+export function blocksNewBuffByUntargetable(
   source: { userId: string },
-  target: { userId: string; statuses: Status[] }
+  target: { userId: string; buffs: ActiveBuff[] }
 ) {
   return target.userId !== source.userId && hasUntargetable(target);
 }
@@ -99,8 +113,8 @@ export function blocksNewStatusByUntargetable(
  */
 export function blocksControlByImmunity(
   effectType: EffectType,
-  target: { statuses: Status[] }
+  target: { buffs: ActiveBuff[] }
 ) {
   if (effectType !== "CONTROL") return false;
-  return target.statuses.some((s) => s.type === "CONTROL_IMMUNE");
+  return allEffects(target).some((e) => e.type === "CONTROL_IMMUNE");
 }

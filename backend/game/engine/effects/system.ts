@@ -1,8 +1,7 @@
-
+// backend/game/engine/effects/system.ts
 
 import { randomUUID } from "crypto";
-import { GameState, Card, Status, EffectType, GameEvent } from "../state/types";
-import { getEffectCategory } from "./categories";
+import { GameState, Card, GameEvent, ActiveBuff, BuffDefinition } from "../state/types";
 
 function pushEvent(state: GameState, e: Omit<GameEvent, "id" | "timestamp">) {
   state.events.push({
@@ -12,60 +11,69 @@ function pushEvent(state: GameState, e: Omit<GameEvent, "id" | "timestamp">) {
   });
 }
 
-export function addStatus(params: {
+export function addBuff(params: {
   state: GameState;
   sourceUserId: string;
   targetUserId: string;
   card: Card;
-  statusTarget: { userId: string; statuses: Status[] };
-  type: EffectType;
-  value?: number;
-  durationTurns: number;
-  repeatTurns?: number;
-  chance?: number;
-  breakOnPlay?: boolean;
+  buffTarget: { userId: string; buffs: ActiveBuff[] };
+  buff: BuffDefinition;
 }) {
-  const {
-    state,
-    sourceUserId,
-    targetUserId,
-    card,
-    statusTarget,
-    type,
-    value,
-    durationTurns,
-    repeatTurns,
-    chance,
-    breakOnPlay,
-  } = params;
+  const { state, sourceUserId, targetUserId, card, buffTarget, buff } = params;
 
-  // refresh same-type
-  statusTarget.statuses = statusTarget.statuses.filter((s) => s.type !== type);
+  // refresh same buffId (stable)
+  buffTarget.buffs = buffTarget.buffs.filter((b) => b.buffId !== buff.buffId);
 
-  const status: Status = {
-    type,
-    value,
+  const active: ActiveBuff = {
+    buffId: buff.buffId,
+    name: buff.name,
+    category: buff.category,
+    effects: buff.effects.map((e) => ({ ...e })), // clone for runtime mutation (repeatTurns)
     appliedAtTurn: state.turn,
-    expiresAtTurn: state.turn + durationTurns + 1,
-    repeatTurns,
-    chance,
-    breakOnPlay,
+    expiresAtTurn: state.turn + buff.durationTurns + 1,
+    breakOnPlay: buff.breakOnPlay,
+
     sourceCardId: card.id,
     sourceCardName: card.name,
-    category: getEffectCategory(type),
   };
 
-  statusTarget.statuses.push(status);
+  buffTarget.buffs.push(active);
 
   pushEvent(state, {
     turn: state.turn,
-    type: "STATUS_APPLIED",
+    type: "BUFF_APPLIED",
     actorUserId: sourceUserId,
     targetUserId,
     cardId: card.id,
     cardName: card.name,
-    statusType: type,
-    appliedAtTurn: status.appliedAtTurn,
-    expiresAtTurn: status.expiresAtTurn,
+
+    buffId: active.buffId,
+    buffName: active.name,
+    buffCategory: active.category,
+    appliedAtTurn: active.appliedAtTurn,
+    expiresAtTurn: active.expiresAtTurn,
+  });
+}
+
+export function pushBuffExpired(state: GameState, params: {
+  targetUserId: string;
+  buffId: number;
+  buffName: string;
+  buffCategory: "BUFF" | "DEBUFF";
+  sourceCardId?: string;
+  sourceCardName?: string;
+}) {
+  const { targetUserId, buffId, buffName, buffCategory, sourceCardId, sourceCardName } = params;
+
+  pushEvent(state, {
+    turn: state.turn,
+    type: "BUFF_EXPIRED",
+    actorUserId: targetUserId,
+    targetUserId,
+    cardId: sourceCardId,
+    cardName: sourceCardName,
+    buffId,
+    buffName,
+    buffCategory,
   });
 }

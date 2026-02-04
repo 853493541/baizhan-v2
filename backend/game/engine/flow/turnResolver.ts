@@ -1,18 +1,10 @@
-/**
- * backend/game/engine/flow/turnResolver.ts
- *
- * Turn timeline resolver.
- * - End-of-turn triggers
- * - Channel effects
- * - Status expiration
- * - Turn advancement
- */
+// backend/game/engine/flow/turnResolver.ts
 
-import { GameState } from "../state/types";
+import { GameState, ActiveBuff, BuffEffect } from "../state/types";
 import { randomUUID } from "crypto";
-import { shouldDodge, hasUntargetable } from "../rules/guards";
-
-import { resolveScheduledDamage } from "../utils/combatMath";
+import { shouldDodge, hasUntargetable, blocksEnemyTargeting } from "../rules/guards";
+import { resolveScheduledDamage, resolveHealAmount } from "../utils/combatMath";
+import { pushBuffExpired } from "../effects/system";
 
 function pushDamageEvent(
   state: GameState,
@@ -58,6 +50,10 @@ function pushHealEvent(
   });
 }
 
+function allEffectsFromBuff(buff: ActiveBuff) {
+  return buff.effects;
+}
+
 export function resolveTurnEnd(state: GameState) {
   if (state.gameOver) return;
 
@@ -69,55 +65,85 @@ export function resolveTurnEnd(state: GameState) {
 
   /* ================= END OF TURN (OWNER) ================= */
 
-  for (const s of current.statuses) {
-    if (s.type === "DELAYED_DAMAGE" && (s.repeatTurns ?? 0) > 0) {
-      current.hp = Math.max(0, current.hp - (s.value ?? 0));
-      s.repeatTurns!--;
-    }
-
-    if (s.type === "FENGLAI_CHANNEL") {
-      if (hasUntargetable(other)) {
-        pushDamageEvent(state, current.userId, other.userId, s.sourceCardId, s.sourceCardName, 0);
-        continue;
+  for (const buff of current.buffs) {
+    for (const e of allEffectsFromBuff(buff)) {
+      // DELAYED_DAMAGE on owner end turn
+      if (e.type === "DELAYED_DAMAGE" && (e.repeatTurns ?? 0) > 0) {
+        const dmg = Math.max(0, e.value ?? 0);
+        current.hp = Math.max(0, current.hp - dmg);
+        e.repeatTurns!--;
+        pushDamageEvent(state, current.userId, current.userId, buff.sourceCardId, buff.sourceCardName, dmg);
       }
 
-      if (!shouldDodge(other)) {
-        const dmg = resolveScheduledDamage({ source: current, target: other, base: 10 });
-        other.hp = Math.max(0, other.hp - dmg);
-        pushDamageEvent(state, current.userId, other.userId, s.sourceCardId, s.sourceCardName, dmg);
-      } else {
-        pushDamageEvent(state, current.userId, other.userId, s.sourceCardId, s.sourceCardName, 0);
-      }
-    }
+      // FENGLAI tick on owner end turn
+      if (e.type === "FENGLAI_CHANNEL") {
+        if (hasUntargetable(other)) {
+          pushDamageEvent(state, current.userId, other.userId, buff.sourceCardId, buff.sourceCardName, 0);
+          continue;
+        }
 
-    if (s.type === "WUJIAN_CHANNEL") {
-      if (!shouldDodge(other)) {
-        const dmg = resolveScheduledDamage({ source: current, target: other, base: 10 });
-        other.hp = Math.max(0, other.hp - dmg);
-        pushDamageEvent(state, current.userId, other.userId, s.sourceCardId, s.sourceCardName, dmg);
+        // keep old behavior: dodge applies
+        if (!shouldDodge(other)) {
+          const dmg = resolveScheduledDamage({ source: current, target: other, base: 10 });
+          other.hp = Math.max(0, other.hp - dmg);
+          pushDamageEvent(state, current.userId, other.userId, buff.sourceCardId, buff.sourceCardName, dmg);
+        } else {
+          pushDamageEvent(state, current.userId, other.userId, buff.sourceCardId, buff.sourceCardName, 0);
+        }
       }
 
-      const before = current.hp;
-      current.hp = Math.min(100, current.hp + 3);
-      const applied = Math.max(0, current.hp - before);
-      if (applied > 0) {
-        pushHealEvent(state, current.userId, current.userId, s.sourceCardId, s.sourceCardName, applied);
-      }
-    }
+      // WUJIAN tick on owner end turn (10 dmg to other + heal 3)
+      if (e.type === "WUJIAN_CHANNEL") {
+        if (!shouldDodge(other)) {
+          const dmg = resolveScheduledDamage({ source: current, target: other, base: 10 });
+          other.hp = Math.max(0, other.hp - dmg);
+          pushDamageEvent(state, current.userId, other.userId, buff.sourceCardId, buff.sourceCardName, dmg);
+        } else {
+          pushDamageEvent(state, current.userId, other.userId, buff.sourceCardId, buff.sourceCardName, 0);
+        }
 
-    if (s.type === "XINZHENG_CHANNEL") {
-      if (!shouldDodge(other)) {
-        const dmg = resolveScheduledDamage({ source: current, target: other, base: 5 });
-        other.hp = Math.max(0, other.hp - dmg);
-        pushDamageEvent(state, current.userId, other.userId, s.sourceCardId, s.sourceCardName, dmg);
+        const heal = resolveHealAmount({ target: current, base: 3 });
+        const before = current.hp;
+        current.hp = Math.min(100, current.hp + heal);
+        const applied = Math.max(0, current.hp - before);
+        if (applied > 0) {
+          pushHealEvent(state, current.userId, current.userId, buff.sourceCardId, buff.sourceCardName, applied);
+        }
+      }
+
+      // XINZHENG tick on owner end turn (5 dmg)
+      if (e.type === "XINZHENG_CHANNEL") {
+        if (!shouldDodge(other)) {
+          const dmg = resolveScheduledDamage({ source: current, target: other, base: 5 });
+          other.hp = Math.max(0, other.hp - dmg);
+          pushDamageEvent(state, current.userId, other.userId, buff.sourceCardId, buff.sourceCardName, dmg);
+        } else {
+          pushDamageEvent(state, current.userId, other.userId, buff.sourceCardId, buff.sourceCardName, 0);
+        }
       }
     }
   }
 
-  /* ================= STATUS EXPIRY ================= */
+  /* ================= BUFF EXPIRY ================= */
 
   for (const p of state.players) {
-    p.statuses = p.statuses.filter((status) => state.turn < status.expiresAtTurn);
+    const before = p.buffs.slice();
+    p.buffs = p.buffs.filter((b) => state.turn < b.expiresAtTurn);
+
+    // emit expired events
+    for (const old of before) {
+      const still = p.buffs.some((b) => b.buffId === old.buffId);
+      if (!still) {
+        pushBuffExpired(state, {
+          targetUserId: p.userId,
+          buffId: old.buffId,
+          buffName: old.name,
+          buffCategory: old.category,
+          sourceCardId: old.sourceCardId,
+          sourceCardName: old.sourceCardName,
+        });
+      }
+    }
   }
 
   /* ================= ADVANCE TURN ================= */
@@ -130,12 +156,23 @@ export function resolveTurnEnd(state: GameState) {
 
   /* ================= START OF TURN ================= */
 
-  for (const s of me.statuses) {
-    if (s.type === "START_TURN_DAMAGE") {
-      me.hp = Math.max(0, me.hp - (s.value ?? 0));
-    }
-    if (s.type === "START_TURN_HEAL") {
-      me.hp = Math.min(100, me.hp + (s.value ?? 0));
+  for (const buff of me.buffs) {
+    for (const e of buff.effects) {
+      if (e.type === "START_TURN_DAMAGE") {
+        const dmg = Math.max(0, e.value ?? 0);
+        me.hp = Math.max(0, me.hp - dmg);
+        pushDamageEvent(state, enemy.userId, me.userId, buff.sourceCardId, buff.sourceCardName, dmg);
+      }
+
+      if (e.type === "START_TURN_HEAL") {
+        const heal = resolveHealAmount({ target: me, base: e.value ?? 0 });
+        const before = me.hp;
+        me.hp = Math.min(100, me.hp + heal);
+        const applied = Math.max(0, me.hp - before);
+        if (applied > 0) {
+          pushHealEvent(state, me.userId, me.userId, buff.sourceCardId, buff.sourceCardName, applied);
+        }
+      }
     }
   }
 
@@ -144,8 +181,7 @@ export function resolveTurnEnd(state: GameState) {
   for (const p of state.players) {
     if (p.hp <= 0) {
       state.gameOver = true;
-      state.winnerUserId =
-        state.players.find((x) => x.userId !== p.userId)?.userId;
+      state.winnerUserId = state.players.find((x) => x.userId !== p.userId)?.userId;
       return;
     }
   }

@@ -1,20 +1,20 @@
-// backend/game/engine/validateAction.ts
+// backend/game/engine/rules/validateAction.ts
 
 import { GameState } from "../state/types";
 import { CARDS } from "../../cards/cards";
 
+function hasEffect(player: { buffs: any[] }, type: string) {
+  return player.buffs.some((b: any) => b.effects.some((e: any) => e.type === type));
+}
+
 /* =========================================================
    VALIDATE PLAY CARD
-   - Target resolved by backend service
-   - Validation only checks legality of play
-   - Throws STABLE error codes for frontend mapping
 ========================================================= */
 export function validatePlayCard(
   state: GameState,
   playerIndex: number,
   cardInstanceId: string
 ) {
-  /* ================= GAME STATE ================= */
   if (state.gameOver) {
     throw new Error("ERR_GAME_OVER");
   }
@@ -25,7 +25,6 @@ export function validatePlayCard(
 
   const player = state.players[playerIndex];
 
-  /* ================= CARD OWNERSHIP ================= */
   const instance = player.hand.find((c) => c.instanceId === cardInstanceId);
   if (!instance) {
     throw new Error("ERR_CARD_NOT_IN_HAND");
@@ -37,21 +36,18 @@ export function validatePlayCard(
   }
 
   /* ================= SILENCE ================= */
-  const isSilenced = player.statuses.some((s) => s.type === "SILENCE");
-  if (isSilenced) {
+  if (hasEffect(player, "SILENCE")) {
     throw new Error("ERR_SILENCED");
   }
 
-  /* ================= CONTROL ================= */
-  const isControlled = player.statuses.some(
-    (s) => s.type === "CONTROL" || s.type === "ATTACK_LOCK"
-  );
-  const allowsOverride = card.effects.some((e) => e.allowWhileControlled === true);
+  /* ================= CONTROL / ATTACK_LOCK ================= */
+  const isControlled = hasEffect(player, "CONTROL") || hasEffect(player, "ATTACK_LOCK");
+  const allowsOverride =
+    card.effects.some((e) => e.allowWhileControlled === true) === true;
 
   if (isControlled && !allowsOverride) {
     throw new Error("ERR_CONTROLLED");
   }
 
-  // ❌ NO TARGET VALIDATION HERE
-  // Target legality (e.g. UNTARGETABLE / STEALTH) is handled in gameService.playCard
+  // Target legality is handled in service layer (as you already do)
 }

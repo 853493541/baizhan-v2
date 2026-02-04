@@ -1,4 +1,4 @@
-// backend/game/engine/types.ts
+// backend/game/engine/state/types.ts
 
 export type PlayerID = string;
 
@@ -31,45 +31,58 @@ export type EffectType =
   | "CLEANSE"
   | "FENGLAI_CHANNEL"
   | "WUJIAN_CHANNEL"
-  /* ================= PATCH 0.3 ================= */
-  | "DRAW_REDUCTION"          // next turn draw -N
-  | "ON_PLAY_DAMAGE"          // if owner plays a card, take damage
-  | "XINZHENG_CHANNEL"        // 心诤运功状态（caster buff）
-  | "BONUS_DAMAGE_IF_TARGET_HP_GT"; // 追命箭：目标血量>阈值则额外伤害
+  | "DRAW_REDUCTION"
+  | "ON_PLAY_DAMAGE"
+  | "XINZHENG_CHANNEL"
+  | "BONUS_DAMAGE_IF_TARGET_HP_GT";
 
-/** For frontend display only */
-export type EffectCategory = "BUFF" | "DEBUFF";
+/** For display grouping only */
+export type BuffCategory = "BUFF" | "DEBUFF";
 
 export interface CardEffect {
   type: EffectType;
 
-  /** Common numeric value (damage/heal/draw/dr/hr/etc) */
   value?: number;
-
-  /** Duration in turns (your existing expire rule uses +duration+1) */
   durationTurns?: number;
-
-  /** For repeating effects (e.g., DELAYED_DAMAGE repeatTurns) */
   repeatTurns?: number;
-
-  /** Chance for probabilistic effects (e.g., DODGE_NEXT) */
   chance?: number;
 
-  /** If true, the status ends when THE OWNER plays a card */
+  /** If true, the buff (or effect) ends when THE OWNER plays a card */
   breakOnPlay?: boolean;
 
   /** If true, this effect allows the card to be played while CONTROLLED */
   allowWhileControlled?: boolean;
 
-  /* ================= PATCH 0.3 =================
-     Mixed targeting in a single card:
-     - If omitted, defaults to card.target
-     - If set, overrides per-effect target
-  ================================================= */
+  /** per-effect target override */
   applyTo?: TargetType;
 
   /** BONUS_DAMAGE_IF_TARGET_HP_GT */
   threshold?: number;
+}
+
+/**
+ * BuffEffect is the same runtime shape as CardEffect,
+ * but stored under buffs (persistent).
+ */
+export type BuffEffect = Omit<CardEffect, "allowWhileControlled">;
+
+export interface BuffDefinition {
+  /** internal stable id (number) */
+  buffId: number;
+
+  /** display name (Chinese) */
+  name: string;
+
+  category: BuffCategory;
+
+  /** how long this buff lasts */
+  durationTurns: number;
+
+  /** if true, removed when OWNER plays any card */
+  breakOnPlay?: boolean;
+
+  /** effects carried by this buff */
+  effects: BuffEffect[];
 }
 
 export interface Card {
@@ -77,7 +90,12 @@ export interface Card {
   name: string;
   type: CardType;
   target: TargetType;
+
+  /** immediate effects (resolve now) */
   effects: CardEffect[];
+
+  /** buffs applied by this card (persist) */
+  buffs?: BuffDefinition[];
 }
 
 export interface CardInstance {
@@ -90,7 +108,8 @@ export type GameEventType =
   | "END_TURN"
   | "DAMAGE"
   | "HEAL"
-  | "STATUS_APPLIED";
+  | "BUFF_APPLIED"
+  | "BUFF_EXPIRED";
 
 export interface GameEvent {
   id: string;
@@ -98,26 +117,37 @@ export interface GameEvent {
   type: GameEventType;
   actorUserId: PlayerID;
   targetUserId?: PlayerID;
+
   cardId?: string;
   cardName?: string;
+
   effectType?: EffectType;
   value?: number;
-  statusType?: EffectType;
+
+  /** buff payload */
+  buffId?: number;
+  buffName?: string;
+  buffCategory?: BuffCategory;
+
   appliedAtTurn?: number;
   expiresAtTurn?: number;
+
   timestamp: number;
 }
 
-export interface Status {
-  type: EffectType;
-  value?: number;
+export interface ActiveBuff {
+  buffId: number;
+  name: string;
+  category: BuffCategory;
+
+  effects: BuffEffect[];
+
   sourceCardId?: string;
   sourceCardName?: string;
-  category?: EffectCategory;
+
   appliedAtTurn: number;
   expiresAtTurn: number;
-  repeatTurns?: number;
-  chance?: number;
+
   breakOnPlay?: boolean;
 }
 
@@ -125,7 +155,9 @@ export interface PlayerState {
   userId: PlayerID;
   hp: number;
   hand: CardInstance[];
-  statuses: Status[];
+
+  /** ✅ new */
+  buffs: ActiveBuff[];
 }
 
 export interface GameState {
