@@ -8,7 +8,7 @@ import {
   passTurn,
   joinGame,
   startGame,
-} from "../services/gameService";
+} from "../services";
 import GameSession from "../models/GameSession";
 
 const router = express.Router();
@@ -112,13 +112,13 @@ router.get("/:id", async (req, res) => {
 router.post("/play", async (req, res) => {
   try {
     const userId = getUserIdFromCookie(req);
-    const { gameId, cardInstanceId, targetUserId } = req.body;
+    const { gameId, cardInstanceId,} = req.body;
 
     const state = await playCard(
       gameId,
       userId,
       cardInstanceId,
-      targetUserId
+
     );
 
     res.json(state);
