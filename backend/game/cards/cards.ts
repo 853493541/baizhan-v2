@@ -1,6 +1,6 @@
 // backend/game/cards/cards.ts
 
-import { Card } from "../engine/types";
+import { Card } from "../engine/state/types";
 
 export const CARDS: Record<string, Card> = {
   /* =========================================================

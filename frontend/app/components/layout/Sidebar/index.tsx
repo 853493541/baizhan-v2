@@ -28,6 +28,13 @@ export default function Sidebar() {
         <NavLink href="/map/history">🗺 历史地图</NavLink>
         <NavLink href="/history">🕒 技能更新记录</NavLink>
          <NavLink href="/game">🎮 卡牌真传</NavLink>
+
+
+        <div className={styles.section}>测试功能</div>
+        <NavLink href="/skilldetail">📈 技能数据</NavLink>
+
+         <NavLink href="/game">🎮 卡牌真传</NavLink>
+
       </nav>
     </div>
   );

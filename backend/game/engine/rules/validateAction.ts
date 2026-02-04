@@ -1,7 +1,7 @@
 // backend/game/engine/validateAction.ts
 
-import { GameState } from "./types";
-import { CARDS } from "../cards/cards";
+import { GameState } from "../state/types";
+import { CARDS } from "../../cards/cards";
 
 /* =========================================================
    VALIDATE PLAY CARD

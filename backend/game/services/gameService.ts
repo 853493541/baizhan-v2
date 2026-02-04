@@ -2,10 +2,10 @@
 
 import GameSession from "../models/GameSession";
 import { CARDS } from "../cards/cards";
-import { applyEffects } from "../engine/applyEffects";
-import { resolveTurnEnd } from "../engine/turnResolver";
-import { validatePlayCard } from "../engine/validateAction";
-import { GameState, CardInstance, GameEvent } from "../engine/types";
+import { applyEffects } from "../engine/flow/applyEffects";
+import { resolveTurnEnd } from "../engine/flow/turnResolver";
+import { validatePlayCard } from "../engine/rules/validateAction";
+import { GameState, CardInstance, GameEvent } from "../engine/state/types";
 import { randomUUID } from "crypto";
 
 /* =========================================================

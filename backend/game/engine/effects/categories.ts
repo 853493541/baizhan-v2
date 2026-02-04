@@ -1,6 +1,6 @@
-// backend/game/engine/effectCategories.ts
 
-import { EffectCategory, EffectType } from "./types";
+
+import { EffectCategory, EffectType } from "../state/types";
 
 export const EFFECT_CATEGORY_MAP: Record<EffectType, EffectCategory> = {
   DAMAGE: "DEBUFF",
