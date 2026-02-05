@@ -176,17 +176,29 @@ shengsi_jie: {
 
   /* ================= 解控 / 防御 ================= */
 
-  jiru_feng: {
-    id: "jiru_feng",
-    name: "疾如风",
-    description: "解控\n抽两张牌",
-    type: "SUPPORT",
-    target: "SELF",
-    effects: [
-      { type: "CLEANSE", allowWhileControlled: true },
-      { type: "DRAW", value: 2, allowWhileControlled: true },
-    ],
-  },
+jiru_feng: {
+  id: "jiru_feng",
+  name: "疾如风",
+  description: "解控\n免疫控制1回合\n抽一张牌",
+  type: "SUPPORT",
+  target: "SELF",
+
+  effects: [
+    { type: "CLEANSE", allowWhileControlled: true },
+    { type: "DRAW", value: 1, allowWhileControlled: true },
+  ],
+
+  buffs: [
+    {
+      buffId: 1031, // pick a unique id
+      name: "疾如风",
+      category: "BUFF",
+      durationTurns: 1,
+      description: "免疫控制",
+      effects: [{ type: "CONTROL_IMMUNE" }],
+    },
+  ],
+},
 
   sanliu_xia: {
     id: "sanliu_xia",
