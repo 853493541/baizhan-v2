@@ -242,7 +242,7 @@ que_ta_zhi: {
       description: "被命中几率降低70%",
       effects: [{ type: "DODGE_NEXT", chance: 0.7 }],
     },
-    
+
     {
       buffId: 1031,
       name: "素衿",
@@ -323,7 +323,7 @@ que_ta_zhi: {
   fuguang_lueying: {
     id: "fuguang_lueying",
     name: "浮光掠影",
-    description: "【隐身】4回合\n下2回合抽卡-1",
+    description: "隐身3回合\n下回合开始时无法抽卡",
     type: "SUPPORT",
     target: "SELF",
     effects: [],
@@ -332,9 +332,9 @@ que_ta_zhi: {
         buffId: 1012,
         name: "浮光掠影",
         category: "BUFF",
-        durationTurns: 4,
+        durationTurns: 2,
         breakOnPlay: true,
-        description: "隐身\n抽卡数量减少",
+        description: "隐身2回合，期间抽卡数量减少1",
         effects: [
           { type: "STEALTH" },
           { type: "DRAW_REDUCTION", value: 1 },
