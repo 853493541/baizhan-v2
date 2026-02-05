@@ -85,6 +85,15 @@ shengsi_jie: {
   effects: [{ type: "DAMAGE", value: 2 }],
   buffs: [
     {
+      buffId: 1021,
+      name: "月劫",
+      category: "DEBUFF",
+      durationTurns: 3,
+      description: "受到治疗效果降低50%",
+      effects: [{ type: "HEAL_REDUCTION", value: 0.5 }],
+    },
+    
+    {
       buffId: 1003,
       name: "日劫",
       category: "DEBUFF",
@@ -93,14 +102,6 @@ shengsi_jie: {
       effects: [{ type: "CONTROL" }],
     },
 
-    {
-      buffId: 1021,
-      name: "月劫",
-      category: "DEBUFF",
-      durationTurns: 3,
-      description: "受到治疗效果降低50%",
-      effects: [{ type: "HEAL_REDUCTION", value: 0.5 }],
-    },
   ],
 },
 
@@ -112,6 +113,15 @@ shengsi_jie: {
     target: "OPPONENT",
     effects: [{ type: "DAMAGE", value: 10 }],
     buffs: [
+      
+       {
+        buffId: 1025,
+        name: "蟾啸",
+        category: "DEBUFF",
+        durationTurns: 3,
+        description: "回合开始时受到2点伤害",
+        effects: [{ type: "START_TURN_DAMAGE", value: 2 }],
+      },
       {
         buffId: 1004,
         name: "蟾啸迷心",
@@ -120,21 +130,13 @@ shengsi_jie: {
         description: "无法使用卡牌",
         effects: [{ type: "SILENCE" }],
       },
-       {
-        buffId: 1001,
-        name: "蟾啸",
-        category: "DEBUFF",
-        durationTurns: 3,
-        description: "回合开始时受到2点伤害",
-        effects: [{ type: "START_TURN_DAMAGE", value: 2 }],
-      },
     ],
   },
 
   da_shizi_hou: {
     id: "da_shizi_hou",
     name: "大狮子吼",
-    description: "眩晕目标\n使其下个回合抽卡数量减一",
+    description: "眩晕目标1回合\n使其下个回合抽卡数量减一",
     type: "CONTROL",
     target: "OPPONENT",
     effects: [],
