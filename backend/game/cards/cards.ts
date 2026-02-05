@@ -104,7 +104,7 @@ shengsi_jie: {
     buffs: [
       {
         buffId: 1004,
-        name: "沉默",
+        name: "蟾啸",
         category: "DEBUFF",
         durationTurns: 1,
         description: "无法使用卡牌",
@@ -116,7 +116,7 @@ shengsi_jie: {
   da_shizi_hou: {
     id: "da_shizi_hou",
     name: "大狮子吼",
-    description: "【控制】目标1个回合\n下个回合目标抽卡数量-1",
+    description: "眩晕目标\n使其下个回合抽卡数量减一",
     type: "CONTROL",
     target: "OPPONENT",
     effects: [],
@@ -126,7 +126,7 @@ shengsi_jie: {
         name: "大狮子吼",
         category: "DEBUFF",
         durationTurns: 1,
-        description: "无法行动\n下回合抽卡-1",
+        description: "眩晕，下回合抽卡数量减一",
         effects: [
           { type: "CONTROL" },
           { type: "DRAW_REDUCTION", value: 1 },
@@ -138,17 +138,17 @@ shengsi_jie: {
   jiangchun_zhuxiu: {
     id: "jiangchun_zhuxiu",
     name: "绛唇珠袖",
-    description: "目标每次使用卡牌时受到3点伤害，持续3个回合",
+    description: "使目标每次使用卡牌时受到3点伤害，持续3个回合",
     type: "CONTROL",
     target: "OPPONENT",
     effects: [],
     buffs: [
       {
         buffId: 1006,
-        name: "绛唇",
+        name: "绛唇珠袖",
         category: "DEBUFF",
         durationTurns: 3,
-        description: "每次使用卡牌时受到3点伤害",
+        description: "使用卡牌则受到3点伤害",
         effects: [{ type: "ON_PLAY_DAMAGE", value: 3 }],
       },
     ],
@@ -182,11 +182,11 @@ shengsi_jie: {
     buffs: [
       {
         buffId: 1007,
-        name: "不可选中",
+        name: "散流霞",
         category: "BUFF",
         durationTurns: 1,
         breakOnPlay: true,
-        description: "无法成为卡牌目标",
+        description: "无法被卡牌选中",
         effects: [{ type: "UNTARGETABLE" }],
       },
     ],
@@ -205,7 +205,7 @@ shengsi_jie: {
         name: "鹊踏枝",
         category: "BUFF",
         durationTurns: 1,
-        description: "免疫控制\n下次受击有70%概率闪避",
+        description: "免疫控制\n被命中概率降低70%",
         effects: [
           { type: "CONTROL_IMMUNE" },
           { type: "DODGE_NEXT", chance: 0.7 },
@@ -219,18 +219,18 @@ shengsi_jie: {
   fengxiu_diang: {
     id: "fengxiu_diang",
     name: "风袖低昂",
-    description: "恢复60点生命值\n受到伤害降低50%，持续2回合",
+    description: "恢复70点生命值\n受到伤害降低40%，持续2回合",
     type: "SUPPORT",
     target: "SELF",
-    effects: [{ type: "HEAL", value: 60 }],
+    effects: [{ type: "HEAL", value: 70 }],
     buffs: [
       {
         buffId: 1009,
-        name: "风袖",
+        name: "风袖低昂",
         category: "BUFF",
         durationTurns: 2,
-        description: "受到伤害降低50%",
-        effects: [{ type: "DAMAGE_REDUCTION", value: 0.5 }],
+        description: "受到伤害降低40%",
+        effects: [{ type: "DAMAGE_REDUCTION", value: 0.4 }],
       },
     ],
   },
@@ -238,19 +238,19 @@ shengsi_jie: {
   qionglong_huasheng: {
     id: "qionglong_huasheng",
     name: "穹隆化生",
-    description: "抽2张牌\n恢复10点生命值\n免疫控制2回合",
+    description: "抽1张牌\n恢复10点生命值\n免控1回合",
     type: "SUPPORT",
     target: "SELF",
     effects: [
-      { type: "DRAW", value: 2 },
+      { type: "DRAW", value: 1 },
       { type: "HEAL", value: 10 },
     ],
     buffs: [
       {
         buffId: 1010,
-        name: "化生",
+        name: "生太极",
         category: "BUFF",
-        durationTurns: 2,
+        durationTurns: 1,
         description: "免疫控制",
         effects: [{ type: "CONTROL_IMMUNE" }],
       },
@@ -262,18 +262,18 @@ shengsi_jie: {
   anchen_misan: {
     id: "anchen_misan",
     name: "暗尘弥散",
-    description: "抽2张牌\n【隐身】1回合",
+    description: "抽2张牌\n隐身1回合",
     type: "SUPPORT",
     target: "SELF",
     effects: [{ type: "DRAW", value: 2, allowWhileControlled: true }],
     buffs: [
       {
         buffId: 1011,
-        name: "隐身",
+        name: "暗尘弥散",
         category: "BUFF",
         durationTurns: 1,
         breakOnPlay: true,
-        description: "无法被指定为卡牌目标",
+        description: "隐身",
         effects: [{ type: "STEALTH" }],
       },
     ],
@@ -305,18 +305,18 @@ shengsi_jie: {
   tiandi_wuji: {
     id: "tiandi_wuji",
     name: "天地无极",
-    description: "造成5点伤害\n自身【隐身】1回合",
+    description: "造成5点伤害\n隐身1回合",
     type: "ATTACK",
     target: "OPPONENT",
     effects: [{ type: "DAMAGE", value: 5 }],
     buffs: [
       {
         buffId: 1013,
-        name: "隐身",
+        name: "天地无极",
         category: "BUFF",
         durationTurns: 1,
         breakOnPlay: true,
-        description: "无法被指定为卡牌目标",
+        description: "隐身",
         effects: [{ type: "STEALTH" }],
       },
     ],
@@ -334,7 +334,7 @@ shengsi_jie: {
     buffs: [
       {
         buffId: 1014,
-        name: "风来吴山",
+        name: "不工",
         category: "BUFF",
         durationTurns: 1,
         description: "无",
@@ -342,7 +342,7 @@ shengsi_jie: {
       },
       {
         buffId: 1015,
-        name: "免控",
+        name: "不工",
         category: "BUFF",
         durationTurns: 1,
         description: "免疫控制",
@@ -354,7 +354,7 @@ shengsi_jie: {
   wu_jianyu: {
     id: "wu_jianyu",
     name: "无间狱",
-    description: "多段伤害并吸取生命",
+    description: "修罗附体\n对目标发起三段挥砍\n期间蓄力额外对目标造成一次伤害。30%吸血",
     type: "CHANNEL",
     target: "SELF",
     effects: [],
@@ -364,7 +364,7 @@ shengsi_jie: {
         name: "无间狱",
         category: "BUFF",
         durationTurns: 1,
-        description: "无",
+        description: "修罗附体",
         effects: [{ type: "WUJIAN_CHANNEL" }],
       },
     ],
@@ -388,7 +388,7 @@ shengsi_jie: {
       },
       {
         buffId: 1018,
-        name: "免控",
+        name: "心诤",
         category: "BUFF",
         durationTurns: 2,
         description: "免疫控制",
@@ -424,18 +424,18 @@ shengsi_jie: {
   taxingxing: {
     id: "taxingxing",
     name: "踏星行",
-    description: "抽2张牌\n获得60%闪避，持续2回合",
+    description: "抽1张牌\n被命中几率降低65%，持续2回合",
     type: "SUPPORT",
     target: "SELF",
-    effects: [{ type: "DRAW", value: 2 }],
+    effects: [{ type: "DRAW", value: 1 }],
     buffs: [
       {
         buffId: 1020,
-        name: "踏星",
+        name: "踏星行",
         category: "BUFF",
         durationTurns: 2,
-        description: "受到伤害时有60%概率闪避",
-        effects: [{ type: "DODGE_NEXT", chance: 0.6 }],
+        description: "被命中几率降低65%",
+        effects: [{ type: "DODGE_NEXT", chance: 0.65 }],
       },
     ],
   },
@@ -445,15 +445,15 @@ shengsi_jie: {
   zhuiming_jian: {
     id: "zhuiming_jian",
     name: "追命箭",
-    description: "造成15点伤害\n目标生命值高于70时额外造成5点伤害",
+    description: "造成20点伤害\n目标生命值高于60时额外造成10点伤害",
     type: "ATTACK",
     target: "OPPONENT",
     effects: [
-      { type: "DAMAGE", value: 15 },
+      { type: "DAMAGE", value: 20 },
       {
         type: "BONUS_DAMAGE_IF_TARGET_HP_GT",
-        value: 5,
-        threshold: 70,
+        value: 10,
+        threshold: 60,
       },
     ],
   },
@@ -461,12 +461,12 @@ shengsi_jie: {
   quye_duanchou: {
     id: "quye_duanchou",
     name: "驱夜断愁",
-    description: "造成4点伤害\n回复2点生命值",
+    description: "造成8点伤害\n回复4点生命值",
     type: "ATTACK",
     target: "OPPONENT",
     effects: [
-      { type: "DAMAGE", value: 4 },
-      { type: "HEAL", value: 2, applyTo: "SELF" },
+      { type: "DAMAGE", value: 8 },
+      { type: "HEAL", value: 4, applyTo: "SELF" },
     ],
   },
 };
