@@ -19,7 +19,7 @@
  *   - Control immunity blocks CONTROL (handled by guards/handler)
  */
 
-import { GameState, Card } from "../state/types";
+import { GameState, Card, ActiveBuff } from "../state/types";
 import { getEnemy, resolveEffectTargetIndex } from "../utils/targeting";
 
 import {
@@ -40,6 +40,7 @@ import {
   handleApplyBuffs,
 } from "../effects/handlers";
 
+
 export function applyEffects(
   state: GameState,
   card: Card,
@@ -52,12 +53,18 @@ export function applyEffects(
   const defaultTarget = state.players[targetIndex];
   const enemy = getEnemy(state, playerIndex);
 
+   if (Array.isArray(source.buffs)) {
+    source.buffs = source.buffs.filter(
+      (buff: ActiveBuff) => !buff.breakOnPlay
+    );
+  }
+
   /* =========================================================
      breakOnPlay affects ONLY the caster
      - your buff ends when YOU cast
      - enemy casting does NOT break your buffs
-  ========================================================= */
-  source.buffs = source.buffs.filter((b) => !b.breakOnPlay);
+  ========================================================= */source.buffs = source.buffs.filter((b: ActiveBuff) => !b.breakOnPlay);
+
 
   // Snapshot for bonus-damage checks (opponent HP at card start)
   const opponentHpAtCardStart = defaultTarget.hp;
