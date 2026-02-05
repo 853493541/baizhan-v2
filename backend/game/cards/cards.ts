@@ -190,7 +190,7 @@ jiru_feng: {
 
   buffs: [
     {
-      buffId: 1031, // pick a unique id
+      buffId: 1033, // pick a unique id
       name: "疾如风",
       category: "BUFF",
       durationTurns: 1,
@@ -468,24 +468,33 @@ que_ta_zhi: {
     ],
   },
 
-  taxingxing: {
-    id: "taxingxing",
-    name: "踏星行",
-    description: "抽1张牌\n被命中几率降低65%，持续2回合",
-    type: "SUPPORT",
-    target: "SELF",
-    effects: [{ type: "DRAW", value: 1 }],
-    buffs: [
-      {
-        buffId: 1020,
-        name: "踏星行",
-        category: "BUFF",
-        durationTurns: 2,
-        description: "被命中几率降低65%",
-        effects: [{ type: "DODGE_NEXT", chance: 0.65 }],
-      },
-    ],
-  },
+taxingxing: {
+  id: "taxingxing",
+  name: "踏星行",
+  description: "抽2张牌\n被命中几率降低65且免疫控制，期间无法使用卡牌，持续1回合",
+  type: "SUPPORT",
+  target: "SELF",
+
+  effects: [
+    { type: "DRAW", value: 2 },
+  ],
+
+  buffs: [
+    {
+      buffId: 1020,
+      name: "踏星行",
+      category: "DEBUFF",
+      durationTurns: 1,
+      description: "被命中几率降低65%，免疫控制，沉默",
+      effects: [
+        { type: "DODGE_NEXT", chance: 0.65 },
+        { type: "CONTROL_IMMUNE" },
+        { type: "SILENCE" }, 
+      ],
+    },
+  ],
+},
+
 
   /* ================= 其他 ================= */
 
