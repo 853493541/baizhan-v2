@@ -318,6 +318,7 @@ shengsi_jie: {
         breakOnPlay: true,
         description: "隐身",
         effects: [{ type: "STEALTH" }],
+        applyTo: "SELF", 
       },
     ],
   },

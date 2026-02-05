@@ -71,7 +71,7 @@ export type BuffEffect = Omit<
 /* ================= Buffs ================= */
 
 export type BuffCategory = "BUFF" | "DEBUFF";
-
+export type BuffApplyTo = "SELF" | "OPPONENT";
 export interface BuffDefinition {
   buffId: number;
 
@@ -92,6 +92,8 @@ export interface BuffDefinition {
 
   /** Engine-only logic payload */
   effects: BuffEffect[];
+
+    applyTo?: BuffApplyTo;
 }
 
 /* ================= Card ================= */

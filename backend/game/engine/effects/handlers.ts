@@ -255,15 +255,34 @@ export function handleApplyBuffs(params: {
   if (!Array.isArray(card.buffs) || card.buffs.length === 0) return;
 
   for (const buff of card.buffs) {
-    // Enemy buffs blocked by target avoidance
-    if (isEnemyEffect && blocksEnemyTargeting(target)) continue;
+    let actualTarget = target;
+
+    // ✅ Explicit buff targeting wins
+    if (buff.applyTo === "SELF") {
+      actualTarget = source;
+    } else if (buff.applyTo === "OPPONENT") {
+      actualTarget = target;
+    } else {
+      // ✅ Backward-compatible default
+      // Buffs without applyTo follow card.target
+      actualTarget = card.target === "SELF" ? source : target;
+    }
+
+    // Enemy buffs blocked by avoidance rules
+    if (
+      actualTarget === target &&
+      isEnemyEffect &&
+      blocksEnemyTargeting(target)
+    ) {
+      continue;
+    }
 
     addBuff({
       state,
       sourceUserId: source.userId,
-      targetUserId: target.userId,
+      targetUserId: actualTarget.userId,
       card,
-      buffTarget: target,
+      buffTarget: actualTarget,
       buff,
     });
   }
