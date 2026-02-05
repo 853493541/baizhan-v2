@@ -203,7 +203,7 @@ jiru_feng: {
   sanliu_xia: {
     id: "sanliu_xia",
     name: "散流霞",
-    description: "解控\n抽1张牌\n恢复5点生命值\n【不可选中】一回合",
+    description: "解控\n抽2张牌\n恢复10点生命值\n【不可选中】一回合",
     type: "SUPPORT",
     target: "SELF",
     effects: [
@@ -224,27 +224,36 @@ jiru_feng: {
     ],
   },
 
-  que_ta_zhi: {
-    id: "que_ta_zhi",
-    name: "鹊踏枝",
-    description: "解控\n免疫控制\n下次受到伤害有70%概率闪避",
-    type: "SUPPORT",
-    target: "SELF",
-    effects: [{ type: "CLEANSE", allowWhileControlled: true }],
-    buffs: [
-      {
-        buffId: 1008,
-        name: "鹊踏枝",
-        category: "BUFF",
-        durationTurns: 1,
-        description: "免疫控制\n被命中概率降低70%",
-        effects: [
-          { type: "CONTROL_IMMUNE" },
-          { type: "DODGE_NEXT", chance: 0.7 },
-        ],
-      },
-    ],
-  },
+que_ta_zhi: {
+  id: "que_ta_zhi",
+  name: "鹊踏枝",
+  description: "解控\n免疫控制1回合\n下次受到伤害有70%概率闪避",
+  type: "SUPPORT",
+  target: "SELF",
+
+  effects: [{ type: "CLEANSE", allowWhileControlled: true }],
+
+  buffs: [
+     {
+      buffId: 1030,
+      name: "鹊踏枝",
+      category: "BUFF",
+      durationTurns: 1, 
+      description: "被命中几率降低70%",
+      effects: [{ type: "DODGE_NEXT", chance: 0.7 }],
+    },
+    
+    {
+      buffId: 1031,
+      name: "素衿",
+      category: "BUFF",
+      durationTurns: 1,
+      description: "免控",
+      effects: [{ type: "CONTROL_IMMUNE" }],
+    },
+   
+  ],
+},
 
   /* ================= 生存 / 回复 ================= */
 
