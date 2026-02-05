@@ -8,10 +8,20 @@ export const CARDS: Record<string, Card & { description: string }> = {
   jianpo_xukong: {
     id: "jianpo_xukong",
     name: "剑破虚空",
-    description: "造成10点伤害",
+    description: "造成10点伤害\n使目标每回合受到2点伤害，持续3回合",
     type: "ATTACK",
     target: "OPPONENT",
     effects: [{ type: "DAMAGE", value: 10 }],
+    buffs: [
+      {
+        buffId: 1022,
+        name: "急曲",
+        category: "DEBUFF",
+        durationTurns: 3,
+        description: "回合开始时受到3点伤害",
+        effects: [{ type: "START_TURN_DAMAGE", value: 3 }],
+      },
+    ],
   },
 
   sanhuan_taoyue: {
