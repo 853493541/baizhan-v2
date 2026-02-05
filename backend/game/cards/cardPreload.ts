@@ -1,4 +1,5 @@
 // backend/game/cards/cardPreload.ts
+
 import { CARDS } from "./cards";
 
 /**
@@ -30,11 +31,13 @@ export function buildCardPreload() {
           buffId: buff.buffId,
           name: buff.name,
           category: buff.category,
-          durationTurns: buff.durationTurns,
+
+          // ✅ UPDATED FIELD NAME
+          duration: buff.duration,
+
           breakOnPlay: buff.breakOnPlay ?? false,
 
-          // ✅ authoritative description
-          // if not defined yet → explicitly mark as "无"
+          // authoritative text
           description: buff.description ?? "无",
 
           effects: buff.effects ?? [],

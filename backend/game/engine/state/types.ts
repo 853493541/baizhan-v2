@@ -63,15 +63,21 @@ export interface CardEffect {
 /**
  * Buff-contained effects (no play rules, no duration)
  */
-export type BuffEffect = Omit<
-  CardEffect,
-  "allowWhileControlled"
->;
+export type BuffEffect = Omit<CardEffect, "allowWhileControlled">;
 
 /* ================= Buffs ================= */
 
 export type BuffCategory = "BUFF" | "DEBUFF";
 export type BuffApplyTo = "SELF" | "OPPONENT";
+
+/**
+ * ✅ NEW: Buff tick timing
+ * - Buffs tick ONLY on the owner's turn boundary.
+ * - TURN_START: decrement at the start of owner's turn
+ * - TURN_END: decrement at the end of owner's turn
+ */
+export type BuffTickOn = "TURN_START" | "TURN_END";
+
 export interface BuffDefinition {
   buffId: number;
 
@@ -79,10 +85,18 @@ export interface BuffDefinition {
   name: string;
 
   /** BUFF or DEBUFF – authoritative, no inference on frontend */
-  category: "BUFF" | "DEBUFF";
+  category: BuffCategory;
 
-  /** How long this buff exists */
-  durationTurns: number;
+  /**
+   * ✅ NEW: How many ticks this buff has (number of decrements until it expires)
+   * Replaces durationTurns + expiresAtTurn math.
+   */
+  duration: number;
+
+  /**
+   * ✅ NEW: When the duration decrements (start or end of owner's turn)
+   */
+  tickOn: BuffTickOn;
 
   /** Optional: removed when a card is played */
   breakOnPlay?: boolean;
@@ -93,7 +107,8 @@ export interface BuffDefinition {
   /** Engine-only logic payload */
   effects: BuffEffect[];
 
-    applyTo?: BuffApplyTo;
+  /** Optional override for which side receives the buff */
+  applyTo?: BuffApplyTo;
 }
 
 /* ================= Card ================= */
@@ -143,6 +158,10 @@ export interface GameEvent {
   buffName?: string;
   buffCategory?: BuffCategory;
 
+  /**
+   * ⚠️ Kept for backward compatibility with existing frontend/event viewers.
+   * With tick-based buffs, these may be omitted or treated as informational only.
+   */
   appliedAtTurn?: number;
   expiresAtTurn?: number;
 
@@ -159,8 +178,22 @@ export interface ActiveBuff {
   sourceCardId?: string;
   sourceCardName?: string;
 
-  appliedAtTurn: number;
-  expiresAtTurn: number;
+  /**
+   * ✅ NEW: Remaining ticks until expiry.
+   * Decrement ONLY when (currentPlayer === owner) and phase matches tickOn.
+   */
+  remaining: number;
+
+  /**
+   * ✅ NEW: Tick timing for this runtime buff.
+   */
+  tickOn: BuffTickOn;
+
+  /**
+   * ✅ OPTIONAL: Keep appliedAtTurn for debugging/UI if you want.
+   * NOT used for expiry anymore.
+   */
+  appliedAtTurn?: number;
 
   breakOnPlay?: boolean;
 }
@@ -177,7 +210,13 @@ export interface GameState {
   players: PlayerState[];
   deck: CardInstance[];
   discard: CardInstance[];
+
+  /**
+   * Global engine turn counter (still useful for logs/events/UI).
+   * ⚠️ Buff expiry must NOT rely on this anymore.
+   */
   turn: number;
+
   activePlayerIndex: number;
   gameOver: boolean;
   winnerUserId?: PlayerID;

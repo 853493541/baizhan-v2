@@ -55,6 +55,37 @@ function pushHealEvent(
 }
 
 /* =========================================================
+   BUFF TICK HELPERS (NEW)
+========================================================= */
+
+function tickBuffs(player: { userId: string; buffs: ActiveBuff[] }, phase: "TURN_START" | "TURN_END") {
+  for (const buff of player.buffs) {
+    if (buff.tickOn === phase) {
+      buff.remaining -= 1;
+    }
+  }
+}
+
+function cleanupExpiredBuffs(state: GameState, player: { userId: string; buffs: ActiveBuff[] }) {
+  const before = player.buffs.slice();
+
+  player.buffs = player.buffs.filter((b) => b.remaining > 0);
+
+  for (const old of before) {
+    if (!player.buffs.some((b) => b.buffId === old.buffId)) {
+      pushBuffExpired(state, {
+        targetUserId: player.userId,
+        buffId: old.buffId,
+        buffName: old.name,
+        buffCategory: old.category,
+        sourceCardId: old.sourceCardId,
+        sourceCardName: old.sourceCardName,
+      });
+    }
+  }
+}
+
+/* =========================================================
    TURN RESOLVER
 ========================================================= */
 
@@ -67,35 +98,78 @@ export function resolveTurnEnd(state: GameState) {
   const current = state.players[currentIndex];
   const other = state.players[otherIndex];
 
-  /* ================= END OF TURN (OWNER) ================= */
+  /* ================= END OF TURN (CURRENT PLAYER) ================= */
 
+  // Apply end-of-turn buff effects (channels, DOTs that tick at end)
   for (const buff of current.buffs) {
     for (const e of buff.effects) {
-
       // FENGLAI tick
       if (e.type === "FENGLAI_CHANNEL") {
         if (hasUntargetable(other)) {
-          pushDamageEvent(state, current.userId, other.userId, buff.sourceCardId, buff.sourceCardName, 0);
+          pushDamageEvent(
+            state,
+            current.userId,
+            other.userId,
+            buff.sourceCardId,
+            buff.sourceCardName,
+            0
+          );
           continue;
         }
 
         if (!shouldDodge(other)) {
-          const dmg = resolveScheduledDamage({ source: current, target: other, base: 10 });
+          const dmg = resolveScheduledDamage({
+            source: current,
+            target: other,
+            base: 10,
+          });
           other.hp = Math.max(0, other.hp - dmg);
-          pushDamageEvent(state, current.userId, other.userId, buff.sourceCardId, buff.sourceCardName, dmg);
+          pushDamageEvent(
+            state,
+            current.userId,
+            other.userId,
+            buff.sourceCardId,
+            buff.sourceCardName,
+            dmg
+          );
         } else {
-          pushDamageEvent(state, current.userId, other.userId, buff.sourceCardId, buff.sourceCardName, 0);
+          pushDamageEvent(
+            state,
+            current.userId,
+            other.userId,
+            buff.sourceCardId,
+            buff.sourceCardName,
+            0
+          );
         }
       }
 
       // WUJIAN tick
       if (e.type === "WUJIAN_CHANNEL") {
         if (!shouldDodge(other)) {
-          const dmg = resolveScheduledDamage({ source: current, target: other, base: 10 });
+          const dmg = resolveScheduledDamage({
+            source: current,
+            target: other,
+            base: 10,
+          });
           other.hp = Math.max(0, other.hp - dmg);
-          pushDamageEvent(state, current.userId, other.userId, buff.sourceCardId, buff.sourceCardName, dmg);
+          pushDamageEvent(
+            state,
+            current.userId,
+            other.userId,
+            buff.sourceCardId,
+            buff.sourceCardName,
+            dmg
+          );
         } else {
-          pushDamageEvent(state, current.userId, other.userId, buff.sourceCardId, buff.sourceCardName, 0);
+          pushDamageEvent(
+            state,
+            current.userId,
+            other.userId,
+            buff.sourceCardId,
+            buff.sourceCardName,
+            0
+          );
         }
 
         const heal = resolveHealAmount({ target: current, base: 3 });
@@ -104,42 +178,51 @@ export function resolveTurnEnd(state: GameState) {
         const applied = Math.max(0, current.hp - before);
 
         if (applied > 0) {
-          pushHealEvent(state, current.userId, current.userId, buff.sourceCardId, buff.sourceCardName, applied);
+          pushHealEvent(
+            state,
+            current.userId,
+            current.userId,
+            buff.sourceCardId,
+            buff.sourceCardName,
+            applied
+          );
         }
       }
 
       // XINZHENG tick
       if (e.type === "XINZHENG_CHANNEL") {
         if (!shouldDodge(other)) {
-          const dmg = resolveScheduledDamage({ source: current, target: other, base: 5 });
+          const dmg = resolveScheduledDamage({
+            source: current,
+            target: other,
+            base: 5,
+          });
           other.hp = Math.max(0, other.hp - dmg);
-          pushDamageEvent(state, current.userId, other.userId, buff.sourceCardId, buff.sourceCardName, dmg);
+          pushDamageEvent(
+            state,
+            current.userId,
+            other.userId,
+            buff.sourceCardId,
+            buff.sourceCardName,
+            dmg
+          );
         } else {
-          pushDamageEvent(state, current.userId, other.userId, buff.sourceCardId, buff.sourceCardName, 0);
+          pushDamageEvent(
+            state,
+            current.userId,
+            other.userId,
+            buff.sourceCardId,
+            buff.sourceCardName,
+            0
+          );
         }
       }
     }
   }
 
-  /* ================= BUFF EXPIRY ================= */
-
-  for (const p of state.players) {
-    const before = p.buffs.slice();
-    p.buffs = p.buffs.filter((b) => state.turn < b.expiresAtTurn);
-
-    for (const old of before) {
-      if (!p.buffs.some((b) => b.buffId === old.buffId)) {
-        pushBuffExpired(state, {
-          targetUserId: p.userId,
-          buffId: old.buffId,
-          buffName: old.name,
-          buffCategory: old.category,
-          sourceCardId: old.sourceCardId,
-          sourceCardName: old.sourceCardName,
-        });
-      }
-    }
-  }
+  // ⏱ Tick TURN_END buffs for current player
+  tickBuffs(current, "TURN_END");
+  cleanupExpiredBuffs(state, current);
 
   /* ================= ADVANCE TURN ================= */
 
@@ -149,14 +232,26 @@ export function resolveTurnEnd(state: GameState) {
   const me = state.players[state.activePlayerIndex];
   const enemy = state.players[state.activePlayerIndex === 0 ? 1 : 0];
 
-  /* ================= START OF TURN ================= */
+  /* ================= START OF TURN (NEW PLAYER) ================= */
 
+  // ⏱ Tick TURN_START buffs for new active player
+  tickBuffs(me, "TURN_START");
+  cleanupExpiredBuffs(state, me);
+
+  // Apply start-of-turn buff effects
   for (const buff of me.buffs) {
     for (const e of buff.effects) {
       if (e.type === "START_TURN_DAMAGE") {
         const dmg = Math.max(0, e.value ?? 0);
         me.hp = Math.max(0, me.hp - dmg);
-        pushDamageEvent(state, enemy.userId, me.userId, buff.sourceCardId, buff.sourceCardName, dmg);
+        pushDamageEvent(
+          state,
+          enemy.userId,
+          me.userId,
+          buff.sourceCardId,
+          buff.sourceCardName,
+          dmg
+        );
       }
 
       if (e.type === "START_TURN_HEAL") {
@@ -166,7 +261,14 @@ export function resolveTurnEnd(state: GameState) {
         const applied = Math.max(0, me.hp - before);
 
         if (applied > 0) {
-          pushHealEvent(state, me.userId, me.userId, buff.sourceCardId, buff.sourceCardName, applied);
+          pushHealEvent(
+            state,
+            me.userId,
+            me.userId,
+            buff.sourceCardId,
+            buff.sourceCardName,
+            applied
+          );
         }
       }
     }
