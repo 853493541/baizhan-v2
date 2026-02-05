@@ -44,6 +44,7 @@ export async function playCard(
   });
 
   applyEffects(state, card, playerIndex, targetIndex);
+  triggerOnPlayBuffs(state, playerIndex);
   state.discard.push(played);
 
   game.state = state;
@@ -71,4 +72,32 @@ export async function passTurn(gameId: string, userId: string) {
   game.markModified("state");
   await game.save();
   return state;
+}
+function triggerOnPlayBuffs(state: GameState, playerIndex: number) {
+  const player = state.players[playerIndex];
+
+  if (!player.buffs) return;
+
+  for (const buff of player.buffs) {
+    if (!buff.effects) continue;
+
+    for (const effect of buff.effects) {
+      if (effect.type === "ON_PLAY_DAMAGE") {
+        const dmg = effect.value ?? 0;
+        if (dmg <= 0) continue;
+
+        // apply damage
+        player.hp = Math.max(0, player.hp - dmg);
+
+        // emit event
+        pushEvent(state, {
+          turn: state.turn,
+          type: "DAMAGE",
+          actorUserId: player.userId,
+          targetUserId: player.userId,
+           value: dmg,
+        });
+      }
+    }
+  }
 }
