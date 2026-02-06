@@ -55,7 +55,7 @@ export function buildDeck(): CardInstance[] {
   pushN("qionglong_huasheng", 3);
   pushN("taxingxing", 3);
   pushN("zhuiming_jian", 3);
-  pushN("xinzheng", 2);
+  pushN("xinzheng", 12);
   pushN("tiandi_wuji", 3);
   pushN("quye_duanchou", 3);
 

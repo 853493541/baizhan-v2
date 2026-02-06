@@ -390,12 +390,12 @@ fenglai_wushan: {
       duration: 1,
       tickOn: "TURN_START",
       breakOnPlay: true,
-      description: "免疫控制。回合开始与结束时对敌人造成伤害。",
+      description: "免疫控制。运功期间对敌人造成周期伤害。",
       effects: [
-        // CC immunity while channeling
+        // CC immune while channeling
         { type: "CONTROL_IMMUNE" },
 
-        // Turn-end damage (whoever's turn)
+        // 你的回合结束 → 10
         {
           type: "SCHEDULED_DAMAGE",
           value: 10,
@@ -403,7 +403,23 @@ fenglai_wushan: {
           target: "ENEMY",
         },
 
-        // Turn-start damage (whoever's turn)
+        // 对手回合开始 → 10
+        {
+          type: "SCHEDULED_DAMAGE",
+          value: 10,
+          when: "TURN_START",
+          target: "ENEMY",
+        },
+
+        // 对手回合结束 → 10
+        {
+          type: "SCHEDULED_DAMAGE",
+          value: 10,
+          when: "TURN_END",
+          target: "ENEMY",
+        },
+
+        // 你下一个回合开始 → 10
         {
           type: "SCHEDULED_DAMAGE",
           value: 10,
@@ -436,36 +452,62 @@ fenglai_wushan: {
     ],
   },
 
-  xinzheng: {
-    id: "xinzheng",
-    name: "心诤",
-    description: "持续运功，对目标多段造成伤害",
-    type: "CHANNEL",
-    target: "SELF",
-    effects: [],
-    buffs: [
-      {
-        buffId: 1017,
-        name: "心诤",
-        category: "BUFF",
-        duration: 1,
-        tickOn: "TURN_START",
-        breakOnPlay: true,
-        description: "无",
-        effects: [{ type: "XINZHENG_CHANNEL" }],
-      },
-      {
-        buffId: 1018,
-        name: "心诤",
-        category: "BUFF",
-        duration: 2,
-        tickOn: "TURN_END",
-        breakOnPlay: true,
-        description: "免疫控制",
-        effects: [{ type: "CONTROL_IMMUNE" }],
-      },
-    ],
-  },
+xinzheng: {
+  id: "xinzheng",
+  name: "心诤",
+  description: "持续运功，对目标多段造成伤害",
+  type: "CHANNEL",
+  target: "SELF",
+  effects: [],
+  buffs: [
+    {
+      buffId: 1017,
+      name: "心诤",
+      category: "BUFF",
+      duration: 1,
+      tickOn: "TURN_START",
+      breakOnPlay: true,
+      description: "免疫控制。回合边界对敌人造成递增伤害。",
+      effects: [
+        // CC immune while channeling
+        { type: "CONTROL_IMMUNE" },
+
+        // 你的回合结束 → 5
+        {
+          type: "SCHEDULED_DAMAGE",
+          value: 5,
+          when: "TURN_END",
+          target: "ENEMY",
+        },
+
+        // 对手回合开始 → 5
+        {
+          type: "SCHEDULED_DAMAGE",
+          value: 5,
+          when: "TURN_START",
+          target: "ENEMY",
+        },
+
+        // 对手回合结束 → 5
+        {
+          type: "SCHEDULED_DAMAGE",
+          value: 5,
+          when: "TURN_END",
+          target: "ENEMY",
+        },
+
+        // 你下一个回合开始 → 20（爆发）
+        {
+          type: "SCHEDULED_DAMAGE",
+          value: 20,
+          when: "TURN_START",
+          target: "ENEMY",
+        },
+      ],
+    },
+  ],
+},
+
 
   /* ================= 爆发 / 强化 ================= */
 

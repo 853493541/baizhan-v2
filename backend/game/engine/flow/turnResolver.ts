@@ -98,70 +98,58 @@ function cleanupExpiredBuffs(
    - Runs for BOTH players' buffs (anyone's buff can fire on any boundary)
 ========================================================= */
 
-function applyScheduledDamage(state: GameState, phase: "TURN_START" | "TURN_END") {
-  for (let ownerIndex = 0; ownerIndex < state.players.length; ownerIndex++) {
-    const owner = state.players[ownerIndex];
-    const enemy = state.players[ownerIndex === 0 ? 1 : 0];
+function applyScheduledDamage(
+  state: GameState,
+  phase: "TURN_START" | "TURN_END",
+  ownerIndex: number
+) {
+  const owner = state.players[ownerIndex];
+  const enemy = state.players[ownerIndex === 0 ? 1 : 0];
 
-    for (const buff of owner.buffs) {
-      for (const e of buff.effects) {
-        if (e.type !== "SCHEDULED_DAMAGE") continue;
-        if (e.when !== phase) continue;
+  for (const buff of owner.buffs) {
+    for (const e of buff.effects) {
+      if (e.type !== "SCHEDULED_DAMAGE") continue;
+      if (e.when !== phase) continue;
 
-        const target = e.target === "SELF" ? owner : enemy;
+      const target = e.target === "SELF" ? owner : enemy;
 
-        // Enemy-only guards (keep behavior consistent with legacy channel ticks)
-        if (target.userId !== owner.userId) {
-          // Untargetable blocks enemy-applied scheduled damage
-          if (hasUntargetable(target)) {
-            pushDamageEvent(
-              state,
-              owner.userId,
-              target.userId,
-              buff.sourceCardId,
-              buff.sourceCardName,
-              0,
-              "SCHEDULED_DAMAGE"
-            );
-            continue;
-          }
-
-          // Dodge can cancel scheduled damage
-          if (shouldDodge(target)) {
-            pushDamageEvent(
-              state,
-              owner.userId,
-              target.userId,
-              buff.sourceCardId,
-              buff.sourceCardName,
-              0,
-              "SCHEDULED_DAMAGE"
-            );
-            continue;
-          }
+      // Enemy-only guards
+      if (target.userId !== owner.userId) {
+        if (hasUntargetable(target) || shouldDodge(target)) {
+          pushDamageEvent(
+            state,
+            owner.userId,
+            target.userId,
+            buff.sourceCardId,
+            buff.sourceCardName,
+            0,
+            "SCHEDULED_DAMAGE"
+          );
+          continue;
         }
-
-        const dmg = resolveScheduledDamage({
-          source: owner,
-          target,
-          base: e.value ?? 0,
-        });
-
-        target.hp = Math.max(0, target.hp - dmg);
-
-        pushDamageEvent(
-          state,
-          owner.userId,
-          target.userId,
-          buff.sourceCardId,
-          buff.sourceCardName,
-          dmg,
-          "SCHEDULED_DAMAGE"
-        );
       }
+
+      const dmg = resolveScheduledDamage({
+        source: owner,
+        target,
+        base: e.value ?? 0,
+      });
+
+      target.hp = Math.max(0, target.hp - dmg);
+
+      pushDamageEvent(
+        state,
+        owner.userId,
+        target.userId,
+        buff.sourceCardId,
+        buff.sourceCardName,
+        dmg,
+        "SCHEDULED_DAMAGE"
+      );
     }
   }
 }
+
 
 /* =========================================================
    TURN RESOLVER
@@ -179,7 +167,7 @@ export function resolveTurnEnd(state: GameState) {
   /* ================= END OF TURN (CURRENT PLAYER) ================= */
 
   // ✅ PATCH 0.5: scheduled damage fires BEFORE duration ticks / expiry
-  applyScheduledDamage(state, "TURN_END");
+applyScheduledDamage(state, "TURN_END", currentIndex);
 
   // Apply end-of-turn buff effects (channels, DOTs that tick at end)
   for (const buff of current.buffs) {
@@ -317,7 +305,8 @@ export function resolveTurnEnd(state: GameState) {
   /* ================= START OF TURN (NEW PLAYER) ================= */
 
   // ✅ PATCH 0.5: scheduled damage fires BEFORE duration ticks / expiry
-  applyScheduledDamage(state, "TURN_START");
+applyScheduledDamage(state, "TURN_START", state.activePlayerIndex);
+
 
   // ⏱ Tick TURN_START buffs for new active player
   tickBuffs(me, "TURN_START");
