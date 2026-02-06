@@ -387,44 +387,64 @@ fenglai_wushan: {
       buffId: 1014,
       name: "不工",
       category: "BUFF",
-      duration: 1,
-      tickOn: "TURN_START",
-      breakOnPlay: true,
       description: "免疫控制。运功期间对敌人造成周期伤害。",
+      duration: 1,              // ✅ spans one enemy turn
+      tickOn: "TURN_START",     // ✅ owner-only ticking
+      breakOnPlay: true,        // ✅ channel breaks on card play
       effects: [
+        // ===============================
         // CC immune while channeling
-        { type: "CONTROL_IMMUNE" },
+        // ===============================
+        {
+          type: "CONTROL_IMMUNE",
+        },
 
-        // 你的回合结束 → 10
+        // ===============================
+        // STAGE 1 — 我方回合结束 → 10
+        // ===============================
         {
           type: "SCHEDULED_DAMAGE",
-          value: 10,
+          value: 8,
           when: "TURN_END",
+          turnOf: "OWNER",
           target: "ENEMY",
+          debug: "风来吴山·我方回合结束 (10)",
         },
 
-        // 对手回合开始 → 10
+        // ===============================
+        // STAGE 2 — 敌方回合开始 → 10
+        // ===============================
         {
           type: "SCHEDULED_DAMAGE",
-          value: 10,
+          value: 8,
           when: "TURN_START",
+          turnOf: "ENEMY",
           target: "ENEMY",
+          debug: "风来吴山·敌方回合开始 (10)",
         },
 
-        // 对手回合结束 → 10
+        // ===============================
+        // STAGE 3 — 敌方回合结束 → 10
+        // ===============================
         {
           type: "SCHEDULED_DAMAGE",
-          value: 10,
+          value: 8,
           when: "TURN_END",
+          turnOf: "ENEMY",
           target: "ENEMY",
+          debug: "风来吴山·敌方回合结束 (10)",
         },
 
-        // 你下一个回合开始 → 10
+        // ===============================
+        // STAGE 4 — 我方下回合开始 → 10
+        // ===============================
         {
           type: "SCHEDULED_DAMAGE",
-          value: 10,
+          value: 8,
           when: "TURN_START",
+          turnOf: "OWNER",
           target: "ENEMY",
+          debug: "风来吴山·我方回合开始 (10)",
         },
       ],
     },
@@ -573,7 +593,7 @@ xinzheng: {
         =============================== */
         {
           type: "SCHEDULED_DAMAGE",
-          value: 15,
+          value: 10,
           when: "TURN_END",
           turnOf: "ENEMY",
           target: "ENEMY",

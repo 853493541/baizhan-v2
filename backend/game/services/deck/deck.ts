@@ -21,8 +21,8 @@ export function buildDeck(): CardInstance[] {
   };
 
   // 基础攻击
-  pushN("jianpo_xukong", 6);
-  pushN("sanhuan_taoyue", 6);
+  // pushN("jianpo_xukong", 6);
+  // pushN("sanhuan_taoyue", 6);
 
   // 控制 / 压制
   pushN("mohe_wuliang", 4);
@@ -41,7 +41,7 @@ export function buildDeck(): CardInstance[] {
   pushN("anchen_misan", 3);
 
   // 持续伤害 / 节奏
-  pushN("fenglai_wushan", 2);
+  pushN("fenglai_wushan", 20);
   pushN("wu_jianyu", 20);
   pushN("baizu", 3);
 
@@ -55,7 +55,7 @@ export function buildDeck(): CardInstance[] {
   pushN("qionglong_huasheng", 3);
   pushN("taxingxing", 3);
   pushN("zhuiming_jian", 3);
-  pushN("xinzheng", 2);
+  pushN("xinzheng", 20);
   pushN("tiandi_wuji", 3);
   pushN("quye_duanchou", 3);
 
