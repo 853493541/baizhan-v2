@@ -436,7 +436,7 @@ wu_jianyu: {
   id: "wu_jianyu",
   name: "无间狱",
   description: "修罗附体\n对目标发起三段挥砍\n期间蓄力额外对目标造成一次伤害。30%吸血",
-  type: "SUPPORT", // NOT a channel card
+  type: "SUPPORT",
   target: "SELF",
   effects: [],
   buffs: [
@@ -445,36 +445,23 @@ wu_jianyu: {
       name: "无间狱",
       category: "BUFF",
       description: "修罗附体",
-      duration: 10,
-      tickOn: "TURN_START",
-      // ❌ no breakOnPlay — persists while playing other cards
+      duration: 1,              // ✅ correct duration
+      tickOn: "TURN_START",     // ✅ owner-only ticking
       effects: [
         /* ===============================
-           STAGE 4 — 我方回合开始 → 5
+           STAGE 1 — 我方回合结束 → 0
         =============================== */
         {
           type: "SCHEDULED_DAMAGE",
-          value: 5,
-          when: "TURN_START",
+          value: 0,
+          when: "TURN_END",
           turnOf: "OWNER",
           target: "ENEMY",
-          debug: "WUJIAN STAGE 4 — 我方回合开始 (5)",
+          debug: "WUJIAN STAGE 1 — 我方回合结束 (0)",
         },
 
         /* ===============================
-           STAGE 5 — 敌方回合结束 → 10
-        =============================== */
-        {
-          type: "SCHEDULED_DAMAGE",
-          value: 10,
-          when: "TURN_END",
-          turnOf: "ENEMY",
-          target: "ENEMY",
-          debug: "WUJIAN STAGE 5 — 敌方回合结束 (10)",
-        },
-
-        /* ===============================
-           STAGE 6 — 敌方回合开始 → 20
+           STAGE 2 — 敌方回合开始 → 20
         =============================== */
         {
           type: "SCHEDULED_DAMAGE",
@@ -482,11 +469,11 @@ wu_jianyu: {
           when: "TURN_START",
           turnOf: "ENEMY",
           target: "ENEMY",
-          debug: "WUJIAN STAGE 6 — 敌方回合开始 (20)",
+          debug: "WUJIAN STAGE 2 — 敌方回合开始 (0)",
         },
 
         /* ===============================
-           STAGE 7 — 敌方回合结束 → 20
+           STAGE 3 — 敌方回合结束 → 20
         =============================== */
         {
           type: "SCHEDULED_DAMAGE",
@@ -494,12 +481,14 @@ wu_jianyu: {
           when: "TURN_END",
           turnOf: "ENEMY",
           target: "ENEMY",
-          debug: "WUJIAN STAGE 7 — 敌方回合结束 (20)",
+          debug: "WUJIAN STAGE 3 — 敌方回合结束 (0)",
         },
+
       ],
     },
   ],
 },
+
 
 
 xinzheng: {
