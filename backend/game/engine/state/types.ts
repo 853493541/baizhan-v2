@@ -15,6 +15,9 @@ export type TargetType = "SELF" | "OPPONENT";
 
 /* ================= Effects ================= */
 
+export type TurnPhase = "TURN_START" | "TURN_END";
+export type ScheduledTarget = "ENEMY" | "SELF";
+
 export type EffectType =
   | "DAMAGE"
   | "HEAL"
@@ -38,7 +41,8 @@ export type EffectType =
   | "DRAW_REDUCTION"
   | "ON_PLAY_DAMAGE"
   | "XINZHENG_CHANNEL"
-  | "BONUS_DAMAGE_IF_TARGET_HP_GT";
+  | "BONUS_DAMAGE_IF_TARGET_HP_GT"
+  | "SCHEDULED_DAMAGE";
 
 /**
  * Immediate card effects
@@ -62,8 +66,14 @@ export interface CardEffect {
 
 /**
  * Buff-contained effects (no play rules, no duration)
+ * ✅ Extended with scheduling fields for SCHEDULED_DAMAGE
  */
-export type BuffEffect = Omit<CardEffect, "allowWhileControlled">;
+export type BuffEffect = Omit<CardEffect, "allowWhileControlled"> & {
+  /** SCHEDULED_DAMAGE: when this effect fires */
+  when?: TurnPhase;
+  /** SCHEDULED_DAMAGE: who this effect targets */
+  target?: ScheduledTarget;
+};
 
 /* ================= Buffs ================= */
 
@@ -76,7 +86,7 @@ export type BuffApplyTo = "SELF" | "OPPONENT";
  * - TURN_START: decrement at the start of owner's turn
  * - TURN_END: decrement at the end of owner's turn
  */
-export type BuffTickOn = "TURN_START" | "TURN_END";
+export type BuffTickOn = TurnPhase;
 
 export interface BuffDefinition {
   buffId: number;

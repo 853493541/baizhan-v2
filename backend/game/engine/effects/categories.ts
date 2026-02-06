@@ -1,4 +1,4 @@
-
+// backend/game/engine/effects/categories.ts
 
 import { EffectCategory, EffectType } from "../state/types";
 
@@ -33,6 +33,9 @@ export const EFFECT_CATEGORY_MAP: Record<EffectType, EffectCategory> = {
   ON_PLAY_DAMAGE: "DEBUFF",
   XINZHENG_CHANNEL: "BUFF",
   BONUS_DAMAGE_IF_TARGET_HP_GT: "DEBUFF",
+
+  /* ================= PATCH 0.5 ================= */
+  SCHEDULED_DAMAGE: "DEBUFF",
 };
 
 export function getEffectCategory(type: EffectType): EffectCategory {

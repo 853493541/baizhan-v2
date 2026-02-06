@@ -40,7 +40,6 @@ import {
   handleApplyBuffs,
 } from "../effects/handlers";
 
-
 export function applyEffects(
   state: GameState,
   card: Card,
@@ -53,18 +52,16 @@ export function applyEffects(
   const defaultTarget = state.players[targetIndex];
   const enemy = getEnemy(state, playerIndex);
 
-   if (Array.isArray(source.buffs)) {
-    source.buffs = source.buffs.filter(
-      (buff: ActiveBuff) => !buff.breakOnPlay
-    );
-  }
-
   /* =========================================================
      breakOnPlay affects ONLY the caster
      - your buff ends when YOU cast
      - enemy casting does NOT break your buffs
-  ========================================================= */source.buffs = source.buffs.filter((b: ActiveBuff) => !b.breakOnPlay);
-
+  ========================================================= */
+  if (Array.isArray(source.buffs)) {
+    source.buffs = source.buffs.filter(
+      (buff: ActiveBuff) => !buff.breakOnPlay
+    );
+  }
 
   // Snapshot for bonus-damage checks (opponent HP at card start)
   const opponentHpAtCardStart = defaultTarget.hp;
@@ -74,7 +71,8 @@ export function applyEffects(
      - Only relevant when the card targets opponent
      - Uses target's stacked DODGE_NEXT from buffs
   ========================================================= */
-  const cardDodged = card.target === "OPPONENT" ? shouldDodge(defaultTarget) : false;
+  const cardDodged =
+    card.target === "OPPONENT" ? shouldDodge(defaultTarget) : false;
 
   /* =========================================================
      1) Apply immediate effects (card.effects)
@@ -129,10 +127,12 @@ export function applyEffects(
 
       /* =========================================================
          CHANNEL (legacy compatible path)
-         - Some old cards might still use these as immediate “cast” triggers
-         - Preferred design now: put CHANNEL into card.buffs
+         - Old cards might still trigger immediate channel ticks.
+         - Preferred design now: put scheduled/channel behavior into card.buffs
+           using SCHEDULED_DAMAGE.
+         - We keep WUJIAN / XINZHENG legacy here for now.
+         - FENGLAI is migrated to SCHEDULED_DAMAGE and should NOT be executed here.
       ========================================================= */
-      case "FENGLAI_CHANNEL":
       case "WUJIAN_CHANNEL":
       case "XINZHENG_CHANNEL": {
         handleChannelEffect(state, source, enemy, card, effect);
@@ -187,7 +187,9 @@ export function applyEffects(
   for (const p of state.players) {
     if (p.hp <= 0) {
       state.gameOver = true;
-      state.winnerUserId = state.players.find((x) => x.userId !== p.userId)?.userId;
+      state.winnerUserId = state.players.find(
+        (x) => x.userId !== p.userId
+      )?.userId;
       return;
     }
   }

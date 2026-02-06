@@ -16,7 +16,8 @@ function pushDamageEvent(
   targetUserId: string,
   cardId: string | undefined,
   cardName: string | undefined,
-  value: number
+  value: number,
+  effectType: "DAMAGE" | "SCHEDULED_DAMAGE" = "DAMAGE"
 ) {
   state.events.push({
     id: randomUUID(),
@@ -27,7 +28,7 @@ function pushDamageEvent(
     targetUserId,
     cardId,
     cardName,
-    effectType: "DAMAGE",
+    effectType,
     value,
   });
 }
@@ -58,7 +59,10 @@ function pushHealEvent(
    BUFF TICK HELPERS (NEW)
 ========================================================= */
 
-function tickBuffs(player: { userId: string; buffs: ActiveBuff[] }, phase: "TURN_START" | "TURN_END") {
+function tickBuffs(
+  player: { userId: string; buffs: ActiveBuff[] },
+  phase: "TURN_START" | "TURN_END"
+) {
   for (const buff of player.buffs) {
     if (buff.tickOn === phase) {
       buff.remaining -= 1;
@@ -66,7 +70,10 @@ function tickBuffs(player: { userId: string; buffs: ActiveBuff[] }, phase: "TURN
   }
 }
 
-function cleanupExpiredBuffs(state: GameState, player: { userId: string; buffs: ActiveBuff[] }) {
+function cleanupExpiredBuffs(
+  state: GameState,
+  player: { userId: string; buffs: ActiveBuff[] }
+) {
   const before = player.buffs.slice();
 
   player.buffs = player.buffs.filter((b) => b.remaining > 0);
@@ -86,6 +93,77 @@ function cleanupExpiredBuffs(state: GameState, player: { userId: string; buffs: 
 }
 
 /* =========================================================
+   SCHEDULED DAMAGE (PATCH 0.5)
+   - Executes outside card play on TURN_START / TURN_END boundaries
+   - Runs for BOTH players' buffs (anyone's buff can fire on any boundary)
+========================================================= */
+
+function applyScheduledDamage(state: GameState, phase: "TURN_START" | "TURN_END") {
+  for (let ownerIndex = 0; ownerIndex < state.players.length; ownerIndex++) {
+    const owner = state.players[ownerIndex];
+    const enemy = state.players[ownerIndex === 0 ? 1 : 0];
+
+    for (const buff of owner.buffs) {
+      for (const e of buff.effects) {
+        if (e.type !== "SCHEDULED_DAMAGE") continue;
+        if (e.when !== phase) continue;
+
+        const target = e.target === "SELF" ? owner : enemy;
+
+        // Enemy-only guards (keep behavior consistent with legacy channel ticks)
+        if (target.userId !== owner.userId) {
+          // Untargetable blocks enemy-applied scheduled damage
+          if (hasUntargetable(target)) {
+            pushDamageEvent(
+              state,
+              owner.userId,
+              target.userId,
+              buff.sourceCardId,
+              buff.sourceCardName,
+              0,
+              "SCHEDULED_DAMAGE"
+            );
+            continue;
+          }
+
+          // Dodge can cancel scheduled damage
+          if (shouldDodge(target)) {
+            pushDamageEvent(
+              state,
+              owner.userId,
+              target.userId,
+              buff.sourceCardId,
+              buff.sourceCardName,
+              0,
+              "SCHEDULED_DAMAGE"
+            );
+            continue;
+          }
+        }
+
+        const dmg = resolveScheduledDamage({
+          source: owner,
+          target,
+          base: e.value ?? 0,
+        });
+
+        target.hp = Math.max(0, target.hp - dmg);
+
+        pushDamageEvent(
+          state,
+          owner.userId,
+          target.userId,
+          buff.sourceCardId,
+          buff.sourceCardName,
+          dmg,
+          "SCHEDULED_DAMAGE"
+        );
+      }
+    }
+  }
+}
+
+/* =========================================================
    TURN RESOLVER
 ========================================================= */
 
@@ -99,6 +177,9 @@ export function resolveTurnEnd(state: GameState) {
   const other = state.players[otherIndex];
 
   /* ================= END OF TURN (CURRENT PLAYER) ================= */
+
+  // ✅ PATCH 0.5: scheduled damage fires BEFORE duration ticks / expiry
+  applyScheduledDamage(state, "TURN_END");
 
   // Apply end-of-turn buff effects (channels, DOTs that tick at end)
   for (const buff of current.buffs) {
@@ -227,12 +308,16 @@ export function resolveTurnEnd(state: GameState) {
   /* ================= ADVANCE TURN ================= */
 
   state.turn += 1;
-  state.activePlayerIndex = (state.activePlayerIndex + 1) % state.players.length;
+  state.activePlayerIndex =
+    (state.activePlayerIndex + 1) % state.players.length;
 
   const me = state.players[state.activePlayerIndex];
   const enemy = state.players[state.activePlayerIndex === 0 ? 1 : 0];
 
   /* ================= START OF TURN (NEW PLAYER) ================= */
+
+  // ✅ PATCH 0.5: scheduled damage fires BEFORE duration ticks / expiry
+  applyScheduledDamage(state, "TURN_START");
 
   // ⏱ Tick TURN_START buffs for new active player
   tickBuffs(me, "TURN_START");

@@ -41,7 +41,7 @@ export function buildDeck(): CardInstance[] {
   pushN("anchen_misan", 3);
 
   // 持续伤害 / 节奏
-  pushN("fenglai_wushan", 3);
+  pushN("fenglai_wushan", 12);
   pushN("wu_jianyu", 2);
   pushN("baizu", 3);
 

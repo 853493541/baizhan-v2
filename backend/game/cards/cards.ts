@@ -375,36 +375,46 @@ export const CARDS: Record<string, Card & { description: string }> = {
 
   /* ================= 运功 / 节奏 ================= */
 
-  fenglai_wushan: {
-    id: "fenglai_wushan",
-    name: "风来吴山",
-    description: "持续运功，对敌造成周期伤害",
-    type: "CHANNEL",
-    target: "SELF",
-    effects: [],
-    buffs: [
-      {
-        buffId: 1014,
-        name: "不工",
-        category: "BUFF",
-        duration: 1,
-        tickOn: "TURN_END",
-        breakOnPlay: true,
-        description: "无",
-        effects: [{ type: "FENGLAI_CHANNEL" }],
-      },
-      {
-        buffId: 1015,
-        name: "不工",
-        category: "BUFF",
-        duration: 1,
-        tickOn: "TURN_START",
-        breakOnPlay: true,
-        description: "免疫控制",
-        effects: [{ type: "CONTROL_IMMUNE" }],
-      },
-    ],
-  },
+fenglai_wushan: {
+  id: "fenglai_wushan",
+  name: "风来吴山",
+  description: "持续运功，对敌造成周期伤害",
+  type: "CHANNEL",
+  target: "SELF",
+  effects: [],
+  buffs: [
+    {
+      buffId: 1014,
+      name: "不工",
+      category: "BUFF",
+      duration: 1,
+      tickOn: "TURN_START",
+      breakOnPlay: true,
+      description: "免疫控制。回合开始与结束时对敌人造成伤害。",
+      effects: [
+        // CC immunity while channeling
+        { type: "CONTROL_IMMUNE" },
+
+        // Turn-end damage (whoever's turn)
+        {
+          type: "SCHEDULED_DAMAGE",
+          value: 10,
+          when: "TURN_END",
+          target: "ENEMY",
+        },
+
+        // Turn-start damage (whoever's turn)
+        {
+          type: "SCHEDULED_DAMAGE",
+          value: 10,
+          when: "TURN_START",
+          target: "ENEMY",
+        },
+      ],
+    },
+  ],
+},
+
 
   wu_jianyu: {
     id: "wu_jianyu",

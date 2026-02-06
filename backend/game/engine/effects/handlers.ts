@@ -173,8 +173,10 @@ export function handleCleanse(source: any) {
 }
 
 /* =========================================================
-   CHANNEL IMMEDIATE TICKS ONLY
-   (Buff lifecycle handled by card.buffs)
+   CHANNEL IMMEDIATE TICKS (LEGACY ONLY)
+   - 风来吴山 ❌ NO LONGER handled here
+   - 无间狱 ✅ still has immediate tick + self-heal
+   - 心证 ❌ no immediate tick
 ========================================================= */
 export function handleChannelEffect(
   state: GameState,
@@ -183,10 +185,12 @@ export function handleChannelEffect(
   card: Card,
   effect: CardEffect
 ) {
-  // XINZHENG has no immediate tick
+  // 心证：no immediate tick
   if (effect.type === "XINZHENG_CHANNEL") return;
 
-  // Immediate damage tick
+  // ONLY 无间狱 has immediate damage
+  if (effect.type !== "WUJIAN_CHANNEL") return;
+
   if (blocksEnemyTargeting(enemy)) {
     pushEvent(state, {
       turn: state.turn,
@@ -219,24 +223,22 @@ export function handleChannelEffect(
     });
   }
 
-  // WUJIAN immediate self-heal
-  if (effect.type === "WUJIAN_CHANNEL") {
-    const before = source.hp;
-    source.hp = Math.min(100, source.hp + 3);
-    const applied = Math.max(0, source.hp - before);
+  // 无间狱 immediate self-heal
+  const before = source.hp;
+  source.hp = Math.min(100, source.hp + 3);
+  const applied = Math.max(0, source.hp - before);
 
-    if (applied > 0) {
-      pushEvent(state, {
-        turn: state.turn,
-        type: "HEAL",
-        actorUserId: source.userId,
-        targetUserId: source.userId,
-        cardId: card.id,
-        cardName: card.name,
-        effectType: "HEAL",
-        value: applied,
-      });
-    }
+  if (applied > 0) {
+    pushEvent(state, {
+      turn: state.turn,
+      type: "HEAL",
+      actorUserId: source.userId,
+      targetUserId: source.userId,
+      cardId: card.id,
+      cardName: card.name,
+      effectType: "HEAL",
+      value: applied,
+    });
   }
 }
 
@@ -264,7 +266,6 @@ export function handleApplyBuffs(params: {
       actualTarget = target;
     } else {
       // ✅ Backward-compatible default
-      // Buffs without applyTo follow card.target
       actualTarget = card.target === "SELF" ? source : target;
     }
 
