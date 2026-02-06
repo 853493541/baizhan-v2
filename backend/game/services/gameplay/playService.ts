@@ -2,6 +2,7 @@
 /**
  * Gameplay actions: play card / pass turn
  */
+import { resolveScheduledDamage } from "../../engine/utils/combatMath";
 
 import GameSession from "../../models/GameSession";
 import { CARDS } from "../../cards/cards";
@@ -82,22 +83,33 @@ function triggerOnPlayBuffs(state: GameState, playerIndex: number) {
     if (!buff.effects) continue;
 
     for (const effect of buff.effects) {
-      if (effect.type === "ON_PLAY_DAMAGE") {
-        const dmg = effect.value ?? 0;
-        if (dmg <= 0) continue;
+if (effect.type === "ON_PLAY_DAMAGE") {
+  const base = effect.value ?? 0;
+  if (base <= 0) continue;
 
-        // apply damage
-        player.hp = Math.max(0, player.hp - dmg);
+  const dmg = resolveScheduledDamage({
+    source: player,   // buff owner
+    target: player,   // self-inflicted
+    base,
+  });
 
-        // emit event
-        pushEvent(state, {
-          turn: state.turn,
-          type: "DAMAGE",
-          actorUserId: player.userId,
-          targetUserId: player.userId,
-           value: dmg,
-        });
-      }
+  if (dmg <= 0) continue;
+
+  player.hp = Math.max(0, player.hp - dmg);
+
+  pushEvent(state, {
+    turn: state.turn,
+    type: "DAMAGE",
+    actorUserId: player.userId,
+    targetUserId: player.userId,
+    value: dmg,
+  });
+}
+
+
+
+
+
     }
   }
 }
