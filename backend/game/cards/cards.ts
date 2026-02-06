@@ -432,25 +432,75 @@ fenglai_wushan: {
 },
 
 
-  wu_jianyu: {
-    id: "wu_jianyu",
-    name: "无间狱",
-    description: "修罗附体\n对目标发起三段挥砍\n期间蓄力额外对目标造成一次伤害。30%吸血",
-    type: "CHANNEL",
-    target: "SELF",
-    effects: [],
-    buffs: [
-      {
-        buffId: 1016,
-        name: "无间狱",
-        category: "BUFF",
-        duration: 1,
-        tickOn: "TURN_START",
-        description: "修罗附体",
-        effects: [{ type: "WUJIAN_CHANNEL" }],
-      },
-    ],
-  },
+wu_jianyu: {
+  id: "wu_jianyu",
+  name: "无间狱",
+  description: "修罗附体\n对目标发起三段挥砍\n期间蓄力额外对目标造成一次伤害。30%吸血",
+  type: "SUPPORT", // NOT a channel card
+  target: "SELF",
+  effects: [],
+  buffs: [
+    {
+      buffId: 1016,
+      name: "无间狱",
+      category: "BUFF",
+      description: "修罗附体",
+      duration: 10,
+      tickOn: "TURN_START",
+      // ❌ no breakOnPlay — persists while playing other cards
+      effects: [
+        /* ===============================
+           STAGE 4 — 我方回合开始 → 5
+        =============================== */
+        {
+          type: "SCHEDULED_DAMAGE",
+          value: 5,
+          when: "TURN_START",
+          turnOf: "OWNER",
+          target: "ENEMY",
+          debug: "WUJIAN STAGE 4 — 我方回合开始 (5)",
+        },
+
+        /* ===============================
+           STAGE 5 — 敌方回合结束 → 10
+        =============================== */
+        {
+          type: "SCHEDULED_DAMAGE",
+          value: 10,
+          when: "TURN_END",
+          turnOf: "ENEMY",
+          target: "ENEMY",
+          debug: "WUJIAN STAGE 5 — 敌方回合结束 (10)",
+        },
+
+        /* ===============================
+           STAGE 6 — 敌方回合开始 → 20
+        =============================== */
+        {
+          type: "SCHEDULED_DAMAGE",
+          value: 20,
+          when: "TURN_START",
+          turnOf: "ENEMY",
+          target: "ENEMY",
+          debug: "WUJIAN STAGE 6 — 敌方回合开始 (20)",
+        },
+
+        /* ===============================
+           STAGE 7 — 敌方回合结束 → 20
+        =============================== */
+        {
+          type: "SCHEDULED_DAMAGE",
+          value: 20,
+          when: "TURN_END",
+          turnOf: "ENEMY",
+          target: "ENEMY",
+          debug: "WUJIAN STAGE 7 — 敌方回合结束 (20)",
+        },
+      ],
+    },
+  ],
+},
+
 
 xinzheng: {
   id: "xinzheng",
@@ -475,7 +525,7 @@ xinzheng: {
         // 你的回合结束 → 5
         {
           type: "SCHEDULED_DAMAGE",
-          value: 5,
+          value: 1,
           when: "TURN_END",
           target: "ENEMY",
         },
@@ -483,7 +533,7 @@ xinzheng: {
         // 对手回合开始 → 5
         {
           type: "SCHEDULED_DAMAGE",
-          value: 5,
+          value: 2,
           when: "TURN_START",
           target: "ENEMY",
         },
@@ -491,7 +541,7 @@ xinzheng: {
         // 对手回合结束 → 5
         {
           type: "SCHEDULED_DAMAGE",
-          value: 5,
+          value: 3,
           when: "TURN_END",
           target: "ENEMY",
         },
@@ -499,7 +549,7 @@ xinzheng: {
         // 你下一个回合开始 → 20（爆发）
         {
           type: "SCHEDULED_DAMAGE",
-          value: 20,
+          value: 4,
           when: "TURN_START",
           target: "ENEMY",
         },

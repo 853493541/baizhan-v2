@@ -56,7 +56,7 @@ function pushHealEvent(
 }
 
 /* =========================================================
-   BUFF TICK HELPERS (NEW)
+   BUFF TICK HELPERS
 ========================================================= */
 
 function tickBuffs(
@@ -93,9 +93,10 @@ function cleanupExpiredBuffs(
 }
 
 /* =========================================================
-   SCHEDULED DAMAGE (PATCH 0.5)
-   - Executes outside card play on TURN_START / TURN_END boundaries
-   - Runs for BOTH players' buffs (anyone's buff can fire on any boundary)
+   SCHEDULED DAMAGE (STAGED, NON-BREAKING)
+   - Uses buff.stageIndex
+   - Runs AT MOST ONE stage per checkpoint
+   - Legacy cards still work
 ========================================================= */
 
 function applyScheduledDamage(
@@ -107,49 +108,68 @@ function applyScheduledDamage(
   const enemy = state.players[ownerIndex === 0 ? 1 : 0];
 
   for (const buff of owner.buffs) {
-    for (const e of buff.effects) {
-      if (e.type !== "SCHEDULED_DAMAGE") continue;
-      if (e.when !== phase) continue;
+    // ✅ Initialize stage pointer
+    if (buff.stageIndex == null) buff.stageIndex = 0;
 
-      const target = e.target === "SELF" ? owner : enemy;
+    // Only scheduled damage effects participate (order preserved)
+    const scheduled = buff.effects.filter((e) => e.type === "SCHEDULED_DAMAGE");
 
-      // Enemy-only guards
-      if (target.userId !== owner.userId) {
-        if (hasUntargetable(target) || shouldDodge(target)) {
-          pushDamageEvent(
-            state,
-            owner.userId,
-            target.userId,
-            buff.sourceCardId,
-            buff.sourceCardName,
-            0,
-            "SCHEDULED_DAMAGE"
-          );
-          continue;
-        }
+    const stage = scheduled[buff.stageIndex];
+    if (!stage) continue;
+
+    const isOwnersTurn = ownerIndex === state.activePlayerIndex;
+
+    // Must match phase
+    if (stage.when !== phase) continue;
+
+    // ✅ NEW: If stage.turnOf is undefined, treat as legacy/global (no blocking)
+    // If defined, enforce OWNER/ENEMY boundary relative to buff owner.
+    if (stage.turnOf === "OWNER" && !isOwnersTurn) continue;
+    if (stage.turnOf === "ENEMY" && isOwnersTurn) continue;
+
+    const target = stage.target === "SELF" ? owner : enemy;
+
+    // Enemy-only guards
+    if (target.userId !== owner.userId) {
+      if (hasUntargetable(target) || shouldDodge(target)) {
+        pushDamageEvent(
+          state,
+          owner.userId,
+          target.userId,
+          buff.sourceCardId,
+          stage.debug
+            ? `${buff.sourceCardName} · ${stage.debug}`
+            : buff.sourceCardName,
+          0,
+          "SCHEDULED_DAMAGE"
+        );
+        buff.stageIndex += 1;
+        continue;
       }
-
-      const dmg = resolveScheduledDamage({
-        source: owner,
-        target,
-        base: e.value ?? 0,
-      });
-
-      target.hp = Math.max(0, target.hp - dmg);
-
-      pushDamageEvent(
-        state,
-        owner.userId,
-        target.userId,
-        buff.sourceCardId,
-        buff.sourceCardName,
-        dmg,
-        "SCHEDULED_DAMAGE"
-      );
     }
+
+    const dmg = resolveScheduledDamage({
+      source: owner,
+      target,
+      base: stage.value ?? 0,
+    });
+
+    target.hp = Math.max(0, target.hp - dmg);
+
+    pushDamageEvent(
+      state,
+      owner.userId,
+      target.userId,
+      buff.sourceCardId,
+      stage.debug ? `${buff.sourceCardName} · ${stage.debug}` : buff.sourceCardName,
+      dmg,
+      "SCHEDULED_DAMAGE"
+    );
+
+    // ✅ Advance EXACTLY ONE stage
+    buff.stageIndex += 1;
   }
 }
-
 
 /* =========================================================
    TURN RESOLVER
@@ -164,28 +184,16 @@ export function resolveTurnEnd(state: GameState) {
   const current = state.players[currentIndex];
   const other = state.players[otherIndex];
 
-  /* ================= END OF TURN (CURRENT PLAYER) ================= */
+  /* ================= END OF TURN ================= */
 
-  // ✅ PATCH 0.5: scheduled damage fires BEFORE duration ticks / expiry
-applyScheduledDamage(state, "TURN_END", currentIndex);
+  // ✅ Scheduled damage must run for BOTH owners at every boundary
+  applyScheduledDamage(state, "TURN_END", 0);
+  applyScheduledDamage(state, "TURN_END", 1);
 
-  // Apply end-of-turn buff effects (channels, DOTs that tick at end)
+  // Channel / legacy ticks
   for (const buff of current.buffs) {
     for (const e of buff.effects) {
-      // FENGLAI tick
       if (e.type === "FENGLAI_CHANNEL") {
-        if (hasUntargetable(other)) {
-          pushDamageEvent(
-            state,
-            current.userId,
-            other.userId,
-            buff.sourceCardId,
-            buff.sourceCardName,
-            0
-          );
-          continue;
-        }
-
         if (!shouldDodge(other)) {
           const dmg = resolveScheduledDamage({
             source: current,
@@ -201,19 +209,9 @@ applyScheduledDamage(state, "TURN_END", currentIndex);
             buff.sourceCardName,
             dmg
           );
-        } else {
-          pushDamageEvent(
-            state,
-            current.userId,
-            other.userId,
-            buff.sourceCardId,
-            buff.sourceCardName,
-            0
-          );
         }
       }
 
-      // WUJIAN tick
       if (e.type === "WUJIAN_CHANNEL") {
         if (!shouldDodge(other)) {
           const dmg = resolveScheduledDamage({
@@ -229,15 +227,6 @@ applyScheduledDamage(state, "TURN_END", currentIndex);
             buff.sourceCardId,
             buff.sourceCardName,
             dmg
-          );
-        } else {
-          pushDamageEvent(
-            state,
-            current.userId,
-            other.userId,
-            buff.sourceCardId,
-            buff.sourceCardName,
-            0
           );
         }
 
@@ -258,7 +247,6 @@ applyScheduledDamage(state, "TURN_END", currentIndex);
         }
       }
 
-      // XINZHENG tick
       if (e.type === "XINZHENG_CHANNEL") {
         if (!shouldDodge(other)) {
           const dmg = resolveScheduledDamage({
@@ -275,44 +263,31 @@ applyScheduledDamage(state, "TURN_END", currentIndex);
             buff.sourceCardName,
             dmg
           );
-        } else {
-          pushDamageEvent(
-            state,
-            current.userId,
-            other.userId,
-            buff.sourceCardId,
-            buff.sourceCardName,
-            0
-          );
         }
       }
     }
   }
 
-  // ⏱ Tick TURN_END buffs for current player
   tickBuffs(current, "TURN_END");
   cleanupExpiredBuffs(state, current);
 
   /* ================= ADVANCE TURN ================= */
 
   state.turn += 1;
-  state.activePlayerIndex =
-    (state.activePlayerIndex + 1) % state.players.length;
+  state.activePlayerIndex = (state.activePlayerIndex + 1) % state.players.length;
 
   const me = state.players[state.activePlayerIndex];
   const enemy = state.players[state.activePlayerIndex === 0 ? 1 : 0];
 
-  /* ================= START OF TURN (NEW PLAYER) ================= */
+  /* ================= START OF TURN ================= */
 
-  // ✅ PATCH 0.5: scheduled damage fires BEFORE duration ticks / expiry
-applyScheduledDamage(state, "TURN_START", state.activePlayerIndex);
+  // ✅ Scheduled damage must run for BOTH owners at every boundary
+  applyScheduledDamage(state, "TURN_START", 0);
+  applyScheduledDamage(state, "TURN_START", 1);
 
-
-  // ⏱ Tick TURN_START buffs for new active player
   tickBuffs(me, "TURN_START");
   cleanupExpiredBuffs(state, me);
 
-  // Apply start-of-turn buff effects
   for (const buff of me.buffs) {
     for (const e of buff.effects) {
       if (e.type === "START_TURN_DAMAGE") {
