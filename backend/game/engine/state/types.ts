@@ -80,7 +80,7 @@ export type BuffEffect = Omit<CardEffect, "allowWhileControlled"> & {
 
   /** SCHEDULED_DAMAGE: whose turn this stage belongs to */
   turnOf?: ScheduledTurnOf;
-
+lifestealPct?: number;
   /** DEBUG: stage label shown in events */
   debug?: string;
 };

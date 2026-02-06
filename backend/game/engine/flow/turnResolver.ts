@@ -165,6 +165,29 @@ function applyScheduledDamage(
       dmg,
       "SCHEDULED_DAMAGE"
     );
+// ===============================
+// OPTIONAL LIFESTEAL (SCHEDULED)
+// ===============================
+if (stage.lifestealPct && dmg > 0) {
+  const heal = Math.floor(dmg * stage.lifestealPct);
+  const before = owner.hp;
+
+  owner.hp = Math.min(100, owner.hp + heal);
+
+  const applied = owner.hp - before;
+  if (applied > 0) {
+    pushHealEvent(
+      state,
+      owner.userId,
+      owner.userId,
+      buff.sourceCardId,
+      stage.debug
+        ? `${buff.sourceCardName} · 吸血`
+        : buff.sourceCardName,
+      applied
+    );
+  }
+}
 
     // ✅ Advance EXACTLY ONE stage
     buff.stageIndex += 1;

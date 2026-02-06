@@ -479,6 +479,7 @@ wu_jianyu: {
           when: "TURN_END",
           turnOf: "ENEMY",
           target: "ENEMY",
+          lifestealPct: 0.3,
         },
 
         /* ===============================
@@ -490,6 +491,7 @@ wu_jianyu: {
           when: "TURN_START",
           turnOf: "OWNER",
           target: "ENEMY",
+          lifestealPct: 0.3,
         },
 
         /* ===============================
@@ -501,6 +503,7 @@ wu_jianyu: {
           when: "TURN_START",
           turnOf: "ENEMY",
           target: "ENEMY",
+          lifestealPct: 0.3,
         },
 
         /* ===============================
@@ -512,6 +515,7 @@ wu_jianyu: {
           when: "TURN_END",
           turnOf: "ENEMY",
           target: "ENEMY",
+          lifestealPct: 0.3,
         },
       ],
     },
