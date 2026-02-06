@@ -56,6 +56,27 @@ function pushHealEvent(
 }
 
 /* =========================================================
+   BUFF SOURCE HELPERS (🔥 NEW, NON-BREAKING)
+========================================================= */
+
+function getBuffSourceCardId(buff: ActiveBuff) {
+  return buff.sourceCardId;
+}
+
+function getBuffSourceCardName(buff: ActiveBuff) {
+  // 🔑 fallback guarantees frontend can always render text
+  return buff.sourceCardName ?? buff.name;
+}
+
+function getBuffSourceCardNameWithDebug(
+  buff: ActiveBuff,
+  debug?: string
+) {
+  const base = getBuffSourceCardName(buff);
+  return debug ? `${base} · ${debug}` : base;
+}
+
+/* =========================================================
    BUFF TICK HELPERS
 ========================================================= */
 
@@ -94,9 +115,6 @@ function cleanupExpiredBuffs(
 
 /* =========================================================
    SCHEDULED DAMAGE (STAGED, NON-BREAKING)
-   - Uses buff.stageIndex
-   - Runs AT MOST ONE stage per checkpoint
-   - Legacy cards still work
 ========================================================= */
 
 function applyScheduledDamage(
@@ -108,38 +126,31 @@ function applyScheduledDamage(
   const enemy = state.players[ownerIndex === 0 ? 1 : 0];
 
   for (const buff of owner.buffs) {
-    // ✅ Initialize stage pointer
     if (buff.stageIndex == null) buff.stageIndex = 0;
 
-    // Only scheduled damage effects participate (order preserved)
-    const scheduled = buff.effects.filter((e) => e.type === "SCHEDULED_DAMAGE");
+    const scheduled = buff.effects.filter(
+      (e) => e.type === "SCHEDULED_DAMAGE"
+    );
 
     const stage = scheduled[buff.stageIndex];
     if (!stage) continue;
 
     const isOwnersTurn = ownerIndex === state.activePlayerIndex;
 
-    // Must match phase
     if (stage.when !== phase) continue;
-
-    // ✅ NEW: If stage.turnOf is undefined, treat as legacy/global (no blocking)
-    // If defined, enforce OWNER/ENEMY boundary relative to buff owner.
     if (stage.turnOf === "OWNER" && !isOwnersTurn) continue;
     if (stage.turnOf === "ENEMY" && isOwnersTurn) continue;
 
     const target = stage.target === "SELF" ? owner : enemy;
 
-    // Enemy-only guards
     if (target.userId !== owner.userId) {
       if (hasUntargetable(target) || shouldDodge(target)) {
         pushDamageEvent(
           state,
           owner.userId,
           target.userId,
-          buff.sourceCardId,
-          stage.debug
-            ? `${buff.sourceCardName} · ${stage.debug}`
-            : buff.sourceCardName,
+          getBuffSourceCardId(buff),
+          getBuffSourceCardNameWithDebug(buff, stage.debug),
           0,
           "SCHEDULED_DAMAGE"
         );
@@ -160,36 +171,32 @@ function applyScheduledDamage(
       state,
       owner.userId,
       target.userId,
-      buff.sourceCardId,
-      stage.debug ? `${buff.sourceCardName} · ${stage.debug}` : buff.sourceCardName,
+      getBuffSourceCardId(buff),
+      getBuffSourceCardNameWithDebug(buff, stage.debug),
       dmg,
       "SCHEDULED_DAMAGE"
     );
-// ===============================
-// OPTIONAL LIFESTEAL (SCHEDULED)
-// ===============================
-if (stage.lifestealPct && dmg > 0) {
-  const heal = Math.floor(dmg * stage.lifestealPct);
-  const before = owner.hp;
 
-  owner.hp = Math.min(100, owner.hp + heal);
+    // OPTIONAL LIFESTEAL
+    if (stage.lifestealPct && dmg > 0) {
+      const heal = Math.floor(dmg * stage.lifestealPct);
+      const before = owner.hp;
 
-  const applied = owner.hp - before;
-  if (applied > 0) {
-    pushHealEvent(
-      state,
-      owner.userId,
-      owner.userId,
-      buff.sourceCardId,
-      stage.debug
-        ? `${buff.sourceCardName} · 吸血`
-        : buff.sourceCardName,
-      applied
-    );
-  }
-}
+      owner.hp = Math.min(100, owner.hp + heal);
+      const applied = owner.hp - before;
 
-    // ✅ Advance EXACTLY ONE stage
+      if (applied > 0) {
+        pushHealEvent(
+          state,
+          owner.userId,
+          owner.userId,
+          getBuffSourceCardId(buff),
+          getBuffSourceCardNameWithDebug(buff, "吸血"),
+          applied
+        );
+      }
+    }
+
     buff.stageIndex += 1;
   }
 }
@@ -209,11 +216,9 @@ export function resolveTurnEnd(state: GameState) {
 
   /* ================= END OF TURN ================= */
 
-  // ✅ Scheduled damage must run for BOTH owners at every boundary
   applyScheduledDamage(state, "TURN_END", 0);
   applyScheduledDamage(state, "TURN_END", 1);
 
-  // Channel / legacy ticks
   for (const buff of current.buffs) {
     for (const e of buff.effects) {
       if (e.type === "FENGLAI_CHANNEL") {
@@ -228,8 +233,8 @@ export function resolveTurnEnd(state: GameState) {
             state,
             current.userId,
             other.userId,
-            buff.sourceCardId,
-            buff.sourceCardName,
+            getBuffSourceCardId(buff),
+            getBuffSourceCardName(buff),
             dmg
           );
         }
@@ -247,8 +252,8 @@ export function resolveTurnEnd(state: GameState) {
             state,
             current.userId,
             other.userId,
-            buff.sourceCardId,
-            buff.sourceCardName,
+            getBuffSourceCardId(buff),
+            getBuffSourceCardName(buff),
             dmg
           );
         }
@@ -263,8 +268,8 @@ export function resolveTurnEnd(state: GameState) {
             state,
             current.userId,
             current.userId,
-            buff.sourceCardId,
-            buff.sourceCardName,
+            getBuffSourceCardId(buff),
+            getBuffSourceCardName(buff),
             applied
           );
         }
@@ -282,8 +287,8 @@ export function resolveTurnEnd(state: GameState) {
             state,
             current.userId,
             other.userId,
-            buff.sourceCardId,
-            buff.sourceCardName,
+            getBuffSourceCardId(buff),
+            getBuffSourceCardName(buff),
             dmg
           );
         }
@@ -297,14 +302,14 @@ export function resolveTurnEnd(state: GameState) {
   /* ================= ADVANCE TURN ================= */
 
   state.turn += 1;
-  state.activePlayerIndex = (state.activePlayerIndex + 1) % state.players.length;
+  state.activePlayerIndex =
+    (state.activePlayerIndex + 1) % state.players.length;
 
   const me = state.players[state.activePlayerIndex];
   const enemy = state.players[state.activePlayerIndex === 0 ? 1 : 0];
 
   /* ================= START OF TURN ================= */
 
-  // ✅ Scheduled damage must run for BOTH owners at every boundary
   applyScheduledDamage(state, "TURN_START", 0);
   applyScheduledDamage(state, "TURN_START", 1);
 
@@ -313,28 +318,31 @@ export function resolveTurnEnd(state: GameState) {
 
   for (const buff of me.buffs) {
     for (const e of buff.effects) {
-  if (e.type === "START_TURN_DAMAGE") {
-  const dmg = resolveScheduledDamage({
-    source: enemy,
-    target: me,
-    base: e.value ?? 0,
-  });
+      if (e.type === "START_TURN_DAMAGE") {
+        const dmg = resolveScheduledDamage({
+          source: enemy,
+          target: me,
+          base: e.value ?? 0,
+        });
 
-  me.hp = Math.max(0, me.hp - dmg);
+        me.hp = Math.max(0, me.hp - dmg);
 
-  pushDamageEvent(
-    state,
-    enemy.userId,
-    me.userId,
-    buff.sourceCardId,
-    buff.sourceCardName,
-    dmg,
-    "SCHEDULED_DAMAGE"
-  );
-}
+        pushDamageEvent(
+          state,
+          enemy.userId,
+          me.userId,
+          getBuffSourceCardId(buff),
+          getBuffSourceCardName(buff),
+          dmg,
+          "SCHEDULED_DAMAGE"
+        );
+      }
 
       if (e.type === "START_TURN_HEAL") {
-        const heal = resolveHealAmount({ target: me, base: e.value ?? 0 });
+        const heal = resolveHealAmount({
+          target: me,
+          base: e.value ?? 0,
+        });
         const before = me.hp;
         me.hp = Math.min(100, me.hp + heal);
         const applied = Math.max(0, me.hp - before);
@@ -344,8 +352,8 @@ export function resolveTurnEnd(state: GameState) {
             state,
             me.userId,
             me.userId,
-            buff.sourceCardId,
-            buff.sourceCardName,
+            getBuffSourceCardId(buff),
+            getBuffSourceCardName(buff),
             applied
           );
         }
