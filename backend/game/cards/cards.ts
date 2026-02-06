@@ -378,7 +378,8 @@ export const CARDS: Record<string, Card & { description: string }> = {
 fenglai_wushan: {
   id: "fenglai_wushan",
   name: "风来吴山",
-  description: "持续运功，对敌造成周期伤害",
+  description: "持续运功，玩家回合开始/结束时造成8点伤害",
+  originalDescription: "发动旋风般的重剑攻击，5秒内对周围10尺内的最多10个目标造成共计8次伤害。在此过程中你无法跳跃，不受控制招式影响（被拉除外）。",
   type: "CHANNEL",
   target: "SELF",
   effects: [],
@@ -387,7 +388,7 @@ fenglai_wushan: {
       buffId: 1014,
       name: "不工",
       category: "BUFF",
-      description: "免疫控制。运功期间对敌人造成周期伤害。",
+      description: "不受卡牌控制",
       duration: 1,              // ✅ spans one enemy turn
       tickOn: "TURN_START",     // ✅ owner-only ticking
       breakOnPlay: true,        // ✅ channel breaks on card play
@@ -408,7 +409,6 @@ fenglai_wushan: {
           when: "TURN_END",
           turnOf: "OWNER",
           target: "ENEMY",
-          debug: "风来吴山·我方回合结束 (10)",
         },
 
         // ===============================
@@ -420,7 +420,6 @@ fenglai_wushan: {
           when: "TURN_START",
           turnOf: "ENEMY",
           target: "ENEMY",
-          debug: "风来吴山·敌方回合开始 (10)",
         },
 
         // ===============================
@@ -432,7 +431,6 @@ fenglai_wushan: {
           when: "TURN_END",
           turnOf: "ENEMY",
           target: "ENEMY",
-          debug: "风来吴山·敌方回合结束 (10)",
         },
 
         // ===============================
@@ -444,7 +442,6 @@ fenglai_wushan: {
           when: "TURN_START",
           turnOf: "OWNER",
           target: "ENEMY",
-          debug: "风来吴山·我方回合开始 (10)",
         },
       ],
     },
@@ -455,7 +452,7 @@ fenglai_wushan: {
 wu_jianyu: {
   id: "wu_jianyu",
   name: "无间狱",
-  description: "修罗附体\n对目标发起三段挥砍\n期间蓄力额外对目标造成一次伤害。30%吸血",
+  description: "修罗附体\n一回合后修罗开始攻击，造成4/6/10/10伤害并吸血30%",
   type: "SUPPORT",
   target: "SELF",
   effects: [],
@@ -495,7 +492,7 @@ wu_jianyu: {
         =============================== */
         {
           type: "SCHEDULED_DAMAGE",
-          value: 6,
+          value: 4,
           when: "TURN_END",
           turnOf: "ENEMY",
           target: "ENEMY",
@@ -519,7 +516,7 @@ wu_jianyu: {
         =============================== */
         {
           type: "SCHEDULED_DAMAGE",
-          value: 10,
+          value: 15,
           when: "TURN_START",
           turnOf: "ENEMY",
           target: "ENEMY",
@@ -531,7 +528,7 @@ wu_jianyu: {
         =============================== */
         {
           type: "SCHEDULED_DAMAGE",
-          value: 10,
+          value: 15,
           when: "TURN_END",
           turnOf: "ENEMY",
           target: "ENEMY",
@@ -547,7 +544,7 @@ wu_jianyu: {
 xinzheng: {
   id: "xinzheng",
   name: "心诤",
-  description: "持续运功，对目标多段造成伤害",
+  description: "舞棍1回合，期间免疫控制。造成4/6/10点伤害",
   type: "CHANNEL",
   target: "SELF",
   effects: [],
@@ -559,7 +556,7 @@ xinzheng: {
       duration: 1,
       tickOn: "TURN_START",
       breakOnPlay: true,
-      description: "免疫控制。回合边界对敌人造成递增伤害。",
+      description: "免疫控制",
       effects: [
         // CC immune while channeling
         { type: "CONTROL_IMMUNE" },
@@ -569,11 +566,11 @@ xinzheng: {
         =============================== */
         {
           type: "SCHEDULED_DAMAGE",
-          value: 5,
+          value: 4,
           when: "TURN_END",
           turnOf: "OWNER",
           target: "ENEMY",
-          debug: "XINZHENG STAGE 1 — 我方回合结束 (1)",
+
         },
 
         /* ===============================
@@ -581,11 +578,11 @@ xinzheng: {
         =============================== */
         {
           type: "SCHEDULED_DAMAGE",
-          value: 5,
+          value: 6,
           when: "TURN_START",
           turnOf: "ENEMY",
           target: "ENEMY",
-          debug: "XINZHENG STAGE 2 — 敌方回合开始 (2)",
+
         },
 
         /* ===============================
@@ -597,7 +594,7 @@ xinzheng: {
           when: "TURN_END",
           turnOf: "ENEMY",
           target: "ENEMY",
-          debug: "XINZHENG STAGE 3 — 敌方回合结束 (3)",
+
         },
 
       ],

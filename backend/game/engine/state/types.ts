@@ -122,6 +122,8 @@ export interface BuffDefinition {
 
   /** Optional override for buff recipient */
   applyTo?: BuffApplyTo;
+
+  originalDescription?: string;
 }
 
 /* ================= Card ================= */
@@ -137,6 +139,7 @@ export interface Card {
 
   /** Persistent buffs */
   buffs?: BuffDefinition[];
+  originalDescription?: string;
 }
 
 /* ================= Runtime ================= */
