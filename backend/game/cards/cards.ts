@@ -445,8 +445,8 @@ wu_jianyu: {
       name: "无间狱",
       category: "BUFF",
       description: "修罗附体",
-      duration: 1,              // ✅ correct duration
-      tickOn: "TURN_START",     // ✅ owner-only ticking
+      duration: 2,
+      tickOn: "TURN_START",
       effects: [
         /* ===============================
            STAGE 1 — 我方回合结束 → 0
@@ -457,33 +457,62 @@ wu_jianyu: {
           when: "TURN_END",
           turnOf: "OWNER",
           target: "ENEMY",
-          debug: "WUJIAN STAGE 1 — 我方回合结束 (0)",
         },
 
         /* ===============================
-           STAGE 2 — 敌方回合开始 → 20
+           STAGE 2 — 敌方回合开始 → 0
         =============================== */
         {
           type: "SCHEDULED_DAMAGE",
-          value: 20,
+          value: 0,
           when: "TURN_START",
           turnOf: "ENEMY",
           target: "ENEMY",
-          debug: "WUJIAN STAGE 2 — 敌方回合开始 (0)",
         },
 
         /* ===============================
-           STAGE 3 — 敌方回合结束 → 20
+           STAGE 3 — 敌方回合结束 → 5
         =============================== */
         {
           type: "SCHEDULED_DAMAGE",
-          value: 20,
+          value: 5,
           when: "TURN_END",
           turnOf: "ENEMY",
           target: "ENEMY",
-          debug: "WUJIAN STAGE 3 — 敌方回合结束 (0)",
         },
 
+        /* ===============================
+           STAGE 4 — 我方回合开始 → 5
+        =============================== */
+        {
+          type: "SCHEDULED_DAMAGE",
+          value: 5,
+          when: "TURN_START",
+          turnOf: "OWNER",
+          target: "ENEMY",
+        },
+
+        /* ===============================
+           STAGE 5 — 敌方回合开始 → 10
+        =============================== */
+        {
+          type: "SCHEDULED_DAMAGE",
+          value: 10,
+          when: "TURN_START",
+          turnOf: "ENEMY",
+          target: "ENEMY",
+        },
+
+        /* ===============================
+           STAGE 6 — 敌方回合结束 → 10
+        =============================== */
+        {
+          type: "SCHEDULED_DAMAGE",
+          value: 10,
+          when: "TURN_END",
+          turnOf: "ENEMY",
+          target: "ENEMY",
+        },
       ],
     },
   ],
@@ -511,41 +540,47 @@ xinzheng: {
         // CC immune while channeling
         { type: "CONTROL_IMMUNE" },
 
-        // 你的回合结束 → 5
+        /* ===============================
+           STAGE 1 — 我方回合结束 → 1
+        =============================== */
         {
           type: "SCHEDULED_DAMAGE",
-          value: 1,
+          value: 5,
           when: "TURN_END",
+          turnOf: "OWNER",
           target: "ENEMY",
+          debug: "XINZHENG STAGE 1 — 我方回合结束 (1)",
         },
 
-        // 对手回合开始 → 5
+        /* ===============================
+           STAGE 2 — 敌方回合开始 → 2
+        =============================== */
         {
           type: "SCHEDULED_DAMAGE",
-          value: 2,
+          value: 5,
           when: "TURN_START",
+          turnOf: "ENEMY",
           target: "ENEMY",
+          debug: "XINZHENG STAGE 2 — 敌方回合开始 (2)",
         },
 
-        // 对手回合结束 → 5
+        /* ===============================
+           STAGE 3 — 敌方回合结束 → 3
+        =============================== */
         {
           type: "SCHEDULED_DAMAGE",
-          value: 3,
+          value: 15,
           when: "TURN_END",
+          turnOf: "ENEMY",
           target: "ENEMY",
+          debug: "XINZHENG STAGE 3 — 敌方回合结束 (3)",
         },
 
-        // 你下一个回合开始 → 20（爆发）
-        {
-          type: "SCHEDULED_DAMAGE",
-          value: 4,
-          when: "TURN_START",
-          target: "ENEMY",
-        },
       ],
     },
   ],
 },
+
 
 
   /* ================= 爆发 / 强化 ================= */
