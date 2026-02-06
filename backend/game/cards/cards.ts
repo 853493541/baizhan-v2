@@ -475,7 +475,7 @@ wu_jianyu: {
         =============================== */
         {
           type: "SCHEDULED_DAMAGE",
-          value: 5,
+          value: 6,
           when: "TURN_END",
           turnOf: "ENEMY",
           target: "ENEMY",
@@ -486,7 +486,7 @@ wu_jianyu: {
         =============================== */
         {
           type: "SCHEDULED_DAMAGE",
-          value: 5,
+          value: 6,
           when: "TURN_START",
           turnOf: "OWNER",
           target: "ENEMY",
