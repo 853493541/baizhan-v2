@@ -26,7 +26,7 @@ export function buildDeck(): CardInstance[] {
 
   // 控制 / 压制
   pushN("mohe_wuliang", 4);
-  pushN("shengsi_jie", 4);
+  pushN("shengsi_jie", 40);
   pushN("chan_xiao", 4);
 
   // 解控 / 防御
@@ -55,7 +55,7 @@ export function buildDeck(): CardInstance[] {
   pushN("qionglong_huasheng", 3);
   pushN("taxingxing", 3);
   pushN("zhuiming_jian", 3);
-  pushN("xinzheng", 20);
+  pushN("xinzheng", 2);
   pushN("tiandi_wuji", 3);
   pushN("quye_duanchou", 3);
 

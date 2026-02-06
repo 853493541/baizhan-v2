@@ -165,18 +165,34 @@ export function applyEffects(
         // If buff contains CONTROL, control-immunity should block that portion.
         // We allow the handler to apply per-effect rules, but we keep a fast guard:
         // (handler should still enforce correctly even if this guard is removed)
-        const hasControl = card.buffs.some((b) =>
-          b.effects.some((e) => e.type === "CONTROL")
-        );
-        if (!(hasControl && blocksControlByImmunity("CONTROL", buffTarget))) {
-          handleApplyBuffs({
-            state,
-            card,
-            source,
-            target: buffTarget,
-            isEnemyEffect: enemyApplied,
-          });
-        }
+const buffs = card.buffs;
+if (!buffs || buffs.length === 0) {
+  return;
+}
+
+for (const buff of buffs) {
+  const isControlBuff = buff.effects.some(
+    (e) => e.type === "CONTROL"
+  );
+
+  if (isControlBuff && blocksControlByImmunity("CONTROL", buffTarget)) {
+    continue;
+  }
+
+  const originalBuffs = buffs.slice();
+  card.buffs = [buff];
+
+  handleApplyBuffs({
+    state,
+    card,
+    source,
+    target: buffTarget,
+    isEnemyEffect: enemyApplied,
+  });
+
+  card.buffs = originalBuffs;
+}
+
       }
     }
   }
