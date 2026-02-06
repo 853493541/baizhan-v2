@@ -313,18 +313,25 @@ export function resolveTurnEnd(state: GameState) {
 
   for (const buff of me.buffs) {
     for (const e of buff.effects) {
-      if (e.type === "START_TURN_DAMAGE") {
-        const dmg = Math.max(0, e.value ?? 0);
-        me.hp = Math.max(0, me.hp - dmg);
-        pushDamageEvent(
-          state,
-          enemy.userId,
-          me.userId,
-          buff.sourceCardId,
-          buff.sourceCardName,
-          dmg
-        );
-      }
+  if (e.type === "START_TURN_DAMAGE") {
+  const dmg = resolveScheduledDamage({
+    source: enemy,
+    target: me,
+    base: e.value ?? 0,
+  });
+
+  me.hp = Math.max(0, me.hp - dmg);
+
+  pushDamageEvent(
+    state,
+    enemy.userId,
+    me.userId,
+    buff.sourceCardId,
+    buff.sourceCardName,
+    dmg,
+    "SCHEDULED_DAMAGE"
+  );
+}
 
       if (e.type === "START_TURN_HEAL") {
         const heal = resolveHealAmount({ target: me, base: e.value ?? 0 });
