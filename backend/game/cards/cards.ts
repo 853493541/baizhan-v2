@@ -452,7 +452,7 @@ fenglai_wushan: {
 wu_jianyu: {
   id: "wu_jianyu",
   name: "无间狱",
-  description: "修罗附体\n延迟1回合造成4/6/10/10伤害\n30%吸血",
+  description: "修罗附体\n延迟1回合造成4/6/15/15伤害\n30%吸血",
   type: "SUPPORT",
   target: "SELF",
   effects: [],
