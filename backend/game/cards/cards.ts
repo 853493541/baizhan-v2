@@ -62,7 +62,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
   mohe_wuliang: {
     id: "mohe_wuliang",
     name: "摩诃无量",
-    description: "造成10点伤害\n【控制】目标1个回合",
+    description: "造成10点伤害\n击倒个回合",
     type: "CONTROL",
     target: "OPPONENT",
     effects: [{ type: "DAMAGE", value: 10 }],
@@ -233,7 +233,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
   que_ta_zhi: {
     id: "que_ta_zhi",
     name: "鹊踏枝",
-    description: "解控\n免疫控制1回合\n下次受到伤害有70%概率闪避",
+    description: "解控\n被命中概率降低70%和免控1回合",
     type: "SUPPORT",
     target: "SELF",
     effects: [{ type: "CLEANSE", allowWhileControlled: true }],
@@ -264,10 +264,10 @@ export const CARDS: Record<string, Card & { description: string }> = {
   fengxiu_diang: {
     id: "fengxiu_diang",
     name: "风袖低昂",
-    description: "恢复70点生命值\n受到伤害降低40%，持续2回合",
+    description: "恢复60点生命值\n减伤40%，持续2回合",
     type: "SUPPORT",
     target: "SELF",
-    effects: [{ type: "HEAL", value: 70 }],
+    effects: [{ type: "HEAL", value: 60 }],
     buffs: [
       {
         buffId: 1009,
@@ -452,7 +452,7 @@ fenglai_wushan: {
 wu_jianyu: {
   id: "wu_jianyu",
   name: "无间狱",
-  description: "修罗附体\n一回合后修罗开始攻击，造成4/6/10/10伤害并吸血30%",
+  description: "修罗附体\n延迟1回合造成4/6/10/10伤害\n30%吸血",
   type: "SUPPORT",
   target: "SELF",
   effects: [],
@@ -544,7 +544,7 @@ wu_jianyu: {
 xinzheng: {
   id: "xinzheng",
   name: "心诤",
-  description: "舞棍1回合，期间免疫控制。造成4/6/10点伤害",
+  description: "舞棍1回合\n期间免疫控制\n造成4/6/10点伤害",
   type: "CHANNEL",
   target: "SELF",
   effects: [],
@@ -633,7 +633,7 @@ xinzheng: {
   taxingxing: {
     id: "taxingxing",
     name: "踏星行",
-    description: "抽2张牌\n被命中几率降低65且免疫控制，期间无法使用卡牌，持续1回合",
+    description: "抽2张牌\n被命中几率降低65%且免疫控制，期间无法使用卡牌，持续1回合",
     type: "SUPPORT",
     target: "SELF",
     effects: [{ type: "DRAW", value: 2 }],
