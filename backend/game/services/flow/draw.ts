@@ -2,19 +2,30 @@
 /**
  * Card draw logic.
  * Includes DRAW_REDUCTION handling (buff-based).
+ *
+ * IMPORTANT CHANGE:
+ * - We batch deck mutation into a SINGLE operation
+ * - This prevents repeated intermediate mutations
+ * - Still compatible with current diff engine
  */
 
 import { GameState, ActiveBuff, BuffEffect } from "../../engine/state/types";
 
 /**
- * Draw N cards for a player
+ * Draw N cards for a player (batched)
  */
 export function draw(state: GameState, playerIndex: number, n: number) {
-  for (let i = 0; i < n; i++) {
-    const top = state.deck.shift();
-    if (!top) break;
-    state.players[playerIndex].hand.push(top);
-  }
+  if (n <= 0) return;
+  if (state.deck.length === 0) return;
+
+  // ✅ take cards in one slice
+  const drawn = state.deck.slice(0, n);
+
+  // ✅ mutate deck ONCE
+  state.deck = state.deck.slice(drawn.length);
+
+  // ✅ append to hand
+  state.players[playerIndex].hand.push(...drawn);
 }
 
 /**

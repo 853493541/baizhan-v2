@@ -1,16 +1,14 @@
 // backend/game/services/flow/stateDiff.ts
+
 /**
- * Very small, safe state diff utility.
+ * Small, safe state diff utility.
  *
- * Design goals:
- * - Minimal work
- * - No external deps
- * - Deterministic output
- * - Replace arrays wholesale
- * - Good enough to reduce payloads now
+ * Improvements:
+ * - Never emit "/" root replacement
+ * - Special handling for large arrays (deck / discard / events)
+ * - Arrays default to replace ONLY when unavoidable
  *
- * This is NOT JSON Patch.
- * This is a simple { path, value } list.
+ * Still NOT JSON Patch.
  */
 
 export type DiffPatch = {
@@ -18,13 +16,9 @@ export type DiffPatch = {
   value: any;
 };
 
-/**
- * Compute a diff between two plain objects.
- * Assumes:
- * - No functions
- * - No circular refs
- * - State is JSON-serializable
- */
+// Arrays we NEVER wholesale replace
+const LARGE_ARRAY_KEYS = new Set(["deck", "discard", "events"]);
+
 export function diffState(
   prev: any,
   next: any,
@@ -32,13 +26,15 @@ export function diffState(
 ): DiffPatch[] {
   const patches: DiffPatch[] = [];
 
-  // Type change → replace whole subtree
+  const safePath = basePath || "/state";
+
+  // Type change → replace subtree (but never "/")
   if (typeof prev !== typeof next) {
-    patches.push({ path: basePath || "/", value: next });
+    patches.push({ path: safePath, value: next });
     return patches;
   }
 
-  // Primitive values
+  // Primitive
   if (
     prev === null ||
     next === null ||
@@ -46,46 +42,71 @@ export function diffState(
     typeof next !== "object"
   ) {
     if (prev !== next) {
-      patches.push({ path: basePath || "/", value: next });
+      patches.push({ path: safePath, value: next });
     }
     return patches;
   }
 
-  // Arrays → replace whole array if changed
+  // Arrays
   if (Array.isArray(prev) || Array.isArray(next)) {
+    const parts = basePath.split("/");
+const key = parts.length ? parts[parts.length - 1] : undefined;
+
+    // Special handling for big arrays
+    if (key && LARGE_ARRAY_KEYS.has(key)) {
+      // append
+      if (next.length > prev.length) {
+        for (let i = prev.length; i < next.length; i++) {
+          patches.push({
+            path: `${safePath}/${i}`,
+            value: next[i],
+          });
+        }
+        return patches;
+      }
+
+      // clear
+      if (next.length === 0 && prev.length > 0) {
+        patches.push({ path: safePath, value: [] });
+        return patches;
+      }
+
+      // otherwise: do nothing (no full replace)
+      return patches;
+    }
+
+    // Small arrays → replace safely
     const prevStr = JSON.stringify(prev);
     const nextStr = JSON.stringify(next);
     if (prevStr !== nextStr) {
-      patches.push({ path: basePath || "/", value: next });
+      patches.push({ path: safePath, value: next });
     }
     return patches;
   }
 
-  // Objects → recurse by keys
+  // Objects → recurse
   const keys = new Set([
     ...Object.keys(prev),
     ...Object.keys(next),
   ]);
 
   for (const key of keys) {
-    const pVal = (prev as any)[key];
-    const nVal = (next as any)[key];
-
+    const pVal = prev[key];
+    const nVal = next[key];
     const path = basePath ? `${basePath}/${key}` : `/${key}`;
 
-    // Key removed
+    // removed
     if (!(key in next)) {
       patches.push({ path, value: undefined });
       continue;
     }
 
-    // Key added
+    // added
     if (!(key in prev)) {
       patches.push({ path, value: nVal });
       continue;
     }
 
-    // Recurse
     patches.push(...diffState(pVal, nVal, path));
   }
 
