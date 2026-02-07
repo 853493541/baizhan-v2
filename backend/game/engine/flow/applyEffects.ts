@@ -21,6 +21,7 @@
 
 import { GameState, Card, ActiveBuff } from "../state/types";
 import { getEnemy, resolveEffectTargetIndex } from "../utils/targeting";
+import { pushEvent } from "../../services/flow/events";
 
 import {
   isEnemyEffect,
@@ -51,6 +52,21 @@ export function applyEffects(
   const source = state.players[playerIndex];
   const defaultTarget = state.players[targetIndex];
   const enemy = getEnemy(state, playerIndex);
+
+  /* =========================================================
+     🔴 PLAY CARD EVENT (authoritative)
+     - emitted ONCE per card play
+     - animation + timeline driver ONLY
+     - must match GameEvent schema
+  ========================================================= */
+  pushEvent(state, {
+    turn: state.turn,
+    type: "PLAY_CARD",
+    actorUserId: source.userId,
+    targetUserId: defaultTarget.userId,
+    cardId: card.id,
+    cardName: card.name,
+  });
 
   /* =========================================================
      breakOnPlay affects ONLY the caster
@@ -98,7 +114,6 @@ export function applyEffects(
       }
 
       case "BONUS_DAMAGE_IF_TARGET_HP_GT": {
-        // this effect is always about the opponent target snapshot
         handleBonusDamageIfHpGt(
           state,
           source,
@@ -162,37 +177,34 @@ export function applyEffects(
     if (!shouldSkipDueToDodge(cardDodged, enemyApplied)) {
       // Untargetable blocks new enemy buffs
       if (!blocksNewBuffByUntargetable(source, buffTarget)) {
-        // If buff contains CONTROL, control-immunity should block that portion.
-        // We allow the handler to apply per-effect rules, but we keep a fast guard:
-        // (handler should still enforce correctly even if this guard is removed)
-const buffs = card.buffs;
-if (!buffs || buffs.length === 0) {
-  return;
-}
+        const buffs = card.buffs;
+        if (!buffs || buffs.length === 0) {
+          return;
+        }
 
-for (const buff of buffs) {
-  const isControlBuff = buff.effects.some(
-    (e) => e.type === "CONTROL"
-  );
+        for (const buff of buffs) {
+          const isControlBuff = buff.effects.some((e) => e.type === "CONTROL");
 
-  if (isControlBuff && blocksControlByImmunity("CONTROL", buffTarget)) {
-    continue;
-  }
+          if (
+            isControlBuff &&
+            blocksControlByImmunity("CONTROL", buffTarget)
+          ) {
+            continue;
+          }
 
-  const originalBuffs = buffs.slice();
-  card.buffs = [buff];
+          const originalBuffs = buffs.slice();
+          card.buffs = [buff];
 
-  handleApplyBuffs({
-    state,
-    card,
-    source,
-    target: buffTarget,
-    isEnemyEffect: enemyApplied,
-  });
+          handleApplyBuffs({
+            state,
+            card,
+            source,
+            target: buffTarget,
+            isEnemyEffect: enemyApplied,
+          });
 
-  card.buffs = originalBuffs;
-}
-
+          card.buffs = originalBuffs;
+        }
       }
     }
   }

@@ -1,5 +1,3 @@
-// backend/game/engine/state/types.ts
-
 export type PlayerID = string;
 
 /* ================= Scheduling ================= */
@@ -52,7 +50,6 @@ export type EffectType =
  */
 export interface CardEffect {
   type: EffectType;
-
   value?: number;
   chance?: number;
   repeatTurns?: number;
@@ -69,18 +66,14 @@ export interface CardEffect {
 
 /**
  * Buff-contained effects
- * (no duration logic here)
  */
 export type BuffEffect = Omit<CardEffect, "allowWhileControlled"> & {
-  /** SCHEDULED_DAMAGE: when this stage fires */
   when?: TurnPhase;
-
-  /** SCHEDULED_DAMAGE: who this stage targets */
   target?: ScheduledTarget;
-
-  /** SCHEDULED_DAMAGE: whose turn this stage belongs to */
   turnOf?: ScheduledTurnOf;
-lifestealPct?: number;
+
+  lifestealPct?: number;
+
   /** DEBUG: stage label shown in events */
   debug?: string;
 };
@@ -90,39 +83,18 @@ lifestealPct?: number;
 export type BuffCategory = "BUFF" | "DEBUFF";
 export type BuffApplyTo = "SELF" | "OPPONENT";
 
-/**
- * Buff tick timing
- * - Buffs tick ONLY on the owner's turn boundary.
- */
 export type BuffTickOn = TurnPhase;
 
 export interface BuffDefinition {
   buffId: number;
-
-  /** Display name */
   name: string;
-
-  /** BUFF or DEBUFF */
   category: BuffCategory;
-
-  /** Number of ticks before expiry */
   duration: number;
-
-  /** When duration decrements */
   tickOn: BuffTickOn;
-
-  /** Removed when caster plays another card */
   breakOnPlay?: boolean;
-
-  /** Authoritative description */
   description: string;
-
-  /** Engine-only logic payload */
   effects: BuffEffect[];
-
-  /** Optional override for buff recipient */
   applyTo?: BuffApplyTo;
-
   originalDescription?: string;
 }
 
@@ -133,11 +105,7 @@ export interface Card {
   name: string;
   type: CardType;
   target: TargetType;
-
-  /** Immediate effects */
   effects: CardEffect[];
-
-  /** Persistent buffs */
   buffs?: BuffDefinition[];
   originalDescription?: string;
 }
@@ -149,6 +117,8 @@ export interface CardInstance {
   cardId: string;
 }
 
+/* ================= Events ================= */
+
 export type GameEventType =
   | "PLAY_CARD"
   | "END_TURN"
@@ -159,26 +129,33 @@ export type GameEventType =
 
 export interface GameEvent {
   id: string;
+  timestamp: number;
+
   turn: number;
   type: GameEventType;
+
   actorUserId: PlayerID;
   targetUserId?: PlayerID;
 
+  /** Card play */
   cardId?: string;
   cardName?: string;
+  cardInstanceId?: string;
 
+  /** Damage / heal */
   effectType?: EffectType;
   value?: number;
 
+  /** Buff */
   buffId?: number;
   buffName?: string;
   buffCategory?: BuffCategory;
 
   appliedAtTurn?: number;
   expiresAtTurn?: number;
-
-  timestamp: number;
 }
+
+/* ================= Active Buff ================= */
 
 export interface ActiveBuff {
   buffId: number;
@@ -190,21 +167,15 @@ export interface ActiveBuff {
   sourceCardId?: string;
   sourceCardName?: string;
 
-  /** Remaining ticks until expiry */
   remaining: number;
-
-  /** When this buff decrements */
   tickOn: BuffTickOn;
 
-  /**
-   * Runtime cursor for staged SCHEDULED_DAMAGE
-   * Each stage runs ONCE, in order
-   */
   stageIndex?: number;
-
   appliedAtTurn?: number;
   breakOnPlay?: boolean;
 }
+
+/* ================= Player / State ================= */
 
 export interface PlayerState {
   userId: PlayerID;
@@ -214,7 +185,6 @@ export interface PlayerState {
 }
 
 export interface GameState {
-  /** Monotonic server-authoritative state version (increments each accepted action) */
   version: number;
 
   players: PlayerState[];

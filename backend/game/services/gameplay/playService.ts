@@ -14,8 +14,17 @@ import { GameState } from "../../engine/state/types";
 import { autoDrawAtTurnStart } from "../flow/draw";
 import { pushEvent } from "../flow/events";
 
-/** NEW: diff helper (implemented next) */
+/** diff helper */
 import { diffState } from "../flow/stateDiff";
+
+/* ================= EVENT PRUNING ================= */
+
+function pruneOldEvents(state: GameState, keepTurns = 10) {
+  const minTurn = state.turn - keepTurns;
+  state.events = state.events.filter((e) => e.turn >= minTurn);
+}
+
+/* ================= PLAY CARD ================= */
 
 export async function playCard(
   gameId: string,
@@ -42,27 +51,26 @@ export async function playCard(
   const targetIndex =
     card.target === "SELF" ? playerIndex : playerIndex === 0 ? 1 : 0;
 
-  pushEvent(state, {
-    turn: state.turn,
-    type: "PLAY_CARD",
-    actorUserId: userId,
-    targetUserId: state.players[targetIndex].userId,
-    cardId: card.id,
-    cardName: card.name,
-  });
+  /**
+   * ❗ PLAY_CARD EVENT IS EMITTED INSIDE applyEffects
+   * playService MUST NOT emit it
+   */
 
   applyEffects(state, card, playerIndex, targetIndex);
   triggerOnPlayBuffs(state, playerIndex);
   state.discard.push(played);
 
-  /** bump authoritative version (safe) */
+  /** bump authoritative version */
   state.version = (state.version ?? 0) + 1;
+
+  /** prune old events BEFORE diff */
+  pruneOldEvents(state, 10);
 
   /** compute diff */
   const diff = diffState(prevState, state);
 
-  /** clear events after diff */
-  state.events = [];
+  /** ✅ DO NOT CLEAR EVENTS */
+  /** state.events = [];  <-- REMOVED */
 
   game.state = state;
   game.markModified("state");
@@ -71,8 +79,11 @@ export async function playCard(
   return {
     version: state.version,
     diff,
+    events: state.events,
   };
 }
+
+/* ================= PASS TURN ================= */
 
 export async function passTurn(gameId: string, userId: string) {
   const game = await GameSession.findById(gameId);
@@ -93,14 +104,17 @@ export async function passTurn(gameId: string, userId: string) {
   resolveTurnEnd(state);
   autoDrawAtTurnStart(state);
 
-  /** bump authoritative version (safe) */
+  /** bump authoritative version */
   state.version = (state.version ?? 0) + 1;
+
+  /** prune old events BEFORE diff */
+  pruneOldEvents(state, 10);
 
   /** compute diff */
   const diff = diffState(prevState, state);
 
-  /** clear events after diff */
-  state.events = [];
+  /** ✅ DO NOT CLEAR EVENTS */
+  /** state.events = [];  <-- REMOVED */
 
   game.state = state;
   game.markModified("state");
@@ -109,40 +123,42 @@ export async function passTurn(gameId: string, userId: string) {
   return {
     version: state.version,
     diff,
+    events: state.events,
   };
 }
 
+/* ================= ON-PLAY BUFF TRIGGERS ================= */
+
 function triggerOnPlayBuffs(state: GameState, playerIndex: number) {
   const player = state.players[playerIndex];
-
   if (!player.buffs) return;
 
   for (const buff of player.buffs) {
     if (!buff.effects) continue;
 
     for (const effect of buff.effects) {
-      if (effect.type === "ON_PLAY_DAMAGE") {
-        const base = effect.value ?? 0;
-        if (base <= 0) continue;
+      if (effect.type !== "ON_PLAY_DAMAGE") continue;
 
-        const dmg = resolveScheduledDamage({
-          source: player,
-          target: player,
-          base,
-        });
+      const base = effect.value ?? 0;
+      if (base <= 0) continue;
 
-        if (dmg <= 0) continue;
+      const dmg = resolveScheduledDamage({
+        source: player,
+        target: player,
+        base,
+      });
 
-        player.hp = Math.max(0, player.hp - dmg);
+      if (dmg <= 0) continue;
 
-        pushEvent(state, {
-          turn: state.turn,
-          type: "DAMAGE",
-          actorUserId: player.userId,
-          targetUserId: player.userId,
-          value: dmg,
-        });
-      }
+      player.hp = Math.max(0, player.hp - dmg);
+
+      pushEvent(state, {
+        turn: state.turn,
+        type: "DAMAGE",
+        actorUserId: player.userId,
+        targetUserId: player.userId,
+        value: dmg,
+      });
     }
   }
 }

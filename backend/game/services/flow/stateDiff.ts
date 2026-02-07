@@ -1,14 +1,19 @@
 // backend/game/services/flow/stateDiff.ts
 
 /**
- * Small, safe state diff utility.
+ * State diff utility (game-safe)
  *
- * Improvements:
- * - Never emit "/" root replacement
- * - Special handling for large arrays (deck / discard / events)
- * - Arrays default to replace ONLY when unavoidable
+ * Rules:
+ * - NEVER replace root
+ * - events: append-only
+ * - discard: append-only
+ * - deck: shift / append only (no full replace except forced)
+ * - small arrays: replace
  *
- * Still NOT JSON Patch.
+ * IMPORTANT:
+ * - Designed for POLLING + EVENT HISTORY
+ * - Events are persistent in DB and pruned separately
+ * - Diff must be monotonic and idempotent
  */
 
 export type DiffPatch = {
@@ -16,8 +21,8 @@ export type DiffPatch = {
   value: any;
 };
 
-// Arrays we NEVER wholesale replace
-const LARGE_ARRAY_KEYS = new Set(["deck", "discard", "events"]);
+const APPEND_ONLY_KEYS = new Set(["events", "discard"]);
+const DECK_KEY = "deck";
 
 export function diffState(
   prev: any,
@@ -26,15 +31,14 @@ export function diffState(
 ): DiffPatch[] {
   const patches: DiffPatch[] = [];
 
-  const safePath = basePath || "/state";
+  /* ================= ROOT SAFETY ================= */
 
-  // Type change → replace subtree (but never "/")
-  if (typeof prev !== typeof next) {
-    patches.push({ path: safePath, value: next });
-    return patches;
+  if (basePath === "") {
+    return diffState(prev, next, "/");
   }
 
-  // Primitive
+  /* ================= PRIMITIVES ================= */
+
   if (
     prev === null ||
     next === null ||
@@ -42,49 +46,63 @@ export function diffState(
     typeof next !== "object"
   ) {
     if (prev !== next) {
-      patches.push({ path: safePath, value: next });
+      patches.push({ path: basePath, value: next });
     }
     return patches;
   }
 
-  // Arrays
-  if (Array.isArray(prev) || Array.isArray(next)) {
-    const parts = basePath.split("/");
-const key = parts.length ? parts[parts.length - 1] : undefined;
+  /* ================= ARRAYS ================= */
 
-    // Special handling for big arrays
-    if (key && LARGE_ARRAY_KEYS.has(key)) {
-      // append
+  if (Array.isArray(prev) && Array.isArray(next)) {
+    const key = basePath.split("/").pop();
+
+    /* ---------- append-only arrays (events / discard) ---------- */
+    if (key && APPEND_ONLY_KEYS.has(key)) {
       if (next.length > prev.length) {
         for (let i = prev.length; i < next.length; i++) {
           patches.push({
-            path: `${safePath}/${i}`,
+            path: `${basePath}/${i}`,
+            value: next[i],
+          });
+        }
+      }
+      return patches;
+    }
+
+    /* ---------- deck (draw = shift, add = append) ---------- */
+    if (key === DECK_KEY) {
+      // draw / shuffle / force change → replace
+      if (next.length < prev.length) {
+        patches.push({
+          path: basePath,
+          value: next,
+        });
+        return patches;
+      }
+
+      // append-only (rare but allowed)
+      if (next.length > prev.length) {
+        for (let i = prev.length; i < next.length; i++) {
+          patches.push({
+            path: `${basePath}/${i}`,
             value: next[i],
           });
         }
         return patches;
       }
 
-      // clear
-      if (next.length === 0 && prev.length > 0) {
-        patches.push({ path: safePath, value: [] });
-        return patches;
-      }
-
-      // otherwise: do nothing (no full replace)
       return patches;
     }
 
-    // Small arrays → replace safely
-    const prevStr = JSON.stringify(prev);
-    const nextStr = JSON.stringify(next);
-    if (prevStr !== nextStr) {
-      patches.push({ path: safePath, value: next });
+    /* ---------- small arrays ---------- */
+    if (JSON.stringify(prev) !== JSON.stringify(next)) {
+      patches.push({ path: basePath, value: next });
     }
     return patches;
   }
 
-  // Objects → recurse
+  /* ================= OBJECTS ================= */
+
   const keys = new Set([
     ...Object.keys(prev),
     ...Object.keys(next),
@@ -93,7 +111,7 @@ const key = parts.length ? parts[parts.length - 1] : undefined;
   for (const key of keys) {
     const pVal = prev[key];
     const nVal = next[key];
-    const path = basePath ? `${basePath}/${key}` : `/${key}`;
+    const path = `${basePath}/${key}`;
 
     // removed
     if (!(key in next)) {

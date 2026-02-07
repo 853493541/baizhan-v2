@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./styles.module.css";
 import type { GameEvent } from "@/app/game/screens/in-game/types";
 import Card from "../../../Card";
@@ -10,6 +10,7 @@ import Card from "../../../Card";
 type Props = {
   events: GameEvent[] | undefined | null;
   myUserId: string;
+  gameVersion?: number; // ← ADD THIS
 };
 
 /* ================= COMPONENT ================= */
@@ -17,8 +18,11 @@ type Props = {
 export default function CurrentAction({
   events,
   myUserId,
+  gameVersion,
 }: Props) {
   const [cards, setCards] = useState<GameEvent[]>([]);
+  const seenPlayEventIds = useRef<Set<string>>(new Set());
+  const lastVersion = useRef<number | undefined>(undefined);
 
   /* ================= DEVICE DETECTION ================= */
 
@@ -26,23 +30,42 @@ export default function CurrentAction({
     typeof window !== "undefined" &&
     window.matchMedia("(max-width: 768px)").matches;
 
+  /* ================= VERSION RESET ================= */
+
+  useEffect(() => {
+    if (
+      gameVersion !== undefined &&
+      lastVersion.current !== gameVersion
+    ) {
+      // HARD RESET on version change
+      seenPlayEventIds.current.clear();
+      setCards([]);
+      lastVersion.current = gameVersion;
+    }
+  }, [gameVersion]);
+
   /* ================= UPDATE LOGIC ================= */
 
   useEffect(() => {
     if (!Array.isArray(events)) return;
 
-    const last = events
-      .filter((e) => e.type === "PLAY_CARD")
-      .at(-1);
+    const newPlays = events.filter(
+      (e) =>
+        e.type === "PLAY_CARD" &&
+        !seenPlayEventIds.current.has(e.id)
+    );
 
-    if (!last) return;
+    if (newPlays.length === 0) return;
+
+    newPlays.forEach((e) =>
+      seenPlayEventIds.current.add(e.id)
+    );
+
+    const latest = newPlays[newPlays.length - 1];
 
     setCards((prev) => {
-      if (prev[0]?.id === last.id) return prev;
-
-      // desktop keeps 4, phone keeps only 1
       const limit = isPhone ? 1 : 3;
-      return [last, ...prev].slice(0, limit);
+      return [latest, ...prev].slice(0, limit);
     });
   }, [events, isPhone]);
 
