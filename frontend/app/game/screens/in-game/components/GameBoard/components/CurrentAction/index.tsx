@@ -10,7 +10,7 @@ import Card from "../../../Card";
 type Props = {
   events: GameEvent[] | undefined | null;
   myUserId: string;
-  gameVersion?: number; // ← ADD THIS
+  gameVersion?: number;
 };
 
 /* ================= COMPONENT ================= */
@@ -44,11 +44,12 @@ export default function CurrentAction({
     }
   }, [gameVersion]);
 
-  /* ================= UPDATE LOGIC ================= */
+  /* ================= UPDATE LOGIC (FIXED) ================= */
 
   useEffect(() => {
     if (!Array.isArray(events)) return;
 
+    // collect ALL unseen PLAY_CARD events
     const newPlays = events.filter(
       (e) =>
         e.type === "PLAY_CARD" &&
@@ -57,15 +58,19 @@ export default function CurrentAction({
 
     if (newPlays.length === 0) return;
 
+    // mark all as seen
     newPlays.forEach((e) =>
       seenPlayEventIds.current.add(e.id)
     );
 
-    const latest = newPlays[newPlays.length - 1];
-
+    // enqueue ALL new plays instead of collapsing to latest
     setCards((prev) => {
       const limit = isPhone ? 1 : 3;
-      return [latest, ...prev].slice(0, limit);
+
+      // newest first so animation + stacking still work
+      const incoming = [...newPlays].reverse();
+
+      return [...incoming, ...prev].slice(0, limit);
     });
   }, [events, isPhone]);
 
