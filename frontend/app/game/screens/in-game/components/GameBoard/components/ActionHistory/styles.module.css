@@ -1,12 +1,18 @@
-/* ================= CONTAINER ================= */
+/* ================= LAYOUT ================= */
+
+.container {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* ================= HISTORY BAR ================= */
 
 .historyContainer {
   position: relative;
   display: flex;
   align-items: center;
 }
-
-/* ================= HISTORY BAR ================= */
 
 .wrap {
   display: flex;
@@ -30,8 +36,6 @@
   overflow: hidden;
 }
 
-/* ================= ROW ================= */
-
 .row {
   width: 40px;
   height: 40px;
@@ -43,22 +47,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-
-  cursor: default;
-  will-change: transform, opacity;
 }
-
-/* ================= ICON ================= */
 
 .icon {
   width: 100%;
   height: 100%;
   border-radius: 5px;
   object-fit: cover;
-  pointer-events: none;
 }
-
-/* ================= OWNER ================= */
 
 .me {
   border: 2px solid #22c55e;
@@ -70,107 +66,107 @@
   box-shadow: 0 0 6px rgba(239, 68, 68, 0.35);
 }
 
-/* ================= EMPTY ================= */
-
 .emptyRow {
   width: 40px;
   height: 40px;
   border-radius: 7px;
-
   border: 1px dashed rgba(148, 163, 184, 0.15);
   background: rgba(255, 255, 255, 0.02);
 }
 
-/* ================= PREVIEW ================= */
-
 .preview {
   position: absolute;
-  left: 72px; /* right side of history bar */
+  left: 72px;
   top: 50%;
   transform: translateY(-50%);
-
-  pointer-events: none; /* hover stays on history */
+  pointer-events: none;
   z-index: 50;
-
-  animation: previewFadeIn 120ms ease-out;
 }
 
-@keyframes previewFadeIn {
-  from {
-    opacity: 0;
-    transform: translate(6px, -50%);
-  }
-  to {
-    opacity: 1;
-    transform: translate(0, -50%);
-  }
+/* ================= RIGHT PANEL ================= */
+
+.panel {
+  width: 280px;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-/* ================= ANIMATIONS ================= */
-
-.newItem {
-  animation: slideInFromRight 220ms ease-out;
+.tabs {
+  display: flex;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-.shiftDown {
-  animation: pushDown 220ms ease-out;
+.tab {
+  flex: 1;
+  padding: 6px 0;
+  font-size: 13px;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
 }
 
-@keyframes slideInFromRight {
-  from {
-    transform: translateX(28px);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+.activeTab {
+  color: #fff;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.08);
 }
 
-@keyframes pushDown {
-  from {
-    transform: translateY(-46px);
-  }
-  to {
-    transform: translateY(0);
-  }
+.panelBody {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
-/* ================= 📱 PHONE ================= */
+
+/* ================= LOG TEXT ================= */
+
+.logLine {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #e5e7eb;
+}
+
+/* tokens */
+
+.skill {
+  color: #facc15;
+  font-weight: 600;
+}
+
+.buff {
+  color: #fde047;
+  font-weight: 600;
+}
+
+.target {
+  color: #22d3ee;
+  font-weight: 500;
+}
+
+.number {
+  color: #fb923c;
+  font-weight: 700;
+}
+
+.emptyText {
+  font-size: 12px;
+  opacity: 0.5;
+  padding: 6px;
+}
+
+/* ================= MOBILE ================= */
+
 @media (max-width: 768px) {
-
-  /* keep history visible but smaller */
   .wrap {
     width: 48px;
-    padding: 6px 4px;
-    gap: 4px;
-    border-radius: 12px;
+    max-height: 50vh;
   }
 
-  .row,
-  .emptyRow {
-    width: 34px;
-    height: 34px;
-    padding: 2px;
-    border-radius: 6px;
+  .panel {
+    width: 220px;
   }
-
-  .icon {
-    border-radius: 4px;
-  }
-
-  /* preview card: move further right & slightly smaller */
-  .preview {
-    left: 56px;               /* closer to bar */
-    transform: translateY(-50%) scale(0.9);
-    transform-origin: left center;
-  }
-}
-/* ================= 📱 PHONE ================= */
-@media (max-width: 768px) {
-
-  .wrap {
-    max-height: 50vh;          /* ✅ limit to half screen */
-    height: auto;              /* allow it to shrink */
-  }
-
 }
