@@ -2,6 +2,7 @@
 /**
  * Gameplay actions: play card / pass turn
  */
+
 import { resolveScheduledDamage } from "../../engine/utils/combatMath";
 
 import GameSession from "../../models/GameSession";
@@ -13,6 +14,9 @@ import { GameState } from "../../engine/state/types";
 import { autoDrawAtTurnStart } from "../flow/draw";
 import { pushEvent } from "../flow/events";
 
+/** NEW: diff helper (implemented next) */
+import { diffState } from "../flow/stateDiff";
+
 export async function playCard(
   gameId: string,
   userId: string,
@@ -23,6 +27,9 @@ export async function playCard(
 
   const state = game.state as GameState;
   if (!state.events) state.events = [];
+
+  /** snapshot previous state for diff */
+  const prevState: GameState = structuredClone(state);
 
   const playerIndex = state.players.findIndex((p) => p.userId === userId);
   validatePlayCard(state, playerIndex, cardInstanceId);
@@ -48,10 +55,23 @@ export async function playCard(
   triggerOnPlayBuffs(state, playerIndex);
   state.discard.push(played);
 
+  /** bump authoritative version (safe) */
+  state.version = (state.version ?? 0) + 1;
+
+  /** compute diff */
+  const diff = diffState(prevState, state);
+
+  /** clear events after diff */
+  state.events = [];
+
   game.state = state;
   game.markModified("state");
   await game.save();
-  return state;
+
+  return {
+    version: state.version,
+    diff,
+  };
 }
 
 export async function passTurn(gameId: string, userId: string) {
@@ -59,6 +79,10 @@ export async function passTurn(gameId: string, userId: string) {
   if (!game || !game.state) throw new Error("Game not found");
 
   const state = game.state as GameState;
+  if (!state.events) state.events = [];
+
+  /** snapshot previous state for diff */
+  const prevState: GameState = structuredClone(state);
 
   pushEvent(state, {
     turn: state.turn,
@@ -69,11 +93,25 @@ export async function passTurn(gameId: string, userId: string) {
   resolveTurnEnd(state);
   autoDrawAtTurnStart(state);
 
+  /** bump authoritative version (safe) */
+  state.version = (state.version ?? 0) + 1;
+
+  /** compute diff */
+  const diff = diffState(prevState, state);
+
+  /** clear events after diff */
+  state.events = [];
+
   game.state = state;
   game.markModified("state");
   await game.save();
-  return state;
+
+  return {
+    version: state.version,
+    diff,
+  };
 }
+
 function triggerOnPlayBuffs(state: GameState, playerIndex: number) {
   const player = state.players[playerIndex];
 
@@ -83,33 +121,28 @@ function triggerOnPlayBuffs(state: GameState, playerIndex: number) {
     if (!buff.effects) continue;
 
     for (const effect of buff.effects) {
-if (effect.type === "ON_PLAY_DAMAGE") {
-  const base = effect.value ?? 0;
-  if (base <= 0) continue;
+      if (effect.type === "ON_PLAY_DAMAGE") {
+        const base = effect.value ?? 0;
+        if (base <= 0) continue;
 
-  const dmg = resolveScheduledDamage({
-    source: player,   // buff owner
-    target: player,   // self-inflicted
-    base,
-  });
+        const dmg = resolveScheduledDamage({
+          source: player,
+          target: player,
+          base,
+        });
 
-  if (dmg <= 0) continue;
+        if (dmg <= 0) continue;
 
-  player.hp = Math.max(0, player.hp - dmg);
+        player.hp = Math.max(0, player.hp - dmg);
 
-  pushEvent(state, {
-    turn: state.turn,
-    type: "DAMAGE",
-    actorUserId: player.userId,
-    targetUserId: player.userId,
-    value: dmg,
-  });
-}
-
-
-
-
-
+        pushEvent(state, {
+          turn: state.turn,
+          type: "DAMAGE",
+          actorUserId: player.userId,
+          targetUserId: player.userId,
+          value: dmg,
+        });
+      }
     }
   }
 }

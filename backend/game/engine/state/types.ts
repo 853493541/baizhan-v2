@@ -214,6 +214,9 @@ export interface PlayerState {
 }
 
 export interface GameState {
+  /** Monotonic server-authoritative state version (increments each accepted action) */
+  version: number;
+
   players: PlayerState[];
   deck: CardInstance[];
   discard: CardInstance[];

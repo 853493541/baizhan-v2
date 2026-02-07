@@ -12,6 +12,9 @@ export async function createGame(userId: string) {
   const deck = shuffle(buildDeck());
 
   const state: GameState = {
+    /** NEW: initialize authoritative state version */
+    version: 1,
+
     turn: 0,
     activePlayerIndex: 0,
     deck,
@@ -58,6 +61,9 @@ export async function startGame(gameId: string, userId: string) {
   const deck = shuffle(buildDeck());
 
   const state: GameState = {
+    /** NEW: initialize authoritative state version */
+    version: 1,
+
     turn: 0,
     activePlayerIndex: 0,
     deck,
