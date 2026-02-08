@@ -35,7 +35,7 @@ export function buildDeck(): CardInstance[] {
   pushN("que_ta_zhi", 3);
 
   // 生存 / 回复
-  pushN("fengxiu_diang", 40);
+  pushN("fengxiu_diang", 4);
 
   // 受控可用
   pushN("anchen_misan", 3);
@@ -46,11 +46,11 @@ export function buildDeck(): CardInstance[] {
   pushN("baizu", 3);
 
   // 强化 / 爆发
-  pushN("nuwa_butian", 20);
+  pushN("nuwa_butian", 2);
 
   // PATCH 0.3
   pushN("fuguang_lueying", 3);
-  pushN("jiangchun_zhuxiu", 30);
+  pushN("jiangchun_zhuxiu", 3);
   pushN("da_shizi_hou", 3);
   pushN("qionglong_huasheng", 3);
   pushN("taxingxing", 3);
