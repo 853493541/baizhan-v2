@@ -45,7 +45,6 @@ function renderDamageLine(e: GameEvent, myUserId: string) {
   const dmg = e.value ?? 0;
 
   if (isMe) {
-    // 你的[江海凝光]对[小混混]造成了252点阴性内功伤害。
     return (
       <>
         你的<Skill name={e.cardName!} />
@@ -55,7 +54,6 @@ function renderDamageLine(e: GameEvent, myUserId: string) {
     );
   }
 
-  // [小混混]的[攻击]对你造成了439点外功伤害。
   return (
     <>
       <Target name={e.actorName ?? "对手"} />
@@ -68,7 +66,6 @@ function renderDamageLine(e: GameEvent, myUserId: string) {
 function renderBuffLine(e: GameEvent, myUserId: string) {
   const isMe = e.targetUserId === myUserId;
 
-  // 你获得了效果[弹跳]。
   if (e.type === "BUFF_APPLIED") {
     return (
       <>
@@ -78,7 +75,6 @@ function renderBuffLine(e: GameEvent, myUserId: string) {
     );
   }
 
-  // [弹跳]效果从你身上消失了。
   if (e.type === "BUFF_EXPIRED") {
     return (
       <>
@@ -94,31 +90,22 @@ function renderBuffLine(e: GameEvent, myUserId: string) {
 /* ================= COMPONENT ================= */
 
 export default function ActionHistory({ events, myUserId }: Props) {
-  const [hovered, setHovered] = useState<{
-    event: GameEvent;
-    index: number;
-  } | null>(null);
-
   const [tab, setTab] = useState<"damage" | "buff">("damage");
+  const [hovered, setHovered] = useState<GameEvent | null>(null);
+
+  const logBodyRef = useRef<HTMLDivElement | null>(null);
 
   /* ================= EVENTS ================= */
 
+  // last 7 plays, oldest -> newest (newest appears on RIGHT)
   const playEvents = useMemo(() => {
     if (!Array.isArray(events)) return [];
-    return events
-      .filter((e) => e.type === "PLAY_CARD")
-      .slice()
-      .reverse()
-      .slice(0, 10);
+    return events.filter((e) => e.type === "PLAY_CARD").slice(-7);
   }, [events]);
 
   const damageEvents = useMemo(() => {
     if (!Array.isArray(events)) return [];
-    return events
-      .filter((e) => e.type === "DAMAGE" && e.cardName)
-      .slice()
-      .reverse()
-      .slice(0, 8);
+    return events.filter((e) => e.type === "DAMAGE" && e.cardName).slice(-30);
   }, [events]);
 
   const buffEvents = useMemo(() => {
@@ -126,71 +113,40 @@ export default function ActionHistory({ events, myUserId }: Props) {
     return events
       .filter(
         (e) =>
-          (e.type === "BUFF_APPLIED" || e.type === "BUFF_EXPIRED") &&
-          e.buffName
+          (e.type === "BUFF_APPLIED" || e.type === "BUFF_EXPIRED") && e.buffName
       )
-      .slice()
-      .reverse()
-      .slice(0, 8);
+      .slice(-30);
   }, [events]);
 
-  const emptyCount = Math.max(0, 10 - playEvents.length);
+  /* ================= AUTO SCROLL ================= */
 
-  /* ================= ANIMATION ================= */
+  useEffect(() => {
+    const el = logBodyRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  }, [damageEvents, buffEvents, tab]);
 
-  const prevTopIdRef = useRef<string | null>(null);
+  /* ================= ANIMATION TRIGGER (RESTORED) =================
+     We remount the abilityBar on a new PLAY_CARD so CSS animations replay.
+     NEWEST icon should slide in from RIGHT, others "shift left" into place.
+  ================================================================ */
+
+  const prevNewestPlayIdRef = useRef<string | null>(null);
   const [animateKey, setAnimateKey] = useState(0);
 
   useEffect(() => {
-    const topId = playEvents[0]?.id ?? null;
-    if (prevTopIdRef.current && topId !== prevTopIdRef.current) {
+    const newestId = playEvents[playEvents.length - 1]?.id ?? null;
+    if (prevNewestPlayIdRef.current && newestId !== prevNewestPlayIdRef.current) {
       setAnimateKey((k) => k + 1);
     }
-    prevTopIdRef.current = topId;
+    prevNewestPlayIdRef.current = newestId;
   }, [playEvents]);
 
   /* ================= RENDER ================= */
 
   return (
-    <div className={styles.container}>
-      {/* ================= HISTORY BAR ================= */}
-      <div className={styles.historyContainer}>
-        <div className={styles.wrap} key={animateKey}>
-          {playEvents.map((e, idx) => {
-            const isMe = e.actorUserId === myUserId;
-            const icon = getCardIcon(e.cardName, e.cardId);
-
-            return (
-              <div
-                key={e.id}
-                className={`${styles.row} ${
-                  isMe ? styles.me : styles.enemy
-                }`}
-                onMouseEnter={() => setHovered({ event: e, index: idx })}
-                onMouseLeave={() => setHovered(null)}
-              >
-                {icon && <img src={icon} className={styles.icon} alt="" />}
-              </div>
-            );
-          })}
-
-          {Array.from({ length: emptyCount }).map((_, i) => (
-            <div key={`empty-${i}`} className={styles.emptyRow} />
-          ))}
-        </div>
-
-        {hovered?.event.cardId && (
-          <div
-            className={styles.preview}
-            style={{ top: 8 + hovered.index * 46 }}
-          >
-            <Card cardId={hovered.event.cardId} variant="preview" />
-          </div>
-        )}
-      </div>
-
-      {/* ================= RIGHT PANEL ================= */}
-      <div className={styles.panel}>
+    <div className={styles.wrapper}>
+      <div className={styles.chatlog}>
         <div className={styles.tabs}>
           <button
             className={`${styles.tab} ${
@@ -210,7 +166,7 @@ export default function ActionHistory({ events, myUserId }: Props) {
           </button>
         </div>
 
-        <div className={styles.panelBody}>
+        <div className={styles.logBody} ref={logBodyRef}>
           {tab === "damage" &&
             (damageEvents.length === 0 ? (
               <div className={styles.emptyText}>暂无伤害记录</div>
@@ -233,7 +189,40 @@ export default function ActionHistory({ events, myUserId }: Props) {
               ))
             ))}
         </div>
+
+        {/* ability bar remounts to replay animations */}
+        <div className={styles.abilityBar} key={animateKey}>
+          {playEvents.map((e, idx) => {
+            const icon = getCardIcon(e.cardName, e.cardId);
+            const isMe = e.actorUserId === myUserId;
+
+            const isNewest = idx === playEvents.length - 1;
+
+            return (
+              <div
+                key={e.id}
+                className={[
+                  styles.abilityIcon,
+                  isMe ? styles.me : styles.enemy,
+                  isNewest ? styles.newestIcon : styles.shiftIcon,
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+                onMouseEnter={() => setHovered(e)}
+                onMouseLeave={() => setHovered(null)}
+              >
+                {icon && <img src={icon} alt="" draggable={false} />}
+              </div>
+            );
+          })}
+        </div>
       </div>
+
+      {hovered?.cardId && (
+        <div className={styles.preview}>
+          <Card cardId={hovered.cardId} variant="preview" />
+        </div>
+      )}
     </div>
   );
 }

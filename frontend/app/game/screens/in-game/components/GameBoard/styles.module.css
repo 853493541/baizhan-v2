@@ -6,9 +6,9 @@
   display: flex;
   justify-content: center;
   align-items: stretch;
-
+max-width: 1280px;
   overflow: hidden;
-
+margin: 0 auto;
   background: radial-gradient(circle at center, #1e293b, #020617);
   color: white;
 }
@@ -52,11 +52,11 @@
 .historyOverlay {
   position: absolute;
   left: 8px;
-  top: 40%;
+  top: 70%;
   transform: translateY(-50%);
 
-  width: 200px;
-  max-height: 80%;
+  width: 300px;
+  /* max-height: 80%; */
 
   z-index: 20;
 }
