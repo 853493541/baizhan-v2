@@ -9,7 +9,7 @@
 /* ================= CHATLOG CONTAINER ================= */
 
 .chatlog {
-  width: 260px;
+  width: 300px;
   height: 200px;
 
   background: rgba(0, 0, 0, 0.45);
@@ -47,11 +47,11 @@
 
 .logBody {
   flex: 1;
-  padding: 0 12px; /* left / right only */
+  padding: 12px 12px; /* left / right only */
 
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 
   overflow-y: auto;
 
