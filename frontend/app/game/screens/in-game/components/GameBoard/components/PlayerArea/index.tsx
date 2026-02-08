@@ -27,28 +27,30 @@ export default function PlayerArea({
 }: Props) {
   return (
     <div className={styles.playerHalf}>
-      {/* ================= STATUS / BUFFS ================= */}
-      <StatusBar
-        buffs={me.buffs}
-        currentTurn={currentTurn}
-      />
+      {/* Everything bottom-aligned as one stack */}
+      <div className={styles.bottomStack}>
+        {/* RESERVED STATUS SLOT (keeps space even when empty) */}
+        <div className={styles.statusSlot}>
+          <StatusBar buffs={me.buffs} currentTurn={currentTurn} />
+        </div>
 
-      {/* ================= HP + GCD ================= */}
-      <HealthBar
-        hp={me.hp}
-        maxHp={MAX_HP}
-        side="player"
-        gcd={me.gcd}
-      />
-
-      {/* ================= HAND ================= */}
-      <div className={styles.handZone}>
-        <Hand
-          cards={me.hand}
-          remainingGcd={me.gcd}  
-          onPlayCard={onPlayCard}
-          isMyTurn={isMyTurn}
+        {/* HP + GCD */}
+        <HealthBar
+          hp={me.hp}
+          maxHp={MAX_HP}
+          side="player"
+          gcd={me.gcd}
         />
+
+        {/* HAND */}
+        <div className={styles.handZone}>
+          <Hand
+            cards={me.hand}
+            remainingGcd={me.gcd}
+            onPlayCard={onPlayCard}
+            isMyTurn={isMyTurn}
+          />
+        </div>
       </div>
     </div>
   );
