@@ -1,13 +1,13 @@
 // backend/game/engine/effects/handlers.ts
 
 import { GameState, Card } from "../state/types";
-import { handleDamage } from "./handlers/handleDamage";
-import { handleBonusDamageIfHpGt } from "./handlers/handleBonusDamageIfHpGt";
-import { handleHeal } from "./handlers/handleHeal";
-import { handleDraw } from "./handlers/handleDraw";
-import { handleCleanse } from "./handlers/handleCleanse";
-import { handleChannelEffect } from "./handlers/handleChannelEffect";
-import { handleApplyBuffs } from "./handlers/handleApplyBuffs";
+import { handleDamage } from "./definitions/Damage";
+import { handleBonusDamageIfHpGt } from "./definitions/BonusDamageIfHpGt";
+import { handleHeal } from "./definitions/Heal";
+import { handleDraw } from "./definitions/Draw";
+import { handleCleanse } from "./definitions/Cleanse";
+import { handleChannelEffect } from "./definitions/Channel";
+import { handleApplyBuffs } from "./applyBuffs";
 
 /**
  * PUBLIC EFFECT HANDLERS FACADE

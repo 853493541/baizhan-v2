@@ -1,6 +1,6 @@
 // engine/flow/applyImmediateEffects.ts
-import { resolveEffectTargetIndex } from "../utils/targeting";
-import { isEnemyEffect, shouldSkipDueToDodge } from "../rules/guards";
+import { resolveEffectTargetIndex } from "../../utils/targeting";
+import { isEnemyEffect, shouldSkipDueToDodge } from "../../rules/guards";
 import {
   handleDamage,
   handleBonusDamageIfHpGt,
@@ -8,7 +8,7 @@ import {
   handleDraw,
   handleCleanse,
   handleChannelEffect,
-} from "../effects/handlers";
+} from "../../effects/handlers";
 
 export function applyImmediateEffects(params: {
   state: any;

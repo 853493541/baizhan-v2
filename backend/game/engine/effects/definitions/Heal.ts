@@ -7,7 +7,7 @@ import {
   ActiveBuff,
 } from "../../state/types";
 import { resolveHealAmount } from "../../utils/combatMath";
-import { pushEvent } from "./eventHelpers";
+import { pushEvent } from "../events";
 
 /**
  * HEAL EFFECT HANDLER

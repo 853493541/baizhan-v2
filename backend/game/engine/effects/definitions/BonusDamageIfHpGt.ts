@@ -1,28 +1,24 @@
-// backend/game/engine/effects/handlers/handleDamage.ts
+// backend/game/engine/effects/handlers/handleBonusDamageIfHpGt.ts
 
 import { GameState, Card, CardEffect, ActiveBuff } from "../../state/types";
 import { blocksEnemyTargeting } from "../../rules/guards";
 import { resolveScheduledDamage } from "../../utils/combatMath";
-import { pushEvent } from "./eventHelpers";
+import { pushEvent } from "../events";
 
-/**
- * Handle immediate DAMAGE effects.
- *
- * IMPORTANT (engine contract):
- * - guards.ts expects target to have { buffs: ActiveBuff[] }
- * - combatMath expects source/target to have { buffs: ActiveBuff[] }
- * - Therefore source/target here MUST include buffs
- */
-export function handleDamage(
+export function handleBonusDamageIfHpGt(
   state: GameState,
   source: { userId: string; hp: number; buffs: ActiveBuff[] },
   target: { userId: string; hp: number; buffs: ActiveBuff[] },
-  isEnemyEffect: boolean,
+  opponentHpAtCardStart: number,
   card: Card,
   effect: CardEffect
 ) {
-  // Enemy targeting can be blocked (e.g. untargetable / dodge-style buffs)
-  if (isEnemyEffect && blocksEnemyTargeting(target)) {
+  const threshold = effect.threshold ?? 0;
+  const bonus = effect.value ?? 0;
+
+  if (opponentHpAtCardStart <= threshold || bonus <= 0) return;
+
+  if (blocksEnemyTargeting(target)) {
     pushEvent(state, {
       turn: state.turn,
       type: "DAMAGE",
@@ -36,12 +32,10 @@ export function handleDamage(
     return;
   }
 
-  const base = effect.value ?? 0;
-
   const final = resolveScheduledDamage({
     source,
     target,
-    base,
+    base: bonus,
   });
 
   if (final > 0) {

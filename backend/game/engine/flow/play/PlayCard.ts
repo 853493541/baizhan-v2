@@ -1,13 +1,13 @@
 // engine/flow/applyCard.ts
-import { GameState, Card } from "../state/types";
-import { getEnemy } from "../utils/targeting";
-import { pushEvent } from "../../services/flow/events";
+import { GameState, Card } from "../../state/types";
+import { getEnemy } from "../../utils/targeting";
+import { pushEvent } from "../../../services/flow/events";
 
 import { breakOnPlay } from "./breakOnPlay";
-import { computeCardDodge } from "../rules/dodge";
-import { applyImmediateEffects } from "./applyImmediateEffects";
-import { applyCardBuffs } from "./applyCardBuffs";
-import { checkEndGame } from "./endGameCheck";
+import { computeCardDodge } from "../../rules/dodge";
+import { applyImmediateEffects } from "./immediateEffects";
+import { applyCardBuffs } from "./buffs";
+import { checkGameOver } from "../turn/checkGameOver";
 
 export function applyCard(
   state: GameState,
@@ -55,5 +55,5 @@ export function applyCard(
     cardDodged,
   });
 
-  checkEndGame(state);
+  checkGameOver(state);
 }

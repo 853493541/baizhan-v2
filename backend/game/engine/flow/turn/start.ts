@@ -2,8 +2,8 @@
 
 import { GameState, ActiveBuff } from "../../state/types";
 import { resolveScheduledDamage, resolveHealAmount } from "../../utils/combatMath";
-import { pushDamageEvent, pushHealEvent } from "./eventHelpers";
-import { getBuffSourceCardId, getBuffSourceCardName } from "./buffSource";
+import { pushDamageEvent, pushHealEvent } from "./internal/combatEvents";
+import { getBuffSourceCardId, getBuffSourceCardName } from "./internal/buffOrigin";
 
 export function applyStartTurnEffects(params: {
   state: GameState;

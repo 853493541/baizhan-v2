@@ -1,7 +1,7 @@
 // backend/game/engine/flow/turnResolver.ts
 
-import { GameState } from "../state/types";
-import { resolveTurnEndImpl } from "./turn/resolveTurnEndImpl";
+import { GameState } from "../../state/types";
+import { resolveTurnEndImpl } from "./end";
 
 /**
  * Public engine entry point for turn resolution.

@@ -1,7 +1,7 @@
 // backend/game/engine/effects/handlers/eventHelpers.ts
 
 import { randomUUID } from "crypto";
-import { GameState, GameEvent } from "../../state/types";
+import { GameState, GameEvent } from "../state/types";
 
 export function pushEvent(
   state: GameState,

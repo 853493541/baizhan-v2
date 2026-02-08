@@ -8,7 +8,7 @@ import {
 } from "../../state/types";
 import { blocksEnemyTargeting } from "../../rules/guards";
 import { resolveScheduledDamage, resolveHealAmount } from "../../utils/combatMath";
-import { pushEvent } from "./eventHelpers";
+import { pushEvent } from "../events";
 
 /**
  * LEGACY CHANNEL IMMEDIATE EFFECTS

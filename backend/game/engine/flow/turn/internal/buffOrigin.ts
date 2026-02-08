@@ -1,6 +1,6 @@
 // backend/game/engine/flow/turn/buffSource.ts
 
-import { ActiveBuff } from "../../state/types";
+import { ActiveBuff } from "../../../state/types";
 
 export function getBuffSourceCardId(buff: ActiveBuff) {
   return buff.sourceCardId;

@@ -5,14 +5,14 @@
 
 import GameSession from "../../models/GameSession";
 import { CARDS } from "../../cards/cards";
-import { applyEffects } from "../../engine/flow/applyEffects";
-import { resolveTurnEnd } from "../../engine/flow/turnResolver";
+import { applyEffects } from "../../engine/flow/play/executeCard";
+import { resolveTurnEnd } from "../../engine/flow/turn/advanceTurn";
 import { validatePlayCard } from "../../engine/rules/validateAction";
 import { GameState } from "../../engine/state/types";
 import { autoDrawAtTurnStart } from "../flow/draw";
 import { pushEvent } from "../flow/events";
 import { diffState } from "../flow/stateDiff";
-import { applyOnPlayBuffEffects } from "../../engine/flow/onPlay";
+import { applyOnPlayBuffEffects } from "../../engine/flow/play/onPlayEffects";
 
 /* ================= EVENT PRUNING ================= */
 

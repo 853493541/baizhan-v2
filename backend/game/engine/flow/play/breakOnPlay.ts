@@ -1,5 +1,5 @@
 // engine/flow/breakOnPlay.ts
-import { ActiveBuff } from "../state/types";
+import { ActiveBuff } from "../../state/types";
 
 export function breakOnPlay(source: { buffs?: ActiveBuff[] }) {
   if (!Array.isArray(source.buffs)) return;

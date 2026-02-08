@@ -1,7 +1,7 @@
 // backend/game/engine/flow/turn/buffTicks.ts
 
-import { GameState, ActiveBuff } from "../../state/types";
-import { pushBuffExpired } from "../../effects/system";
+import { GameState, ActiveBuff } from "../../../state/types";
+import { pushBuffExpired } from "../../../effects/buffRuntime";
 
 export function tickBuffs(
   player: { userId: string; buffs: ActiveBuff[] },

@@ -1,11 +1,11 @@
 // backend/game/engine/flow/turn/legacyEndTurnChannels.ts
 
-import { GameState, ActiveBuff } from "../../state/types";
-import { shouldDodge } from "../../rules/guards";
-import { resolveScheduledDamage } from "../../utils/combatMath";
-import { pushDamageEvent } from "./eventHelpers";
-import { getBuffSourceCardId, getBuffSourceCardName } from "./buffSource";
-import { applyLegacyHeal } from "./scheduledDamage";
+import { GameState, ActiveBuff } from "../../../state/types";
+import { shouldDodge } from "../../../rules/guards";
+import { resolveScheduledDamage } from "../../../utils/combatMath";
+import { pushDamageEvent } from "./combatEvents";
+import { getBuffSourceCardId, getBuffSourceCardName } from "./buffOrigin";
+import { applyLegacyHeal } from "./resolveScheduled";
 
 export function applyLegacyEndTurnChannels(params: {
   state: GameState;

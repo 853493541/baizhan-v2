@@ -1,12 +1,12 @@
 // engine/flow/applyCardBuffs.ts
 
-import { GameState, Card, ActiveBuff } from "../state/types";
+import { GameState, Card, ActiveBuff } from "../../state/types";
 import {
   shouldSkipDueToDodge,
   blocksNewBuffByUntargetable,
   blocksControlByImmunity,
-} from "../rules/guards";
-import { handleApplyBuffs } from "../effects/handlers";
+} from "../../rules/guards";
+import { handleApplyBuffs } from "../../effects/handlers";
 
 /**
  * Apply persistent buffs defined on a card (card.buffs).

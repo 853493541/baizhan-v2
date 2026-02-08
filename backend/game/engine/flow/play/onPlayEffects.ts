@@ -1,8 +1,8 @@
 // backend/game/engine/flow/onPlay.ts
 
-import { GameState } from "../state/types";
-import { resolveScheduledDamage } from "../utils/combatMath";
-import { pushEvent } from "../../services/flow/events";
+import { GameState } from "../../state/types";
+import { resolveScheduledDamage } from "../../utils/combatMath";
+import { pushEvent } from "../../../services/flow/events";
 
 /**
  * Apply ON_PLAY_DAMAGE effects from active buffs.

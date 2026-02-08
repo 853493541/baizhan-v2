@@ -1,8 +1,8 @@
 // backend/game/engine/effects/handlers/handleApplyBuffs.ts
 
-import { GameState, Card, ActiveBuff } from "../../state/types";
-import { blocksEnemyTargeting } from "../../rules/guards";
-import { addBuff } from "../system";
+import { GameState, Card, ActiveBuff } from "../state/types";
+import { blocksEnemyTargeting } from "../rules/guards";
+import { addBuff } from "./buffRuntime";
 
 /**
  * APPLY CARD-DEFINED BUFFS

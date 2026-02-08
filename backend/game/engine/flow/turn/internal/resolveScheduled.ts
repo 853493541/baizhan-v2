@@ -1,13 +1,13 @@
 // backend/game/engine/flow/turn/scheduledDamage.ts
 
-import { GameState, ActiveBuff } from "../../state/types";
-import { shouldDodge, hasUntargetable } from "../../rules/guards";
-import { resolveScheduledDamage, resolveHealAmount } from "../../utils/combatMath";
-import { pushDamageEvent, pushHealEvent } from "./eventHelpers";
+import { GameState, ActiveBuff } from "../../../state/types";
+import { shouldDodge, hasUntargetable } from "../../../rules/guards";
+import { resolveScheduledDamage, resolveHealAmount } from "../../../utils/combatMath";
+import { pushDamageEvent, pushHealEvent } from "./combatEvents";
 import {
   getBuffSourceCardId,
   getBuffSourceCardNameWithDebug,
-} from "./buffSource";
+} from "./buffOrigin";
 
 export function applyScheduledDamage(
   state: GameState,

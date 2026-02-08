@@ -10,8 +10,8 @@
  * - define the engine’s execution boundary
  */
 
-import { GameState, Card } from "../state/types";
-import { applyCard } from "./applyCards";
+import { GameState, Card } from "../../state/types";
+import { applyCard } from "./PlayCard";
 
 export function applyEffects(
   state: GameState,

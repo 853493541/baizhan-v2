@@ -1,11 +1,11 @@
 // backend/game/engine/flow/turn/resolveTurnEndImpl.ts
 
 import { GameState } from "../../state/types";
-import { applyScheduledDamage } from "./scheduledDamage";
-import { applyLegacyEndTurnChannels } from "./legacyEndTurnChannels";
-import { tickBuffs, cleanupExpiredBuffs } from "./buffTicks";
-import { applyStartTurnEffects } from "./startTurnEffects";
-import { checkGameOver } from "./gameOver";
+import { applyScheduledDamage } from "./internal/resolveScheduled";
+import { applyLegacyEndTurnChannels } from "./internal/endTurnChannels.legacy";
+import { tickBuffs, cleanupExpiredBuffs } from "./internal/tickBuffs";
+import { applyStartTurnEffects } from "./start";
+import { checkGameOver } from "./checkGameOver";
 
 export function resolveTurnEndImpl(state: GameState) {
   if (state.gameOver) return;

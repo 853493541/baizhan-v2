@@ -1,6 +1,6 @@
 // backend/game/engine/flow/turn/eventHelpers.ts
 
-import { GameState } from "../../state/types";
+import { GameState } from "../../../state/types";
 import { randomUUID } from "crypto";
 
 export function pushDamageEvent(params: {
