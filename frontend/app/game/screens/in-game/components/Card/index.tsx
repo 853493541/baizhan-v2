@@ -30,12 +30,14 @@ export default function Card({
   onClick,
 }: Props) {
   const preload = useGamePreload();
-
   const card = preload.cardMap[cardId];
 
   const name = card?.name ?? cardId;
   const desc = card?.description ?? "暂无描述";
   const iconSrc = getCardIconByName(card?.name);
+
+  // 🔑 IMPORTANT: do NOT coerce, show raw value
+  const gcdValue = card?.gcdCost;
 
   const isClickable = variant === "hand";
   const isDisabled = variant === "disabled";
@@ -50,9 +52,13 @@ export default function Card({
       ]
         .filter(Boolean)
         .join(" ")}
-      // ✅ capture phase click so desc scroll area can't swallow it
       onClickCapture={isClickable ? onClick : undefined}
     >
+      {/* ================= GCD DEBUG / DISPLAY ================= */}
+      <div className={styles.gcdCrystal}>
+        {String(gcdValue)}
+      </div>
+
       <div className={styles.icon}>
         {iconSrc ? (
           <img src={iconSrc} alt={name} draggable={false} />

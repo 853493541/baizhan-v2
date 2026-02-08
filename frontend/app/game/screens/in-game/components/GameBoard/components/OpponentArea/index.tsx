@@ -12,19 +12,23 @@ type Props = {
   currentTurn: number;
 };
 
-export default function OpponentArea({ opponent, currentTurn }: Props) {
+export default function OpponentArea({
+  opponent,
+  currentTurn,
+}: Props) {
   return (
     <div className={styles.enemyHalf} data-label="OpponentArea">
-      {/* 🟩 Enemy Health */}
+      {/* ================= ENEMY HEALTH + GCD ================= */}
       <div className={styles.section} data-label="Enemy Health">
         <HealthBar
           hp={opponent.hp}
           maxHp={MAX_HP}
           side="enemy"
+          gcd={opponent.gcd}
         />
       </div>
 
-      {/* 🟩 Enemy Buffs / Debuffs */}
+      {/* ================= ENEMY BUFFS / DEBUFFS ================= */}
       <div className={styles.section} data-label="Enemy Status">
         <StatusBar
           buffs={opponent.buffs}
@@ -32,7 +36,7 @@ export default function OpponentArea({ opponent, currentTurn }: Props) {
         />
       </div>
 
-      {/* 🟩 Enemy Hand Count */}
+      {/* ================= ENEMY HAND COUNT ================= */}
       <div className={styles.section} data-label="Enemy Hand">
         <div className={styles.opponentHand}>
           <div className={styles.cardBack}>
@@ -40,7 +44,6 @@ export default function OpponentArea({ opponent, currentTurn }: Props) {
               {opponent.hand.length}
             </span>
           </div>
-          {/* <div className={styles.handLabel}>对手手牌</div> */}
         </div>
       </div>
     </div>

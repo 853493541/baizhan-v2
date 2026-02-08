@@ -1,6 +1,8 @@
 /* ================= BASE CARD ================= */
 
 .card {
+  position: relative;
+
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -12,39 +14,67 @@
   background: linear-gradient(180deg, #0f172a, #020617);
   border: 1px solid #334155;
   color: white;
-/* max-width: 100%; */
+
   user-select: none;
-    overflow-y: hidden;
+
+  /* REQUIRED: allow badge to render outside */
+  overflow: visible;
+}
+
+/* ================= GCD CRYSTAL ================= */
+
+.gcdCrystal {
+  position: absolute;
+
+  /* TOP-LEFT, half outside */
+  top: -8px;
+  left: -8px;
+
+  width: 22px;
+  height: 22px;
+
+  border-radius: 7px;
+
+  background: linear-gradient(180deg, #38bdf8, #0ea5e9);
+  border: 1px solid #7dd3fc;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 12px;
+  font-weight: 800;
+  color: #020617;
+
+  box-shadow:
+    0 4px 10px rgba(0,0,0,0.6),
+    inset 0 1px 0 rgba(255,255,255,0.35);
+
+  pointer-events: none;
+  z-index: 5;
 }
 
 /* ================= VARIANTS ================= */
 
-/* Small — hand */
 .hand {
   width: 110px;
   min-height: 150px;
 }
 
-/* Medium — arena / current action */
 .arena {
   width: 150px;
   min-height: 200px;
 }
 
-/* Large — history hover / pinned */
 .preview {
   width: 170px;
   min-height: 220px;
-
-  box-shadow:
-    0 12px 28px rgba(0,0,0,0.65),
-    inset 0 0 0 1px rgba(255,255,255,0.05);
 }
 
-/* Disabled */
 .disabled {
   width: 110px;
   min-height: 150px;
+
   opacity: 0.45;
   filter: grayscale(0.6);
 }
@@ -96,14 +126,13 @@
   font-size: 13px;
   font-weight: 700;
   text-align: center;
-  line-height: 1.2;
 }
 
 .preview .name {
   font-size: 15px;
 }
 
-/* ================= DESC (OUTER) ================= */
+/* ================= DESC ================= */
 
 .desc {
   font-size: 12px;
@@ -112,7 +141,6 @@
 
   text-align: center;
   white-space: pre-line;
-  word-break: break-word;
 
   max-height: 80px;
   min-height: 80px;
@@ -121,17 +149,11 @@
   align-items: center;
   justify-content: center;
 
-  overflow: hidden;
-
-  /* 🔑 allow click-through */
   pointer-events: none;
-  /* border:red 2px solid; */
 }
 
-/* ================= DESC (INNER — SCROLLABLE TEXT ONLY) ================= */
-
 .descInner {
-   max-height: 80px;
+  max-height: 80px;
   min-height: 80px;
 
   overflow-y: auto;
@@ -139,40 +161,12 @@
 
   padding: 2px 2px;
 
-  /* 🔑 scrolling allowed without blocking card click */
   pointer-events: auto;
-}
-
-.preview .desc {
-  font-size: 13px;
-  max-height: 110px;
-  min-height: 110px;
-}
-
-.preview .descInner {
-  max-height: 110px;
 }
 
 .descInner::-webkit-scrollbar {
   width: 0;
   height: 0;
-}
-
-/* ================= KEYWORDS ================= */
-
-.desc :global(.kw-control) {
-  color: #f87171;
-  font-weight: 600;
-}
-
-.desc :global(.kw-silence) {
-  color: #c084fc;
-  font-weight: 600;
-}
-
-.desc :global(.kw-untargetable) {
-  color: #60a5fa;
-  font-weight: 600;
 }
 
 /* ================= MOBILE ================= */
@@ -195,13 +189,11 @@
     min-height: 190px;
   }
 
-  .name {
-    font-size: 11px;
-  }
-
-  .desc {
-    font-size: 11px;
-    max-height: 80px;
-    min-height: 80px;
+  .gcdCrystal {
+    width: 16px;
+    height: 16px;
+    font-size: 10px;
+    top: -6px;
+    left: -6px;
   }
 }

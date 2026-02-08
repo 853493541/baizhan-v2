@@ -27,18 +27,21 @@ export default function PlayerArea({
 }: Props) {
   return (
     <div className={styles.playerHalf}>
-      {/* ✅ buffs replace statuses */}
+      {/* ================= STATUS / BUFFS ================= */}
       <StatusBar
         buffs={me.buffs}
         currentTurn={currentTurn}
       />
 
+      {/* ================= HP + GCD ================= */}
       <HealthBar
         hp={me.hp}
         maxHp={MAX_HP}
         side="player"
+        gcd={me.gcd}
       />
 
+      {/* ================= HAND ================= */}
       <div className={styles.handZone}>
         <Hand
           cards={me.hand}

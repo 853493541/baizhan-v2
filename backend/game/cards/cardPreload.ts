@@ -1,5 +1,3 @@
-// backend/game/cards/cardPreload.ts
-
 import { CARDS } from "./cards";
 
 /**
@@ -20,15 +18,10 @@ export function buildCardPreload() {
       description: card.description,
       type: card.type,
       target: card.target,
-
-      /**
-       * GCD (Global Cooldown) cost
-       * - Display-only for frontend
-       * - Engine logic remains backend-only
-       */
-      gcdCost: card.gcdCost,
-
       effects: card.effects ?? [],
+
+      // ✅ FIX: include static GCD COST in preload
+      gcdCost: card.gcdCost ?? 0,
     };
 
     cards.push(cardPayload);
@@ -40,14 +33,10 @@ export function buildCardPreload() {
           name: buff.name,
           category: buff.category,
 
-          // authoritative duration
           duration: buff.duration,
-
           breakOnPlay: buff.breakOnPlay ?? false,
 
-          // authoritative text
           description: buff.description ?? "无",
-
           effects: buff.effects ?? [],
 
           // UI helpers
@@ -58,8 +47,13 @@ export function buildCardPreload() {
     }
   }
 
-  const cardMap = Object.fromEntries(cards.map((c) => [c.id, c]));
-  const buffMap = Object.fromEntries(buffs.map((b) => [b.buffId, b]));
+  const cardMap = Object.fromEntries(
+    cards.map((c) => [c.id, c])
+  );
+
+  const buffMap = Object.fromEntries(
+    buffs.map((b) => [b.buffId, b])
+  );
 
   return {
     cards,

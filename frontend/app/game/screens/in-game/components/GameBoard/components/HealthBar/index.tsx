@@ -7,18 +7,21 @@ type Props = {
   hp: number;
   maxHp: number;
   side: "player" | "enemy";
+
+  /** NEW: remaining GCD for this player */
+  gcd?: number;
 };
 
-export default function HealthBar({ hp, maxHp, side }: Props) {
+export default function HealthBar({
+  hp,
+  maxHp,
+  side,
+  gcd,
+}: Props) {
   const prevHp = useRef(hp);
   const [delta, setDelta] = useState<number | null>(null);
 
-  /* ================= HYBRID DELTA LOGIC =================
-     - Shows delta immediately on HP change
-     - Replaces old delta if another change happens
-     - Auto-clears after timeout if no further change
-  ======================================================= */
-
+  /* ================= HYBRID DELTA LOGIC ================= */
   useEffect(() => {
     const diff = hp - prevHp.current;
     if (diff !== 0) {
@@ -26,10 +29,9 @@ export default function HealthBar({ hp, maxHp, side }: Props) {
 
       const timer = setTimeout(() => {
         setDelta(null);
-      }, 1400); // ⏱️ hybrid persistence window
+      }, 1400);
 
       prevHp.current = hp;
-
       return () => clearTimeout(timer);
     }
   }, [hp]);
@@ -47,6 +49,12 @@ export default function HealthBar({ hp, maxHp, side }: Props) {
 
       <span className={styles.hpText}>{hp}</span>
 
+      {/* ================= GCD PILL ================= */}
+      <span className={styles.gcdPill}>
+        GCD:{String(gcd)}
+      </span>
+
+      {/* ================= HP DELTA ================= */}
       {delta !== null && (
         <span
           className={`${styles.hpDelta} ${
