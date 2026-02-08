@@ -1,45 +1,17 @@
 // backend/game/engine/flow/applyEffects.ts
+
 /**
- * Orchestrator for card effect execution.
+ * Public engine entry point for card execution.
  *
- * Responsibilities:
- * - High-level flow of applying a card
- * - breakOnPlay cleanup (caster only)
- * - card-level dodge computation
- * - Iterating card.effects (immediate effects only)
- * - Applying card.buffs (persistent buffs)
- * - End-game check
- *
- * IMPORTANT:
- * - No effect math here (delegated to handlers / utils)
- * - No buff creation rules here (delegated to handleApplyBuffs)
- * - Behavior should stay compatible with legacy rules:
- *   - Dodge cancels enemy-applied stuff only
- *   - Untargetable blocks enemy-applied NEW buffs
- *   - Control immunity blocks CONTROL (handled by guards/handler)
+ * DO NOT put logic here.
+ * This file exists to:
+ * - provide a stable import path
+ * - shield callers from internal refactors
+ * - define the engine’s execution boundary
  */
 
-import { GameState, Card, ActiveBuff } from "../state/types";
-import { getEnemy, resolveEffectTargetIndex } from "../utils/targeting";
-import { pushEvent } from "../../services/flow/events";
-
-import {
-  isEnemyEffect,
-  shouldSkipDueToDodge,
-  blocksNewBuffByUntargetable,
-  blocksControlByImmunity,
-  shouldDodge,
-} from "../rules/guards";
-
-import {
-  handleDamage,
-  handleBonusDamageIfHpGt,
-  handleHeal,
-  handleDraw,
-  handleCleanse,
-  handleChannelEffect,
-  handleApplyBuffs,
-} from "../effects/handlers";
+import { GameState, Card } from "../state/types";
+import { applyCard } from "./applyCards";
 
 export function applyEffects(
   state: GameState,
@@ -47,178 +19,5 @@ export function applyEffects(
   playerIndex: number,
   targetIndex: number
 ) {
-  if (state.gameOver) return;
-
-  const source = state.players[playerIndex];
-  const defaultTarget = state.players[targetIndex];
-  const enemy = getEnemy(state, playerIndex);
-
-  /* =========================================================
-     🔴 PLAY CARD EVENT (authoritative)
-     - emitted ONCE per card play
-     - animation + timeline driver ONLY
-     - must match GameEvent schema
-  ========================================================= */
-  pushEvent(state, {
-    turn: state.turn,
-    type: "PLAY_CARD",
-    actorUserId: source.userId,
-    targetUserId: defaultTarget.userId,
-    cardId: card.id,
-    cardName: card.name,
-  });
-
-  /* =========================================================
-     breakOnPlay affects ONLY the caster
-     - your buff ends when YOU cast
-     - enemy casting does NOT break your buffs
-  ========================================================= */
-  if (Array.isArray(source.buffs)) {
-    source.buffs = source.buffs.filter(
-      (buff: ActiveBuff) => !buff.breakOnPlay
-    );
-  }
-
-  // Snapshot for bonus-damage checks (opponent HP at card start)
-  const opponentHpAtCardStart = defaultTarget.hp;
-
-  /* =========================================================
-     card-level dodge (enemy effects only)
-     - Only relevant when the card targets opponent
-     - Uses target's stacked DODGE_NEXT from buffs
-  ========================================================= */
-  const cardDodged =
-    card.target === "OPPONENT" ? shouldDodge(defaultTarget) : false;
-
-  /* =========================================================
-     1) Apply immediate effects (card.effects)
-     - These should be ONLY instant effects now
-  ========================================================= */
-  for (const effect of card.effects) {
-    const effTargetIndex = resolveEffectTargetIndex(
-      targetIndex,
-      playerIndex,
-      effect.applyTo
-    );
-    const effTarget = state.players[effTargetIndex];
-
-    const enemyApplied = isEnemyEffect(source, effTarget, effect);
-
-    // Dodge cancels enemy-applied effects only
-    if (shouldSkipDueToDodge(cardDodged, enemyApplied)) continue;
-
-    switch (effect.type) {
-      case "DAMAGE": {
-        handleDamage(state, source, effTarget, enemyApplied, card, effect);
-        break;
-      }
-
-      case "BONUS_DAMAGE_IF_TARGET_HP_GT": {
-        handleBonusDamageIfHpGt(
-          state,
-          source,
-          defaultTarget,
-          opponentHpAtCardStart,
-          card,
-          effect
-        );
-        break;
-      }
-
-      case "HEAL": {
-        handleHeal(state, source, effTarget, card, effect);
-        break;
-      }
-
-      case "DRAW": {
-        handleDraw(state, source, effect);
-        break;
-      }
-
-      case "CLEANSE": {
-        handleCleanse(source);
-        break;
-      }
-
-      /* =========================================================
-         CHANNEL (legacy compatible path)
-         - Old cards might still trigger immediate channel ticks.
-         - Preferred design now: put scheduled/channel behavior into card.buffs
-           using SCHEDULED_DAMAGE.
-         - We keep WUJIAN / XINZHENG legacy here for now.
-         - FENGLAI is migrated to SCHEDULED_DAMAGE and should NOT be executed here.
-      ========================================================= */
-      case "WUJIAN_CHANNEL":
-      case "XINZHENG_CHANNEL": {
-        handleChannelEffect(state, source, enemy, card, effect);
-        break;
-      }
-
-      default: {
-        // Compatibility: timed effects in card.effects are deprecated.
-        // They must be moved into card.buffs.
-        // We deliberately do nothing here to avoid “ghost statuses”.
-        break;
-      }
-    }
-  }
-
-  /* =========================================================
-     2) Apply buffs defined on card (card.buffs)
-     - Target determined by card.target (SELF / OPPONENT)
-     - Dodge cancels enemy-applied buffs
-     - Untargetable blocks enemy-applied NEW buffs
-  ========================================================= */
-  if (Array.isArray(card.buffs) && card.buffs.length > 0) {
-    const buffTarget = card.target === "SELF" ? source : defaultTarget;
-    const enemyApplied = buffTarget.userId !== source.userId;
-
-    // Dodge cancels enemy-applied buffs only
-    if (!shouldSkipDueToDodge(cardDodged, enemyApplied)) {
-      // Untargetable blocks new enemy buffs
-      if (!blocksNewBuffByUntargetable(source, buffTarget)) {
-        const buffs = card.buffs;
-        if (!buffs || buffs.length === 0) {
-          return;
-        }
-
-        for (const buff of buffs) {
-          const isControlBuff = buff.effects.some((e) => e.type === "CONTROL");
-
-          if (
-            isControlBuff &&
-            blocksControlByImmunity("CONTROL", buffTarget)
-          ) {
-            continue;
-          }
-
-          const originalBuffs = buffs.slice();
-          card.buffs = [buff];
-
-          handleApplyBuffs({
-            state,
-            card,
-            source,
-            target: buffTarget,
-            isEnemyEffect: enemyApplied,
-          });
-
-          card.buffs = originalBuffs;
-        }
-      }
-    }
-  }
-
-  /* =========================================================
-     END GAME CHECK (unchanged)
-  ========================================================= */
-  for (const p of state.players) {
-    if (p.hp <= 0) {
-      state.gameOver = true;
-      state.winnerUserId = state.players.find(
-        (x) => x.userId !== p.userId
-      )?.userId;
-      return;
-    }
-  }
+  applyCard(state, card, playerIndex, targetIndex);
 }
