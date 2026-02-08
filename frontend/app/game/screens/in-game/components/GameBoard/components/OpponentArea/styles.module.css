@@ -2,38 +2,35 @@
 .enemyHalf {
   display: flex;
   flex-direction: column;
-  align-items: center; /* center sections horizontally */
+  align-items: center;
   gap: 6px;
   padding-top: 8px;
-
-  /* DEBUG */
-  /* border: 2px solid #22c55e; */
 }
 
-/* ================= SECTION WRAPPER ================= */
+/* ================= TOP ROW ================= */
+.topRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ================= SECTION ================= */
 .section {
-  display: inline-flex;      /* 🔑 shrink to content */
+  display: inline-flex;
   justify-content: center;
   align-items: center;
-
-  /* DEBUG */
-  /* border: 2px solid #22c55e; */
-  /* padding: 4px 0; */
 }
 
-/* ================= OPPONENT HAND ================= */
-.opponentHand {
+/* ================= OPPONENT HAND (SMALL) ================= */
+.opponentHandSmall {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 4px;
 }
 
-.cardBack {
-  padding-top:2px;
-  width: 56px;
-  height: 78px;
-  border-radius: 8px;
+.cardBackSmall {
+  width: 42px;
+  height: 58px;
+  border-radius: 7px;
   background: linear-gradient(135deg, #334155, #0f172a);
   border: 1px solid rgba(255,255,255,0.25);
   display: flex;
@@ -41,40 +38,24 @@
   justify-content: center;
 }
 
-.cardCount {
-  font-size: 28px;
+.cardCountSmall {
+  font-size: 20px;
   font-weight: 800;
   color: #e5e7eb;
 }
 
-.handLabel {
-  font-size: 12px;
-  opacity: 0.75;
-}
-
 /* ================= MOBILE ================= */
 @media (max-width: 768px) {
-  .enemyHalf {
-    padding-top: 12px;
-    gap: 4px;
+  .topRow {
+    gap: 6px;
   }
 
-  .opponentHand {
-    margin-top: 4px;
-    opacity: 0.8;
-    transform: scale(0.9);
+  .cardBackSmall {
+    width: 36px;
+    height: 50px;
   }
 
-  .cardBack {
-    width: 48px;
-    height: 66px;
-  }
-
-  .cardCount {
-    font-size: 22px;
-  }
-
-  .handLabel {
-    font-size: 11px;
+  .cardCountSmall {
+    font-size: 18px;
   }
 }

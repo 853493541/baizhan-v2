@@ -10,7 +10,7 @@
 
 .chatlog {
   width: 280px;
-  height: 160px;
+  height: 18vh;
 
   background: rgba(0, 0, 0, 0.45);
   border-radius: 4px;
