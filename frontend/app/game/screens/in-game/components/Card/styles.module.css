@@ -136,14 +136,14 @@
 
 .desc {
   font-size: 12px;
-  line-height: 1.4;
+  line-height: 1.2;
   opacity: 0.9;
 
   text-align: center;
   white-space: pre-line;
 
   max-height: 80px;
-  min-height: 80px;
+  /* min-height: 80px; */
 
   display: flex;
   align-items: center;
@@ -154,7 +154,7 @@
 
 .descInner {
   max-height: 80px;
-  min-height: 80px;
+  /* min-height: 80px; */
 
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -198,13 +198,24 @@
 /* ================= MOBILE ================= */
 
 @media (max-width: 768px) {
+  .card {
+  gap: 2px;
+  }
+
   .hand,
   .disabled {
     width: 80px;
-    min-height: 120px;
+    min-height:120px;
+    max-height: 120px;
     padding: 4px;
   }
-
+.icon {
+  width: 20px;
+  height: 20px;
+}
+.name {
+  font-size: 11px;
+}
   .arena {
     width: 120px;
     min-height: 160px;
@@ -221,5 +232,10 @@
     font-size: 10px;
     top: -6px;
     left: -6px;
+  }
+}
+@media (max-width: 768px) {
+  .descInner {
+    max-height: 42px;   /* tuned for 80x120 card */
   }
 }

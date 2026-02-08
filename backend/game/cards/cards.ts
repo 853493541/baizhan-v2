@@ -65,7 +65,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
   mohe_wuliang: {
     id: "mohe_wuliang",
     name: "摩诃无量",
-    description: "造成10点伤害\n击倒个回合",
+    description: "造成10点伤害\n击倒1个回合",
     type: "CONTROL",
     target: "OPPONENT",
     gcdCost: 1,
