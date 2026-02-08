@@ -12,22 +12,32 @@ export async function createGame(userId: string) {
   const deck = shuffle(buildDeck());
 
   const state: GameState = {
-    /** NEW: initialize authoritative state version */
+    /** authoritative state version */
     version: 1,
 
     turn: 0,
     activePlayerIndex: 0,
+
     deck,
     discard: [],
     gameOver: false,
+
     players: [
       {
         userId,
         hp: 100,
         hand: [],
-        buffs: [], // ✅ updated
+        buffs: [],
+
+        /**
+         * GCD
+         * - Game not started yet
+         * - No active turn, so no GCD available
+         */
+        gcd: 0,
       },
     ],
+
     events: [],
   };
 
@@ -61,28 +71,45 @@ export async function startGame(gameId: string, userId: string) {
   const deck = shuffle(buildDeck());
 
   const state: GameState = {
-    /** NEW: initialize authoritative state version */
+    /** authoritative state version */
     version: 1,
 
     turn: 0,
     activePlayerIndex: 0,
+
     deck,
     discard: [],
     gameOver: false,
+
     players: [
       {
         userId: game.players[0],
         hp: 100,
         hand: [],
-        buffs: [], // ✅ updated
+        buffs: [],
+
+        /**
+         * GCD
+         * - Active player at game start
+         * - Gets exactly 1 GCD for their first turn
+         */
+        gcd: 1,
       },
       {
         userId: game.players[1],
         hp: 100,
         hand: [],
-        buffs: [], // ✅ updated
+        buffs: [],
+
+        /**
+         * GCD
+         * - Not the active player yet
+         * - Will be set to 1 when their turn starts
+         */
+        gcd: 0,
       },
     ],
+
     events: [],
   };
 

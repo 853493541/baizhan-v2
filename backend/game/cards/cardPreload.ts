@@ -20,6 +20,14 @@ export function buildCardPreload() {
       description: card.description,
       type: card.type,
       target: card.target,
+
+      /**
+       * GCD (Global Cooldown) cost
+       * - Display-only for frontend
+       * - Engine logic remains backend-only
+       */
+      gcdCost: card.gcdCost,
+
       effects: card.effects ?? [],
     };
 
@@ -32,7 +40,7 @@ export function buildCardPreload() {
           name: buff.name,
           category: buff.category,
 
-          // ✅ UPDATED FIELD NAME
+          // authoritative duration
           duration: buff.duration,
 
           breakOnPlay: buff.breakOnPlay ?? false,
@@ -50,13 +58,8 @@ export function buildCardPreload() {
     }
   }
 
-  const cardMap = Object.fromEntries(
-    cards.map((c) => [c.id, c])
-  );
-
-  const buffMap = Object.fromEntries(
-    buffs.map((b) => [b.buffId, b])
-  );
+  const cardMap = Object.fromEntries(cards.map((c) => [c.id, c]));
+  const buffMap = Object.fromEntries(buffs.map((b) => [b.buffId, b]));
 
   return {
     cards,

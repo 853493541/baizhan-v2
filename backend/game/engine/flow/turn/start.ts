@@ -1,16 +1,33 @@
 // backend/game/engine/flow/turn/startTurnEffects.ts
 
 import { GameState, ActiveBuff } from "../../state/types";
-import { resolveScheduledDamage, resolveHealAmount } from "../../utils/combatMath";
-import { pushDamageEvent, pushHealEvent } from "./internal/combatEvents";
-import { getBuffSourceCardId, getBuffSourceCardName } from "./internal/buffOrigin";
+import {
+  resolveScheduledDamage,
+  resolveHealAmount,
+} from "../../utils/combatMath";
+import {
+  pushDamageEvent,
+  pushHealEvent,
+} from "./internal/combatEvents";
+import {
+  getBuffSourceCardId,
+  getBuffSourceCardName,
+} from "./internal/buffOrigin";
 
 export function applyStartTurnEffects(params: {
   state: GameState;
-  me: { userId: string; hp: number; buffs: ActiveBuff[] };
+  me: { userId: string; hp: number; buffs: ActiveBuff[]; gcd: number };
   enemy: { userId: string; hp: number; buffs: ActiveBuff[] };
 }) {
   const { state, me, enemy } = params;
+
+  /**
+   * ================= GCD REFILL =================
+   * Start of active player's turn
+   * Current rule (v0):
+   * - Always reset to exactly 1
+   */
+  me.gcd = 1;
 
   for (const buff of me.buffs) {
     for (const e of buff.effects) {

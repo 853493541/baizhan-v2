@@ -1,4 +1,5 @@
 // engine/flow/applyCard.ts
+
 import { GameState, Card } from "../../state/types";
 import { getEnemy } from "../../utils/targeting";
 import { pushEvent } from "../../../services/flow/events";
@@ -20,6 +21,13 @@ export function applyCard(
   const source = state.players[playerIndex];
   const target = state.players[targetIndex];
   const enemy = getEnemy(state, playerIndex);
+
+  /**
+   * ================= GCD SPEND =================
+   * Validation already happened in validatePlayCard
+   * This is the single authoritative place where GCD is consumed
+   */
+  source.gcd -= card.gcdCost;
 
   pushEvent(state, {
     turn: state.turn,

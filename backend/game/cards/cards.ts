@@ -11,6 +11,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
     description: "造成10点伤害\n使目标每回合受到2点伤害，持续3回合",
     type: "ATTACK",
     target: "OPPONENT",
+    gcdCost: 1,
     effects: [{ type: "DAMAGE", value: 10 }],
     buffs: [
       {
@@ -31,6 +32,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
     description: "造成5点伤害\n抽一张牌",
     type: "ATTACK",
     target: "OPPONENT",
+    gcdCost: 1,
     effects: [
       { type: "DAMAGE", value: 5 },
       { type: "DRAW", value: 1 },
@@ -43,6 +45,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
     description: "造成3点伤害\n对手每个回合开始时受到8点伤害，持续3个回合",
     type: "ATTACK",
     target: "OPPONENT",
+    gcdCost: 1,
     effects: [{ type: "DAMAGE", value: 3 }],
     buffs: [
       {
@@ -65,6 +68,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
     description: "造成10点伤害\n击倒个回合",
     type: "CONTROL",
     target: "OPPONENT",
+    gcdCost: 1,
     effects: [{ type: "DAMAGE", value: 10 }],
     buffs: [
       {
@@ -85,6 +89,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
     description: "造成2点伤害\n【控制】目标1个回合\n【减疗】3个回合",
     type: "CONTROL",
     target: "OPPONENT",
+    gcdCost: 1,
     effects: [{ type: "DAMAGE", value: 2 }],
     buffs: [
       {
@@ -114,6 +119,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
     description: "造成10点伤害\n目标1回合无法使用卡牌\n每回合开始时受到2点伤害，持续3回合。",
     type: "CONTROL",
     target: "OPPONENT",
+    gcdCost: 1,
     effects: [{ type: "DAMAGE", value: 10 }],
     buffs: [
       {
@@ -143,6 +149,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
     description: "眩晕目标1回合\n使其下个回合抽卡数量减一",
     type: "CONTROL",
     target: "OPPONENT",
+    gcdCost: 1,
     effects: [],
     buffs: [
       {
@@ -166,6 +173,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
     description: "使目标每次使用卡牌时受到3点伤害，持续3个回合",
     type: "CONTROL",
     target: "OPPONENT",
+    gcdCost: 1,
     effects: [],
     buffs: [
       {
@@ -188,6 +196,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
     description: "解控\n免疫控制1回合\n抽一张牌",
     type: "SUPPORT",
     target: "SELF",
+    gcdCost: 0,
     effects: [
       { type: "CLEANSE", allowWhileControlled: true },
       { type: "DRAW", value: 1, allowWhileControlled: true },
@@ -211,6 +220,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
     description: "解控\n抽2张牌\n恢复10点生命值\n【不可选中】一回合",
     type: "SUPPORT",
     target: "SELF",
+    gcdCost: 0,
     effects: [
       { type: "CLEANSE", allowWhileControlled: true },
       { type: "DRAW", value: 1, allowWhileControlled: true },
@@ -236,6 +246,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
     description: "解控\n被命中概率降低70%和免控1回合",
     type: "SUPPORT",
     target: "SELF",
+    gcdCost: 0,
     effects: [{ type: "CLEANSE", allowWhileControlled: true }],
     buffs: [
       {
@@ -267,6 +278,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
     description: "恢复60点生命值\n减伤40%，持续2回合",
     type: "SUPPORT",
     target: "SELF",
+    gcdCost: 1,
     effects: [{ type: "HEAL", value: 60 }],
     buffs: [
       {
@@ -287,6 +299,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
     description: "抽1张牌\n恢复10点生命值\n免控1回合",
     type: "SUPPORT",
     target: "SELF",
+    gcdCost: 1,
     effects: [
       { type: "DRAW", value: 1 },
       { type: "HEAL", value: 10 },
@@ -312,6 +325,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
     description: "抽2张牌\n隐身1回合",
     type: "SUPPORT",
     target: "SELF",
+    gcdCost: 0,
     effects: [{ type: "DRAW", value: 2, allowWhileControlled: true }],
     buffs: [
       {
@@ -333,6 +347,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
     description: "隐身2回合\n期间无法抽卡",
     type: "SUPPORT",
     target: "SELF",
+    gcdCost: 0,
     effects: [],
     buffs: [
       {
@@ -357,6 +372,7 @@ export const CARDS: Record<string, Card & { description: string }> = {
     description: "造成5点伤害\n隐身1回合",
     type: "ATTACK",
     target: "OPPONENT",
+    gcdCost: 1,
     effects: [{ type: "DAMAGE", value: 5 }],
     buffs: [
       {
@@ -375,234 +391,172 @@ export const CARDS: Record<string, Card & { description: string }> = {
 
   /* ================= 运功 / 节奏 ================= */
 
-fenglai_wushan: {
-  id: "fenglai_wushan",
-  name: "风来吴山",
-  description: "持续运功，玩家回合开始/结束时造成8点伤害",
-  originalDescription: "发动旋风般的重剑攻击，5秒内对周围10尺内的最多10个目标造成共计8次伤害。在此过程中你无法跳跃，不受控制招式影响（被拉除外）。",
-  type: "CHANNEL",
-  target: "SELF",
-  effects: [],
-  buffs: [
-    {
-      buffId: 1014,
-      name: "不工",
-      category: "BUFF",
-      description: "不受卡牌控制",
-      duration: 1,              // ✅ spans one enemy turn
-      tickOn: "TURN_START",     // ✅ owner-only ticking
-      breakOnPlay: true,        // ✅ channel breaks on card play
-      effects: [
-        // ===============================
-        // CC immune while channeling
-        // ===============================
-        {
-          type: "CONTROL_IMMUNE",
-        },
+  fenglai_wushan: {
+    id: "fenglai_wushan",
+    name: "风来吴山",
+    description: "持续运功，玩家回合开始/结束时造成8点伤害",
+    originalDescription:
+      "发动旋风般的重剑攻击，5秒内对周围10尺内的最多10个目标造成共计8次伤害。在此过程中你无法跳跃，不受控制招式影响（被拉除外）。",
+    type: "CHANNEL",
+    target: "SELF",
+    gcdCost: 1,
+    effects: [],
+    buffs: [
+      {
+        buffId: 1014,
+        name: "不工",
+        category: "BUFF",
+        description: "不受卡牌控制",
+        duration: 1,
+        tickOn: "TURN_START",
+        breakOnPlay: true,
+        effects: [
+          { type: "CONTROL_IMMUNE" },
+          {
+            type: "SCHEDULED_DAMAGE",
+            value: 8,
+            when: "TURN_END",
+            turnOf: "OWNER",
+            target: "ENEMY",
+          },
+          {
+            type: "SCHEDULED_DAMAGE",
+            value: 8,
+            when: "TURN_START",
+            turnOf: "ENEMY",
+            target: "ENEMY",
+          },
+          {
+            type: "SCHEDULED_DAMAGE",
+            value: 8,
+            when: "TURN_END",
+            turnOf: "ENEMY",
+            target: "ENEMY",
+          },
+          {
+            type: "SCHEDULED_DAMAGE",
+            value: 8,
+            when: "TURN_START",
+            turnOf: "OWNER",
+            target: "ENEMY",
+          },
+        ],
+      },
+    ],
+  },
 
-        // ===============================
-        // STAGE 1 — 我方回合结束 → 10
-        // ===============================
-        {
-          type: "SCHEDULED_DAMAGE",
-          value: 8,
-          when: "TURN_END",
-          turnOf: "OWNER",
-          target: "ENEMY",
-        },
+  wu_jianyu: {
+    id: "wu_jianyu",
+    name: "无间狱",
+    description: "修罗附体\n延迟1回合造成4/6/15/15伤害\n30%吸血",
+    type: "SUPPORT",
+    target: "SELF",
+    gcdCost: 1,
+    effects: [],
+    buffs: [
+      {
+        buffId: 1016,
+        name: "无间狱",
+        category: "BUFF",
+        description: "修罗附体",
+        duration: 2,
+        tickOn: "TURN_START",
+        effects: [
+          {
+            type: "SCHEDULED_DAMAGE",
+            value: 0,
+            when: "TURN_END",
+            turnOf: "OWNER",
+            target: "ENEMY",
+          },
+          {
+            type: "SCHEDULED_DAMAGE",
+            value: 0,
+            when: "TURN_START",
+            turnOf: "ENEMY",
+            target: "ENEMY",
+          },
+          {
+            type: "SCHEDULED_DAMAGE",
+            value: 4,
+            when: "TURN_END",
+            turnOf: "ENEMY",
+            target: "ENEMY",
+            lifestealPct: 0.3,
+          },
+          {
+            type: "SCHEDULED_DAMAGE",
+            value: 6,
+            when: "TURN_START",
+            turnOf: "OWNER",
+            target: "ENEMY",
+            lifestealPct: 0.3,
+          },
+          {
+            type: "SCHEDULED_DAMAGE",
+            value: 15,
+            when: "TURN_START",
+            turnOf: "ENEMY",
+            target: "ENEMY",
+            lifestealPct: 0.3,
+          },
+          {
+            type: "SCHEDULED_DAMAGE",
+            value: 15,
+            when: "TURN_END",
+            turnOf: "ENEMY",
+            target: "ENEMY",
+            lifestealPct: 0.3,
+          },
+        ],
+      },
+    ],
+  },
 
-        // ===============================
-        // STAGE 2 — 敌方回合开始 → 10
-        // ===============================
-        {
-          type: "SCHEDULED_DAMAGE",
-          value: 8,
-          when: "TURN_START",
-          turnOf: "ENEMY",
-          target: "ENEMY",
-        },
-
-        // ===============================
-        // STAGE 3 — 敌方回合结束 → 10
-        // ===============================
-        {
-          type: "SCHEDULED_DAMAGE",
-          value: 8,
-          when: "TURN_END",
-          turnOf: "ENEMY",
-          target: "ENEMY",
-        },
-
-        // ===============================
-        // STAGE 4 — 我方下回合开始 → 10
-        // ===============================
-        {
-          type: "SCHEDULED_DAMAGE",
-          value: 8,
-          when: "TURN_START",
-          turnOf: "OWNER",
-          target: "ENEMY",
-        },
-      ],
-    },
-  ],
-},
-
-
-wu_jianyu: {
-  id: "wu_jianyu",
-  name: "无间狱",
-  description: "修罗附体\n延迟1回合造成4/6/15/15伤害\n30%吸血",
-  type: "SUPPORT",
-  target: "SELF",
-  effects: [],
-  buffs: [
-    {
-      buffId: 1016,
-      name: "无间狱",
-      category: "BUFF",
-      description: "修罗附体",
-      duration: 2,
-      tickOn: "TURN_START",
-      effects: [
-        /* ===============================
-           STAGE 1 — 我方回合结束 → 0
-        =============================== */
-        {
-          type: "SCHEDULED_DAMAGE",
-          value: 0,
-          when: "TURN_END",
-          turnOf: "OWNER",
-          target: "ENEMY",
-        },
-
-        /* ===============================
-           STAGE 2 — 敌方回合开始 → 0
-        =============================== */
-        {
-          type: "SCHEDULED_DAMAGE",
-          value: 0,
-          when: "TURN_START",
-          turnOf: "ENEMY",
-          target: "ENEMY",
-        },
-
-        /* ===============================
-           STAGE 3 — 敌方回合结束 → 5
-        =============================== */
-        {
-          type: "SCHEDULED_DAMAGE",
-          value: 4,
-          when: "TURN_END",
-          turnOf: "ENEMY",
-          target: "ENEMY",
-          lifestealPct: 0.3,
-        },
-
-        /* ===============================
-           STAGE 4 — 我方回合开始 → 5
-        =============================== */
-        {
-          type: "SCHEDULED_DAMAGE",
-          value: 6,
-          when: "TURN_START",
-          turnOf: "OWNER",
-          target: "ENEMY",
-          lifestealPct: 0.3,
-        },
-
-        /* ===============================
-           STAGE 5 — 敌方回合开始 → 10
-        =============================== */
-        {
-          type: "SCHEDULED_DAMAGE",
-          value: 15,
-          when: "TURN_START",
-          turnOf: "ENEMY",
-          target: "ENEMY",
-          lifestealPct: 0.3,
-        },
-
-        /* ===============================
-           STAGE 6 — 敌方回合结束 → 10
-        =============================== */
-        {
-          type: "SCHEDULED_DAMAGE",
-          value: 15,
-          when: "TURN_END",
-          turnOf: "ENEMY",
-          target: "ENEMY",
-          lifestealPct: 0.3,
-        },
-      ],
-    },
-  ],
-},
-
-
-
-xinzheng: {
-  id: "xinzheng",
-  name: "心诤",
-  description: "舞棍1回合\n期间免疫控制\n造成4/6/10点伤害",
-  type: "CHANNEL",
-  target: "SELF",
-  effects: [],
-  buffs: [
-    {
-      buffId: 1017,
-      name: "心诤",
-      category: "BUFF",
-      duration: 1,
-      tickOn: "TURN_START",
-      breakOnPlay: true,
-      description: "免疫控制",
-      effects: [
-        // CC immune while channeling
-        { type: "CONTROL_IMMUNE" },
-
-        /* ===============================
-           STAGE 1 — 我方回合结束 → 1
-        =============================== */
-        {
-          type: "SCHEDULED_DAMAGE",
-          value: 4,
-          when: "TURN_END",
-          turnOf: "OWNER",
-          target: "ENEMY",
-
-        },
-
-        /* ===============================
-           STAGE 2 — 敌方回合开始 → 2
-        =============================== */
-        {
-          type: "SCHEDULED_DAMAGE",
-          value: 6,
-          when: "TURN_START",
-          turnOf: "ENEMY",
-          target: "ENEMY",
-
-        },
-
-        /* ===============================
-           STAGE 3 — 敌方回合结束 → 3
-        =============================== */
-        {
-          type: "SCHEDULED_DAMAGE",
-          value: 10,
-          when: "TURN_END",
-          turnOf: "ENEMY",
-          target: "ENEMY",
-
-        },
-
-      ],
-    },
-  ],
-},
-
-
+  xinzheng: {
+    id: "xinzheng",
+    name: "心诤",
+    description: "舞棍1回合\n期间免疫控制\n造成4/6/10点伤害",
+    type: "CHANNEL",
+    target: "SELF",
+    gcdCost: 1,
+    effects: [],
+    buffs: [
+      {
+        buffId: 1017,
+        name: "心诤",
+        category: "BUFF",
+        duration: 1,
+        tickOn: "TURN_START",
+        breakOnPlay: true,
+        description: "免疫控制",
+        effects: [
+          { type: "CONTROL_IMMUNE" },
+          {
+            type: "SCHEDULED_DAMAGE",
+            value: 4,
+            when: "TURN_END",
+            turnOf: "OWNER",
+            target: "ENEMY",
+          },
+          {
+            type: "SCHEDULED_DAMAGE",
+            value: 6,
+            when: "TURN_START",
+            turnOf: "ENEMY",
+            target: "ENEMY",
+          },
+          {
+            type: "SCHEDULED_DAMAGE",
+            value: 10,
+            when: "TURN_END",
+            turnOf: "ENEMY",
+            target: "ENEMY",
+          },
+        ],
+      },
+    ],
+  },
 
   /* ================= 爆发 / 强化 ================= */
 
@@ -612,6 +566,7 @@ xinzheng: {
     description: "造成伤害提升100%\n受到伤害降低50%\n下回合开始时抽卡减一，持续4回合",
     type: "STANCE",
     target: "SELF",
+    gcdCost: 0,
     effects: [],
     buffs: [
       {
@@ -636,6 +591,7 @@ xinzheng: {
     description: "抽2张牌\n被命中几率降低65%且免疫控制，期间无法使用卡牌，持续1回合",
     type: "SUPPORT",
     target: "SELF",
+    gcdCost: 1,
     effects: [{ type: "DRAW", value: 2 }],
     buffs: [
       {
@@ -662,6 +618,7 @@ xinzheng: {
     description: "造成20点伤害\n目标生命值高于60时额外造成10点伤害",
     type: "ATTACK",
     target: "OPPONENT",
+    gcdCost: 1,
     effects: [
       { type: "DAMAGE", value: 20 },
       {
@@ -678,6 +635,7 @@ xinzheng: {
     description: "造成8点伤害\n回复4点生命值",
     type: "ATTACK",
     target: "OPPONENT",
+    gcdCost: 1,
     effects: [
       { type: "DAMAGE", value: 8 },
       { type: "HEAL", value: 4, applyTo: "SELF" },

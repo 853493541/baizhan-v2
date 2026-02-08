@@ -43,6 +43,12 @@ export function validatePlayCard(
     throw new Error("ERR_CARD_NOT_FOUND");
   }
 
+  /* ================= GCD ================= */
+
+  if (player.gcd < card.gcdCost) {
+    throw new Error("ERR_NO_GCD");
+  }
+
   /* ================= SILENCE ================= */
 
   if (hasEffect(player, "SILENCE")) {
