@@ -10,6 +10,7 @@ type CardVariant = "hand" | "arena" | "preview" | "disabled";
 type Props = {
   cardId: string;
   variant?: CardVariant;
+  remainingGcd?: number; // 👈 NEW
   onClick?: () => void;
 };
 
@@ -27,6 +28,7 @@ function getCardIconByName(cardName: string | undefined) {
 export default function Card({
   cardId,
   variant = "hand",
+  remainingGcd,
   onClick,
 }: Props) {
   const preload = useGamePreload();
@@ -42,6 +44,14 @@ export default function Card({
   const isClickable = variant === "hand";
   const isDisabled = variant === "disabled";
 
+  /* ================= PLAYABILITY ================= */
+
+  const playable =
+    variant === "hand" &&
+    gcdValue !== undefined &&
+    remainingGcd !== undefined &&
+    remainingGcd >= gcdValue;
+
   return (
     <div
       className={[
@@ -49,17 +59,17 @@ export default function Card({
         styles[variant],
         isClickable && styles.clickable,
         isDisabled && styles.disabled,
+        playable && styles.playable, // 👈 GREEN BORDER
       ]
         .filter(Boolean)
         .join(" ")}
-      onClickCapture={isClickable ? onClick : undefined}
+      onClickCapture={isClickable && playable ? onClick : undefined}
     >
-      {/* ================= GCD DEBUG / DISPLAY ================= */}
-    {variant === "hand" && gcdValue !== undefined && (
-  <div className={styles.gcdCrystal}>
-    {String(gcdValue)}
-  </div>
-)}
+      {/* ================= GCD DISPLAY ================= */}
+      {variant === "hand" && gcdValue !== undefined && (
+        <div className={styles.gcdCrystal}>{String(gcdValue)}</div>
+      )}
+
       <div className={styles.icon}>
         {iconSrc ? (
           <img src={iconSrc} alt={name} draggable={false} />

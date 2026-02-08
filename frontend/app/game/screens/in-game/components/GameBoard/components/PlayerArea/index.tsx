@@ -45,6 +45,7 @@ export default function PlayerArea({
       <div className={styles.handZone}>
         <Hand
           cards={me.hand}
+          remainingGcd={me.gcd}  
           onPlayCard={onPlayCard}
           isMyTurn={isMyTurn}
         />
