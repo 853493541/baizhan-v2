@@ -54,7 +54,7 @@ function renderDamageLine(e: GameEvent, myUserId: string) {
     return (
       <>
         你的<Skill name={e.cardName!} />对
-        <Target name={e.targetName ?? "敌人"} />
+        <Target name={e.targetName ?? "对手"} />
         造成了<DamageNum value={dmg} />点伤害。
       </>
     );
