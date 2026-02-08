@@ -13,7 +13,7 @@
   height: 200px;
 
   background: rgba(0, 0, 0, 0.45);
-  border-radius: 16px;
+  border-radius: 4px;
 
   display: flex;
   flex-direction: column;
@@ -24,17 +24,21 @@
 
 .tabs {
   display: flex;
+  align-items: stretch;
   background: rgba(255, 255, 255, 0.06);
 }
 
 .tab {
-  flex: 1;
-  padding: 10px 0;
-  font-size: 13px;
+  width: 60px;            /* 👈 fixed tab width */
+  padding: 5px 0;
+  font-size: 11px;
+
   border: none;
   background: none;
   color: #94a3b8;
   cursor: pointer;
+
+  text-align: center;     /* label centered inside tab */
 }
 
 .activeTab {
@@ -42,7 +46,6 @@
   font-weight: 700;
   background: rgba(255, 255, 255, 0.12);
 }
-
 /* ================= LOG BODY ================= */
 
 .logBody {
