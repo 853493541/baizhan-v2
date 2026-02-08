@@ -55,10 +55,11 @@ export default function Card({
       onClickCapture={isClickable ? onClick : undefined}
     >
       {/* ================= GCD DEBUG / DISPLAY ================= */}
-      <div className={styles.gcdCrystal}>
-        {String(gcdValue)}
-      </div>
-
+    {variant === "hand" && gcdValue !== undefined && (
+  <div className={styles.gcdCrystal}>
+    {String(gcdValue)}
+  </div>
+)}
       <div className={styles.icon}>
         {iconSrc ? (
           <img src={iconSrc} alt={name} draggable={false} />
