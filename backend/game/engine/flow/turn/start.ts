@@ -27,7 +27,7 @@ export function applyStartTurnEffects(params: {
    * Current rule (v0):
    * - Always reset to exactly 1
    */
-  me.gcd = 1;
+  me.gcd = 3;
 
   for (const buff of me.buffs) {
     for (const e of buff.effects) {
