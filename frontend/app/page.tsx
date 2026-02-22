@@ -101,9 +101,9 @@ export default function HomePage() {
 
       {/* ================= Footer ================= */}
       <div className={styles.footer}>
-        <p>版本 v2.50</p>
+        <p>版本 v2.52</p>
         <p>作者: 轻语@乾坤一掷</p>
-        <p>最后更新日期: 1/21/2026</p>
+        <p>最后更新日期: 2/21/2026</p>
       </div>
     </div>
   );
